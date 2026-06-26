@@ -1,0 +1,136 @@
+[gd_scene format=3 uid="uid://dy4dt8g1wkn3r"]
+
+[ext_resource type="Script" uid="uid://dltr0khsci5vc" path="res://Scenes/world_map_beta.gd" id="1_1lhek"]
+[ext_resource type="Texture2D" uid="uid://bi564cmtoumnk" path="res://assets/Map/world-map-clean3.png" id="1_8vogr"]
+[ext_resource type="PackedScene" uid="uid://cfnx71j3olabs" path="res://Scenes/WildlingSpot.tscn" id="2_a0sbj"]
+[ext_resource type="Texture2D" uid="uid://beibyygjic6i0" path="res://assets/Buildings/Castle/main_castle.png" id="2_dmpjg"]
+[ext_resource type="Script" uid="uid://dkkyi2mcu80q5" path="res://Scenes/City/camera_2d.gd" id="2_fe2gv"]
+[ext_resource type="Texture2D" uid="uid://beifcv430cat7" path="res://assets/Wildlings/wildling_bear.png" id="4_jq8pe"]
+[ext_resource type="Texture2D" uid="uid://wh4338gwgf34" path="res://assets/Wildlings/wildling_wolf.png" id="4_vv884"]
+[ext_resource type="Texture2D" uid="uid://ceijq2fh3hsn5" path="res://assets/Wildlings/wildling_boar.png" id="5_236ts"]
+[ext_resource type="Script" uid="uid://5wtdcvt6jlc4" path="res://Scripts/wildling_click.gd" id="5_se0l4"]
+[ext_resource type="Texture2D" uid="uid://be4o0ehb1t7f0" path="res://assets/Wildlings/wildling_spider.png" id="6_crkda"]
+[ext_resource type="PackedScene" uid="uid://bh08artiwt8rc" path="res://Scenes/WildlingPanel.tscn" id="6_se0l4"]
+[ext_resource type="Texture2D" uid="uid://cl8e1e2ap6quk" path="res://assets/MarchSkins/image_68a78d6f-removebg-preview.png" id="6_ynlq0"]
+[ext_resource type="Texture2D" uid="uid://dgoawno6tcx7f" path="res://assets/Wildlings/wildling_troll.png" id="7_ctn58"]
+[ext_resource type="Texture2D" uid="uid://cqu1pyuxbfyn6" path="res://assets/Wildlings/wildling_dragon.png" id="8_eajnp"]
+[ext_resource type="Texture2D" uid="uid://bu1lilw8cq10u" path="res://assets/UI/wildling_cards/wolf_card.png" id="13_ctn58"]
+[ext_resource type="PackedScene" uid="uid://5jwirwxopn1y" path="res://Scenes/UI/ResourceBar.tscn" id="21_oiegb"]
+[ext_resource type="PackedScene" uid="uid://dospbliics87u" path="res://Scenes/UI/GameHUD.tscn" id="22_oobo8"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_vv884"]
+radius = 488.89
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1lhek"]
+atlas = ExtResource("6_ynlq0")
+region = Rect2(2, 0, 248, 235)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_a0sbj"]
+atlas = ExtResource("6_ynlq0")
+region = Rect2(253, 0, 248, 235)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_h081k"]
+atlas = ExtResource("6_ynlq0")
+region = Rect2(504, 0, 248, 235)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_26acl"]
+atlas = ExtResource("6_ynlq0")
+region = Rect2(755, 0, 248, 235)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_iuahj"]
+animations = [{
+"frames": [],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1lhek")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_a0sbj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_h081k")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_26acl")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 10.0
+}]
+
+[node name="WorldMap_Beta" type="Node2D" unique_id=987947717]
+position = Vector2(162, 334)
+scale = Vector2(0.1, 0.1)
+script = ExtResource("1_1lhek")
+wildling_scene = ExtResource("2_a0sbj")
+wolf_texture = ExtResource("4_vv884")
+bear_texture = ExtResource("4_jq8pe")
+boar_texture = ExtResource("5_236ts")
+spider_texture = ExtResource("6_crkda")
+troll_texture = ExtResource("7_ctn58")
+dragon_texture = ExtResource("8_eajnp")
+metadata/_edit_group_ = true
+
+[node name="Map" type="Sprite2D" parent="." unique_id=402562816]
+position = Vector2(-14.749509, -20.000244)
+scale = Vector2(9.066585, 5.087718)
+texture = ExtResource("1_8vogr")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=372011524]
+script = ExtResource("2_fe2gv")
+
+[node name="MainCastle" type="Sprite2D" parent="." unique_id=1966243609]
+position = Vector2(1669.9999, -1419.9999)
+texture = ExtResource("2_dmpjg")
+
+[node name="WildlingWolf" type="Sprite2D" parent="." unique_id=1509680224]
+position = Vector2(300, 10)
+scale = Vector2(1.5625001, 1.3671875)
+texture = ExtResource("4_vv884")
+
+[node name="Area2D" type="Area2D" parent="WildlingWolf" unique_id=1010320797]
+position = Vector2(192, -65.82857)
+script = ExtResource("5_se0l4")
+card_texture = ExtResource("13_ctn58")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WildlingWolf/Area2D" unique_id=612902653]
+position = Vector2(-179.19995, 29.257172)
+shape = SubResource("CircleShape2D_vv884")
+debug_color = Color(0.4319078, 0.4554047, 1, 0)
+
+[node name="MarchIcon" type="AnimatedSprite2D" parent="." unique_id=921560690]
+visible = false
+scale = Vector2(5, 5)
+sprite_frames = SubResource("SpriteFrames_iuahj")
+animation = &"walk"
+frame_progress = 0.6039063
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=2104426901]
+
+[node name="WildlingPanel" parent="CanvasLayer" unique_id=488162736 instance=ExtResource("6_se0l4")]
+visible = false
+z_index = 999
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -326.0
+offset_top = -274.0
+offset_right = -326.0
+offset_bottom = -274.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="WildlingSpawns" type="Node2D" parent="." unique_id=2137955812]
+visible = false
+
+[node name="GameHUD" parent="." unique_id=1833121157 instance=ExtResource("22_oobo8")]
+is_world_screen = true
+
+[node name="CanvasLayer2" parent="." unique_id=855759196 instance=ExtResource("21_oiegb")]

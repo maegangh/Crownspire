@@ -1,0 +1,3764 @@
+[
+  {
+    "heroId": "maegan",
+    "rarity": "Mythic",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.2,
+      "skillUnlocks": [
+        "Sovereign Decree"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 20,
+      "goldCost": 10000,
+      "valorCost": 500,
+      "attackMultiplier": 1.25,
+      "defenseMultiplier": 1.25,
+      "healthMultiplier": 1.25,
+      "leadershipMultiplier": 1.25,
+      "powerMultiplier": 1.45,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 40,
+      "goldCost": 25000,
+      "valorCost": 1200,
+      "attackMultiplier": 1.55,
+      "defenseMultiplier": 1.55,
+      "healthMultiplier": 1.55,
+      "leadershipMultiplier": 1.55,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 80,
+      "goldCost": 60000,
+      "valorCost": 3000,
+      "attackMultiplier": 1.9,
+      "defenseMultiplier": 1.9,
+      "healthMultiplier": 1.9,
+      "leadershipMultiplier": 1.9,
+      "powerMultiplier": 2.15,
+      "skillUnlocks": [
+        "Bastion Aegis"
+      ]
+    },
+    "ascension4": {
+      "shardCost": 160,
+      "goldCost": 150000,
+      "valorCost": 8000,
+      "attackMultiplier": 2.3,
+      "defenseMultiplier": 2.3,
+      "healthMultiplier": 2.3,
+      "leadershipMultiplier": 2.3,
+      "powerMultiplier": 2.6,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 300,
+      "goldCost": 400000,
+      "valorCost": 20000,
+      "attackMultiplier": 2.8,
+      "defenseMultiplier": 2.8,
+      "healthMultiplier": 2.8,
+      "leadershipMultiplier": 2.8,
+      "powerMultiplier": 3.2,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "lorelai",
+    "rarity": "Mythic",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.2,
+      "skillUnlocks": [
+        "Siren Melody"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 20,
+      "goldCost": 10000,
+      "valorCost": 500,
+      "attackMultiplier": 1.25,
+      "defenseMultiplier": 1.25,
+      "healthMultiplier": 1.25,
+      "leadershipMultiplier": 1.25,
+      "powerMultiplier": 1.45,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 40,
+      "goldCost": 25000,
+      "valorCost": 1200,
+      "attackMultiplier": 1.55,
+      "defenseMultiplier": 1.55,
+      "healthMultiplier": 1.55,
+      "leadershipMultiplier": 1.55,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": [
+        "Canto of Haste"
+      ]
+    },
+    "ascension3": {
+      "shardCost": 80,
+      "goldCost": 60000,
+      "valorCost": 3000,
+      "attackMultiplier": 1.9,
+      "defenseMultiplier": 1.9,
+      "healthMultiplier": 1.9,
+      "leadershipMultiplier": 1.9,
+      "powerMultiplier": 2.15,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 160,
+      "goldCost": 150000,
+      "valorCost": 8000,
+      "attackMultiplier": 2.3,
+      "defenseMultiplier": 2.3,
+      "healthMultiplier": 2.3,
+      "leadershipMultiplier": 2.3,
+      "powerMultiplier": 2.6,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 300,
+      "goldCost": 400000,
+      "valorCost": 20000,
+      "attackMultiplier": 2.8,
+      "defenseMultiplier": 2.8,
+      "healthMultiplier": 2.8,
+      "leadershipMultiplier": 2.8,
+      "powerMultiplier": 3.2,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "myshla",
+    "rarity": "Mythic",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.2,
+      "skillUnlocks": [
+        "Mineral Resonance"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 20,
+      "goldCost": 10000,
+      "valorCost": 500,
+      "attackMultiplier": 1.25,
+      "defenseMultiplier": 1.25,
+      "healthMultiplier": 1.25,
+      "leadershipMultiplier": 1.25,
+      "powerMultiplier": 1.45,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 40,
+      "goldCost": 25000,
+      "valorCost": 1200,
+      "attackMultiplier": 1.55,
+      "defenseMultiplier": 1.55,
+      "healthMultiplier": 1.55,
+      "leadershipMultiplier": 1.55,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 80,
+      "goldCost": 60000,
+      "valorCost": 3000,
+      "attackMultiplier": 1.9,
+      "defenseMultiplier": 1.9,
+      "healthMultiplier": 1.9,
+      "leadershipMultiplier": 1.9,
+      "powerMultiplier": 2.15,
+      "skillUnlocks": [
+        "Safe Voyage"
+      ]
+    },
+    "ascension4": {
+      "shardCost": 160,
+      "goldCost": 150000,
+      "valorCost": 8000,
+      "attackMultiplier": 2.3,
+      "defenseMultiplier": 2.3,
+      "healthMultiplier": 2.3,
+      "leadershipMultiplier": 2.3,
+      "powerMultiplier": 2.6,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 300,
+      "goldCost": 400000,
+      "valorCost": 20000,
+      "attackMultiplier": 2.8,
+      "defenseMultiplier": 2.8,
+      "healthMultiplier": 2.8,
+      "leadershipMultiplier": 2.8,
+      "powerMultiplier": 3.2,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "shadow",
+    "rarity": "Mythic",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.2,
+      "skillUnlocks": [
+        "Eclipse Guillotine"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 20,
+      "goldCost": 10000,
+      "valorCost": 500,
+      "attackMultiplier": 1.25,
+      "defenseMultiplier": 1.25,
+      "healthMultiplier": 1.25,
+      "leadershipMultiplier": 1.25,
+      "powerMultiplier": 1.45,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 40,
+      "goldCost": 25000,
+      "valorCost": 1200,
+      "attackMultiplier": 1.55,
+      "defenseMultiplier": 1.55,
+      "healthMultiplier": 1.55,
+      "leadershipMultiplier": 1.55,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 80,
+      "goldCost": 60000,
+      "valorCost": 3000,
+      "attackMultiplier": 1.9,
+      "defenseMultiplier": 1.9,
+      "healthMultiplier": 1.9,
+      "leadershipMultiplier": 1.9,
+      "powerMultiplier": 2.15,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 160,
+      "goldCost": 150000,
+      "valorCost": 8000,
+      "attackMultiplier": 2.3,
+      "defenseMultiplier": 2.3,
+      "healthMultiplier": 2.3,
+      "leadershipMultiplier": 2.3,
+      "powerMultiplier": 2.6,
+      "skillUnlocks": [
+        "Phantom Veil"
+      ]
+    },
+    "ascension5": {
+      "shardCost": 300,
+      "goldCost": 400000,
+      "valorCost": 20000,
+      "attackMultiplier": 2.8,
+      "defenseMultiplier": 2.8,
+      "healthMultiplier": 2.8,
+      "leadershipMultiplier": 2.8,
+      "powerMultiplier": 3.2,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "rayne",
+    "rarity": "Mythic",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.2,
+      "skillUnlocks": [
+        "Tempest Rain"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 20,
+      "goldCost": 10000,
+      "valorCost": 500,
+      "attackMultiplier": 1.25,
+      "defenseMultiplier": 1.25,
+      "healthMultiplier": 1.25,
+      "leadershipMultiplier": 1.25,
+      "powerMultiplier": 1.45,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 40,
+      "goldCost": 25000,
+      "valorCost": 1200,
+      "attackMultiplier": 1.55,
+      "defenseMultiplier": 1.55,
+      "healthMultiplier": 1.55,
+      "leadershipMultiplier": 1.55,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": [
+        "Gale Guidance"
+      ]
+    },
+    "ascension3": {
+      "shardCost": 80,
+      "goldCost": 60000,
+      "valorCost": 3000,
+      "attackMultiplier": 1.9,
+      "defenseMultiplier": 1.9,
+      "healthMultiplier": 1.9,
+      "leadershipMultiplier": 1.9,
+      "powerMultiplier": 2.15,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 160,
+      "goldCost": 150000,
+      "valorCost": 8000,
+      "attackMultiplier": 2.3,
+      "defenseMultiplier": 2.3,
+      "healthMultiplier": 2.3,
+      "leadershipMultiplier": 2.3,
+      "powerMultiplier": 2.6,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 300,
+      "goldCost": 400000,
+      "valorCost": 20000,
+      "attackMultiplier": 2.8,
+      "defenseMultiplier": 2.8,
+      "healthMultiplier": 2.8,
+      "leadershipMultiplier": 2.8,
+      "powerMultiplier": 3.2,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "rex",
+    "rarity": "Mythic",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.2,
+      "skillUnlocks": [
+        "Indomitable Stance"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 20,
+      "goldCost": 10000,
+      "valorCost": 500,
+      "attackMultiplier": 1.25,
+      "defenseMultiplier": 1.25,
+      "healthMultiplier": 1.25,
+      "leadershipMultiplier": 1.25,
+      "powerMultiplier": 1.45,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 40,
+      "goldCost": 25000,
+      "valorCost": 1200,
+      "attackMultiplier": 1.55,
+      "defenseMultiplier": 1.55,
+      "healthMultiplier": 1.55,
+      "leadershipMultiplier": 1.55,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 80,
+      "goldCost": 60000,
+      "valorCost": 3000,
+      "attackMultiplier": 1.9,
+      "defenseMultiplier": 1.9,
+      "healthMultiplier": 1.9,
+      "leadershipMultiplier": 1.9,
+      "powerMultiplier": 2.15,
+      "skillUnlocks": [
+        "Dragon Vanguard"
+      ]
+    },
+    "ascension4": {
+      "shardCost": 160,
+      "goldCost": 150000,
+      "valorCost": 8000,
+      "attackMultiplier": 2.3,
+      "defenseMultiplier": 2.3,
+      "healthMultiplier": 2.3,
+      "leadershipMultiplier": 2.3,
+      "powerMultiplier": 2.6,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 300,
+      "goldCost": 400000,
+      "valorCost": 20000,
+      "attackMultiplier": 2.8,
+      "defenseMultiplier": 2.8,
+      "healthMultiplier": 2.8,
+      "leadershipMultiplier": 2.8,
+      "powerMultiplier": 3.2,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "lumi",
+    "rarity": "Mythic",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.2,
+      "skillUnlocks": [
+        "Glacial Rejuvenation"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 20,
+      "goldCost": 10000,
+      "valorCost": 500,
+      "attackMultiplier": 1.25,
+      "defenseMultiplier": 1.25,
+      "healthMultiplier": 1.25,
+      "leadershipMultiplier": 1.25,
+      "powerMultiplier": 1.45,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 40,
+      "goldCost": 25000,
+      "valorCost": 1200,
+      "attackMultiplier": 1.55,
+      "defenseMultiplier": 1.55,
+      "healthMultiplier": 1.55,
+      "leadershipMultiplier": 1.55,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": [
+        "Blizzard Ward"
+      ]
+    },
+    "ascension3": {
+      "shardCost": 80,
+      "goldCost": 60000,
+      "valorCost": 3000,
+      "attackMultiplier": 1.9,
+      "defenseMultiplier": 1.9,
+      "healthMultiplier": 1.9,
+      "leadershipMultiplier": 1.9,
+      "powerMultiplier": 2.15,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 160,
+      "goldCost": 150000,
+      "valorCost": 8000,
+      "attackMultiplier": 2.3,
+      "defenseMultiplier": 2.3,
+      "healthMultiplier": 2.3,
+      "leadershipMultiplier": 2.3,
+      "powerMultiplier": 2.6,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 300,
+      "goldCost": 400000,
+      "valorCost": 20000,
+      "attackMultiplier": 2.8,
+      "defenseMultiplier": 2.8,
+      "healthMultiplier": 2.8,
+      "leadershipMultiplier": 2.8,
+      "powerMultiplier": 3.2,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "heaven",
+    "rarity": "Mythic",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.2,
+      "skillUnlocks": [
+        "Seraphic Lance"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 20,
+      "goldCost": 10000,
+      "valorCost": 500,
+      "attackMultiplier": 1.25,
+      "defenseMultiplier": 1.25,
+      "healthMultiplier": 1.25,
+      "leadershipMultiplier": 1.25,
+      "powerMultiplier": 1.45,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 40,
+      "goldCost": 25000,
+      "valorCost": 1200,
+      "attackMultiplier": 1.55,
+      "defenseMultiplier": 1.55,
+      "healthMultiplier": 1.55,
+      "leadershipMultiplier": 1.55,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 80,
+      "goldCost": 60000,
+      "valorCost": 3000,
+      "attackMultiplier": 1.9,
+      "defenseMultiplier": 1.9,
+      "healthMultiplier": 1.9,
+      "leadershipMultiplier": 1.9,
+      "powerMultiplier": 2.15,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 160,
+      "goldCost": 150000,
+      "valorCost": 8000,
+      "attackMultiplier": 2.3,
+      "defenseMultiplier": 2.3,
+      "healthMultiplier": 2.3,
+      "leadershipMultiplier": 2.3,
+      "powerMultiplier": 2.6,
+      "skillUnlocks": [
+        "Aura of Sanctity"
+      ]
+    },
+    "ascension5": {
+      "shardCost": 300,
+      "goldCost": 400000,
+      "valorCost": 20000,
+      "attackMultiplier": 2.8,
+      "defenseMultiplier": 2.8,
+      "healthMultiplier": 2.8,
+      "leadershipMultiplier": 2.8,
+      "powerMultiplier": 3.2,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "demon",
+    "rarity": "Mythic",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.2,
+      "skillUnlocks": [
+        "Hellfire Frenzy"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 20,
+      "goldCost": 10000,
+      "valorCost": 500,
+      "attackMultiplier": 1.25,
+      "defenseMultiplier": 1.25,
+      "healthMultiplier": 1.25,
+      "leadershipMultiplier": 1.25,
+      "powerMultiplier": 1.45,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 40,
+      "goldCost": 25000,
+      "valorCost": 1200,
+      "attackMultiplier": 1.55,
+      "defenseMultiplier": 1.55,
+      "healthMultiplier": 1.55,
+      "leadershipMultiplier": 1.55,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 80,
+      "goldCost": 60000,
+      "valorCost": 3000,
+      "attackMultiplier": 1.9,
+      "defenseMultiplier": 1.9,
+      "healthMultiplier": 1.9,
+      "leadershipMultiplier": 1.9,
+      "powerMultiplier": 2.15,
+      "skillUnlocks": [
+        "Obsidian Rupture"
+      ]
+    },
+    "ascension4": {
+      "shardCost": 160,
+      "goldCost": 150000,
+      "valorCost": 8000,
+      "attackMultiplier": 2.3,
+      "defenseMultiplier": 2.3,
+      "healthMultiplier": 2.3,
+      "leadershipMultiplier": 2.3,
+      "powerMultiplier": 2.6,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 300,
+      "goldCost": 400000,
+      "valorCost": 20000,
+      "attackMultiplier": 2.8,
+      "defenseMultiplier": 2.8,
+      "healthMultiplier": 2.8,
+      "leadershipMultiplier": 2.8,
+      "powerMultiplier": 3.2,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "allanna",
+    "rarity": "Legendary",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.15,
+      "skillUnlocks": [
+        "Sanctuary Dome"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 15,
+      "goldCost": 5000,
+      "valorCost": 250,
+      "attackMultiplier": 1.2,
+      "defenseMultiplier": 1.2,
+      "healthMultiplier": 1.2,
+      "leadershipMultiplier": 1.2,
+      "powerMultiplier": 1.35,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 30,
+      "goldCost": 12000,
+      "valorCost": 600,
+      "attackMultiplier": 1.45,
+      "defenseMultiplier": 1.45,
+      "healthMultiplier": 1.45,
+      "leadershipMultiplier": 1.45,
+      "powerMultiplier": 1.6,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 60,
+      "goldCost": 30000,
+      "valorCost": 1500,
+      "attackMultiplier": 1.75,
+      "defenseMultiplier": 1.75,
+      "healthMultiplier": 1.75,
+      "leadershipMultiplier": 1.75,
+      "powerMultiplier": 1.95,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 120,
+      "goldCost": 75000,
+      "valorCost": 4000,
+      "attackMultiplier": 2.1,
+      "defenseMultiplier": 2.1,
+      "healthMultiplier": 2.1,
+      "leadershipMultiplier": 2.1,
+      "powerMultiplier": 2.35,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 220,
+      "goldCost": 200000,
+      "valorCost": 10000,
+      "attackMultiplier": 2.5,
+      "defenseMultiplier": 2.5,
+      "healthMultiplier": 2.5,
+      "leadershipMultiplier": 2.5,
+      "powerMultiplier": 2.8,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "savannah",
+    "rarity": "Legendary",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.15,
+      "skillUnlocks": [
+        "Bountiful Plains"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 15,
+      "goldCost": 5000,
+      "valorCost": 250,
+      "attackMultiplier": 1.2,
+      "defenseMultiplier": 1.2,
+      "healthMultiplier": 1.2,
+      "leadershipMultiplier": 1.2,
+      "powerMultiplier": 1.35,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 30,
+      "goldCost": 12000,
+      "valorCost": 600,
+      "attackMultiplier": 1.45,
+      "defenseMultiplier": 1.45,
+      "healthMultiplier": 1.45,
+      "leadershipMultiplier": 1.45,
+      "powerMultiplier": 1.6,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 60,
+      "goldCost": 30000,
+      "valorCost": 1500,
+      "attackMultiplier": 1.75,
+      "defenseMultiplier": 1.75,
+      "healthMultiplier": 1.75,
+      "leadershipMultiplier": 1.75,
+      "powerMultiplier": 1.95,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 120,
+      "goldCost": 75000,
+      "valorCost": 4000,
+      "attackMultiplier": 2.1,
+      "defenseMultiplier": 2.1,
+      "healthMultiplier": 2.1,
+      "leadershipMultiplier": 2.1,
+      "powerMultiplier": 2.35,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 220,
+      "goldCost": 200000,
+      "valorCost": 10000,
+      "attackMultiplier": 2.5,
+      "defenseMultiplier": 2.5,
+      "healthMultiplier": 2.5,
+      "leadershipMultiplier": 2.5,
+      "powerMultiplier": 2.8,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "aria",
+    "rarity": "Legendary",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.15,
+      "skillUnlocks": [
+        "Vibrato Bolt"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 15,
+      "goldCost": 5000,
+      "valorCost": 250,
+      "attackMultiplier": 1.2,
+      "defenseMultiplier": 1.2,
+      "healthMultiplier": 1.2,
+      "leadershipMultiplier": 1.2,
+      "powerMultiplier": 1.35,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 30,
+      "goldCost": 12000,
+      "valorCost": 600,
+      "attackMultiplier": 1.45,
+      "defenseMultiplier": 1.45,
+      "healthMultiplier": 1.45,
+      "leadershipMultiplier": 1.45,
+      "powerMultiplier": 1.6,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 60,
+      "goldCost": 30000,
+      "valorCost": 1500,
+      "attackMultiplier": 1.75,
+      "defenseMultiplier": 1.75,
+      "healthMultiplier": 1.75,
+      "leadershipMultiplier": 1.75,
+      "powerMultiplier": 1.95,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 120,
+      "goldCost": 75000,
+      "valorCost": 4000,
+      "attackMultiplier": 2.1,
+      "defenseMultiplier": 2.1,
+      "healthMultiplier": 2.1,
+      "leadershipMultiplier": 2.1,
+      "powerMultiplier": 2.35,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 220,
+      "goldCost": 200000,
+      "valorCost": 10000,
+      "attackMultiplier": 2.5,
+      "defenseMultiplier": 2.5,
+      "healthMultiplier": 2.5,
+      "leadershipMultiplier": 2.5,
+      "powerMultiplier": 2.8,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "dominic",
+    "rarity": "Legendary",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.15,
+      "skillUnlocks": [
+        "Phalanx Wall"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 15,
+      "goldCost": 5000,
+      "valorCost": 250,
+      "attackMultiplier": 1.2,
+      "defenseMultiplier": 1.2,
+      "healthMultiplier": 1.2,
+      "leadershipMultiplier": 1.2,
+      "powerMultiplier": 1.35,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 30,
+      "goldCost": 12000,
+      "valorCost": 600,
+      "attackMultiplier": 1.45,
+      "defenseMultiplier": 1.45,
+      "healthMultiplier": 1.45,
+      "leadershipMultiplier": 1.45,
+      "powerMultiplier": 1.6,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 60,
+      "goldCost": 30000,
+      "valorCost": 1500,
+      "attackMultiplier": 1.75,
+      "defenseMultiplier": 1.75,
+      "healthMultiplier": 1.75,
+      "leadershipMultiplier": 1.75,
+      "powerMultiplier": 1.95,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 120,
+      "goldCost": 75000,
+      "valorCost": 4000,
+      "attackMultiplier": 2.1,
+      "defenseMultiplier": 2.1,
+      "healthMultiplier": 2.1,
+      "leadershipMultiplier": 2.1,
+      "powerMultiplier": 2.35,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 220,
+      "goldCost": 200000,
+      "valorCost": 10000,
+      "attackMultiplier": 2.5,
+      "defenseMultiplier": 2.5,
+      "healthMultiplier": 2.5,
+      "leadershipMultiplier": 2.5,
+      "powerMultiplier": 2.8,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "skye",
+    "rarity": "Legendary",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.15,
+      "skillUnlocks": [
+        "Zephyr Strike"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 15,
+      "goldCost": 5000,
+      "valorCost": 250,
+      "attackMultiplier": 1.2,
+      "defenseMultiplier": 1.2,
+      "healthMultiplier": 1.2,
+      "leadershipMultiplier": 1.2,
+      "powerMultiplier": 1.35,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 30,
+      "goldCost": 12000,
+      "valorCost": 600,
+      "attackMultiplier": 1.45,
+      "defenseMultiplier": 1.45,
+      "healthMultiplier": 1.45,
+      "leadershipMultiplier": 1.45,
+      "powerMultiplier": 1.6,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 60,
+      "goldCost": 30000,
+      "valorCost": 1500,
+      "attackMultiplier": 1.75,
+      "defenseMultiplier": 1.75,
+      "healthMultiplier": 1.75,
+      "leadershipMultiplier": 1.75,
+      "powerMultiplier": 1.95,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 120,
+      "goldCost": 75000,
+      "valorCost": 4000,
+      "attackMultiplier": 2.1,
+      "defenseMultiplier": 2.1,
+      "healthMultiplier": 2.1,
+      "leadershipMultiplier": 2.1,
+      "powerMultiplier": 2.35,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 220,
+      "goldCost": 200000,
+      "valorCost": 10000,
+      "attackMultiplier": 2.5,
+      "defenseMultiplier": 2.5,
+      "healthMultiplier": 2.5,
+      "leadershipMultiplier": 2.5,
+      "powerMultiplier": 2.8,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "noxx",
+    "rarity": "Legendary",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.15,
+      "skillUnlocks": [
+        "Plague Blade"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 15,
+      "goldCost": 5000,
+      "valorCost": 250,
+      "attackMultiplier": 1.2,
+      "defenseMultiplier": 1.2,
+      "healthMultiplier": 1.2,
+      "leadershipMultiplier": 1.2,
+      "powerMultiplier": 1.35,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 30,
+      "goldCost": 12000,
+      "valorCost": 600,
+      "attackMultiplier": 1.45,
+      "defenseMultiplier": 1.45,
+      "healthMultiplier": 1.45,
+      "leadershipMultiplier": 1.45,
+      "powerMultiplier": 1.6,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 60,
+      "goldCost": 30000,
+      "valorCost": 1500,
+      "attackMultiplier": 1.75,
+      "defenseMultiplier": 1.75,
+      "healthMultiplier": 1.75,
+      "leadershipMultiplier": 1.75,
+      "powerMultiplier": 1.95,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 120,
+      "goldCost": 75000,
+      "valorCost": 4000,
+      "attackMultiplier": 2.1,
+      "defenseMultiplier": 2.1,
+      "healthMultiplier": 2.1,
+      "leadershipMultiplier": 2.1,
+      "powerMultiplier": 2.35,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 220,
+      "goldCost": 200000,
+      "valorCost": 10000,
+      "attackMultiplier": 2.5,
+      "defenseMultiplier": 2.5,
+      "healthMultiplier": 2.5,
+      "leadershipMultiplier": 2.5,
+      "powerMultiplier": 2.8,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "remi",
+    "rarity": "Legendary",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.15,
+      "skillUnlocks": [
+        "Master Masonry"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 15,
+      "goldCost": 5000,
+      "valorCost": 250,
+      "attackMultiplier": 1.2,
+      "defenseMultiplier": 1.2,
+      "healthMultiplier": 1.2,
+      "leadershipMultiplier": 1.2,
+      "powerMultiplier": 1.35,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 30,
+      "goldCost": 12000,
+      "valorCost": 600,
+      "attackMultiplier": 1.45,
+      "defenseMultiplier": 1.45,
+      "healthMultiplier": 1.45,
+      "leadershipMultiplier": 1.45,
+      "powerMultiplier": 1.6,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 60,
+      "goldCost": 30000,
+      "valorCost": 1500,
+      "attackMultiplier": 1.75,
+      "defenseMultiplier": 1.75,
+      "healthMultiplier": 1.75,
+      "leadershipMultiplier": 1.75,
+      "powerMultiplier": 1.95,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 120,
+      "goldCost": 75000,
+      "valorCost": 4000,
+      "attackMultiplier": 2.1,
+      "defenseMultiplier": 2.1,
+      "healthMultiplier": 2.1,
+      "leadershipMultiplier": 2.1,
+      "powerMultiplier": 2.35,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 220,
+      "goldCost": 200000,
+      "valorCost": 10000,
+      "attackMultiplier": 2.5,
+      "defenseMultiplier": 2.5,
+      "healthMultiplier": 2.5,
+      "leadershipMultiplier": 2.5,
+      "powerMultiplier": 2.8,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "faith",
+    "rarity": "Legendary",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.15,
+      "skillUnlocks": [
+        "Enlightenment"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 15,
+      "goldCost": 5000,
+      "valorCost": 250,
+      "attackMultiplier": 1.2,
+      "defenseMultiplier": 1.2,
+      "healthMultiplier": 1.2,
+      "leadershipMultiplier": 1.2,
+      "powerMultiplier": 1.35,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 30,
+      "goldCost": 12000,
+      "valorCost": 600,
+      "attackMultiplier": 1.45,
+      "defenseMultiplier": 1.45,
+      "healthMultiplier": 1.45,
+      "leadershipMultiplier": 1.45,
+      "powerMultiplier": 1.6,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 60,
+      "goldCost": 30000,
+      "valorCost": 1500,
+      "attackMultiplier": 1.75,
+      "defenseMultiplier": 1.75,
+      "healthMultiplier": 1.75,
+      "leadershipMultiplier": 1.75,
+      "powerMultiplier": 1.95,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 120,
+      "goldCost": 75000,
+      "valorCost": 4000,
+      "attackMultiplier": 2.1,
+      "defenseMultiplier": 2.1,
+      "healthMultiplier": 2.1,
+      "leadershipMultiplier": 2.1,
+      "powerMultiplier": 2.35,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 220,
+      "goldCost": 200000,
+      "valorCost": 10000,
+      "attackMultiplier": 2.5,
+      "defenseMultiplier": 2.5,
+      "healthMultiplier": 2.5,
+      "leadershipMultiplier": 2.5,
+      "powerMultiplier": 2.8,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "volkan",
+    "rarity": "Legendary",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.15,
+      "skillUnlocks": [
+        "Sledge Smash"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 15,
+      "goldCost": 5000,
+      "valorCost": 250,
+      "attackMultiplier": 1.2,
+      "defenseMultiplier": 1.2,
+      "healthMultiplier": 1.2,
+      "leadershipMultiplier": 1.2,
+      "powerMultiplier": 1.35,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 30,
+      "goldCost": 12000,
+      "valorCost": 600,
+      "attackMultiplier": 1.45,
+      "defenseMultiplier": 1.45,
+      "healthMultiplier": 1.45,
+      "leadershipMultiplier": 1.45,
+      "powerMultiplier": 1.6,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 60,
+      "goldCost": 30000,
+      "valorCost": 1500,
+      "attackMultiplier": 1.75,
+      "defenseMultiplier": 1.75,
+      "healthMultiplier": 1.75,
+      "leadershipMultiplier": 1.75,
+      "powerMultiplier": 1.95,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 120,
+      "goldCost": 75000,
+      "valorCost": 4000,
+      "attackMultiplier": 2.1,
+      "defenseMultiplier": 2.1,
+      "healthMultiplier": 2.1,
+      "leadershipMultiplier": 2.1,
+      "powerMultiplier": 2.35,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 220,
+      "goldCost": 200000,
+      "valorCost": 10000,
+      "attackMultiplier": 2.5,
+      "defenseMultiplier": 2.5,
+      "healthMultiplier": 2.5,
+      "leadershipMultiplier": 2.5,
+      "powerMultiplier": 2.8,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "huarung",
+    "rarity": "Legendary",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.15,
+      "skillUnlocks": [
+        "Grounded Sight"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 15,
+      "goldCost": 5000,
+      "valorCost": 250,
+      "attackMultiplier": 1.2,
+      "defenseMultiplier": 1.2,
+      "healthMultiplier": 1.2,
+      "leadershipMultiplier": 1.2,
+      "powerMultiplier": 1.35,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 30,
+      "goldCost": 12000,
+      "valorCost": 600,
+      "attackMultiplier": 1.45,
+      "defenseMultiplier": 1.45,
+      "healthMultiplier": 1.45,
+      "leadershipMultiplier": 1.45,
+      "powerMultiplier": 1.6,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 60,
+      "goldCost": 30000,
+      "valorCost": 1500,
+      "attackMultiplier": 1.75,
+      "defenseMultiplier": 1.75,
+      "healthMultiplier": 1.75,
+      "leadershipMultiplier": 1.75,
+      "powerMultiplier": 1.95,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 120,
+      "goldCost": 75000,
+      "valorCost": 4000,
+      "attackMultiplier": 2.1,
+      "defenseMultiplier": 2.1,
+      "healthMultiplier": 2.1,
+      "leadershipMultiplier": 2.1,
+      "powerMultiplier": 2.35,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 220,
+      "goldCost": 200000,
+      "valorCost": 10000,
+      "attackMultiplier": 2.5,
+      "defenseMultiplier": 2.5,
+      "healthMultiplier": 2.5,
+      "leadershipMultiplier": 2.5,
+      "powerMultiplier": 2.8,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "violet",
+    "rarity": "Legendary",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.15,
+      "skillUnlocks": [
+        "Viper Slash"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 15,
+      "goldCost": 5000,
+      "valorCost": 250,
+      "attackMultiplier": 1.2,
+      "defenseMultiplier": 1.2,
+      "healthMultiplier": 1.2,
+      "leadershipMultiplier": 1.2,
+      "powerMultiplier": 1.35,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 30,
+      "goldCost": 12000,
+      "valorCost": 600,
+      "attackMultiplier": 1.45,
+      "defenseMultiplier": 1.45,
+      "healthMultiplier": 1.45,
+      "leadershipMultiplier": 1.45,
+      "powerMultiplier": 1.6,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 60,
+      "goldCost": 30000,
+      "valorCost": 1500,
+      "attackMultiplier": 1.75,
+      "defenseMultiplier": 1.75,
+      "healthMultiplier": 1.75,
+      "leadershipMultiplier": 1.75,
+      "powerMultiplier": 1.95,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 120,
+      "goldCost": 75000,
+      "valorCost": 4000,
+      "attackMultiplier": 2.1,
+      "defenseMultiplier": 2.1,
+      "healthMultiplier": 2.1,
+      "leadershipMultiplier": 2.1,
+      "powerMultiplier": 2.35,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 220,
+      "goldCost": 200000,
+      "valorCost": 10000,
+      "attackMultiplier": 2.5,
+      "defenseMultiplier": 2.5,
+      "healthMultiplier": 2.5,
+      "leadershipMultiplier": 2.5,
+      "powerMultiplier": 2.8,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "sebastian",
+    "rarity": "Epic",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.1,
+      "skillUnlocks": [
+        "Sebastian's Gambit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 10,
+      "goldCost": 2000,
+      "valorCost": 100,
+      "attackMultiplier": 1.15,
+      "defenseMultiplier": 1.15,
+      "healthMultiplier": 1.15,
+      "leadershipMultiplier": 1.15,
+      "powerMultiplier": 1.25,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 20,
+      "goldCost": 5000,
+      "valorCost": 250,
+      "attackMultiplier": 1.35,
+      "defenseMultiplier": 1.35,
+      "healthMultiplier": 1.35,
+      "leadershipMultiplier": 1.35,
+      "powerMultiplier": 1.45,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 45,
+      "goldCost": 15000,
+      "valorCost": 750,
+      "attackMultiplier": 1.6,
+      "defenseMultiplier": 1.6,
+      "healthMultiplier": 1.6,
+      "leadershipMultiplier": 1.6,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 90,
+      "goldCost": 40000,
+      "valorCost": 2000,
+      "attackMultiplier": 1.9,
+      "defenseMultiplier": 1.9,
+      "healthMultiplier": 1.9,
+      "leadershipMultiplier": 1.9,
+      "powerMultiplier": 2.1,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 160,
+      "goldCost": 100000,
+      "valorCost": 5000,
+      "attackMultiplier": 2.25,
+      "defenseMultiplier": 2.25,
+      "healthMultiplier": 2.25,
+      "leadershipMultiplier": 2.25,
+      "powerMultiplier": 2.5,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "josh",
+    "rarity": "Epic",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.1,
+      "skillUnlocks": [
+        "Josh's Gambit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 10,
+      "goldCost": 2000,
+      "valorCost": 100,
+      "attackMultiplier": 1.15,
+      "defenseMultiplier": 1.15,
+      "healthMultiplier": 1.15,
+      "leadershipMultiplier": 1.15,
+      "powerMultiplier": 1.25,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 20,
+      "goldCost": 5000,
+      "valorCost": 250,
+      "attackMultiplier": 1.35,
+      "defenseMultiplier": 1.35,
+      "healthMultiplier": 1.35,
+      "leadershipMultiplier": 1.35,
+      "powerMultiplier": 1.45,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 45,
+      "goldCost": 15000,
+      "valorCost": 750,
+      "attackMultiplier": 1.6,
+      "defenseMultiplier": 1.6,
+      "healthMultiplier": 1.6,
+      "leadershipMultiplier": 1.6,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 90,
+      "goldCost": 40000,
+      "valorCost": 2000,
+      "attackMultiplier": 1.9,
+      "defenseMultiplier": 1.9,
+      "healthMultiplier": 1.9,
+      "leadershipMultiplier": 1.9,
+      "powerMultiplier": 2.1,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 160,
+      "goldCost": 100000,
+      "valorCost": 5000,
+      "attackMultiplier": 2.25,
+      "defenseMultiplier": 2.25,
+      "healthMultiplier": 2.25,
+      "leadershipMultiplier": 2.25,
+      "powerMultiplier": 2.5,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "paul",
+    "rarity": "Epic",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.1,
+      "skillUnlocks": [
+        "Paul's Gambit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 10,
+      "goldCost": 2000,
+      "valorCost": 100,
+      "attackMultiplier": 1.15,
+      "defenseMultiplier": 1.15,
+      "healthMultiplier": 1.15,
+      "leadershipMultiplier": 1.15,
+      "powerMultiplier": 1.25,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 20,
+      "goldCost": 5000,
+      "valorCost": 250,
+      "attackMultiplier": 1.35,
+      "defenseMultiplier": 1.35,
+      "healthMultiplier": 1.35,
+      "leadershipMultiplier": 1.35,
+      "powerMultiplier": 1.45,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 45,
+      "goldCost": 15000,
+      "valorCost": 750,
+      "attackMultiplier": 1.6,
+      "defenseMultiplier": 1.6,
+      "healthMultiplier": 1.6,
+      "leadershipMultiplier": 1.6,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 90,
+      "goldCost": 40000,
+      "valorCost": 2000,
+      "attackMultiplier": 1.9,
+      "defenseMultiplier": 1.9,
+      "healthMultiplier": 1.9,
+      "leadershipMultiplier": 1.9,
+      "powerMultiplier": 2.1,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 160,
+      "goldCost": 100000,
+      "valorCost": 5000,
+      "attackMultiplier": 2.25,
+      "defenseMultiplier": 2.25,
+      "healthMultiplier": 2.25,
+      "leadershipMultiplier": 2.25,
+      "powerMultiplier": 2.5,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "tony",
+    "rarity": "Epic",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.1,
+      "skillUnlocks": [
+        "Tony's Gambit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 10,
+      "goldCost": 2000,
+      "valorCost": 100,
+      "attackMultiplier": 1.15,
+      "defenseMultiplier": 1.15,
+      "healthMultiplier": 1.15,
+      "leadershipMultiplier": 1.15,
+      "powerMultiplier": 1.25,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 20,
+      "goldCost": 5000,
+      "valorCost": 250,
+      "attackMultiplier": 1.35,
+      "defenseMultiplier": 1.35,
+      "healthMultiplier": 1.35,
+      "leadershipMultiplier": 1.35,
+      "powerMultiplier": 1.45,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 45,
+      "goldCost": 15000,
+      "valorCost": 750,
+      "attackMultiplier": 1.6,
+      "defenseMultiplier": 1.6,
+      "healthMultiplier": 1.6,
+      "leadershipMultiplier": 1.6,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 90,
+      "goldCost": 40000,
+      "valorCost": 2000,
+      "attackMultiplier": 1.9,
+      "defenseMultiplier": 1.9,
+      "healthMultiplier": 1.9,
+      "leadershipMultiplier": 1.9,
+      "powerMultiplier": 2.1,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 160,
+      "goldCost": 100000,
+      "valorCost": 5000,
+      "attackMultiplier": 2.25,
+      "defenseMultiplier": 2.25,
+      "healthMultiplier": 2.25,
+      "leadershipMultiplier": 2.25,
+      "powerMultiplier": 2.5,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "chase",
+    "rarity": "Epic",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.1,
+      "skillUnlocks": [
+        "Chase's Gambit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 10,
+      "goldCost": 2000,
+      "valorCost": 100,
+      "attackMultiplier": 1.15,
+      "defenseMultiplier": 1.15,
+      "healthMultiplier": 1.15,
+      "leadershipMultiplier": 1.15,
+      "powerMultiplier": 1.25,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 20,
+      "goldCost": 5000,
+      "valorCost": 250,
+      "attackMultiplier": 1.35,
+      "defenseMultiplier": 1.35,
+      "healthMultiplier": 1.35,
+      "leadershipMultiplier": 1.35,
+      "powerMultiplier": 1.45,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 45,
+      "goldCost": 15000,
+      "valorCost": 750,
+      "attackMultiplier": 1.6,
+      "defenseMultiplier": 1.6,
+      "healthMultiplier": 1.6,
+      "leadershipMultiplier": 1.6,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 90,
+      "goldCost": 40000,
+      "valorCost": 2000,
+      "attackMultiplier": 1.9,
+      "defenseMultiplier": 1.9,
+      "healthMultiplier": 1.9,
+      "leadershipMultiplier": 1.9,
+      "powerMultiplier": 2.1,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 160,
+      "goldCost": 100000,
+      "valorCost": 5000,
+      "attackMultiplier": 2.25,
+      "defenseMultiplier": 2.25,
+      "healthMultiplier": 2.25,
+      "leadershipMultiplier": 2.25,
+      "powerMultiplier": 2.5,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "everest",
+    "rarity": "Epic",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.1,
+      "skillUnlocks": [
+        "Everest's Gambit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 10,
+      "goldCost": 2000,
+      "valorCost": 100,
+      "attackMultiplier": 1.15,
+      "defenseMultiplier": 1.15,
+      "healthMultiplier": 1.15,
+      "leadershipMultiplier": 1.15,
+      "powerMultiplier": 1.25,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 20,
+      "goldCost": 5000,
+      "valorCost": 250,
+      "attackMultiplier": 1.35,
+      "defenseMultiplier": 1.35,
+      "healthMultiplier": 1.35,
+      "leadershipMultiplier": 1.35,
+      "powerMultiplier": 1.45,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 45,
+      "goldCost": 15000,
+      "valorCost": 750,
+      "attackMultiplier": 1.6,
+      "defenseMultiplier": 1.6,
+      "healthMultiplier": 1.6,
+      "leadershipMultiplier": 1.6,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 90,
+      "goldCost": 40000,
+      "valorCost": 2000,
+      "attackMultiplier": 1.9,
+      "defenseMultiplier": 1.9,
+      "healthMultiplier": 1.9,
+      "leadershipMultiplier": 1.9,
+      "powerMultiplier": 2.1,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 160,
+      "goldCost": 100000,
+      "valorCost": 5000,
+      "attackMultiplier": 2.25,
+      "defenseMultiplier": 2.25,
+      "healthMultiplier": 2.25,
+      "leadershipMultiplier": 2.25,
+      "powerMultiplier": 2.5,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "jayden",
+    "rarity": "Epic",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.1,
+      "skillUnlocks": [
+        "Jayden's Gambit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 10,
+      "goldCost": 2000,
+      "valorCost": 100,
+      "attackMultiplier": 1.15,
+      "defenseMultiplier": 1.15,
+      "healthMultiplier": 1.15,
+      "leadershipMultiplier": 1.15,
+      "powerMultiplier": 1.25,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 20,
+      "goldCost": 5000,
+      "valorCost": 250,
+      "attackMultiplier": 1.35,
+      "defenseMultiplier": 1.35,
+      "healthMultiplier": 1.35,
+      "leadershipMultiplier": 1.35,
+      "powerMultiplier": 1.45,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 45,
+      "goldCost": 15000,
+      "valorCost": 750,
+      "attackMultiplier": 1.6,
+      "defenseMultiplier": 1.6,
+      "healthMultiplier": 1.6,
+      "leadershipMultiplier": 1.6,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 90,
+      "goldCost": 40000,
+      "valorCost": 2000,
+      "attackMultiplier": 1.9,
+      "defenseMultiplier": 1.9,
+      "healthMultiplier": 1.9,
+      "leadershipMultiplier": 1.9,
+      "powerMultiplier": 2.1,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 160,
+      "goldCost": 100000,
+      "valorCost": 5000,
+      "attackMultiplier": 2.25,
+      "defenseMultiplier": 2.25,
+      "healthMultiplier": 2.25,
+      "leadershipMultiplier": 2.25,
+      "powerMultiplier": 2.5,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "karlie",
+    "rarity": "Epic",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.1,
+      "skillUnlocks": [
+        "Karlie's Gambit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 10,
+      "goldCost": 2000,
+      "valorCost": 100,
+      "attackMultiplier": 1.15,
+      "defenseMultiplier": 1.15,
+      "healthMultiplier": 1.15,
+      "leadershipMultiplier": 1.15,
+      "powerMultiplier": 1.25,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 20,
+      "goldCost": 5000,
+      "valorCost": 250,
+      "attackMultiplier": 1.35,
+      "defenseMultiplier": 1.35,
+      "healthMultiplier": 1.35,
+      "leadershipMultiplier": 1.35,
+      "powerMultiplier": 1.45,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 45,
+      "goldCost": 15000,
+      "valorCost": 750,
+      "attackMultiplier": 1.6,
+      "defenseMultiplier": 1.6,
+      "healthMultiplier": 1.6,
+      "leadershipMultiplier": 1.6,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 90,
+      "goldCost": 40000,
+      "valorCost": 2000,
+      "attackMultiplier": 1.9,
+      "defenseMultiplier": 1.9,
+      "healthMultiplier": 1.9,
+      "leadershipMultiplier": 1.9,
+      "powerMultiplier": 2.1,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 160,
+      "goldCost": 100000,
+      "valorCost": 5000,
+      "attackMultiplier": 2.25,
+      "defenseMultiplier": 2.25,
+      "healthMultiplier": 2.25,
+      "leadershipMultiplier": 2.25,
+      "powerMultiplier": 2.5,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "makenzi",
+    "rarity": "Epic",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.1,
+      "skillUnlocks": [
+        "Makenzi's Gambit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 10,
+      "goldCost": 2000,
+      "valorCost": 100,
+      "attackMultiplier": 1.15,
+      "defenseMultiplier": 1.15,
+      "healthMultiplier": 1.15,
+      "leadershipMultiplier": 1.15,
+      "powerMultiplier": 1.25,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 20,
+      "goldCost": 5000,
+      "valorCost": 250,
+      "attackMultiplier": 1.35,
+      "defenseMultiplier": 1.35,
+      "healthMultiplier": 1.35,
+      "leadershipMultiplier": 1.35,
+      "powerMultiplier": 1.45,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 45,
+      "goldCost": 15000,
+      "valorCost": 750,
+      "attackMultiplier": 1.6,
+      "defenseMultiplier": 1.6,
+      "healthMultiplier": 1.6,
+      "leadershipMultiplier": 1.6,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 90,
+      "goldCost": 40000,
+      "valorCost": 2000,
+      "attackMultiplier": 1.9,
+      "defenseMultiplier": 1.9,
+      "healthMultiplier": 1.9,
+      "leadershipMultiplier": 1.9,
+      "powerMultiplier": 2.1,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 160,
+      "goldCost": 100000,
+      "valorCost": 5000,
+      "attackMultiplier": 2.25,
+      "defenseMultiplier": 2.25,
+      "healthMultiplier": 2.25,
+      "leadershipMultiplier": 2.25,
+      "powerMultiplier": 2.5,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "jazzy",
+    "rarity": "Epic",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.1,
+      "skillUnlocks": [
+        "Jazzy's Gambit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 10,
+      "goldCost": 2000,
+      "valorCost": 100,
+      "attackMultiplier": 1.15,
+      "defenseMultiplier": 1.15,
+      "healthMultiplier": 1.15,
+      "leadershipMultiplier": 1.15,
+      "powerMultiplier": 1.25,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 20,
+      "goldCost": 5000,
+      "valorCost": 250,
+      "attackMultiplier": 1.35,
+      "defenseMultiplier": 1.35,
+      "healthMultiplier": 1.35,
+      "leadershipMultiplier": 1.35,
+      "powerMultiplier": 1.45,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 45,
+      "goldCost": 15000,
+      "valorCost": 750,
+      "attackMultiplier": 1.6,
+      "defenseMultiplier": 1.6,
+      "healthMultiplier": 1.6,
+      "leadershipMultiplier": 1.6,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 90,
+      "goldCost": 40000,
+      "valorCost": 2000,
+      "attackMultiplier": 1.9,
+      "defenseMultiplier": 1.9,
+      "healthMultiplier": 1.9,
+      "leadershipMultiplier": 1.9,
+      "powerMultiplier": 2.1,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 160,
+      "goldCost": 100000,
+      "valorCost": 5000,
+      "attackMultiplier": 2.25,
+      "defenseMultiplier": 2.25,
+      "healthMultiplier": 2.25,
+      "leadershipMultiplier": 2.25,
+      "powerMultiplier": 2.5,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "jose",
+    "rarity": "Epic",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.1,
+      "skillUnlocks": [
+        "Jose's Gambit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 10,
+      "goldCost": 2000,
+      "valorCost": 100,
+      "attackMultiplier": 1.15,
+      "defenseMultiplier": 1.15,
+      "healthMultiplier": 1.15,
+      "leadershipMultiplier": 1.15,
+      "powerMultiplier": 1.25,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 20,
+      "goldCost": 5000,
+      "valorCost": 250,
+      "attackMultiplier": 1.35,
+      "defenseMultiplier": 1.35,
+      "healthMultiplier": 1.35,
+      "leadershipMultiplier": 1.35,
+      "powerMultiplier": 1.45,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 45,
+      "goldCost": 15000,
+      "valorCost": 750,
+      "attackMultiplier": 1.6,
+      "defenseMultiplier": 1.6,
+      "healthMultiplier": 1.6,
+      "leadershipMultiplier": 1.6,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 90,
+      "goldCost": 40000,
+      "valorCost": 2000,
+      "attackMultiplier": 1.9,
+      "defenseMultiplier": 1.9,
+      "healthMultiplier": 1.9,
+      "leadershipMultiplier": 1.9,
+      "powerMultiplier": 2.1,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 160,
+      "goldCost": 100000,
+      "valorCost": 5000,
+      "attackMultiplier": 2.25,
+      "defenseMultiplier": 2.25,
+      "healthMultiplier": 2.25,
+      "leadershipMultiplier": 2.25,
+      "powerMultiplier": 2.5,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "lindsey",
+    "rarity": "Epic",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.1,
+      "skillUnlocks": [
+        "Lindsey's Gambit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 10,
+      "goldCost": 2000,
+      "valorCost": 100,
+      "attackMultiplier": 1.15,
+      "defenseMultiplier": 1.15,
+      "healthMultiplier": 1.15,
+      "leadershipMultiplier": 1.15,
+      "powerMultiplier": 1.25,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 20,
+      "goldCost": 5000,
+      "valorCost": 250,
+      "attackMultiplier": 1.35,
+      "defenseMultiplier": 1.35,
+      "healthMultiplier": 1.35,
+      "leadershipMultiplier": 1.35,
+      "powerMultiplier": 1.45,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 45,
+      "goldCost": 15000,
+      "valorCost": 750,
+      "attackMultiplier": 1.6,
+      "defenseMultiplier": 1.6,
+      "healthMultiplier": 1.6,
+      "leadershipMultiplier": 1.6,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 90,
+      "goldCost": 40000,
+      "valorCost": 2000,
+      "attackMultiplier": 1.9,
+      "defenseMultiplier": 1.9,
+      "healthMultiplier": 1.9,
+      "leadershipMultiplier": 1.9,
+      "powerMultiplier": 2.1,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 160,
+      "goldCost": 100000,
+      "valorCost": 5000,
+      "attackMultiplier": 2.25,
+      "defenseMultiplier": 2.25,
+      "healthMultiplier": 2.25,
+      "leadershipMultiplier": 2.25,
+      "powerMultiplier": 2.5,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "lisa",
+    "rarity": "Epic",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.1,
+      "skillUnlocks": [
+        "Lisa's Gambit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 10,
+      "goldCost": 2000,
+      "valorCost": 100,
+      "attackMultiplier": 1.15,
+      "defenseMultiplier": 1.15,
+      "healthMultiplier": 1.15,
+      "leadershipMultiplier": 1.15,
+      "powerMultiplier": 1.25,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 20,
+      "goldCost": 5000,
+      "valorCost": 250,
+      "attackMultiplier": 1.35,
+      "defenseMultiplier": 1.35,
+      "healthMultiplier": 1.35,
+      "leadershipMultiplier": 1.35,
+      "powerMultiplier": 1.45,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 45,
+      "goldCost": 15000,
+      "valorCost": 750,
+      "attackMultiplier": 1.6,
+      "defenseMultiplier": 1.6,
+      "healthMultiplier": 1.6,
+      "leadershipMultiplier": 1.6,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 90,
+      "goldCost": 40000,
+      "valorCost": 2000,
+      "attackMultiplier": 1.9,
+      "defenseMultiplier": 1.9,
+      "healthMultiplier": 1.9,
+      "leadershipMultiplier": 1.9,
+      "powerMultiplier": 2.1,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 160,
+      "goldCost": 100000,
+      "valorCost": 5000,
+      "attackMultiplier": 2.25,
+      "defenseMultiplier": 2.25,
+      "healthMultiplier": 2.25,
+      "leadershipMultiplier": 2.25,
+      "powerMultiplier": 2.5,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "dana",
+    "rarity": "Epic",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.1,
+      "skillUnlocks": [
+        "Dana's Gambit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 10,
+      "goldCost": 2000,
+      "valorCost": 100,
+      "attackMultiplier": 1.15,
+      "defenseMultiplier": 1.15,
+      "healthMultiplier": 1.15,
+      "leadershipMultiplier": 1.15,
+      "powerMultiplier": 1.25,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 20,
+      "goldCost": 5000,
+      "valorCost": 250,
+      "attackMultiplier": 1.35,
+      "defenseMultiplier": 1.35,
+      "healthMultiplier": 1.35,
+      "leadershipMultiplier": 1.35,
+      "powerMultiplier": 1.45,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 45,
+      "goldCost": 15000,
+      "valorCost": 750,
+      "attackMultiplier": 1.6,
+      "defenseMultiplier": 1.6,
+      "healthMultiplier": 1.6,
+      "leadershipMultiplier": 1.6,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 90,
+      "goldCost": 40000,
+      "valorCost": 2000,
+      "attackMultiplier": 1.9,
+      "defenseMultiplier": 1.9,
+      "healthMultiplier": 1.9,
+      "leadershipMultiplier": 1.9,
+      "powerMultiplier": 2.1,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 160,
+      "goldCost": 100000,
+      "valorCost": 5000,
+      "attackMultiplier": 2.25,
+      "defenseMultiplier": 2.25,
+      "healthMultiplier": 2.25,
+      "leadershipMultiplier": 2.25,
+      "powerMultiplier": 2.5,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "jamie",
+    "rarity": "Epic",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.1,
+      "skillUnlocks": [
+        "Jamie's Gambit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 10,
+      "goldCost": 2000,
+      "valorCost": 100,
+      "attackMultiplier": 1.15,
+      "defenseMultiplier": 1.15,
+      "healthMultiplier": 1.15,
+      "leadershipMultiplier": 1.15,
+      "powerMultiplier": 1.25,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 20,
+      "goldCost": 5000,
+      "valorCost": 250,
+      "attackMultiplier": 1.35,
+      "defenseMultiplier": 1.35,
+      "healthMultiplier": 1.35,
+      "leadershipMultiplier": 1.35,
+      "powerMultiplier": 1.45,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 45,
+      "goldCost": 15000,
+      "valorCost": 750,
+      "attackMultiplier": 1.6,
+      "defenseMultiplier": 1.6,
+      "healthMultiplier": 1.6,
+      "leadershipMultiplier": 1.6,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 90,
+      "goldCost": 40000,
+      "valorCost": 2000,
+      "attackMultiplier": 1.9,
+      "defenseMultiplier": 1.9,
+      "healthMultiplier": 1.9,
+      "leadershipMultiplier": 1.9,
+      "powerMultiplier": 2.1,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 160,
+      "goldCost": 100000,
+      "valorCost": 5000,
+      "attackMultiplier": 2.25,
+      "defenseMultiplier": 2.25,
+      "healthMultiplier": 2.25,
+      "leadershipMultiplier": 2.25,
+      "powerMultiplier": 2.5,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "gizem",
+    "rarity": "Epic",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.1,
+      "skillUnlocks": [
+        "Gizem's Gambit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 10,
+      "goldCost": 2000,
+      "valorCost": 100,
+      "attackMultiplier": 1.15,
+      "defenseMultiplier": 1.15,
+      "healthMultiplier": 1.15,
+      "leadershipMultiplier": 1.15,
+      "powerMultiplier": 1.25,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 20,
+      "goldCost": 5000,
+      "valorCost": 250,
+      "attackMultiplier": 1.35,
+      "defenseMultiplier": 1.35,
+      "healthMultiplier": 1.35,
+      "leadershipMultiplier": 1.35,
+      "powerMultiplier": 1.45,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 45,
+      "goldCost": 15000,
+      "valorCost": 750,
+      "attackMultiplier": 1.6,
+      "defenseMultiplier": 1.6,
+      "healthMultiplier": 1.6,
+      "leadershipMultiplier": 1.6,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 90,
+      "goldCost": 40000,
+      "valorCost": 2000,
+      "attackMultiplier": 1.9,
+      "defenseMultiplier": 1.9,
+      "healthMultiplier": 1.9,
+      "leadershipMultiplier": 1.9,
+      "powerMultiplier": 2.1,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 160,
+      "goldCost": 100000,
+      "valorCost": 5000,
+      "attackMultiplier": 2.25,
+      "defenseMultiplier": 2.25,
+      "healthMultiplier": 2.25,
+      "leadershipMultiplier": 2.25,
+      "powerMultiplier": 2.5,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "ivy",
+    "rarity": "Rare",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.05,
+      "skillUnlocks": [
+        "Ivy's Spirit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 5,
+      "goldCost": 1000,
+      "valorCost": 50,
+      "attackMultiplier": 1.1,
+      "defenseMultiplier": 1.1,
+      "healthMultiplier": 1.1,
+      "leadershipMultiplier": 1.1,
+      "powerMultiplier": 1.15,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 10,
+      "goldCost": 2500,
+      "valorCost": 120,
+      "attackMultiplier": 1.25,
+      "defenseMultiplier": 1.25,
+      "healthMultiplier": 1.25,
+      "leadershipMultiplier": 1.25,
+      "powerMultiplier": 1.3,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 25,
+      "goldCost": 7500,
+      "valorCost": 400,
+      "attackMultiplier": 1.45,
+      "defenseMultiplier": 1.45,
+      "healthMultiplier": 1.45,
+      "leadershipMultiplier": 1.45,
+      "powerMultiplier": 1.5,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 50,
+      "goldCost": 20000,
+      "valorCost": 1000,
+      "attackMultiplier": 1.7,
+      "defenseMultiplier": 1.7,
+      "healthMultiplier": 1.7,
+      "leadershipMultiplier": 1.7,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 100,
+      "goldCost": 50000,
+      "valorCost": 2500,
+      "attackMultiplier": 2,
+      "defenseMultiplier": 2,
+      "healthMultiplier": 2,
+      "leadershipMultiplier": 2,
+      "powerMultiplier": 2.05,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "brady",
+    "rarity": "Rare",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.05,
+      "skillUnlocks": [
+        "Brady's Spirit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 5,
+      "goldCost": 1000,
+      "valorCost": 50,
+      "attackMultiplier": 1.1,
+      "defenseMultiplier": 1.1,
+      "healthMultiplier": 1.1,
+      "leadershipMultiplier": 1.1,
+      "powerMultiplier": 1.15,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 10,
+      "goldCost": 2500,
+      "valorCost": 120,
+      "attackMultiplier": 1.25,
+      "defenseMultiplier": 1.25,
+      "healthMultiplier": 1.25,
+      "leadershipMultiplier": 1.25,
+      "powerMultiplier": 1.3,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 25,
+      "goldCost": 7500,
+      "valorCost": 400,
+      "attackMultiplier": 1.45,
+      "defenseMultiplier": 1.45,
+      "healthMultiplier": 1.45,
+      "leadershipMultiplier": 1.45,
+      "powerMultiplier": 1.5,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 50,
+      "goldCost": 20000,
+      "valorCost": 1000,
+      "attackMultiplier": 1.7,
+      "defenseMultiplier": 1.7,
+      "healthMultiplier": 1.7,
+      "leadershipMultiplier": 1.7,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 100,
+      "goldCost": 50000,
+      "valorCost": 2500,
+      "attackMultiplier": 2,
+      "defenseMultiplier": 2,
+      "healthMultiplier": 2,
+      "leadershipMultiplier": 2,
+      "powerMultiplier": 2.05,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "byank",
+    "rarity": "Rare",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.05,
+      "skillUnlocks": [
+        "Byank's Spirit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 5,
+      "goldCost": 1000,
+      "valorCost": 50,
+      "attackMultiplier": 1.1,
+      "defenseMultiplier": 1.1,
+      "healthMultiplier": 1.1,
+      "leadershipMultiplier": 1.1,
+      "powerMultiplier": 1.15,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 10,
+      "goldCost": 2500,
+      "valorCost": 120,
+      "attackMultiplier": 1.25,
+      "defenseMultiplier": 1.25,
+      "healthMultiplier": 1.25,
+      "leadershipMultiplier": 1.25,
+      "powerMultiplier": 1.3,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 25,
+      "goldCost": 7500,
+      "valorCost": 400,
+      "attackMultiplier": 1.45,
+      "defenseMultiplier": 1.45,
+      "healthMultiplier": 1.45,
+      "leadershipMultiplier": 1.45,
+      "powerMultiplier": 1.5,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 50,
+      "goldCost": 20000,
+      "valorCost": 1000,
+      "attackMultiplier": 1.7,
+      "defenseMultiplier": 1.7,
+      "healthMultiplier": 1.7,
+      "leadershipMultiplier": 1.7,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 100,
+      "goldCost": 50000,
+      "valorCost": 2500,
+      "attackMultiplier": 2,
+      "defenseMultiplier": 2,
+      "healthMultiplier": 2,
+      "leadershipMultiplier": 2,
+      "powerMultiplier": 2.05,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "catron",
+    "rarity": "Rare",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.05,
+      "skillUnlocks": [
+        "Catron's Spirit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 5,
+      "goldCost": 1000,
+      "valorCost": 50,
+      "attackMultiplier": 1.1,
+      "defenseMultiplier": 1.1,
+      "healthMultiplier": 1.1,
+      "leadershipMultiplier": 1.1,
+      "powerMultiplier": 1.15,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 10,
+      "goldCost": 2500,
+      "valorCost": 120,
+      "attackMultiplier": 1.25,
+      "defenseMultiplier": 1.25,
+      "healthMultiplier": 1.25,
+      "leadershipMultiplier": 1.25,
+      "powerMultiplier": 1.3,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 25,
+      "goldCost": 7500,
+      "valorCost": 400,
+      "attackMultiplier": 1.45,
+      "defenseMultiplier": 1.45,
+      "healthMultiplier": 1.45,
+      "leadershipMultiplier": 1.45,
+      "powerMultiplier": 1.5,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 50,
+      "goldCost": 20000,
+      "valorCost": 1000,
+      "attackMultiplier": 1.7,
+      "defenseMultiplier": 1.7,
+      "healthMultiplier": 1.7,
+      "leadershipMultiplier": 1.7,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 100,
+      "goldCost": 50000,
+      "valorCost": 2500,
+      "attackMultiplier": 2,
+      "defenseMultiplier": 2,
+      "healthMultiplier": 2,
+      "leadershipMultiplier": 2,
+      "powerMultiplier": 2.05,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "jas",
+    "rarity": "Rare",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.05,
+      "skillUnlocks": [
+        "Jas's Spirit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 5,
+      "goldCost": 1000,
+      "valorCost": 50,
+      "attackMultiplier": 1.1,
+      "defenseMultiplier": 1.1,
+      "healthMultiplier": 1.1,
+      "leadershipMultiplier": 1.1,
+      "powerMultiplier": 1.15,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 10,
+      "goldCost": 2500,
+      "valorCost": 120,
+      "attackMultiplier": 1.25,
+      "defenseMultiplier": 1.25,
+      "healthMultiplier": 1.25,
+      "leadershipMultiplier": 1.25,
+      "powerMultiplier": 1.3,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 25,
+      "goldCost": 7500,
+      "valorCost": 400,
+      "attackMultiplier": 1.45,
+      "defenseMultiplier": 1.45,
+      "healthMultiplier": 1.45,
+      "leadershipMultiplier": 1.45,
+      "powerMultiplier": 1.5,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 50,
+      "goldCost": 20000,
+      "valorCost": 1000,
+      "attackMultiplier": 1.7,
+      "defenseMultiplier": 1.7,
+      "healthMultiplier": 1.7,
+      "leadershipMultiplier": 1.7,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 100,
+      "goldCost": 50000,
+      "valorCost": 2500,
+      "attackMultiplier": 2,
+      "defenseMultiplier": 2,
+      "healthMultiplier": 2,
+      "leadershipMultiplier": 2,
+      "powerMultiplier": 2.05,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "jack",
+    "rarity": "Rare",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.05,
+      "skillUnlocks": [
+        "Jack's Spirit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 5,
+      "goldCost": 1000,
+      "valorCost": 50,
+      "attackMultiplier": 1.1,
+      "defenseMultiplier": 1.1,
+      "healthMultiplier": 1.1,
+      "leadershipMultiplier": 1.1,
+      "powerMultiplier": 1.15,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 10,
+      "goldCost": 2500,
+      "valorCost": 120,
+      "attackMultiplier": 1.25,
+      "defenseMultiplier": 1.25,
+      "healthMultiplier": 1.25,
+      "leadershipMultiplier": 1.25,
+      "powerMultiplier": 1.3,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 25,
+      "goldCost": 7500,
+      "valorCost": 400,
+      "attackMultiplier": 1.45,
+      "defenseMultiplier": 1.45,
+      "healthMultiplier": 1.45,
+      "leadershipMultiplier": 1.45,
+      "powerMultiplier": 1.5,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 50,
+      "goldCost": 20000,
+      "valorCost": 1000,
+      "attackMultiplier": 1.7,
+      "defenseMultiplier": 1.7,
+      "healthMultiplier": 1.7,
+      "leadershipMultiplier": 1.7,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 100,
+      "goldCost": 50000,
+      "valorCost": 2500,
+      "attackMultiplier": 2,
+      "defenseMultiplier": 2,
+      "healthMultiplier": 2,
+      "leadershipMultiplier": 2,
+      "powerMultiplier": 2.05,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "laura",
+    "rarity": "Rare",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.05,
+      "skillUnlocks": [
+        "Laura's Spirit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 5,
+      "goldCost": 1000,
+      "valorCost": 50,
+      "attackMultiplier": 1.1,
+      "defenseMultiplier": 1.1,
+      "healthMultiplier": 1.1,
+      "leadershipMultiplier": 1.1,
+      "powerMultiplier": 1.15,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 10,
+      "goldCost": 2500,
+      "valorCost": 120,
+      "attackMultiplier": 1.25,
+      "defenseMultiplier": 1.25,
+      "healthMultiplier": 1.25,
+      "leadershipMultiplier": 1.25,
+      "powerMultiplier": 1.3,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 25,
+      "goldCost": 7500,
+      "valorCost": 400,
+      "attackMultiplier": 1.45,
+      "defenseMultiplier": 1.45,
+      "healthMultiplier": 1.45,
+      "leadershipMultiplier": 1.45,
+      "powerMultiplier": 1.5,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 50,
+      "goldCost": 20000,
+      "valorCost": 1000,
+      "attackMultiplier": 1.7,
+      "defenseMultiplier": 1.7,
+      "healthMultiplier": 1.7,
+      "leadershipMultiplier": 1.7,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 100,
+      "goldCost": 50000,
+      "valorCost": 2500,
+      "attackMultiplier": 2,
+      "defenseMultiplier": 2,
+      "healthMultiplier": 2,
+      "leadershipMultiplier": 2,
+      "powerMultiplier": 2.05,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "may",
+    "rarity": "Rare",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.05,
+      "skillUnlocks": [
+        "May's Spirit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 5,
+      "goldCost": 1000,
+      "valorCost": 50,
+      "attackMultiplier": 1.1,
+      "defenseMultiplier": 1.1,
+      "healthMultiplier": 1.1,
+      "leadershipMultiplier": 1.1,
+      "powerMultiplier": 1.15,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 10,
+      "goldCost": 2500,
+      "valorCost": 120,
+      "attackMultiplier": 1.25,
+      "defenseMultiplier": 1.25,
+      "healthMultiplier": 1.25,
+      "leadershipMultiplier": 1.25,
+      "powerMultiplier": 1.3,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 25,
+      "goldCost": 7500,
+      "valorCost": 400,
+      "attackMultiplier": 1.45,
+      "defenseMultiplier": 1.45,
+      "healthMultiplier": 1.45,
+      "leadershipMultiplier": 1.45,
+      "powerMultiplier": 1.5,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 50,
+      "goldCost": 20000,
+      "valorCost": 1000,
+      "attackMultiplier": 1.7,
+      "defenseMultiplier": 1.7,
+      "healthMultiplier": 1.7,
+      "leadershipMultiplier": 1.7,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 100,
+      "goldCost": 50000,
+      "valorCost": 2500,
+      "attackMultiplier": 2,
+      "defenseMultiplier": 2,
+      "healthMultiplier": 2,
+      "leadershipMultiplier": 2,
+      "powerMultiplier": 2.05,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "pam",
+    "rarity": "Rare",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.05,
+      "skillUnlocks": [
+        "Pam's Spirit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 5,
+      "goldCost": 1000,
+      "valorCost": 50,
+      "attackMultiplier": 1.1,
+      "defenseMultiplier": 1.1,
+      "healthMultiplier": 1.1,
+      "leadershipMultiplier": 1.1,
+      "powerMultiplier": 1.15,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 10,
+      "goldCost": 2500,
+      "valorCost": 120,
+      "attackMultiplier": 1.25,
+      "defenseMultiplier": 1.25,
+      "healthMultiplier": 1.25,
+      "leadershipMultiplier": 1.25,
+      "powerMultiplier": 1.3,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 25,
+      "goldCost": 7500,
+      "valorCost": 400,
+      "attackMultiplier": 1.45,
+      "defenseMultiplier": 1.45,
+      "healthMultiplier": 1.45,
+      "leadershipMultiplier": 1.45,
+      "powerMultiplier": 1.5,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 50,
+      "goldCost": 20000,
+      "valorCost": 1000,
+      "attackMultiplier": 1.7,
+      "defenseMultiplier": 1.7,
+      "healthMultiplier": 1.7,
+      "leadershipMultiplier": 1.7,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 100,
+      "goldCost": 50000,
+      "valorCost": 2500,
+      "attackMultiplier": 2,
+      "defenseMultiplier": 2,
+      "healthMultiplier": 2,
+      "leadershipMultiplier": 2,
+      "powerMultiplier": 2.05,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "rass",
+    "rarity": "Rare",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.05,
+      "skillUnlocks": [
+        "Rass's Spirit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 5,
+      "goldCost": 1000,
+      "valorCost": 50,
+      "attackMultiplier": 1.1,
+      "defenseMultiplier": 1.1,
+      "healthMultiplier": 1.1,
+      "leadershipMultiplier": 1.1,
+      "powerMultiplier": 1.15,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 10,
+      "goldCost": 2500,
+      "valorCost": 120,
+      "attackMultiplier": 1.25,
+      "defenseMultiplier": 1.25,
+      "healthMultiplier": 1.25,
+      "leadershipMultiplier": 1.25,
+      "powerMultiplier": 1.3,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 25,
+      "goldCost": 7500,
+      "valorCost": 400,
+      "attackMultiplier": 1.45,
+      "defenseMultiplier": 1.45,
+      "healthMultiplier": 1.45,
+      "leadershipMultiplier": 1.45,
+      "powerMultiplier": 1.5,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 50,
+      "goldCost": 20000,
+      "valorCost": 1000,
+      "attackMultiplier": 1.7,
+      "defenseMultiplier": 1.7,
+      "healthMultiplier": 1.7,
+      "leadershipMultiplier": 1.7,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 100,
+      "goldCost": 50000,
+      "valorCost": 2500,
+      "attackMultiplier": 2,
+      "defenseMultiplier": 2,
+      "healthMultiplier": 2,
+      "leadershipMultiplier": 2,
+      "powerMultiplier": 2.05,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "rubble",
+    "rarity": "Rare",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.05,
+      "skillUnlocks": [
+        "Rubble's Spirit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 5,
+      "goldCost": 1000,
+      "valorCost": 50,
+      "attackMultiplier": 1.1,
+      "defenseMultiplier": 1.1,
+      "healthMultiplier": 1.1,
+      "leadershipMultiplier": 1.1,
+      "powerMultiplier": 1.15,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 10,
+      "goldCost": 2500,
+      "valorCost": 120,
+      "attackMultiplier": 1.25,
+      "defenseMultiplier": 1.25,
+      "healthMultiplier": 1.25,
+      "leadershipMultiplier": 1.25,
+      "powerMultiplier": 1.3,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 25,
+      "goldCost": 7500,
+      "valorCost": 400,
+      "attackMultiplier": 1.45,
+      "defenseMultiplier": 1.45,
+      "healthMultiplier": 1.45,
+      "leadershipMultiplier": 1.45,
+      "powerMultiplier": 1.5,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 50,
+      "goldCost": 20000,
+      "valorCost": 1000,
+      "attackMultiplier": 1.7,
+      "defenseMultiplier": 1.7,
+      "healthMultiplier": 1.7,
+      "leadershipMultiplier": 1.7,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 100,
+      "goldCost": 50000,
+      "valorCost": 2500,
+      "attackMultiplier": 2,
+      "defenseMultiplier": 2,
+      "healthMultiplier": 2,
+      "leadershipMultiplier": 2,
+      "powerMultiplier": 2.05,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "tisha",
+    "rarity": "Rare",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.05,
+      "skillUnlocks": [
+        "Tisha's Spirit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 5,
+      "goldCost": 1000,
+      "valorCost": 50,
+      "attackMultiplier": 1.1,
+      "defenseMultiplier": 1.1,
+      "healthMultiplier": 1.1,
+      "leadershipMultiplier": 1.1,
+      "powerMultiplier": 1.15,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 10,
+      "goldCost": 2500,
+      "valorCost": 120,
+      "attackMultiplier": 1.25,
+      "defenseMultiplier": 1.25,
+      "healthMultiplier": 1.25,
+      "leadershipMultiplier": 1.25,
+      "powerMultiplier": 1.3,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 25,
+      "goldCost": 7500,
+      "valorCost": 400,
+      "attackMultiplier": 1.45,
+      "defenseMultiplier": 1.45,
+      "healthMultiplier": 1.45,
+      "leadershipMultiplier": 1.45,
+      "powerMultiplier": 1.5,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 50,
+      "goldCost": 20000,
+      "valorCost": 1000,
+      "attackMultiplier": 1.7,
+      "defenseMultiplier": 1.7,
+      "healthMultiplier": 1.7,
+      "leadershipMultiplier": 1.7,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 100,
+      "goldCost": 50000,
+      "valorCost": 2500,
+      "attackMultiplier": 2,
+      "defenseMultiplier": 2,
+      "healthMultiplier": 2,
+      "leadershipMultiplier": 2,
+      "powerMultiplier": 2.05,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "buzz",
+    "rarity": "Rare",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.05,
+      "skillUnlocks": [
+        "Buzz's Spirit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 5,
+      "goldCost": 1000,
+      "valorCost": 50,
+      "attackMultiplier": 1.1,
+      "defenseMultiplier": 1.1,
+      "healthMultiplier": 1.1,
+      "leadershipMultiplier": 1.1,
+      "powerMultiplier": 1.15,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 10,
+      "goldCost": 2500,
+      "valorCost": 120,
+      "attackMultiplier": 1.25,
+      "defenseMultiplier": 1.25,
+      "healthMultiplier": 1.25,
+      "leadershipMultiplier": 1.25,
+      "powerMultiplier": 1.3,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 25,
+      "goldCost": 7500,
+      "valorCost": 400,
+      "attackMultiplier": 1.45,
+      "defenseMultiplier": 1.45,
+      "healthMultiplier": 1.45,
+      "leadershipMultiplier": 1.45,
+      "powerMultiplier": 1.5,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 50,
+      "goldCost": 20000,
+      "valorCost": 1000,
+      "attackMultiplier": 1.7,
+      "defenseMultiplier": 1.7,
+      "healthMultiplier": 1.7,
+      "leadershipMultiplier": 1.7,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 100,
+      "goldCost": 50000,
+      "valorCost": 2500,
+      "attackMultiplier": 2,
+      "defenseMultiplier": 2,
+      "healthMultiplier": 2,
+      "leadershipMultiplier": 2,
+      "powerMultiplier": 2.05,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "yunus",
+    "rarity": "Rare",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.05,
+      "skillUnlocks": [
+        "Yunus's Spirit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 5,
+      "goldCost": 1000,
+      "valorCost": 50,
+      "attackMultiplier": 1.1,
+      "defenseMultiplier": 1.1,
+      "healthMultiplier": 1.1,
+      "leadershipMultiplier": 1.1,
+      "powerMultiplier": 1.15,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 10,
+      "goldCost": 2500,
+      "valorCost": 120,
+      "attackMultiplier": 1.25,
+      "defenseMultiplier": 1.25,
+      "healthMultiplier": 1.25,
+      "leadershipMultiplier": 1.25,
+      "powerMultiplier": 1.3,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 25,
+      "goldCost": 7500,
+      "valorCost": 400,
+      "attackMultiplier": 1.45,
+      "defenseMultiplier": 1.45,
+      "healthMultiplier": 1.45,
+      "leadershipMultiplier": 1.45,
+      "powerMultiplier": 1.5,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 50,
+      "goldCost": 20000,
+      "valorCost": 1000,
+      "attackMultiplier": 1.7,
+      "defenseMultiplier": 1.7,
+      "healthMultiplier": 1.7,
+      "leadershipMultiplier": 1.7,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 100,
+      "goldCost": 50000,
+      "valorCost": 2500,
+      "attackMultiplier": 2,
+      "defenseMultiplier": 2,
+      "healthMultiplier": 2,
+      "leadershipMultiplier": 2,
+      "powerMultiplier": 2.05,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "anelia",
+    "rarity": "Rare",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.05,
+      "skillUnlocks": [
+        "Anelia's Spirit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 5,
+      "goldCost": 1000,
+      "valorCost": 50,
+      "attackMultiplier": 1.1,
+      "defenseMultiplier": 1.1,
+      "healthMultiplier": 1.1,
+      "leadershipMultiplier": 1.1,
+      "powerMultiplier": 1.15,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 10,
+      "goldCost": 2500,
+      "valorCost": 120,
+      "attackMultiplier": 1.25,
+      "defenseMultiplier": 1.25,
+      "healthMultiplier": 1.25,
+      "leadershipMultiplier": 1.25,
+      "powerMultiplier": 1.3,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 25,
+      "goldCost": 7500,
+      "valorCost": 400,
+      "attackMultiplier": 1.45,
+      "defenseMultiplier": 1.45,
+      "healthMultiplier": 1.45,
+      "leadershipMultiplier": 1.45,
+      "powerMultiplier": 1.5,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 50,
+      "goldCost": 20000,
+      "valorCost": 1000,
+      "attackMultiplier": 1.7,
+      "defenseMultiplier": 1.7,
+      "healthMultiplier": 1.7,
+      "leadershipMultiplier": 1.7,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 100,
+      "goldCost": 50000,
+      "valorCost": 2500,
+      "attackMultiplier": 2,
+      "defenseMultiplier": 2,
+      "healthMultiplier": 2,
+      "leadershipMultiplier": 2,
+      "powerMultiplier": 2.05,
+      "skillUnlocks": []
+    }
+  },
+  {
+    "heroId": "larfides",
+    "rarity": "Rare",
+    "ascension0": {
+      "shardCost": 0,
+      "goldCost": 0,
+      "valorCost": 0,
+      "attackMultiplier": 1,
+      "defenseMultiplier": 1,
+      "healthMultiplier": 1,
+      "leadershipMultiplier": 1,
+      "powerMultiplier": 1.05,
+      "skillUnlocks": [
+        "Larfides's Spirit"
+      ]
+    },
+    "ascension1": {
+      "shardCost": 5,
+      "goldCost": 1000,
+      "valorCost": 50,
+      "attackMultiplier": 1.1,
+      "defenseMultiplier": 1.1,
+      "healthMultiplier": 1.1,
+      "leadershipMultiplier": 1.1,
+      "powerMultiplier": 1.15,
+      "skillUnlocks": []
+    },
+    "ascension2": {
+      "shardCost": 10,
+      "goldCost": 2500,
+      "valorCost": 120,
+      "attackMultiplier": 1.25,
+      "defenseMultiplier": 1.25,
+      "healthMultiplier": 1.25,
+      "leadershipMultiplier": 1.25,
+      "powerMultiplier": 1.3,
+      "skillUnlocks": []
+    },
+    "ascension3": {
+      "shardCost": 25,
+      "goldCost": 7500,
+      "valorCost": 400,
+      "attackMultiplier": 1.45,
+      "defenseMultiplier": 1.45,
+      "healthMultiplier": 1.45,
+      "leadershipMultiplier": 1.45,
+      "powerMultiplier": 1.5,
+      "skillUnlocks": []
+    },
+    "ascension4": {
+      "shardCost": 50,
+      "goldCost": 20000,
+      "valorCost": 1000,
+      "attackMultiplier": 1.7,
+      "defenseMultiplier": 1.7,
+      "healthMultiplier": 1.7,
+      "leadershipMultiplier": 1.7,
+      "powerMultiplier": 1.75,
+      "skillUnlocks": []
+    },
+    "ascension5": {
+      "shardCost": 100,
+      "goldCost": 50000,
+      "valorCost": 2500,
+      "attackMultiplier": 2,
+      "defenseMultiplier": 2,
+      "healthMultiplier": 2,
+      "leadershipMultiplier": 2,
+      "powerMultiplier": 2.05,
+      "skillUnlocks": []
+    }
+  }
+]

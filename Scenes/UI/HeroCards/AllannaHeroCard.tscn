@@ -1,0 +1,140 @@
+[gd_scene format=3 uid="uid://b3c3d6gioslfg"]
+
+[ext_resource type="Script" uid="uid://cbcp0fkcogaun" path="res://Scenes/UI/HeroCard.gd" id="1_wut0r"]
+[ext_resource type="Texture2D" uid="uid://cqxhg5o58ihxa" path="res://Scenes/UI/ChatGPT Image Jun 24, 2026, 06_34_10 PM.png" id="2_30iik"]
+[ext_resource type="Texture2D" uid="uid://dga6iw1ildn4h" path="res://images/HeroCard/ChatGPT Image Jun 24, 2026, 05_56_02 PM.png" id="3_nm6io"]
+[ext_resource type="Texture2D" uid="uid://r48wn5ymdwqr" path="res://Art/Heroes/Allanna/portrait.png" id="4_hpaak"]
+[ext_resource type="Texture2D" uid="uid://cuf4348yuljx6" path="res://assets/heroes/Icons/Marksman.png" id="5_4kdo5"]
+[ext_resource type="Texture2D" uid="uid://ciwmxytyy0qhe" path="res://ChatGPT Image Jun 24, 2026, 04_51_57 PM.png" id="6_4jelh"]
+[ext_resource type="Texture2D" uid="uid://dss0a86xstijf" path="res://Scenes/UI/star1.png" id="7_cpuwk"]
+
+[node name="AllannaHeroCard" type="Button" unique_id=446050875]
+custom_minimum_size = Vector2(200, 300)
+offset_top = -5.0
+offset_right = 200.0
+offset_bottom = 295.0
+flat = true
+script = ExtResource("1_wut0r")
+
+[node name="CardBackground" type="TextureRect" parent="." unique_id=292546998]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 11.0
+offset_top = 37.0
+offset_right = -16.0
+offset_bottom = -82.28572
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(1, 1.4)
+mouse_filter = 2
+texture = ExtResource("2_30iik")
+expand_mode = 1
+
+[node name="RarityFrame" type="TextureRect" parent="." unique_id=101233102]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -13.0
+offset_right = 9.0
+offset_bottom = 29.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("3_nm6io")
+expand_mode = 1
+
+[node name="HeroPortrait" type="TextureRect" parent="." unique_id=356291901]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 19.0
+offset_top = 15.0
+offset_right = -22.0
+offset_bottom = -95.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("4_hpaak")
+expand_mode = 1
+
+[node name="RoleIcon" type="TextureRect" parent="." unique_id=1719011724]
+layout_mode = 0
+offset_left = 23.0
+offset_top = 49.0
+offset_right = 73.0
+offset_bottom = 99.0
+mouse_filter = 2
+texture = ExtResource("5_4kdo5")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NotificationDot" type="TextureRect" parent="." unique_id=520346747]
+layout_mode = 0
+offset_left = 138.0
+offset_top = 52.0
+offset_right = 168.0
+offset_bottom = 82.0
+scale = Vector2(0.8, 0.8)
+mouse_filter = 2
+texture = ExtResource("6_4jelh")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HeroName" type="Label" parent="." unique_id=456833695]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 205.0
+offset_right = 188.0
+offset_bottom = 233.0
+text = "Allanna"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Stars" type="HBoxContainer" parent="." unique_id=78206967]
+layout_mode = 0
+offset_left = 34.0
+offset_top = 222.0
+offset_right = 2922.0
+offset_bottom = 990.0
+scale = Vector2(0.045, 0.04)
+mouse_filter = 2
+alignment = 1
+
+[node name="TextureRect2" type="TextureRect" parent="Stars" unique_id=803727307]
+layout_mode = 2
+texture = ExtResource("7_cpuwk")
+
+[node name="TextureRect3" type="TextureRect" parent="Stars" unique_id=1995894228]
+layout_mode = 2
+texture = ExtResource("7_cpuwk")
+
+[node name="TextureRect4" type="TextureRect" parent="Stars" unique_id=887700416]
+layout_mode = 2
+texture = ExtResource("7_cpuwk")
+
+[node name="TextureRect5" type="TextureRect" parent="Stars" unique_id=462209727]
+layout_mode = 2
+texture = ExtResource("7_cpuwk")
+
+[node name="TextureRect6" type="TextureRect" parent="Stars" unique_id=1513155984]
+layout_mode = 2
+texture = ExtResource("7_cpuwk")
+
+[node name="TextureRect7" type="TextureRect" parent="Stars" unique_id=1232679947]
+layout_mode = 2
+texture = ExtResource("7_cpuwk")
+
+[node name="LevelLabel" type="Label" parent="." unique_id=1673089803]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 250.0
+offset_right = 190.0
+offset_bottom = 278.0
+text = "Lv. 1"
+horizontal_alignment = 1
+vertical_alignment = 1

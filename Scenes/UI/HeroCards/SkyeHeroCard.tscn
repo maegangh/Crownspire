@@ -1,0 +1,140 @@
+[gd_scene format=3 uid="uid://b37aj4x48r5e6"]
+
+[ext_resource type="Script" uid="uid://cbcp0fkcogaun" path="res://Scenes/UI/HeroCard.gd" id="1_6ug22"]
+[ext_resource type="Texture2D" uid="uid://c6vf8uvphd5ih" path="res://Scenes/UI/0f5e9d38-f37b-4849-abdd-558bc33ebebd.png" id="2_7qjun"]
+[ext_resource type="Texture2D" uid="uid://c3o3r4m8mgpgh" path="res://images/HeroCard/Epic.png" id="3_oxm2g"]
+[ext_resource type="Texture2D" uid="uid://clmxncntwmmrc" path="res://Art/Heroes/Skye/portrait.png" id="4_cf62q"]
+[ext_resource type="Texture2D" uid="uid://3bkvu5soxnf" path="res://assets/heroes/Icons/Cavalry.png" id="5_6njtr"]
+[ext_resource type="Texture2D" uid="uid://ciwmxytyy0qhe" path="res://ChatGPT Image Jun 24, 2026, 04_51_57 PM.png" id="6_1d3ng"]
+[ext_resource type="Texture2D" uid="uid://cp81kwspxf5qf" path="res://ChatGPT Image Jun 24, 2026, 04_36_32 PM.png" id="7_v475w"]
+
+[node name="SkyeHeroCard" type="Button" unique_id=446050875]
+custom_minimum_size = Vector2(200, 300)
+offset_top = -5.0
+offset_right = 200.0
+offset_bottom = 295.0
+flat = true
+script = ExtResource("1_6ug22")
+
+[node name="CardBackground" type="TextureRect" parent="." unique_id=292546998]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 11.0
+offset_top = 35.0
+offset_right = -16.0
+offset_bottom = -85.71428
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(1, 1.4)
+mouse_filter = 2
+texture = ExtResource("2_7qjun")
+expand_mode = 1
+
+[node name="RarityFrame" type="TextureRect" parent="." unique_id=101233102]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -4.0
+offset_right = 3.0
+offset_bottom = 15.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("3_oxm2g")
+expand_mode = 1
+
+[node name="HeroPortrait" type="TextureRect" parent="." unique_id=356291901]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 10.0
+offset_right = -16.0
+offset_bottom = -23.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("4_cf62q")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="RoleIcon" type="TextureRect" parent="." unique_id=1719011724]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 43.0
+offset_right = 58.0
+offset_bottom = 93.0
+mouse_filter = 2
+texture = ExtResource("5_6njtr")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NotificationDot" type="TextureRect" parent="." unique_id=520346747]
+layout_mode = 0
+offset_left = 138.0
+offset_top = 52.0
+offset_right = 168.0
+offset_bottom = 82.0
+scale = Vector2(0.8, 0.8)
+mouse_filter = 2
+texture = ExtResource("6_1d3ng")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HeroName" type="Label" parent="." unique_id=456833695]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 205.0
+offset_right = 188.0
+offset_bottom = 233.0
+text = "Skye"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Stars" type="HBoxContainer" parent="." unique_id=1021523825]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 228.0
+offset_right = 4235.0
+offset_bottom = 934.0
+scale = Vector2(0.04, 0.04)
+mouse_filter = 2
+alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="Stars" unique_id=1569467798]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+texture = ExtResource("7_v475w")
+expand_mode = 1
+
+[node name="TextureRect2" type="TextureRect" parent="Stars" unique_id=1519098477]
+layout_mode = 2
+texture = ExtResource("7_v475w")
+
+[node name="TextureRect3" type="TextureRect" parent="Stars" unique_id=916072172]
+layout_mode = 2
+texture = ExtResource("7_v475w")
+
+[node name="TextureRect4" type="TextureRect" parent="Stars" unique_id=1672736621]
+layout_mode = 2
+texture = ExtResource("7_v475w")
+
+[node name="TextureRect5" type="TextureRect" parent="Stars" unique_id=566424794]
+layout_mode = 2
+texture = ExtResource("7_v475w")
+
+[node name="LevelLabel" type="Label" parent="." unique_id=1673089803]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 250.0
+offset_right = 190.0
+offset_bottom = 278.0
+text = "Lv. 1"
+horizontal_alignment = 1
+vertical_alignment = 1

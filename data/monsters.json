@@ -1,0 +1,5217 @@
+[
+  {
+	"id": "ignis_the_volcanic_leviathan",
+	"name": "Sovereign Ignis the Volcanic Leviathan",
+	"monsterType": "World Boss",
+	"rarity": "World Boss",
+	"level": 75,
+	"troopWeakness": "marksmen",
+	"description": "The absolute volcanic sea master causing total continental tectonic cracks.",
+	"attack": 1050000,
+	"defense": 950000,
+	"health": 48000000,
+	"speed": 150,
+	"power": 160000000,
+	"marchRequirement": 60000,
+	"staminaCost": 40,
+	"respawnTimeSec": 14400,
+	"rewards": {
+	  "food": 15000000,
+	  "wood": 12000000,
+	  "stone": 10000000,
+	  "iron": 5000000,
+	  "valor": 30000,
+	  "heroXP": 800000,
+	  "shardDrops": [
+		{
+		  "heroId": "kaelen_phoenix",
+		  "count": 45
+		}
+	  ],
+	  "itemDrops": [
+		"Volcanic Magma Egg",
+		"Obsidian Plate",
+        "Mythic Gem"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": [
+	  "Tectonic Shift",
+	  "Lava Spray",
+      "World Meltdown"
+	],
+	"raidScaling": {
+	  "healthScalingPerPlayer": "+12.5% Mult per rally combatant",
+	  "difficultyRating": "Apocalyptic",
+	  "enrageTimerSec": 360
+	},
+	"participationRewards": {
+	  "valor": 6000,
+	  "heroXP": 150000,
+	  "gold": 500000,
+	  "guaranteedItems": [
+		"Grand Loot Chest",
+        "Rare Stardust Bag"
+	  ]
+	},
+	"rankingRewards": [
+	  {
+		"rankScope": "1st Place Damage",
+		"rewards": [
+		  "Leviathan Trophy Flag",
+          "3x Mythic Loot Boxes"
+		]
+	  }
+	]
+  },
+  {
+	"id": "infernal_behemoth",
+	"name": "Elite Infernal Behemoth",
+	"monsterType": "Elite",
+	"rarity": "Elite",
+	"level": 47,
+	"troopWeakness": "infantry",
+	"description": "A hulking fire deity swinging blazing lava hammers from subterranean cracks.",
+	"attack": 78000,
+	"defense": 85000,
+	"health": 1200000,
+	"speed": 85,
+	"power": 3400000,
+	"marchRequirement": 15000,
+	"staminaCost": 20,
+	"respawnTimeSec": 1800,
+	"rewards": {
+	  "food": 300000,
+	  "wood": 250000,
+	  "stone": 200000,
+	  "iron": 100000,
+	  "valor": 800,
+	  "heroXP": 20000,
+	  "shardDrops": [
+		{
+		  "heroId": "kaelen_phoenix",
+		  "count": 12
+		}
+	  ],
+	  "itemDrops": [
+		"Eldritch Scale",
+        "Heavy Claws"
+	  ]
+	},
+	"eliteBonuses": [
+	  "Direct Breach Damage +15%",
+      "Armor Piercing Gaze"
+	],
+	"specialAbilities": [
+	  "Earthquakes",
+      "Stomp"
+	],
+	"enhancedRewards": [
+      "Epic Item Core"
+	],
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "frost_wyrm",
+	"name": "Elite Frost Wyrm",
+	"monsterType": "Elite",
+	"rarity": "Elite",
+	"level": 44,
+	"troopWeakness": "cavalry",
+	"description": "An legendary undead dragon encrusted with sub-zero glacial spikes.",
+	"attack": 56000,
+	"defense": 48000,
+	"health": 800000,
+	"speed": 170,
+	"power": 2200000,
+	"marchRequirement": 15000,
+	"staminaCost": 20,
+	"respawnTimeSec": 1800,
+	"rewards": {
+	  "food": 300000,
+	  "wood": 250000,
+	  "stone": 200000,
+	  "iron": 100000,
+	  "valor": 800,
+	  "heroXP": 20000,
+	  "shardDrops": [
+		{
+		  "heroId": "kaelen_phoenix",
+		  "count": 12
+		}
+	  ],
+	  "itemDrops": [
+		"Eldritch Scale",
+        "Heavy Claws"
+	  ]
+	},
+	"eliteBonuses": [
+	  "Direct Breach Damage +15%",
+      "Armor Piercing Gaze"
+	],
+	"specialAbilities": [
+	  "Earthquakes",
+      "Stomp"
+	],
+	"enhancedRewards": [
+      "Epic Item Core"
+	],
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "shadow_drake",
+	"name": "Elite Shadow Drake",
+	"monsterType": "Elite",
+	"rarity": "Elite",
+	"level": 32,
+	"troopWeakness": "marksmen",
+	"description": "A stealthy draconic beast breathing dark ash fire from sky levels.",
+	"attack": 18500,
+	"defense": 14000,
+	"health": 220000,
+	"speed": 220,
+	"power": 670000,
+	"marchRequirement": 15000,
+	"staminaCost": 20,
+	"respawnTimeSec": 1800,
+	"rewards": {
+	  "food": 300000,
+	  "wood": 250000,
+	  "stone": 200000,
+	  "iron": 100000,
+	  "valor": 800,
+	  "heroXP": 20000,
+	  "shardDrops": [
+		{
+		  "heroId": "kaelen_phoenix",
+		  "count": 12
+		}
+	  ],
+	  "itemDrops": [
+		"Eldritch Scale",
+        "Heavy Claws"
+	  ]
+	},
+	"eliteBonuses": [
+	  "Direct Breach Damage +15%",
+      "Armor Piercing Gaze"
+	],
+	"specialAbilities": [
+	  "Earthquakes",
+      "Stomp"
+	],
+	"enhancedRewards": [
+      "Epic Item Core"
+	],
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "stone_giant",
+	"name": "Elite Stone Giant",
+	"monsterType": "Elite",
+	"rarity": "Elite",
+	"level": 22,
+	"troopWeakness": "infantry",
+	"description": "An colossal granite creature with armor-like slate exterior skin blocks.",
+	"attack": 8200,
+	"defense": 10500,
+	"health": 105000,
+	"speed": 85,
+	"power": 290000,
+	"marchRequirement": 15000,
+	"staminaCost": 20,
+	"respawnTimeSec": 1800,
+	"rewards": {
+	  "food": 300000,
+	  "wood": 250000,
+	  "stone": 200000,
+	  "iron": 100000,
+	  "valor": 800,
+	  "heroXP": 20000,
+	  "shardDrops": [
+		{
+		  "heroId": "kaelen_phoenix",
+		  "count": 12
+		}
+	  ],
+	  "itemDrops": [
+		"Eldritch Scale",
+        "Heavy Claws"
+	  ]
+	},
+	"eliteBonuses": [
+	  "Direct Breach Damage +15%",
+      "Armor Piercing Gaze"
+	],
+	"specialAbilities": [
+	  "Earthquakes",
+      "Stomp"
+	],
+	"enhancedRewards": [
+      "Epic Item Core"
+	],
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "forest_troll",
+	"name": "Elite Forest Troll",
+	"monsterType": "Elite",
+	"rarity": "Elite",
+	"level": 12,
+	"troopWeakness": "cavalry",
+	"description": "A massive mossy troll swinging full pine logs to crush shield lines.",
+	"attack": 3800,
+	"defense": 3200,
+	"health": 35000,
+	"speed": 90,
+	"power": 85000,
+	"marchRequirement": 15000,
+	"staminaCost": 20,
+	"respawnTimeSec": 1800,
+	"rewards": {
+	  "food": 300000,
+	  "wood": 250000,
+	  "stone": 200000,
+	  "iron": 100000,
+	  "valor": 800,
+	  "heroXP": 20000,
+	  "shardDrops": [
+		{
+		  "heroId": "kaelen_phoenix",
+		  "count": 12
+		}
+	  ],
+	  "itemDrops": [
+		"Eldritch Scale",
+        "Heavy Claws"
+	  ]
+	},
+	"eliteBonuses": [
+	  "Direct Breach Damage +15%",
+      "Armor Piercing Gaze"
+	],
+	"specialAbilities": [
+	  "Earthquakes",
+      "Stomp"
+	],
+	"enhancedRewards": [
+      "Epic Item Core"
+	],
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l1_s1_frost_lupine",
+	"name": "Minor Frostbite Lupine (Lvl 1)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 1,
+	"troopWeakness": "infantry",
+	"description": "A savage ice wolf roaming northern fields. Terrifying level 1 specimen.",
+	"attack": 50,
+	"defense": 40,
+	"health": 400,
+	"speed": 102,
+	"power": 780,
+	"marchRequirement": 1150,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 960,
+	  "wood": 720,
+	  "stone": 440,
+	  "iron": 220,
+	  "valor": 16,
+	  "heroXP": 80,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l1_s2_cinder_spitter",
+	"name": "Minor Cinder Spitter (Lvl 1)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 1,
+	"troopWeakness": "marksmen",
+	"description": "A small elemental reptile spitting searing ash. Terrifying level 1 specimen.",
+	"attack": 50,
+	"defense": 40,
+	"health": 400,
+	"speed": 102,
+	"power": 780,
+	"marchRequirement": 1150,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 1120,
+	  "wood": 840,
+	  "stone": 480,
+	  "iron": 240,
+	  "valor": 16,
+	  "heroXP": 80,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l2_s1_mossy_harpy",
+	"name": "Minor Mossy Harpy (Lvl 2)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 2,
+	"troopWeakness": "cavalry",
+	"description": "A cruel avian creature swooping from mountain crevices. Terrifying level 2 specimen.",
+	"attack": 112,
+	"defense": 90,
+	"health": 896,
+	"speed": 104,
+	"power": 1750,
+	"marchRequirement": 1300,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 1920,
+	  "wood": 1440,
+	  "stone": 880,
+	  "iron": 440,
+	  "valor": 16,
+	  "heroXP": 160,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l2_s2_ironwood_golem",
+	"name": "Minor Ironwood Golem (Lvl 2)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 2,
+	"troopWeakness": "infantry",
+	"description": "An animated mass of oak trunk and stone ligaments. Terrifying level 2 specimen.",
+	"attack": 112,
+	"defense": 90,
+	"health": 896,
+	"speed": 104,
+	"power": 1750,
+	"marchRequirement": 1300,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 2240,
+	  "wood": 1680,
+	  "stone": 960,
+	  "iron": 480,
+	  "valor": 16,
+	  "heroXP": 160,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l3_s1_sand_dweller",
+	"name": "Minor Sand Dweller (Lvl 3)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 3,
+	"troopWeakness": "marksmen",
+	"description": "A burrowing scorpion hiding inside dry silt dunes. Terrifying level 3 specimen.",
+	"attack": 188,
+	"defense": 151,
+	"health": 1505,
+	"speed": 106,
+	"power": 2938,
+	"marchRequirement": 1450,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 2880,
+	  "wood": 2160,
+	  "stone": 1320,
+	  "iron": 660,
+	  "valor": 17,
+	  "heroXP": 240,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l3_s2_crypt_wight",
+	"name": "Minor Crypt Wight (Lvl 3)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 3,
+	"troopWeakness": "cavalry",
+	"description": "A persistent armored corpse seeking to snuff out life. Terrifying level 3 specimen.",
+	"attack": 188,
+	"defense": 151,
+	"health": 1505,
+	"speed": 106,
+	"power": 2938,
+	"marchRequirement": 1450,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 3360,
+	  "wood": 2520,
+	  "stone": 1440,
+	  "iron": 720,
+	  "valor": 17,
+	  "heroXP": 240,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l4_s1_bog_mire_ooze",
+	"name": "Minor Bog Mire Ooze (Lvl 4)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 4,
+	"troopWeakness": "infantry",
+	"description": "A giant toxic slime digesting biological components. Terrifying level 4 specimen.",
+	"attack": 281,
+	"defense": 225,
+	"health": 2248,
+	"speed": 108,
+	"power": 4385,
+	"marchRequirement": 1600,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 3840,
+	  "wood": 2880,
+	  "stone": 1760,
+	  "iron": 880,
+	  "valor": 17,
+	  "heroXP": 320,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l4_s2_goblin_pillager",
+	"name": "Minor Goblin Pillager (Lvl 4)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 4,
+	"troopWeakness": "infantry",
+	"description": "A sneaky highway robber wielding jagged daggers. Terrifying level 4 specimen.",
+	"attack": 281,
+	"defense": 225,
+	"health": 2248,
+	"speed": 108,
+	"power": 4385,
+	"marchRequirement": 1600,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 4480,
+	  "wood": 3360,
+	  "stone": 1920,
+	  "iron": 960,
+	  "valor": 17,
+	  "heroXP": 320,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l5_s1_feral_hog",
+	"name": "Minor Feral Hog (Lvl 5)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 5,
+	"troopWeakness": "marksmen",
+	"description": "A massive tusked boar that charges at anything that moves. Terrifying level 5 specimen.",
+	"attack": 393,
+	"defense": 315,
+	"health": 3147,
+	"speed": 110,
+	"power": 6136,
+	"marchRequirement": 1750,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 4800,
+	  "wood": 3600,
+	  "stone": 2200,
+	  "iron": 1100,
+	  "valor": 18,
+	  "heroXP": 400,
+	  "shardDrops": [
+		{
+		  "heroId": "rowan_timberfall",
+		  "count": 1
+		}
+	  ],
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l5_s2_grave_creeper",
+	"name": "Minor Grave Creeper (Lvl 5)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 5,
+	"troopWeakness": "cavalry",
+	"description": "A skeletal spider crawling out of the catacombs of Crownspire. Terrifying level 5 specimen.",
+	"attack": 393,
+	"defense": 315,
+	"health": 3147,
+	"speed": 110,
+	"power": 6136,
+	"marchRequirement": 1750,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 5600,
+	  "wood": 4200,
+	  "stone": 2400,
+	  "iron": 1200,
+	  "valor": 18,
+	  "heroXP": 400,
+	  "shardDrops": [
+		{
+		  "heroId": "rowan_timberfall",
+		  "count": 1
+		}
+	  ],
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l6_s1_frost_lupine",
+	"name": "Agitated Frostbite Lupine (Lvl 6)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 6,
+	"troopWeakness": "infantry",
+	"description": "A savage ice wolf roaming northern fields. Terrifying level 6 specimen.",
+	"attack": 529,
+	"defense": 423,
+	"health": 4230,
+	"speed": 112,
+	"power": 8251,
+	"marchRequirement": 1900,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 5760,
+	  "wood": 4320,
+	  "stone": 2640,
+	  "iron": 1320,
+	  "valor": 18,
+	  "heroXP": 480,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l6_s2_cinder_spitter",
+	"name": "Agitated Cinder Spitter (Lvl 6)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 6,
+	"troopWeakness": "marksmen",
+	"description": "A small elemental reptile spitting searing ash. Terrifying level 6 specimen.",
+	"attack": 529,
+	"defense": 423,
+	"health": 4230,
+	"speed": 112,
+	"power": 8251,
+	"marchRequirement": 1900,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 6720,
+	  "wood": 5040,
+	  "stone": 2880,
+	  "iron": 1440,
+	  "valor": 18,
+	  "heroXP": 480,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l7_s1_mossy_harpy",
+	"name": "Agitated Mossy Harpy (Lvl 7)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 7,
+	"troopWeakness": "cavalry",
+	"description": "A cruel avian creature swooping from mountain crevices. Terrifying level 7 specimen.",
+	"attack": 691,
+	"defense": 553,
+	"health": 5527,
+	"speed": 114,
+	"power": 10781,
+	"marchRequirement": 2050,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 6720,
+	  "wood": 5040,
+	  "stone": 3080,
+	  "iron": 1540,
+	  "valor": 19,
+	  "heroXP": 560,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l7_s2_ironwood_golem",
+	"name": "Agitated Ironwood Golem (Lvl 7)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 7,
+	"troopWeakness": "infantry",
+	"description": "An animated mass of oak trunk and stone ligaments. Terrifying level 7 specimen.",
+	"attack": 691,
+	"defense": 553,
+	"health": 5527,
+	"speed": 114,
+	"power": 10781,
+	"marchRequirement": 2050,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 7840,
+	  "wood": 5880,
+	  "stone": 3360,
+	  "iron": 1680,
+	  "valor": 19,
+	  "heroXP": 560,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l8_s1_sand_dweller",
+	"name": "Agitated Sand Dweller (Lvl 8)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 8,
+	"troopWeakness": "marksmen",
+	"description": "A burrowing scorpion hiding inside dry silt dunes. Terrifying level 8 specimen.",
+	"attack": 884,
+	"defense": 707,
+	"health": 7074,
+	"speed": 116,
+	"power": 13789,
+	"marchRequirement": 2200,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 7680,
+	  "wood": 5760,
+	  "stone": 3520,
+	  "iron": 1760,
+	  "valor": 19,
+	  "heroXP": 640,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l8_s2_crypt_wight",
+	"name": "Agitated Crypt Wight (Lvl 8)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 8,
+	"troopWeakness": "cavalry",
+	"description": "A persistent armored corpse seeking to snuff out life. Terrifying level 8 specimen.",
+	"attack": 884,
+	"defense": 707,
+	"health": 7074,
+	"speed": 116,
+	"power": 13789,
+	"marchRequirement": 2200,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 8960,
+	  "wood": 6720,
+	  "stone": 3840,
+	  "iron": 1920,
+	  "valor": 19,
+	  "heroXP": 640,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l9_s1_bog_mire_ooze",
+	"name": "Agitated Bog Mire Ooze (Lvl 9)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 9,
+	"troopWeakness": "infantry",
+	"description": "A giant toxic slime digesting biological components. Terrifying level 9 specimen.",
+	"attack": 1114,
+	"defense": 891,
+	"health": 8913,
+	"speed": 118,
+	"power": 17377,
+	"marchRequirement": 2350,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 8640,
+	  "wood": 6480,
+	  "stone": 3960,
+	  "iron": 1980,
+	  "valor": 20,
+	  "heroXP": 720,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l9_s2_goblin_pillager",
+	"name": "Agitated Goblin Pillager (Lvl 9)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 9,
+	"troopWeakness": "infantry",
+	"description": "A sneaky highway robber wielding jagged daggers. Terrifying level 9 specimen.",
+	"attack": 1114,
+	"defense": 891,
+	"health": 8913,
+	"speed": 118,
+	"power": 17377,
+	"marchRequirement": 2350,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 10080,
+	  "wood": 7560,
+	  "stone": 4320,
+	  "iron": 2160,
+	  "valor": 20,
+	  "heroXP": 720,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l10_s1_feral_hog",
+	"name": "Agitated Feral Hog (Lvl 10)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 10,
+	"troopWeakness": "marksmen",
+	"description": "A massive tusked boar that charges at anything that moves. Terrifying level 10 specimen.",
+	"attack": 1387,
+	"defense": 1109,
+	"health": 11092,
+	"speed": 120,
+	"power": 21632,
+	"marchRequirement": 2500,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 9600,
+	  "wood": 7200,
+	  "stone": 4400,
+	  "iron": 2200,
+	  "valor": 20,
+	  "heroXP": 800,
+	  "shardDrops": [
+		{
+		  "heroId": "mira_greenleaf",
+		  "count": 1
+		}
+	  ],
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l10_s2_grave_creeper",
+	"name": "Agitated Grave Creeper (Lvl 10)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 10,
+	"troopWeakness": "cavalry",
+	"description": "A skeletal spider crawling out of the catacombs of Crownspire. Terrifying level 10 specimen.",
+	"attack": 1387,
+	"defense": 1109,
+	"health": 11092,
+	"speed": 120,
+	"power": 21632,
+	"marchRequirement": 2500,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 11200,
+	  "wood": 8400,
+	  "stone": 4800,
+	  "iron": 2400,
+	  "valor": 20,
+	  "heroXP": 800,
+	  "shardDrops": [
+		{
+		  "heroId": "mira_greenleaf",
+		  "count": 1
+		}
+	  ],
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l11_s1_frost_lupine",
+	"name": "Vicious Frostbite Lupine (Lvl 11)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 11,
+	"troopWeakness": "infantry",
+	"description": "A savage ice wolf roaming northern fields. Terrifying level 11 specimen.",
+	"attack": 1708,
+	"defense": 1367,
+	"health": 13666,
+	"speed": 122,
+	"power": 26650,
+	"marchRequirement": 2650,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 10560,
+	  "wood": 7920,
+	  "stone": 4840,
+	  "iron": 2420,
+	  "valor": 21,
+	  "heroXP": 880,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l11_s2_cinder_spitter",
+	"name": "Vicious Cinder Spitter (Lvl 11)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 11,
+	"troopWeakness": "marksmen",
+	"description": "A small elemental reptile spitting searing ash. Terrifying level 11 specimen.",
+	"attack": 1708,
+	"defense": 1367,
+	"health": 13666,
+	"speed": 122,
+	"power": 26650,
+	"marchRequirement": 2650,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 12320,
+	  "wood": 9240,
+	  "stone": 5280,
+	  "iron": 2640,
+	  "valor": 21,
+	  "heroXP": 880,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l12_s1_mossy_harpy",
+	"name": "Vicious Mossy Harpy (Lvl 12)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 12,
+	"troopWeakness": "cavalry",
+	"description": "A cruel avian creature swooping from mountain crevices. Terrifying level 12 specimen.",
+	"attack": 2087,
+	"defense": 1670,
+	"health": 16697,
+	"speed": 124,
+	"power": 32561,
+	"marchRequirement": 2800,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 11520,
+	  "wood": 8640,
+	  "stone": 5280,
+	  "iron": 2640,
+	  "valor": 21,
+	  "heroXP": 960,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l12_s2_ironwood_golem",
+	"name": "Vicious Ironwood Golem (Lvl 12)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 12,
+	"troopWeakness": "infantry",
+	"description": "An animated mass of oak trunk and stone ligaments. Terrifying level 12 specimen.",
+	"attack": 2087,
+	"defense": 1670,
+	"health": 16697,
+	"speed": 124,
+	"power": 32561,
+	"marchRequirement": 2800,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 13440,
+	  "wood": 10080,
+	  "stone": 5760,
+	  "iron": 2880,
+	  "valor": 21,
+	  "heroXP": 960,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l13_s1_sand_dweller",
+	"name": "Vicious Sand Dweller (Lvl 13)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 13,
+	"troopWeakness": "marksmen",
+	"description": "A burrowing scorpion hiding inside dry silt dunes. Terrifying level 13 specimen.",
+	"attack": 2532,
+	"defense": 2026,
+	"health": 20259,
+	"speed": 126,
+	"power": 39503,
+	"marchRequirement": 2950,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 12480,
+	  "wood": 9360,
+	  "stone": 5720,
+	  "iron": 2860,
+	  "valor": 22,
+	  "heroXP": 1040,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l13_s2_crypt_wight",
+	"name": "Vicious Crypt Wight (Lvl 13)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 13,
+	"troopWeakness": "cavalry",
+	"description": "A persistent armored corpse seeking to snuff out life. Terrifying level 13 specimen.",
+	"attack": 2532,
+	"defense": 2026,
+	"health": 20259,
+	"speed": 126,
+	"power": 39503,
+	"marchRequirement": 2950,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 14560,
+	  "wood": 10920,
+	  "stone": 6240,
+	  "iron": 3120,
+	  "valor": 22,
+	  "heroXP": 1040,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l14_s1_bog_mire_ooze",
+	"name": "Vicious Bog Mire Ooze (Lvl 14)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 14,
+	"troopWeakness": "infantry",
+	"description": "A giant toxic slime digesting biological components. Terrifying level 14 specimen.",
+	"attack": 3054,
+	"defense": 2444,
+	"health": 24436,
+	"speed": 128,
+	"power": 47649,
+	"marchRequirement": 3100,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 13440,
+	  "wood": 10080,
+	  "stone": 6160,
+	  "iron": 3080,
+	  "valor": 22,
+	  "heroXP": 1120,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l14_s2_goblin_pillager",
+	"name": "Vicious Goblin Pillager (Lvl 14)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 14,
+	"troopWeakness": "infantry",
+	"description": "A sneaky highway robber wielding jagged daggers. Terrifying level 14 specimen.",
+	"attack": 3054,
+	"defense": 2444,
+	"health": 24436,
+	"speed": 128,
+	"power": 47649,
+	"marchRequirement": 3100,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 15680,
+	  "wood": 11760,
+	  "stone": 6720,
+	  "iron": 3360,
+	  "valor": 22,
+	  "heroXP": 1120,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l15_s1_feral_hog",
+	"name": "Vicious Feral Hog (Lvl 15)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 15,
+	"troopWeakness": "marksmen",
+	"description": "A massive tusked boar that charges at anything that moves. Terrifying level 15 specimen.",
+	"attack": 3665,
+	"defense": 2932,
+	"health": 29323,
+	"speed": 130,
+	"power": 57174,
+	"marchRequirement": 3250,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 14400,
+	  "wood": 10800,
+	  "stone": 6600,
+	  "iron": 3300,
+	  "valor": 23,
+	  "heroXP": 1200,
+	  "shardDrops": [
+		{
+		  "heroId": "rowan_timberfall",
+		  "count": 1
+		}
+	  ],
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l15_s2_grave_creeper",
+	"name": "Vicious Grave Creeper (Lvl 15)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 15,
+	"troopWeakness": "cavalry",
+	"description": "A skeletal spider crawling out of the catacombs of Crownspire. Terrifying level 15 specimen.",
+	"attack": 3665,
+	"defense": 2932,
+	"health": 29323,
+	"speed": 130,
+	"power": 57174,
+	"marchRequirement": 3250,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 16800,
+	  "wood": 12600,
+	  "stone": 7200,
+	  "iron": 3600,
+	  "valor": 23,
+	  "heroXP": 1200,
+	  "shardDrops": [
+		{
+		  "heroId": "rowan_timberfall",
+		  "count": 1
+		}
+	  ],
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l16_s1_frost_lupine",
+	"name": "Raging Frostbite Lupine (Lvl 16)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 16,
+	"troopWeakness": "infantry",
+	"description": "A savage ice wolf roaming northern fields. Terrifying level 16 specimen.",
+	"attack": 4379,
+	"defense": 3503,
+	"health": 35031,
+	"speed": 132,
+	"power": 68311,
+	"marchRequirement": 3400,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 15360,
+	  "wood": 11520,
+	  "stone": 7040,
+	  "iron": 3520,
+	  "valor": 23,
+	  "heroXP": 1280,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l16_s2_cinder_spitter",
+	"name": "Raging Cinder Spitter (Lvl 16)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 16,
+	"troopWeakness": "marksmen",
+	"description": "A small elemental reptile spitting searing ash. Terrifying level 16 specimen.",
+	"attack": 4379,
+	"defense": 3503,
+	"health": 35031,
+	"speed": 132,
+	"power": 68311,
+	"marchRequirement": 3400,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 17920,
+	  "wood": 13440,
+	  "stone": 7680,
+	  "iron": 3840,
+	  "valor": 23,
+	  "heroXP": 1280,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l17_s1_mossy_harpy",
+	"name": "Raging Mossy Harpy (Lvl 17)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 17,
+	"troopWeakness": "cavalry",
+	"description": "A cruel avian creature swooping from mountain crevices. Terrifying level 17 specimen.",
+	"attack": 5211,
+	"defense": 4169,
+	"health": 41687,
+	"speed": 134,
+	"power": 81293,
+	"marchRequirement": 3550,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 16320,
+	  "wood": 12240,
+	  "stone": 7480,
+	  "iron": 3740,
+	  "valor": 24,
+	  "heroXP": 1360,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l17_s2_ironwood_golem",
+	"name": "Raging Ironwood Golem (Lvl 17)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 17,
+	"troopWeakness": "infantry",
+	"description": "An animated mass of oak trunk and stone ligaments. Terrifying level 17 specimen.",
+	"attack": 5211,
+	"defense": 4169,
+	"health": 41687,
+	"speed": 134,
+	"power": 81293,
+	"marchRequirement": 3550,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 19040,
+	  "wood": 14280,
+	  "stone": 8160,
+	  "iron": 4080,
+	  "valor": 24,
+	  "heroXP": 1360,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l18_s1_sand_dweller",
+	"name": "Raging Sand Dweller (Lvl 18)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 18,
+	"troopWeakness": "marksmen",
+	"description": "A burrowing scorpion hiding inside dry silt dunes. Terrifying level 18 specimen.",
+	"attack": 6179,
+	"defense": 4944,
+	"health": 49435,
+	"speed": 136,
+	"power": 96399,
+	"marchRequirement": 3700,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 17280,
+	  "wood": 12960,
+	  "stone": 7920,
+	  "iron": 3960,
+	  "valor": 24,
+	  "heroXP": 1440,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l18_s2_crypt_wight",
+	"name": "Raging Crypt Wight (Lvl 18)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 18,
+	"troopWeakness": "cavalry",
+	"description": "A persistent armored corpse seeking to snuff out life. Terrifying level 18 specimen.",
+	"attack": 6179,
+	"defense": 4944,
+	"health": 49435,
+	"speed": 136,
+	"power": 96399,
+	"marchRequirement": 3700,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 20160,
+	  "wood": 15120,
+	  "stone": 8640,
+	  "iron": 4320,
+	  "valor": 24,
+	  "heroXP": 1440,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l19_s1_bog_mire_ooze",
+	"name": "Raging Bog Mire Ooze (Lvl 19)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 19,
+	"troopWeakness": "infantry",
+	"description": "A giant toxic slime digesting biological components. Terrifying level 19 specimen.",
+	"attack": 7305,
+	"defense": 5844,
+	"health": 58444,
+	"speed": 138,
+	"power": 113959,
+	"marchRequirement": 3850,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 18240,
+	  "wood": 13680,
+	  "stone": 8360,
+	  "iron": 4180,
+	  "valor": 25,
+	  "heroXP": 1520,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l19_s2_goblin_pillager",
+	"name": "Raging Goblin Pillager (Lvl 19)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 19,
+	"troopWeakness": "infantry",
+	"description": "A sneaky highway robber wielding jagged daggers. Terrifying level 19 specimen.",
+	"attack": 7305,
+	"defense": 5844,
+	"health": 58444,
+	"speed": 138,
+	"power": 113959,
+	"marchRequirement": 3850,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 21280,
+	  "wood": 15960,
+	  "stone": 9120,
+	  "iron": 4560,
+	  "valor": 25,
+	  "heroXP": 1520,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l20_s1_feral_hog",
+	"name": "Raging Feral Hog (Lvl 20)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 20,
+	"troopWeakness": "marksmen",
+	"description": "A massive tusked boar that charges at anything that moves. Terrifying level 20 specimen.",
+	"attack": 8613,
+	"defense": 6890,
+	"health": 68902,
+	"speed": 140,
+	"power": 134359,
+	"marchRequirement": 4000,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 19200,
+	  "wood": 14400,
+	  "stone": 8800,
+	  "iron": 4400,
+	  "valor": 25,
+	  "heroXP": 1600,
+	  "shardDrops": [
+		{
+		  "heroId": "mira_greenleaf",
+		  "count": 1
+		}
+	  ],
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l20_s2_grave_creeper",
+	"name": "Raging Grave Creeper (Lvl 20)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 20,
+	"troopWeakness": "cavalry",
+	"description": "A skeletal spider crawling out of the catacombs of Crownspire. Terrifying level 20 specimen.",
+	"attack": 8613,
+	"defense": 6890,
+	"health": 68902,
+	"speed": 140,
+	"power": 134359,
+	"marchRequirement": 4000,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 22400,
+	  "wood": 16800,
+	  "stone": 9600,
+	  "iron": 4800,
+	  "valor": 25,
+	  "heroXP": 1600,
+	  "shardDrops": [
+		{
+		  "heroId": "mira_greenleaf",
+		  "count": 1
+		}
+	  ],
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Earthy Seed"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l21_s1_frost_lupine",
+	"name": "Frenzied Frostbite Lupine (Lvl 21)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 21,
+	"troopWeakness": "infantry",
+	"description": "A savage ice wolf roaming northern fields. Terrifying level 21 specimen.",
+	"attack": 10129,
+	"defense": 8103,
+	"health": 81029,
+	"speed": 142,
+	"power": 158010,
+	"marchRequirement": 4150,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 20160,
+	  "wood": 15120,
+	  "stone": 9240,
+	  "iron": 4620,
+	  "valor": 26,
+	  "heroXP": 1680,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l21_s2_cinder_spitter",
+	"name": "Frenzied Cinder Spitter (Lvl 21)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 21,
+	"troopWeakness": "marksmen",
+	"description": "A small elemental reptile spitting searing ash. Terrifying level 21 specimen.",
+	"attack": 10129,
+	"defense": 8103,
+	"health": 81029,
+	"speed": 142,
+	"power": 158010,
+	"marchRequirement": 4150,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 23520,
+	  "wood": 17640,
+	  "stone": 10080,
+	  "iron": 5040,
+	  "valor": 26,
+	  "heroXP": 1680,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l22_s1_mossy_harpy",
+	"name": "Frenzied Mossy Harpy (Lvl 22)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 22,
+	"troopWeakness": "cavalry",
+	"description": "A cruel avian creature swooping from mountain crevices. Terrifying level 22 specimen.",
+	"attack": 11884,
+	"defense": 9507,
+	"health": 95074,
+	"speed": 144,
+	"power": 185389,
+	"marchRequirement": 4300,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 21120,
+	  "wood": 15840,
+	  "stone": 9680,
+	  "iron": 4840,
+	  "valor": 26,
+	  "heroXP": 1760,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l22_s2_ironwood_golem",
+	"name": "Frenzied Ironwood Golem (Lvl 22)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 22,
+	"troopWeakness": "infantry",
+	"description": "An animated mass of oak trunk and stone ligaments. Terrifying level 22 specimen.",
+	"attack": 11884,
+	"defense": 9507,
+	"health": 95074,
+	"speed": 144,
+	"power": 185389,
+	"marchRequirement": 4300,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 24640,
+	  "wood": 18480,
+	  "stone": 10560,
+	  "iron": 5280,
+	  "valor": 26,
+	  "heroXP": 1760,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l23_s1_sand_dweller",
+	"name": "Frenzied Sand Dweller (Lvl 23)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 23,
+	"troopWeakness": "marksmen",
+	"description": "A burrowing scorpion hiding inside dry silt dunes. Terrifying level 23 specimen.",
+	"attack": 13915,
+	"defense": 11132,
+	"health": 111323,
+	"speed": 146,
+	"power": 217074,
+	"marchRequirement": 4450,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 22080,
+	  "wood": 16560,
+	  "stone": 10120,
+	  "iron": 5060,
+	  "valor": 27,
+	  "heroXP": 1840,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l23_s2_crypt_wight",
+	"name": "Frenzied Crypt Wight (Lvl 23)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 23,
+	"troopWeakness": "cavalry",
+	"description": "A persistent armored corpse seeking to snuff out life. Terrifying level 23 specimen.",
+	"attack": 13915,
+	"defense": 11132,
+	"health": 111323,
+	"speed": 146,
+	"power": 217074,
+	"marchRequirement": 4450,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 25760,
+	  "wood": 19320,
+	  "stone": 11040,
+	  "iron": 5520,
+	  "valor": 27,
+	  "heroXP": 1840,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l24_s1_bog_mire_ooze",
+	"name": "Frenzied Bog Mire Ooze (Lvl 24)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 24,
+	"troopWeakness": "infantry",
+	"description": "A giant toxic slime digesting biological components. Terrifying level 24 specimen.",
+	"attack": 16263,
+	"defense": 13010,
+	"health": 130103,
+	"speed": 148,
+	"power": 253699,
+	"marchRequirement": 4600,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 23040,
+	  "wood": 17280,
+	  "stone": 10560,
+	  "iron": 5280,
+	  "valor": 27,
+	  "heroXP": 1920,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l24_s2_goblin_pillager",
+	"name": "Frenzied Goblin Pillager (Lvl 24)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 24,
+	"troopWeakness": "infantry",
+	"description": "A sneaky highway robber wielding jagged daggers. Terrifying level 24 specimen.",
+	"attack": 16263,
+	"defense": 13010,
+	"health": 130103,
+	"speed": 148,
+	"power": 253699,
+	"marchRequirement": 4600,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 26880,
+	  "wood": 20160,
+	  "stone": 11520,
+	  "iron": 5760,
+	  "valor": 27,
+	  "heroXP": 1920,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l25_s1_feral_hog",
+	"name": "Frenzied Feral Hog (Lvl 25)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 25,
+	"troopWeakness": "marksmen",
+	"description": "A massive tusked boar that charges at anything that moves. Terrifying level 25 specimen.",
+	"attack": 18973,
+	"defense": 15179,
+	"health": 151786,
+	"speed": 150,
+	"power": 295984,
+	"marchRequirement": 4750,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 24000,
+	  "wood": 18000,
+	  "stone": 11000,
+	  "iron": 5500,
+	  "valor": 28,
+	  "heroXP": 2000,
+	  "shardDrops": [
+		{
+		  "heroId": "rowan_timberfall",
+		  "count": 1
+		}
+	  ],
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l25_s2_grave_creeper",
+	"name": "Frenzied Grave Creeper (Lvl 25)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 25,
+	"troopWeakness": "cavalry",
+	"description": "A skeletal spider crawling out of the catacombs of Crownspire. Terrifying level 25 specimen.",
+	"attack": 18973,
+	"defense": 15179,
+	"health": 151786,
+	"speed": 150,
+	"power": 295984,
+	"marchRequirement": 4750,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 28000,
+	  "wood": 21000,
+	  "stone": 12000,
+	  "iron": 6000,
+	  "valor": 28,
+	  "heroXP": 2000,
+	  "shardDrops": [
+		{
+		  "heroId": "rowan_timberfall",
+		  "count": 1
+		}
+	  ],
+	  "itemDrops": [
+		"5m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l26_s1_frost_lupine",
+	"name": "Wild Frostbite Lupine (Lvl 26)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 26,
+	"troopWeakness": "infantry",
+	"description": "A savage ice wolf roaming northern fields. Terrifying level 26 specimen.",
+	"attack": 22100,
+	"defense": 17680,
+	"health": 176801,
+	"speed": 152,
+	"power": 344760,
+	"marchRequirement": 4900,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 24960,
+	  "wood": 18720,
+	  "stone": 11440,
+	  "iron": 5720,
+	  "valor": 28,
+	  "heroXP": 2080,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l26_s2_cinder_spitter",
+	"name": "Wild Cinder Spitter (Lvl 26)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 26,
+	"troopWeakness": "marksmen",
+	"description": "A small elemental reptile spitting searing ash. Terrifying level 26 specimen.",
+	"attack": 22100,
+	"defense": 17680,
+	"health": 176801,
+	"speed": 152,
+	"power": 344760,
+	"marchRequirement": 4900,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 29120,
+	  "wood": 21840,
+	  "stone": 12480,
+	  "iron": 6240,
+	  "valor": 28,
+	  "heroXP": 2080,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l27_s1_mossy_harpy",
+	"name": "Wild Mossy Harpy (Lvl 27)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 27,
+	"troopWeakness": "cavalry",
+	"description": "A cruel avian creature swooping from mountain crevices. Terrifying level 27 specimen.",
+	"attack": 25704,
+	"defense": 20563,
+	"health": 205633,
+	"speed": 154,
+	"power": 400981,
+	"marchRequirement": 5050,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 25920,
+	  "wood": 19440,
+	  "stone": 11880,
+	  "iron": 5940,
+	  "valor": 29,
+	  "heroXP": 2160,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l27_s2_ironwood_golem",
+	"name": "Wild Ironwood Golem (Lvl 27)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 27,
+	"troopWeakness": "infantry",
+	"description": "An animated mass of oak trunk and stone ligaments. Terrifying level 27 specimen.",
+	"attack": 25704,
+	"defense": 20563,
+	"health": 205633,
+	"speed": 154,
+	"power": 400981,
+	"marchRequirement": 5050,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 30240,
+	  "wood": 22680,
+	  "stone": 12960,
+	  "iron": 6480,
+	  "valor": 29,
+	  "heroXP": 2160,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l28_s1_sand_dweller",
+	"name": "Wild Sand Dweller (Lvl 28)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 28,
+	"troopWeakness": "marksmen",
+	"description": "A burrowing scorpion hiding inside dry silt dunes. Terrifying level 28 specimen.",
+	"attack": 29855,
+	"defense": 23884,
+	"health": 238839,
+	"speed": 156,
+	"power": 465738,
+	"marchRequirement": 5200,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 26880,
+	  "wood": 20160,
+	  "stone": 12320,
+	  "iron": 6160,
+	  "valor": 29,
+	  "heroXP": 2240,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l28_s2_crypt_wight",
+	"name": "Wild Crypt Wight (Lvl 28)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 28,
+	"troopWeakness": "cavalry",
+	"description": "A persistent armored corpse seeking to snuff out life. Terrifying level 28 specimen.",
+	"attack": 29855,
+	"defense": 23884,
+	"health": 238839,
+	"speed": 156,
+	"power": 465738,
+	"marchRequirement": 5200,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 31360,
+	  "wood": 23520,
+	  "stone": 13440,
+	  "iron": 6720,
+	  "valor": 29,
+	  "heroXP": 2240,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l29_s1_bog_mire_ooze",
+	"name": "Wild Bog Mire Ooze (Lvl 29)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 29,
+	"troopWeakness": "infantry",
+	"description": "A giant toxic slime digesting biological components. Terrifying level 29 specimen.",
+	"attack": 34632,
+	"defense": 27705,
+	"health": 277053,
+	"speed": 158,
+	"power": 540254,
+	"marchRequirement": 5350,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 27840,
+	  "wood": 20880,
+	  "stone": 12760,
+	  "iron": 6380,
+	  "valor": 30,
+	  "heroXP": 2320,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l29_s2_goblin_pillager",
+	"name": "Wild Goblin Pillager (Lvl 29)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 29,
+	"troopWeakness": "infantry",
+	"description": "A sneaky highway robber wielding jagged daggers. Terrifying level 29 specimen.",
+	"attack": 34632,
+	"defense": 27705,
+	"health": 277053,
+	"speed": 158,
+	"power": 540254,
+	"marchRequirement": 5350,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 32480,
+	  "wood": 24360,
+	  "stone": 13920,
+	  "iron": 6960,
+	  "valor": 30,
+	  "heroXP": 2320,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l30_s1_feral_hog",
+	"name": "Wild Feral Hog (Lvl 30)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 30,
+	"troopWeakness": "marksmen",
+	"description": "A massive tusked boar that charges at anything that moves. Terrifying level 30 specimen.",
+	"attack": 40125,
+	"defense": 32100,
+	"health": 320999,
+	"speed": 160,
+	"power": 625950,
+	"marchRequirement": 5500,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 28800,
+	  "wood": 21600,
+	  "stone": 13200,
+	  "iron": 6600,
+	  "valor": 30,
+	  "heroXP": 2400,
+	  "shardDrops": [
+		{
+		  "heroId": "mira_greenleaf",
+		  "count": 1
+		}
+	  ],
+	  "itemDrops": [
+		"15m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l30_s2_grave_creeper",
+	"name": "Wild Grave Creeper (Lvl 30)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 30,
+	"troopWeakness": "cavalry",
+	"description": "A skeletal spider crawling out of the catacombs of Crownspire. Terrifying level 30 specimen.",
+	"attack": 40125,
+	"defense": 32100,
+	"health": 320999,
+	"speed": 160,
+	"power": 625950,
+	"marchRequirement": 5500,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 33600,
+	  "wood": 25200,
+	  "stone": 14400,
+	  "iron": 7200,
+	  "valor": 30,
+	  "heroXP": 2400,
+	  "shardDrops": [
+		{
+		  "heroId": "mira_greenleaf",
+		  "count": 1
+		}
+	  ],
+	  "itemDrops": [
+		"15m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l31_s1_frost_lupine",
+	"name": "Hardened Frostbite Lupine (Lvl 31)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 31,
+	"troopWeakness": "infantry",
+	"description": "A savage ice wolf roaming northern fields. Terrifying level 31 specimen.",
+	"attack": 46438,
+	"defense": 37150,
+	"health": 371503,
+	"speed": 162,
+	"power": 724429,
+	"marchRequirement": 5650,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 29760,
+	  "wood": 22320,
+	  "stone": 13640,
+	  "iron": 6820,
+	  "valor": 31,
+	  "heroXP": 2480,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l31_s2_cinder_spitter",
+	"name": "Hardened Cinder Spitter (Lvl 31)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 31,
+	"troopWeakness": "marksmen",
+	"description": "A small elemental reptile spitting searing ash. Terrifying level 31 specimen.",
+	"attack": 46438,
+	"defense": 37150,
+	"health": 371503,
+	"speed": 162,
+	"power": 724429,
+	"marchRequirement": 5650,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 34720,
+	  "wood": 26040,
+	  "stone": 14880,
+	  "iron": 7440,
+	  "valor": 31,
+	  "heroXP": 2480,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l32_s1_mossy_harpy",
+	"name": "Hardened Mossy Harpy (Lvl 32)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 32,
+	"troopWeakness": "cavalry",
+	"description": "A cruel avian creature swooping from mountain crevices. Terrifying level 32 specimen.",
+	"attack": 53688,
+	"defense": 42951,
+	"health": 429505,
+	"speed": 164,
+	"power": 837538,
+	"marchRequirement": 5800,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 30720,
+	  "wood": 23040,
+	  "stone": 14080,
+	  "iron": 7040,
+	  "valor": 31,
+	  "heroXP": 2560,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l32_s2_ironwood_golem",
+	"name": "Hardened Ironwood Golem (Lvl 32)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 32,
+	"troopWeakness": "infantry",
+	"description": "An animated mass of oak trunk and stone ligaments. Terrifying level 32 specimen.",
+	"attack": 53688,
+	"defense": 42951,
+	"health": 429505,
+	"speed": 164,
+	"power": 837538,
+	"marchRequirement": 5800,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 35840,
+	  "wood": 26880,
+	  "stone": 15360,
+	  "iron": 7680,
+	  "valor": 31,
+	  "heroXP": 2560,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l33_s1_sand_dweller",
+	"name": "Hardened Sand Dweller (Lvl 33)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 33,
+	"troopWeakness": "marksmen",
+	"description": "A burrowing scorpion hiding inside dry silt dunes. Terrifying level 33 specimen.",
+	"attack": 62010,
+	"defense": 49608,
+	"health": 496079,
+	"speed": 166,
+	"power": 967356,
+	"marchRequirement": 5950,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 31680,
+	  "wood": 23760,
+	  "stone": 14520,
+	  "iron": 7260,
+	  "valor": 32,
+	  "heroXP": 2640,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l33_s2_crypt_wight",
+	"name": "Hardened Crypt Wight (Lvl 33)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 33,
+	"troopWeakness": "cavalry",
+	"description": "A persistent armored corpse seeking to snuff out life. Terrifying level 33 specimen.",
+	"attack": 62010,
+	"defense": 49608,
+	"health": 496079,
+	"speed": 166,
+	"power": 967356,
+	"marchRequirement": 5950,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 36960,
+	  "wood": 27720,
+	  "stone": 15840,
+	  "iron": 7920,
+	  "valor": 32,
+	  "heroXP": 2640,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l34_s1_bog_mire_ooze",
+	"name": "Hardened Bog Mire Ooze (Lvl 34)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 34,
+	"troopWeakness": "infantry",
+	"description": "A giant toxic slime digesting biological components. Terrifying level 34 specimen.",
+	"attack": 71556,
+	"defense": 57244,
+	"health": 572445,
+	"speed": 168,
+	"power": 1116267,
+	"marchRequirement": 6100,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 32640,
+	  "wood": 24480,
+	  "stone": 14960,
+	  "iron": 7480,
+	  "valor": 32,
+	  "heroXP": 2720,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l34_s2_goblin_pillager",
+	"name": "Hardened Goblin Pillager (Lvl 34)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 34,
+	"troopWeakness": "infantry",
+	"description": "A sneaky highway robber wielding jagged daggers. Terrifying level 34 specimen.",
+	"attack": 71556,
+	"defense": 57244,
+	"health": 572445,
+	"speed": 168,
+	"power": 1116267,
+	"marchRequirement": 6100,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 38080,
+	  "wood": 28560,
+	  "stone": 16320,
+	  "iron": 8160,
+	  "valor": 32,
+	  "heroXP": 2720,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l35_s1_feral_hog",
+	"name": "Hardened Feral Hog (Lvl 35)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 35,
+	"troopWeakness": "marksmen",
+	"description": "A massive tusked boar that charges at anything that moves. Terrifying level 35 specimen.",
+	"attack": 82499,
+	"defense": 66000,
+	"health": 659995,
+	"speed": 170,
+	"power": 1286991,
+	"marchRequirement": 6250,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 33600,
+	  "wood": 25200,
+	  "stone": 15400,
+	  "iron": 7700,
+	  "valor": 33,
+	  "heroXP": 2800,
+	  "shardDrops": [
+		{
+		  "heroId": "rowan_timberfall",
+		  "count": 2
+		}
+	  ],
+	  "itemDrops": [
+		"15m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l35_s2_grave_creeper",
+	"name": "Hardened Grave Creeper (Lvl 35)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 35,
+	"troopWeakness": "cavalry",
+	"description": "A skeletal spider crawling out of the catacombs of Crownspire. Terrifying level 35 specimen.",
+	"attack": 82499,
+	"defense": 66000,
+	"health": 659995,
+	"speed": 170,
+	"power": 1286991,
+	"marchRequirement": 6250,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 39200,
+	  "wood": 29400,
+	  "stone": 16800,
+	  "iron": 8400,
+	  "valor": 33,
+	  "heroXP": 2800,
+	  "shardDrops": [
+		{
+		  "heroId": "rowan_timberfall",
+		  "count": 2
+		}
+	  ],
+	  "itemDrops": [
+		"15m speedup",
+		"Copper Wire",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l36_s1_frost_lupine",
+	"name": "Ancient Frostbite Lupine (Lvl 36)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 36,
+	"troopWeakness": "infantry",
+	"description": "A savage ice wolf roaming northern fields. Terrifying level 36 specimen.",
+	"attack": 95039,
+	"defense": 76031,
+	"health": 760315,
+	"speed": 172,
+	"power": 1482607,
+	"marchRequirement": 6400,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 34560,
+	  "wood": 25920,
+	  "stone": 15840,
+	  "iron": 7920,
+	  "valor": 33,
+	  "heroXP": 2880,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l36_s2_cinder_spitter",
+	"name": "Ancient Cinder Spitter (Lvl 36)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 36,
+	"troopWeakness": "marksmen",
+	"description": "A small elemental reptile spitting searing ash. Terrifying level 36 specimen.",
+	"attack": 95039,
+	"defense": 76031,
+	"health": 760315,
+	"speed": 172,
+	"power": 1482607,
+	"marchRequirement": 6400,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 40320,
+	  "wood": 30240,
+	  "stone": 17280,
+	  "iron": 8640,
+	  "valor": 33,
+	  "heroXP": 2880,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l37_s1_mossy_harpy",
+	"name": "Ancient Mossy Harpy (Lvl 37)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 37,
+	"troopWeakness": "cavalry",
+	"description": "A cruel avian creature swooping from mountain crevices. Terrifying level 37 specimen.",
+	"attack": 109401,
+	"defense": 87521,
+	"health": 875206,
+	"speed": 174,
+	"power": 1706657,
+	"marchRequirement": 6550,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 35520,
+	  "wood": 26640,
+	  "stone": 16280,
+	  "iron": 8140,
+	  "valor": 34,
+	  "heroXP": 2960,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l37_s2_ironwood_golem",
+	"name": "Ancient Ironwood Golem (Lvl 37)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 37,
+	"troopWeakness": "infantry",
+	"description": "An animated mass of oak trunk and stone ligaments. Terrifying level 37 specimen.",
+	"attack": 109401,
+	"defense": 87521,
+	"health": 875206,
+	"speed": 174,
+	"power": 1706657,
+	"marchRequirement": 6550,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 41440,
+	  "wood": 31080,
+	  "stone": 17760,
+	  "iron": 8880,
+	  "valor": 34,
+	  "heroXP": 2960,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l38_s1_sand_dweller",
+	"name": "Ancient Sand Dweller (Lvl 38)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 38,
+	"troopWeakness": "marksmen",
+	"description": "A burrowing scorpion hiding inside dry silt dunes. Terrifying level 38 specimen.",
+	"attack": 125841,
+	"defense": 100672,
+	"health": 1006724,
+	"speed": 176,
+	"power": 1963113,
+	"marchRequirement": 6700,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 36480,
+	  "wood": 27360,
+	  "stone": 16720,
+	  "iron": 8360,
+	  "valor": 34,
+	  "heroXP": 3040,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l38_s2_crypt_wight",
+	"name": "Ancient Crypt Wight (Lvl 38)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 38,
+	"troopWeakness": "cavalry",
+	"description": "A persistent armored corpse seeking to snuff out life. Terrifying level 38 specimen.",
+	"attack": 125841,
+	"defense": 100672,
+	"health": 1006724,
+	"speed": 176,
+	"power": 1963113,
+	"marchRequirement": 6700,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 42560,
+	  "wood": 31920,
+	  "stone": 18240,
+	  "iron": 9120,
+	  "valor": 34,
+	  "heroXP": 3040,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l39_s1_bog_mire_ooze",
+	"name": "Ancient Bog Mire Ooze (Lvl 39)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 39,
+	"troopWeakness": "infantry",
+	"description": "A giant toxic slime digesting biological components. Terrifying level 39 specimen.",
+	"attack": 144650,
+	"defense": 115720,
+	"health": 1157203,
+	"speed": 178,
+	"power": 2256540,
+	"marchRequirement": 6850,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 37440,
+	  "wood": 28080,
+	  "stone": 17160,
+	  "iron": 8580,
+	  "valor": 35,
+	  "heroXP": 3120,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l39_s2_goblin_pillager",
+	"name": "Ancient Goblin Pillager (Lvl 39)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 39,
+	"troopWeakness": "infantry",
+	"description": "A sneaky highway robber wielding jagged daggers. Terrifying level 39 specimen.",
+	"attack": 144650,
+	"defense": 115720,
+	"health": 1157203,
+	"speed": 178,
+	"power": 2256540,
+	"marchRequirement": 6850,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 43680,
+	  "wood": 32760,
+	  "stone": 18720,
+	  "iron": 9360,
+	  "valor": 35,
+	  "heroXP": 3120,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l40_s1_feral_hog",
+	"name": "Ancient Feral Hog (Lvl 40)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 40,
+	"troopWeakness": "marksmen",
+	"description": "A massive tusked boar that charges at anything that moves. Terrifying level 40 specimen.",
+	"attack": 166162,
+	"defense": 132930,
+	"health": 1329300,
+	"speed": 180,
+	"power": 2592131,
+	"marchRequirement": 7000,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 38400,
+	  "wood": 28800,
+	  "stone": 17600,
+	  "iron": 8800,
+	  "valor": 35,
+	  "heroXP": 3200,
+	  "shardDrops": [
+		{
+		  "heroId": "mira_greenleaf",
+		  "count": 2
+		}
+	  ],
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l40_s2_grave_creeper",
+	"name": "Ancient Grave Creeper (Lvl 40)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 40,
+	"troopWeakness": "cavalry",
+	"description": "A skeletal spider crawling out of the catacombs of Crownspire. Terrifying level 40 specimen.",
+	"attack": 166162,
+	"defense": 132930,
+	"health": 1329300,
+	"speed": 180,
+	"power": 2592131,
+	"marchRequirement": 7000,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 44800,
+	  "wood": 33600,
+	  "stone": 19200,
+	  "iron": 9600,
+	  "valor": 35,
+	  "heroXP": 3200,
+	  "shardDrops": [
+		{
+		  "heroId": "mira_greenleaf",
+		  "count": 2
+		}
+	  ],
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l41_s1_frost_lupine",
+	"name": "Corrupted Frostbite Lupine (Lvl 41)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 41,
+	"troopWeakness": "infantry",
+	"description": "A savage ice wolf roaming northern fields. Terrifying level 41 specimen.",
+	"attack": 190754,
+	"defense": 152604,
+	"health": 1526036,
+	"speed": 182,
+	"power": 2975769,
+	"marchRequirement": 7150,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 39360,
+	  "wood": 29520,
+	  "stone": 18040,
+	  "iron": 9020,
+	  "valor": 36,
+	  "heroXP": 3280,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l41_s2_cinder_spitter",
+	"name": "Corrupted Cinder Spitter (Lvl 41)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 41,
+	"troopWeakness": "marksmen",
+	"description": "A small elemental reptile spitting searing ash. Terrifying level 41 specimen.",
+	"attack": 190754,
+	"defense": 152604,
+	"health": 1526036,
+	"speed": 182,
+	"power": 2975769,
+	"marchRequirement": 7150,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 45920,
+	  "wood": 34440,
+	  "stone": 19680,
+	  "iron": 9840,
+	  "valor": 36,
+	  "heroXP": 3280,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l42_s1_mossy_harpy",
+	"name": "Corrupted Mossy Harpy (Lvl 42)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 42,
+	"troopWeakness": "cavalry",
+	"description": "A cruel avian creature swooping from mountain crevices. Terrifying level 42 specimen.",
+	"attack": 218856,
+	"defense": 175085,
+	"health": 1750847,
+	"speed": 184,
+	"power": 3414155,
+	"marchRequirement": 7300,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 40320,
+	  "wood": 30240,
+	  "stone": 18480,
+	  "iron": 9240,
+	  "valor": 36,
+	  "heroXP": 3360,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l42_s2_ironwood_golem",
+	"name": "Corrupted Ironwood Golem (Lvl 42)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 42,
+	"troopWeakness": "infantry",
+	"description": "An animated mass of oak trunk and stone ligaments. Terrifying level 42 specimen.",
+	"attack": 218856,
+	"defense": 175085,
+	"health": 1750847,
+	"speed": 184,
+	"power": 3414155,
+	"marchRequirement": 7300,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 47040,
+	  "wood": 35280,
+	  "stone": 20160,
+	  "iron": 10080,
+	  "valor": 36,
+	  "heroXP": 3360,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l43_s1_sand_dweller",
+	"name": "Corrupted Sand Dweller (Lvl 43)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 43,
+	"troopWeakness": "marksmen",
+	"description": "A burrowing scorpion hiding inside dry silt dunes. Terrifying level 43 specimen.",
+	"attack": 250955,
+	"defense": 200764,
+	"health": 2007638,
+	"speed": 186,
+	"power": 3914898,
+	"marchRequirement": 7450,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 41280,
+	  "wood": 30960,
+	  "stone": 18920,
+	  "iron": 9460,
+	  "valor": 37,
+	  "heroXP": 3440,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l43_s2_crypt_wight",
+	"name": "Corrupted Crypt Wight (Lvl 43)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 43,
+	"troopWeakness": "cavalry",
+	"description": "A persistent armored corpse seeking to snuff out life. Terrifying level 43 specimen.",
+	"attack": 250955,
+	"defense": 200764,
+	"health": 2007638,
+	"speed": 186,
+	"power": 3914898,
+	"marchRequirement": 7450,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 48160,
+	  "wood": 36120,
+	  "stone": 20640,
+	  "iron": 10320,
+	  "valor": 37,
+	  "heroXP": 3440,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l44_s1_bog_mire_ooze",
+	"name": "Corrupted Bog Mire Ooze (Lvl 44)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 44,
+	"troopWeakness": "infantry",
+	"description": "A giant toxic slime digesting biological components. Terrifying level 44 specimen.",
+	"attack": 287606,
+	"defense": 230085,
+	"health": 2300846,
+	"speed": 188,
+	"power": 4486655,
+	"marchRequirement": 7600,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 42240,
+	  "wood": 31680,
+	  "stone": 19360,
+	  "iron": 9680,
+	  "valor": 37,
+	  "heroXP": 3520,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l44_s2_goblin_pillager",
+	"name": "Corrupted Goblin Pillager (Lvl 44)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 44,
+	"troopWeakness": "infantry",
+	"description": "A sneaky highway robber wielding jagged daggers. Terrifying level 44 specimen.",
+	"attack": 287606,
+	"defense": 230085,
+	"health": 2300846,
+	"speed": 188,
+	"power": 4486655,
+	"marchRequirement": 7600,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 49280,
+	  "wood": 36960,
+	  "stone": 21120,
+	  "iron": 10560,
+	  "valor": 37,
+	  "heroXP": 3520,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l45_s1_feral_hog",
+	"name": "Corrupted Feral Hog (Lvl 45)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 45,
+	"troopWeakness": "marksmen",
+	"description": "A massive tusked boar that charges at anything that moves. Terrifying level 45 specimen.",
+	"attack": 329439,
+	"defense": 263552,
+	"health": 2635515,
+	"speed": 190,
+	"power": 5139255,
+	"marchRequirement": 7750,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 43200,
+	  "wood": 32400,
+	  "stone": 19800,
+	  "iron": 9900,
+	  "valor": 38,
+	  "heroXP": 3600,
+	  "shardDrops": [
+		{
+		  "heroId": "rowan_timberfall",
+		  "count": 2
+		}
+	  ],
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l45_s2_grave_creeper",
+	"name": "Corrupted Grave Creeper (Lvl 45)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 45,
+	"troopWeakness": "cavalry",
+	"description": "A skeletal spider crawling out of the catacombs of Crownspire. Terrifying level 45 specimen.",
+	"attack": 329439,
+	"defense": 263552,
+	"health": 2635515,
+	"speed": 190,
+	"power": 5139255,
+	"marchRequirement": 7750,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 50400,
+	  "wood": 37800,
+	  "stone": 21600,
+	  "iron": 10800,
+	  "valor": 38,
+	  "heroXP": 3600,
+	  "shardDrops": [
+		{
+		  "heroId": "rowan_timberfall",
+		  "count": 2
+		}
+	  ],
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l46_s1_frost_lupine",
+	"name": "Dreaded Frostbite Lupine (Lvl 46)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 46,
+	"troopWeakness": "infantry",
+	"description": "A savage ice wolf roaming northern fields. Terrifying level 46 specimen.",
+	"attack": 377171,
+	"defense": 301737,
+	"health": 3017372,
+	"speed": 192,
+	"power": 5883870,
+	"marchRequirement": 7900,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 44160,
+	  "wood": 33120,
+	  "stone": 20240,
+	  "iron": 10120,
+	  "valor": 38,
+	  "heroXP": 3680,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l46_s2_cinder_spitter",
+	"name": "Dreaded Cinder Spitter (Lvl 46)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 46,
+	"troopWeakness": "marksmen",
+	"description": "A small elemental reptile spitting searing ash. Terrifying level 46 specimen.",
+	"attack": 377171,
+	"defense": 301737,
+	"health": 3017372,
+	"speed": 192,
+	"power": 5883870,
+	"marchRequirement": 7900,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 51520,
+	  "wood": 38640,
+	  "stone": 22080,
+	  "iron": 11040,
+	  "valor": 38,
+	  "heroXP": 3680,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l47_s1_mossy_harpy",
+	"name": "Dreaded Mossy Harpy (Lvl 47)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 47,
+	"troopWeakness": "cavalry",
+	"description": "A cruel avian creature swooping from mountain crevices. Terrifying level 47 specimen.",
+	"attack": 431615,
+	"defense": 345292,
+	"health": 3452923,
+	"speed": 194,
+	"power": 6733194,
+	"marchRequirement": 8050,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 45120,
+	  "wood": 33840,
+	  "stone": 20680,
+	  "iron": 10340,
+	  "valor": 39,
+	  "heroXP": 3760,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l47_s2_ironwood_golem",
+	"name": "Dreaded Ironwood Golem (Lvl 47)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 47,
+	"troopWeakness": "infantry",
+	"description": "An animated mass of oak trunk and stone ligaments. Terrifying level 47 specimen.",
+	"attack": 431615,
+	"defense": 345292,
+	"health": 3452923,
+	"speed": 194,
+	"power": 6733194,
+	"marchRequirement": 8050,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 52640,
+	  "wood": 39480,
+	  "stone": 22560,
+	  "iron": 11280,
+	  "valor": 39,
+	  "heroXP": 3760,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l48_s1_sand_dweller",
+	"name": "Dreaded Sand Dweller (Lvl 48)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 48,
+	"troopWeakness": "marksmen",
+	"description": "A burrowing scorpion hiding inside dry silt dunes. Terrifying level 48 specimen.",
+	"attack": 493695,
+	"defense": 394956,
+	"health": 3949556,
+	"speed": 196,
+	"power": 7701641,
+	"marchRequirement": 8200,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 46080,
+	  "wood": 34560,
+	  "stone": 21120,
+	  "iron": 10560,
+	  "valor": 39,
+	  "heroXP": 3840,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l48_s2_crypt_wight",
+	"name": "Dreaded Crypt Wight (Lvl 48)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 48,
+	"troopWeakness": "cavalry",
+	"description": "A persistent armored corpse seeking to snuff out life. Terrifying level 48 specimen.",
+	"attack": 493695,
+	"defense": 394956,
+	"health": 3949556,
+	"speed": 196,
+	"power": 7701641,
+	"marchRequirement": 8200,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 53760,
+	  "wood": 40320,
+	  "stone": 23040,
+	  "iron": 11520,
+	  "valor": 39,
+	  "heroXP": 3840,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l49_s1_bog_mire_ooze",
+	"name": "Dreaded Bog Mire Ooze (Lvl 49)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 49,
+	"troopWeakness": "infantry",
+	"description": "A giant toxic slime digesting biological components. Terrifying level 49 specimen.",
+	"attack": 564457,
+	"defense": 451566,
+	"health": 4515659,
+	"speed": 198,
+	"power": 8805533,
+	"marchRequirement": 8350,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 47040,
+	  "wood": 35280,
+	  "stone": 21560,
+	  "iron": 10780,
+	  "valor": 40,
+	  "heroXP": 3920,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l49_s2_goblin_pillager",
+	"name": "Dreaded Goblin Pillager (Lvl 49)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 49,
+	"troopWeakness": "infantry",
+	"description": "A sneaky highway robber wielding jagged daggers. Terrifying level 49 specimen.",
+	"attack": 564457,
+	"defense": 451566,
+	"health": 4515659,
+	"speed": 198,
+	"power": 8805533,
+	"marchRequirement": 8350,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 54880,
+	  "wood": 41160,
+	  "stone": 23520,
+	  "iron": 11760,
+	  "valor": 40,
+	  "heroXP": 3920,
+	  "shardDrops": null,
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l50_s1_feral_hog",
+	"name": "Dreaded Feral Hog (Lvl 50)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 50,
+	"troopWeakness": "marksmen",
+	"description": "A massive tusked boar that charges at anything that moves. Terrifying level 50 specimen.",
+	"attack": 645094,
+	"defense": 516075,
+	"health": 5160753,
+	"speed": 200,
+	"power": 10063465,
+	"marchRequirement": 8500,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 48000,
+	  "wood": 36000,
+	  "stone": 22000,
+	  "iron": 11000,
+	  "valor": 40,
+	  "heroXP": 4000,
+	  "shardDrops": [
+		{
+		  "heroId": "mira_greenleaf",
+		  "count": 2
+		}
+	  ],
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "monster_common_l50_s2_grave_creeper",
+	"name": "Dreaded Grave Creeper (Lvl 50)",
+	"monsterType": "Common",
+	"rarity": "Common",
+	"level": 50,
+	"troopWeakness": "cavalry",
+	"description": "A skeletal spider crawling out of the catacombs of Crownspire. Terrifying level 50 specimen.",
+	"attack": 645094,
+	"defense": 516075,
+	"health": 5160753,
+	"speed": 200,
+	"power": 10063465,
+	"marchRequirement": 8500,
+	"staminaCost": 10,
+	"respawnTimeSec": 300,
+	"rewards": {
+	  "food": 56000,
+	  "wood": 42000,
+	  "stone": 24000,
+	  "iron": 12000,
+	  "valor": 40,
+	  "heroXP": 4000,
+	  "shardDrops": [
+		{
+		  "heroId": "mira_greenleaf",
+		  "count": 2
+		}
+	  ],
+	  "itemDrops": [
+		"15m speedup",
+		"Obsidian Shard",
+        "Beast Treats"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "elite_infernal_drake",
+	"name": "Infernal Ash Drake",
+	"monsterType": "Elite",
+	"rarity": "Elite",
+	"level": 15,
+	"troopWeakness": "cavalry",
+	"description": "A crimson drake breathing sticky magma pools that incinerate infantry ranks.",
+	"attack": 4500,
+	"defense": 3800,
+	"health": 44000,
+	"speed": 180,
+	"power": 125000,
+	"marchRequirement": 17500,
+	"staminaCost": 20,
+	"respawnTimeSec": 1800,
+	"rewards": {
+	  "food": 50000,
+	  "wood": 40000,
+	  "stone": 30000,
+	  "iron": 15000,
+	  "valor": 150,
+	  "heroXP": 3500,
+	  "shardDrops": [
+		{
+		  "heroId": "captain_aldric",
+		  "count": 5
+		}
+	  ],
+	  "itemDrops": [
+		"1h speedup",
+		"1h speedup",
+		"Drake Scale",
+		"Magma Heart",
+		"Crimson Treats",
+        "Growth Serum"
+	  ]
+	},
+	"eliteBonuses": [
+	  "Garrison Slaying Loot Boost +25%",
+      "Tactical Damage Modifier +30%"
+	],
+	"specialAbilities": [
+	  "Molten Burst",
+      "Enraged Strikes"
+	],
+	"enhancedRewards": [
+	  "Mythic Material Fragment",
+	  "Drake Scale",
+      "Magma Heart"
+	],
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "elite_crypt_lord",
+	"name": "Crypt Sovereign Malakor",
+	"monsterType": "Elite",
+	"rarity": "Elite",
+	"level": 20,
+	"troopWeakness": "marksmen",
+	"description": "An ancient spectral king whose glowing broadsword strips defender defense ratings.",
+	"attack": 6800,
+	"defense": 5900,
+	"health": 72000,
+	"speed": 140,
+	"power": 210000,
+	"marchRequirement": 20000,
+	"staminaCost": 20,
+	"respawnTimeSec": 1800,
+	"rewards": {
+	  "food": 80000,
+	  "wood": 65000,
+	  "stone": 50000,
+	  "iron": 25000,
+	  "valor": 250,
+	  "heroXP": 5000,
+	  "shardDrops": [
+		{
+		  "heroId": "ronald_steelbreaker",
+		  "count": 6
+		}
+	  ],
+	  "itemDrops": [
+		"1h speedup",
+		"3h speedup",
+		"Spectral Steel",
+		"Prismatic Iron",
+		"Undead Serum",
+        "Esoteric Essence"
+	  ]
+	},
+	"eliteBonuses": [
+	  "Garrison Slaying Loot Boost +25%",
+      "Tactical Damage Modifier +40%"
+	],
+	"specialAbilities": [
+	  "Sunder Armor",
+      "Enraged Strikes"
+	],
+	"enhancedRewards": [
+	  "Mythic Material Fragment",
+	  "Spectral Steel",
+      "Prismatic Iron"
+	],
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "elite_glacier_goliath",
+	"name": "Glacier Goliath",
+	"monsterType": "Elite",
+	"rarity": "Elite",
+	"level": 25,
+	"troopWeakness": "infantry",
+	"description": "A colossal mountain troll of solid blue packed glacial ice.",
+	"attack": 9500,
+	"defense": 12000,
+	"health": 120000,
+	"speed": 95,
+	"power": 380000,
+	"marchRequirement": 22500,
+	"staminaCost": 20,
+	"respawnTimeSec": 1800,
+	"rewards": {
+	  "food": 120000,
+	  "wood": 100000,
+	  "stone": 80000,
+	  "iron": 40000,
+	  "valor": 350,
+	  "heroXP": 8000,
+	  "shardDrops": [
+		{
+		  "heroId": "cedric_earthshaker",
+		  "count": 8
+		}
+	  ],
+	  "itemDrops": [
+		"3h speedup",
+		"3h speedup",
+		"Glacier Quartz",
+		"Titanium Plate",
+		"Frosty Treats",
+        "Glacial Pith"
+	  ]
+	},
+	"eliteBonuses": [
+	  "Garrison Slaying Loot Boost +25%",
+      "Tactical Damage Modifier +50%"
+	],
+	"specialAbilities": [
+	  "Sunder Armor",
+      "Chilling Slowness"
+	],
+	"enhancedRewards": [
+	  "Mythic Material Fragment",
+	  "Glacier Quartz",
+      "Titanium Plate"
+	],
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "elite_swamp_terror",
+	"name": "Silt Hydra Gorgon",
+	"monsterType": "Elite",
+	"rarity": "Elite",
+	"level": 30,
+	"troopWeakness": "cavalry",
+	"description": "A five-headed swamp monstrosity with acidic spittle.",
+	"attack": 14000,
+	"defense": 11000,
+	"health": 180000,
+	"speed": 160,
+	"power": 540000,
+	"marchRequirement": 25000,
+	"staminaCost": 20,
+	"respawnTimeSec": 1800,
+	"rewards": {
+	  "food": 180000,
+	  "wood": 150000,
+	  "stone": 120000,
+	  "iron": 60000,
+	  "valor": 500,
+	  "heroXP": 12000,
+	  "shardDrops": [
+		{
+		  "heroId": "cassandra_stormeye",
+		  "count": 10
+		}
+	  ],
+	  "itemDrops": [
+		"3h speedup",
+		"8h speedup",
+		"Hydra Leather",
+		"Acidic Bile",
+		"Toxic Treats",
+        "Silt Sap"
+	  ]
+	},
+	"eliteBonuses": [
+	  "Garrison Slaying Loot Boost +25%",
+      "Tactical Damage Modifier +60%"
+	],
+	"specialAbilities": [
+	  "Sunder Armor",
+      "Enraged Strikes"
+	],
+	"enhancedRewards": [
+	  "Mythic Material Fragment",
+	  "Hydra Leather",
+      "Acidic Bile"
+	],
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "elite_phoenix_guardian",
+	"name": "Crested Phoenix Vanguard",
+	"monsterType": "Elite",
+	"rarity": "Elite",
+	"level": 35,
+	"troopWeakness": "marksmen",
+	"description": "A magnificent burning avian that reincarnates and buffs adjacent minions.",
+	"attack": 21000,
+	"defense": 16000,
+	"health": 260000,
+	"speed": 240,
+	"power": 780000,
+	"marchRequirement": 27500,
+	"staminaCost": 20,
+	"respawnTimeSec": 1800,
+	"rewards": {
+	  "food": 250000,
+	  "wood": 200000,
+	  "stone": 160000,
+	  "iron": 80000,
+	  "valor": 700,
+	  "heroXP": 18000,
+	  "shardDrops": [
+		{
+		  "heroId": "kaelen_phoenix",
+		  "count": 12
+		}
+	  ],
+	  "itemDrops": [
+		"8h speedup",
+		"8h speedup",
+		"Phoenix Feather",
+		"Sun Gold Ore",
+		"Fiery Pet Seed",
+        "Phoenix Elixir"
+	  ]
+	},
+	"eliteBonuses": [
+	  "Garrison Slaying Loot Boost +25%",
+      "Tactical Damage Modifier +70%"
+	],
+	"specialAbilities": [
+	  "Sunder Armor",
+      "Chilling Slowness"
+	],
+	"enhancedRewards": [
+	  "Mythic Material Fragment",
+	  "Phoenix Feather",
+      "Sun Gold Ore"
+	],
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "elite_thunder_ram",
+	"name": "Voltaic Thunderhorn",
+	"monsterType": "Elite",
+	"rarity": "Elite",
+	"level": 40,
+	"troopWeakness": "infantry",
+	"description": "A metal-plated dynamic ram gathering lightning arcs to slice defensive formations.",
+	"attack": 32000,
+	"defense": 28000,
+	"health": 400000,
+	"speed": 190,
+	"power": 1200000,
+	"marchRequirement": 30000,
+	"staminaCost": 20,
+	"respawnTimeSec": 1800,
+	"rewards": {
+	  "food": 400000,
+	  "wood": 350000,
+	  "stone": 280000,
+	  "iron": 140000,
+	  "valor": 1000,
+	  "heroXP": 25000,
+	  "shardDrops": [
+		{
+		  "heroId": "arthur_dragonheart",
+		  "count": 15
+		}
+	  ],
+	  "itemDrops": [
+		"8h speedup",
+		"24h speedup",
+		"Charged Galvanic Plate",
+		"Voltaic Wire",
+		"Static Treats",
+        "Storm core"
+	  ]
+	},
+	"eliteBonuses": [
+	  "Garrison Slaying Loot Boost +25%",
+      "Tactical Damage Modifier +80%"
+	],
+	"specialAbilities": [
+	  "Sunder Armor",
+      "Chilling Slowness"
+	],
+	"enhancedRewards": [
+	  "Mythic Material Fragment",
+	  "Charged Galvanic Plate",
+      "Voltaic Wire"
+	],
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "elite_void_crawler",
+	"name": "Shadowrift Archfiend",
+	"monsterType": "Elite",
+	"rarity": "Elite",
+	"level": 42,
+	"troopWeakness": "cavalry",
+	"description": "A multi-limbed nightmare that emerged from the abyssal shadow portal.",
+	"attack": 45000,
+	"defense": 35000,
+	"health": 600000,
+	"speed": 150,
+	"power": 1800000,
+	"marchRequirement": 31000,
+	"staminaCost": 20,
+	"respawnTimeSec": 1800,
+	"rewards": {
+	  "food": 500000,
+	  "wood": 450000,
+	  "stone": 350000,
+	  "iron": 180000,
+	  "valor": 1200,
+	  "heroXP": 32000,
+	  "shardDrops": [
+		{
+		  "heroId": "morgana_shadow",
+		  "count": 15
+		}
+	  ],
+	  "itemDrops": [
+		"24h speedup",
+		"Dark Rift Fabric",
+		"Void Crystal",
+		"Abyssal Kibble",
+        "Void Serum"
+	  ]
+	},
+	"eliteBonuses": [
+	  "Garrison Slaying Loot Boost +25%",
+      "Tactical Damage Modifier +84%"
+	],
+	"specialAbilities": [
+	  "Sunder Armor",
+      "Enraged Strikes"
+	],
+	"enhancedRewards": [
+	  "Mythic Material Fragment",
+	  "Dark Rift Fabric",
+      "Void Crystal"
+	],
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "elite_dread_knight",
+	"name": "Dread Sentinel Thran",
+	"monsterType": "Elite",
+	"rarity": "Elite",
+	"level": 45,
+	"troopWeakness": "marksmen",
+	"description": "A fallen champion reanimated into heavy platings that shrugs off small bolts.",
+	"attack": 62000,
+	"defense": 58000,
+	"health": 900000,
+	"speed": 130,
+	"power": 2600000,
+	"marchRequirement": 32500,
+	"staminaCost": 20,
+	"respawnTimeSec": 1800,
+	"rewards": {
+	  "food": 700000,
+	  "wood": 600000,
+	  "stone": 500000,
+	  "iron": 250000,
+	  "valor": 1500,
+	  "heroXP": 45000,
+	  "shardDrops": [
+		{
+		  "heroId": "reginald_ironside",
+		  "count": 20
+		}
+	  ],
+	  "itemDrops": [
+		"24h speedup",
+		"24h speedup",
+		"Dread Steel",
+		"Cursed Crest",
+		"Dark Elixir",
+        "Soul Fragment"
+	  ]
+	},
+	"eliteBonuses": [
+	  "Garrison Slaying Loot Boost +25%",
+      "Tactical Damage Modifier +90%"
+	],
+	"specialAbilities": [
+	  "Sunder Armor",
+      "Enraged Strikes"
+	],
+	"enhancedRewards": [
+	  "Mythic Material Fragment",
+	  "Dread Steel",
+      "Cursed Crest"
+	],
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "elite_magma_lord",
+	"name": "Core Fire Golem",
+	"monsterType": "Elite",
+	"rarity": "Elite",
+	"level": 48,
+	"troopWeakness": "infantry",
+	"description": "Born in subterranean magma chambers, throwing exploding volcanic debris.",
+	"attack": 85000,
+	"defense": 95000,
+	"health": 1300000,
+	"speed": 80,
+	"power": 3800000,
+	"marchRequirement": 34000,
+	"staminaCost": 20,
+	"respawnTimeSec": 1800,
+	"rewards": {
+	  "food": 900000,
+	  "wood": 800000,
+	  "stone": 700000,
+	  "iron": 350000,
+	  "valor": 2000,
+	  "heroXP": 60000,
+	  "shardDrops": [
+		{
+		  "heroId": "ignis_firebrand",
+		  "count": 25
+		}
+	  ],
+	  "itemDrops": [
+		"24h speedup",
+		"3d speedup",
+		"Core Fire Obsidian",
+		"Molten Ingot",
+		"Molten Snacks",
+        "Ignis Serum"
+	  ]
+	},
+	"eliteBonuses": [
+	  "Garrison Slaying Loot Boost +25%",
+      "Tactical Damage Modifier +96%"
+	],
+	"specialAbilities": [
+	  "Molten Burst",
+      "Enraged Strikes"
+	],
+	"enhancedRewards": [
+	  "Mythic Material Fragment",
+	  "Core Fire Obsidian",
+      "Molten Ingot"
+	],
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "elite_ancient_phoenix",
+	"name": "Ancient Solbird Aurum",
+	"monsterType": "Elite",
+	"rarity": "Elite",
+	"level": 50,
+	"troopWeakness": "marksmen",
+	"description": "A majestic bird of myth whose bright aureola can blindingly dazzle general armies.",
+	"attack": 110000,
+	"defense": 85000,
+	"health": 2000000,
+	"speed": 280,
+	"power": 5000000,
+	"marchRequirement": 35000,
+	"staminaCost": 20,
+	"respawnTimeSec": 1800,
+	"rewards": {
+	  "food": 1200000,
+	  "wood": 1000000,
+	  "stone": 850000,
+	  "iron": 450000,
+	  "valor": 3000,
+	  "heroXP": 90000,
+	  "shardDrops": [
+		{
+		  "heroId": "aurelius_sovereign",
+		  "count": 30
+		}
+	  ],
+	  "itemDrops": [
+		"3d speedup",
+		"3d speedup",
+		"Solar Platinum",
+		"Phoenix Core Fabric",
+		"Celestial Kibble",
+        "True Phoenix Blood"
+	  ]
+	},
+	"eliteBonuses": [
+	  "Garrison Slaying Loot Boost +25%",
+      "Tactical Damage Modifier +100%"
+	],
+	"specialAbilities": [
+	  "Sunder Armor",
+      "Enraged Strikes"
+	],
+	"enhancedRewards": [
+	  "Mythic Material Fragment",
+	  "Solar Platinum",
+      "Phoenix Core Fabric"
+	],
+	"bossAbilities": null,
+	"raidScaling": null,
+	"participationRewards": null,
+	"rankingRewards": null
+  },
+  {
+	"id": "wb_gorgon_emperor",
+	"name": "Gorgon Overlord Chronos",
+	"monsterType": "World Boss",
+	"rarity": "World Boss",
+	"level": 55,
+	"troopWeakness": "infantry",
+	"description": "The supreme commander of the deep void rift. Threatens to turn Crownspire structures to dry ash.",
+	"attack": 350000,
+	"defense": 300000,
+	"health": 8000000,
+	"speed": 120,
+	"power": 25000000,
+	"marchRequirement": 105000,
+	"staminaCost": 40,
+	"respawnTimeSec": 14400,
+	"rewards": {
+	  "food": 5000000,
+	  "wood": 4000000,
+	  "stone": 3000000,
+	  "iron": 1500000,
+	  "valor": 10000,
+	  "heroXP": 250000,
+	  "shardDrops": [
+		{
+		  "heroId": "aurelius_sovereign",
+		  "count": 50
+		}
+	  ],
+	  "itemDrops": [
+		"3d speedup",
+		"7d speedup",
+		"Chronos Sandglass",
+		"Overlord Plate Armor",
+		"Mythic Ingot",
+		"Cosmic Biscuit",
+        "Time Crystals"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": [
+	  "Terrifying Roar (Stuns Frontline)",
+	  "Void Storm (DoT to Backup Columns)",
+      "Enraged Rampage (Insta-kills slow targets)"
+	],
+	"raidScaling": {
+	  "healthScalingPerPlayer": "+15.0% Multiplier per joined rallying participant",
+	  "difficultyRating": "Nightmare",
+	  "enrageTimerSec": 300
+	},
+	"participationRewards": {
+	  "valor": 2500,
+	  "heroXP": 75000,
+	  "gold": 200000,
+	  "guaranteedItems": [
+		"Alliance Gift Package",
+        "3h Speedup"
+	  ]
+	},
+	"rankingRewards": [
+	  {
+		"rankScope": "1st Place Damage Dealer",
+		"rewards": [
+		  "Mythic Item Blueprint Box",
+		  "Sovereign Core Ingot x5",
+          "50,000 Guild Credits"
+		]
+	  },
+	  {
+		"rankScope": "2nd - 5th Place Damage Dealer",
+		"rewards": [
+		  "Epic Item Chest",
+		  "Sovereign Core Ingot x2",
+          "25,000 Guild Credits"
+		]
+	  },
+	  {
+		"rankScope": "Top 10% Contribution Pool",
+		"rewards": [
+		  "Rare Item Shards",
+		  "Speedup Box (8h)",
+          "10,000 Guild Credits"
+		]
+	  }
+	]
+  },
+  {
+	"id": "wb_tiamat_darkness",
+	"name": "Tiamat, Void Mother",
+	"monsterType": "World Boss",
+	"rarity": "World Boss",
+	"level": 60,
+	"troopWeakness": "cavalry",
+	"description": "An ancient dark dragon matriarch wrapping continents in terrifying twilight shadow shields.",
+	"attack": 500000,
+	"defense": 450000,
+	"health": 12000000,
+	"speed": 150,
+	"power": 45000000,
+	"marchRequirement": 110000,
+	"staminaCost": 40,
+	"respawnTimeSec": 14400,
+	"rewards": {
+	  "food": 8000000,
+	  "wood": 7000000,
+	  "stone": 5000000,
+	  "iron": 2500000,
+	  "valor": 15000,
+	  "heroXP": 400000,
+	  "shardDrops": [
+		{
+		  "heroId": "lilith_queen",
+		  "count": 60
+		}
+	  ],
+	  "itemDrops": [
+		"7d speedup",
+		"7d speedup",
+		"Matriarch Dragon Eye",
+		"Void Core Fabric",
+		"Black Diamond",
+		"Abyssal Nectar",
+        "Void Infused Serum"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": [
+	  "Terrifying Roar (Stuns Frontline)",
+	  "Void Storm (DoT to Backup Columns)",
+      "Enraged Rampage (Insta-kills slow targets)"
+	],
+	"raidScaling": {
+	  "healthScalingPerPlayer": "+15.0% Multiplier per joined rallying participant",
+	  "difficultyRating": "Nightmare",
+	  "enrageTimerSec": 300
+	},
+	"participationRewards": {
+	  "valor": 3750,
+	  "heroXP": 120000,
+	  "gold": 320000,
+	  "guaranteedItems": [
+		"Alliance Gift Package",
+        "3h Speedup"
+	  ]
+	},
+	"rankingRewards": [
+	  {
+		"rankScope": "1st Place Damage Dealer",
+		"rewards": [
+		  "Mythic Item Blueprint Box",
+		  "Sovereign Core Ingot x5",
+          "50,000 Guild Credits"
+		]
+	  },
+	  {
+		"rankScope": "2nd - 5th Place Damage Dealer",
+		"rewards": [
+		  "Epic Item Chest",
+		  "Sovereign Core Ingot x2",
+          "25,000 Guild Credits"
+		]
+	  },
+	  {
+		"rankScope": "Top 10% Contribution Pool",
+		"rewards": [
+		  "Rare Item Shards",
+		  "Speedup Box (8h)",
+          "10,000 Guild Credits"
+		]
+	  }
+	]
+  },
+  {
+	"id": "wb_typhon_colossus",
+	"name": "Typhon, Storm Weaver",
+	"monsterType": "World Boss",
+	"rarity": "World Boss",
+	"level": 65,
+	"troopWeakness": "marksmen",
+	"description": "An colossal elemental cloud titan casting lightning bolts that bypass active garrison gates.",
+	"attack": 680000,
+	"defense": 600000,
+	"health": 20000000,
+	"speed": 250,
+	"power": 75000000,
+	"marchRequirement": 115000,
+	"staminaCost": 40,
+	"respawnTimeSec": 14400,
+	"rewards": {
+	  "food": 12000000,
+	  "wood": 10000000,
+	  "stone": 8000000,
+	  "iron": 4000000,
+	  "valor": 25000,
+	  "heroXP": 600000,
+	  "shardDrops": [
+		{
+		  "heroId": "zephyrus_lord",
+		  "count": 80
+		}
+	  ],
+	  "itemDrops": [
+		"7d speedup",
+		"14d speedup",
+		"Typhon Charged Core",
+		"Weaver Storm Fabric",
+		"Prismatic Metal Shard",
+		"Thundercloud Meal",
+        "Anemone Extract"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": [
+	  "Terrifying Roar (Stuns Frontline)",
+	  "Void Storm (DoT to Backup Columns)",
+      "Enraged Rampage (Insta-kills slow targets)"
+	],
+	"raidScaling": {
+	  "healthScalingPerPlayer": "+15.0% Multiplier per joined rallying participant",
+	  "difficultyRating": "Nightmare",
+	  "enrageTimerSec": 300
+	},
+	"participationRewards": {
+	  "valor": 6250,
+	  "heroXP": 180000,
+	  "gold": 480000,
+	  "guaranteedItems": [
+		"Alliance Gift Package",
+        "3h Speedup"
+	  ]
+	},
+	"rankingRewards": [
+	  {
+		"rankScope": "1st Place Damage Dealer",
+		"rewards": [
+		  "Mythic Item Blueprint Box",
+		  "Sovereign Core Ingot x5",
+          "50,000 Guild Credits"
+		]
+	  },
+	  {
+		"rankScope": "2nd - 5th Place Damage Dealer",
+		"rewards": [
+		  "Epic Item Chest",
+		  "Sovereign Core Ingot x2",
+          "25,000 Guild Credits"
+		]
+	  },
+	  {
+		"rankScope": "Top 10% Contribution Pool",
+		"rewards": [
+		  "Rare Item Shards",
+		  "Speedup Box (8h)",
+          "10,000 Guild Credits"
+		]
+	  }
+	]
+  },
+  {
+	"id": "wb_fenrir_unleashed",
+	"name": "Fenrir, the Moonslayer",
+	"monsterType": "World Boss",
+	"rarity": "World Boss",
+	"level": 70,
+	"troopWeakness": "infantry",
+	"description": "An colossal god-wolf that broke free of subterranean titanium bonds to feast upon stars.",
+	"attack": 900000,
+	"defense": 800000,
+	"health": 35000000,
+	"speed": 300,
+	"power": 120000000,
+	"marchRequirement": 120000,
+	"staminaCost": 40,
+	"respawnTimeSec": 14400,
+	"rewards": {
+	  "food": 20000000,
+	  "wood": 18000000,
+	  "stone": 15000000,
+	  "iron": 8000000,
+	  "valor": 40000,
+	  "heroXP": 1000000,
+	  "shardDrops": [
+		{
+		  "heroId": "alexander_war",
+		  "count": 100
+		}
+	  ],
+	  "itemDrops": [
+		"14d speedup",
+		"14d speedup",
+		"God-Slayer Fangs",
+		"Fenrir Chain Link",
+		"Titanium Core Block",
+		"Sovereign Kibble",
+        "Heart of Astral Glands"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": [
+	  "Terrifying Roar (Stuns Frontline)",
+	  "Void Storm (DoT to Backup Columns)",
+      "Enraged Rampage (Insta-kills slow targets)"
+	],
+	"raidScaling": {
+	  "healthScalingPerPlayer": "+15.0% Multiplier per joined rallying participant",
+	  "difficultyRating": "Apocalyptic",
+	  "enrageTimerSec": 300
+	},
+	"participationRewards": {
+	  "valor": 10000,
+	  "heroXP": 300000,
+	  "gold": 800000,
+	  "guaranteedItems": [
+		"Alliance Gift Package",
+        "3h Speedup"
+	  ]
+	},
+	"rankingRewards": [
+	  {
+		"rankScope": "1st Place Damage Dealer",
+		"rewards": [
+		  "Mythic Item Blueprint Box",
+		  "Sovereign Core Ingot x5",
+          "50,000 Guild Credits"
+		]
+	  },
+	  {
+		"rankScope": "2nd - 5th Place Damage Dealer",
+		"rewards": [
+		  "Epic Item Chest",
+		  "Sovereign Core Ingot x2",
+          "25,000 Guild Credits"
+		]
+	  },
+	  {
+		"rankScope": "Top 10% Contribution Pool",
+		"rewards": [
+		  "Rare Item Shards",
+		  "Speedup Box (8h)",
+          "10,000 Guild Credits"
+		]
+	  }
+	]
+  },
+  {
+	"id": "wb_leviathan_deep",
+	"name": "Leviathan, Lord of Tides",
+	"monsterType": "World Boss",
+	"rarity": "World Boss",
+	"level": 80,
+	"troopWeakness": "cavalry",
+	"description": "A terrifying gargantuan leviathan from the deepest waters that can drown entire legions with tidal surges.",
+	"attack": 1200000,
+	"defense": 1100000,
+	"health": 60000000,
+	"speed": 110,
+	"power": 200000000,
+	"marchRequirement": 130000,
+	"staminaCost": 40,
+	"respawnTimeSec": 14400,
+	"rewards": {
+	  "food": 35000000,
+	  "wood": 30000000,
+	  "stone": 25000000,
+	  "iron": 12000000,
+	  "valor": 60000,
+	  "heroXP": 1600000,
+	  "shardDrops": [
+		{
+		  "heroId": "serena_celestial",
+		  "count": 120
+		}
+	  ],
+	  "itemDrops": [
+		"30d speedup",
+		"Wavecaller Heart",
+		"Sovereign Pearl Crust",
+		"True Nether Ingot",
+		"Tidal Serum",
+        "Ocean Dew"
+	  ]
+	},
+	"eliteBonuses": null,
+	"specialAbilities": null,
+	"enhancedRewards": null,
+	"bossAbilities": [
+	  "Terrifying Roar (Stuns Frontline)",
+	  "Void Storm (DoT to Backup Columns)",
+      "Enraged Rampage (Insta-kills slow targets)"
+	],
+	"raidScaling": {
+	  "healthScalingPerPlayer": "+15.0% Multiplier per joined rallying participant",
+	  "difficultyRating": "Apocalyptic",
+	  "enrageTimerSec": 300
+	},
+	"participationRewards": {
+	  "valor": 15000,
+	  "heroXP": 480000,
+	  "gold": 1400000,
+	  "guaranteedItems": [
+		"Alliance Gift Package",
+        "3h Speedup"
+	  ]
+	},
+	"rankingRewards": [
+	  {
+		"rankScope": "1st Place Damage Dealer",
+		"rewards": [
+		  "Mythic Item Blueprint Box",
+		  "Sovereign Core Ingot x5",
+          "50,000 Guild Credits"
+		]
+	  },
+	  {
+		"rankScope": "2nd - 5th Place Damage Dealer",
+		"rewards": [
+		  "Epic Item Chest",
+		  "Sovereign Core Ingot x2",
+          "25,000 Guild Credits"
+		]
+	  },
+	  {
+		"rankScope": "Top 10% Contribution Pool",
+		"rewards": [
+		  "Rare Item Shards",
+		  "Speedup Box (8h)",
+          "10,000 Guild Credits"
+		]
+	  }
+	]
+  }
+]

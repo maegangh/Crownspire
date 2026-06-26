@@ -1,0 +1,212 @@
+[gd_scene format=3 uid="uid://dospbliics87u"]
+
+[ext_resource type="Script" uid="uid://cs81e5b8q4vfh" path="res://Scenes/UI/GameHUD.gd" id="1_8yvrw"]
+[ext_resource type="Texture2D" uid="uid://c5r64uk5oa0wf" path="res://Scenes/UI/HUD/top_bar.png" id="1_315wm"]
+[ext_resource type="Texture2D" uid="uid://vat4mgvd0wqs" path="res://Scenes/UI/HUD/bottom_bar_world.png" id="2_8yvrw"]
+[ext_resource type="Texture2D" uid="uid://ccmx4hq18imkl" path="res://Scenes/UI/HUD/bottom_bar_home.png" id="2_663bt"]
+
+[node name="GameHUD" type="CanvasLayer" unique_id=1833121157]
+script = ExtResource("1_8yvrw")
+bottom_bar_home = ExtResource("2_663bt")
+bottom_bar_world = ExtResource("2_8yvrw")
+
+[node name="Control" type="Control" parent="." unique_id=1062250038]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="TopBarTexture" type="TextureRect" parent="Control" unique_id=1741916353]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.0013888889
+anchor_top = -0.0625
+anchor_right = 1.0013888
+anchor_bottom = -0.0625
+offset_left = -4.0
+offset_top = 80.0
+offset_right = -4.0
+offset_bottom = 259.0
+grow_horizontal = 2
+mouse_filter = 2
+texture = ExtResource("1_315wm")
+expand_mode = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="TopLabels" type="Control" parent="Control/TopBarTexture" unique_id=1063699758]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -153.5
+offset_top = 117.0
+offset_right = -153.5
+offset_bottom = 117.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="FoodLabel" type="Label" parent="Control/TopBarTexture/TopLabels" unique_id=843656920]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 5.0
+offset_left = 344.5
+offset_top = -1.0
+offset_right = 391.5
+offset_bottom = 27.0
+theme_override_font_sizes/font_size = 18
+text = "1.2M"
+metadata/_edit_use_anchors_ = true
+
+[node name="WoodLabel" type="Label" parent="Control/TopBarTexture/TopLabels" unique_id=1099415399]
+layout_mode = 1
+anchors_preset = -1
+anchor_bottom = 0.1
+offset_left = 464.5
+offset_right = 512.5
+offset_bottom = 27.999994
+theme_override_font_sizes/font_size = 18
+text = "800K"
+metadata/_edit_use_anchors_ = true
+
+[node name="StoneLabel" type="Label" parent="Control/TopBarTexture/TopLabels" unique_id=865268961]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 0.2
+offset_left = 579.5
+offset_right = 627.5
+offset_bottom = 28.0
+theme_override_font_sizes/font_size = 18
+text = "500K"
+metadata/_edit_use_anchors_ = true
+
+[node name="IronLabel" type="Label" parent="Control/TopBarTexture/TopLabels" unique_id=909046591]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.016666668
+anchor_right = 0.18333335
+offset_left = 719.5
+offset_right = 767.5
+offset_bottom = 28.0
+theme_override_font_sizes/font_size = 18
+text = "250K"
+metadata/_edit_use_anchors_ = true
+
+[node name="DiamondLabel" type="Label" parent="Control/TopBarTexture/TopLabels" unique_id=1862302119]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 0.2
+offset_left = 792.5
+offset_top = -70.0
+offset_right = 832.5
+offset_bottom = -42.0
+theme_override_font_sizes/font_size = 18
+text = "100"
+
+[node name="PowerLabel" type="Label" parent="Control/TopBarTexture/TopLabels" unique_id=1884654246]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 0.2
+offset_left = 468.5
+offset_top = -71.0
+offset_right = 604.5
+offset_bottom = -29.0
+theme_override_font_sizes/font_size = 18
+text = "1,614,990"
+metadata/_edit_use_anchors_ = true
+
+[node name="VipLabel" type="Label" parent="Control/TopBarTexture/TopLabels" unique_id=666468406]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 0.2
+offset_left = 685.5
+offset_top = -70.0
+offset_right = 733.5
+offset_bottom = -42.0
+theme_override_font_sizes/font_size = 18
+text = "VIP 1"
+metadata/_edit_use_anchors_ = true
+
+[node name="PlayerPortraitButton" type="TextureButton" parent="Control" unique_id=432499405]
+layout_mode = 0
+offset_left = 25.0
+offset_top = 27.0
+offset_right = 138.0
+offset_bottom = 90.0
+
+[node name="ShopButton" type="TextureButton" parent="Control" unique_id=1744101377]
+modulate = Color(1, 1, 1, 0)
+layout_mode = 0
+offset_left = 625.0
+offset_top = 108.0
+offset_right = 698.0
+offset_bottom = 152.0
+mouse_filter = 2
+
+[node name="BottomBarTexture" type="TextureRect" parent="Control" unique_id=355547201]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -179.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+texture = ExtResource("2_8yvrw")
+expand_mode = 1
+stretch_mode = 5
+metadata/_edit_use_anchors_ = true
+
+[node name="BottomButtons" type="HBoxContainer" parent="Control/BottomBarTexture" unique_id=272526963]
+modulate = Color(0, 0, 0, 0)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.016666668
+anchor_top = 1.0949721
+anchor_right = 0.98699164
+anchor_bottom = 1.0949721
+offset_left = 24.0
+offset_top = -25.0
+offset_right = -601.45514
+offset_bottom = -15.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(7.213506, -12.565689)
+theme_override_constants/separation = 1
+alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="HeroesButton" type="Button" parent="Control/BottomBarTexture/BottomButtons" unique_id=1678010487]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.5
+
+[node name="WayfinderButton" type="Button" parent="Control/BottomBarTexture/BottomButtons" unique_id=771244005]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.5
+
+[node name="BagButton" type="Button" parent="Control/BottomBarTexture/BottomButtons" unique_id=2103624579]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.5
+
+[node name="QuestButton" type="Button" parent="Control/BottomBarTexture/BottomButtons" unique_id=1462513827]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.5
+
+[node name="AllianceButton" type="Button" parent="Control/BottomBarTexture/BottomButtons" unique_id=1907953245]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.5
+
+[node name="WorldCityButton" type="Button" parent="Control/BottomBarTexture/BottomButtons" unique_id=926194786]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.5

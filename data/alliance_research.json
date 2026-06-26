@@ -1,0 +1,442 @@
+[
+  {
+    "category": "Economy",
+    "researches": [
+      {
+        "id": "all_eco_tillage",
+        "name": "Guild Tillage",
+        "maxLevel": 10,
+        "description": "Blesses the fields of all alliance members, maximizing grain and wheat yield.",
+        "costs": {
+          "alliancePointsBase": 25000,
+          "alliancePointsGrowthFactor": 1.4,
+          "requiredAllianceLevel": 1
+        },
+        "timers": {
+          "baseDurationSec": 7200,
+          "durationGrowthFactor": 1.5
+        },
+        "effects": {
+          "type": "percentage_bonus",
+          "statAffected": "food_production",
+          "valuePerLevel": 3.5,
+          "explanation": "Increases all members' Food Production by +3.5% per level (Up to +35%)."
+        }
+      },
+      {
+        "id": "all_eco_timber",
+        "name": "Timber Processing",
+        "maxLevel": 10,
+        "description": "Introduces alliance-wide logging optimizations and saw techniques.",
+        "costs": {
+          "alliancePointsBase": 25000,
+          "alliancePointsGrowthFactor": 1.4,
+          "requiredAllianceLevel": 1
+        },
+        "timers": {
+          "baseDurationSec": 7200,
+          "durationGrowthFactor": 1.5
+        },
+        "effects": {
+          "type": "percentage_bonus",
+          "statAffected": "wood_production",
+          "valuePerLevel": 3.5,
+          "explanation": "Increases all members' Wood Production by +3.5% per level (Up to +35%)."
+        }
+      },
+      {
+        "id": "all_eco_masonry",
+        "name": "Stonemason Guild",
+        "maxLevel": 10,
+        "description": "Standardizes structural quarry stone cuts and extraction tools.",
+        "costs": {
+          "alliancePointsBase": 30000,
+          "alliancePointsGrowthFactor": 1.45,
+          "requiredAllianceLevel": 2
+        },
+        "timers": {
+          "baseDurationSec": 10800,
+          "durationGrowthFactor": 1.5
+        },
+        "effects": {
+          "type": "percentage_bonus",
+          "statAffected": "stone_production",
+          "valuePerLevel": 3.0,
+          "explanation": "Increases all members' Stone Production by +3.0% per level (Up to +30%)."
+        }
+      },
+      {
+        "id": "all_eco_smelting",
+        "name": "Iron Smelting",
+        "maxLevel": 10,
+        "description": "Distributes bellows and heat-management tech to alliance ironworks.",
+        "costs": {
+          "alliancePointsBase": 35000,
+          "alliancePointsGrowthFactor": 1.5,
+          "requiredAllianceLevel": 2
+        },
+        "timers": {
+          "baseDurationSec": 14400,
+          "durationGrowthFactor": 1.5
+        },
+        "effects": {
+          "type": "percentage_bonus",
+          "statAffected": "iron_production",
+          "valuePerLevel": 2.5,
+          "explanation": "Increases all members' Iron Production by +2.5% per level (Up to +25%)."
+        }
+      },
+      {
+        "id": "all_eco_commerce",
+        "name": "Commerce Union",
+        "maxLevel": 5,
+        "description": "Regulates inter-alliance markets to minimize taxation on traded supplies.",
+        "costs": {
+          "alliancePointsBase": 50000,
+          "alliancePointsGrowthFactor": 1.8,
+          "requiredAllianceLevel": 3
+        },
+        "timers": {
+          "baseDurationSec": 28800,
+          "durationGrowthFactor": 1.8
+        },
+        "effects": {
+          "type": "fee_reduction_pct",
+          "statAffected": "trading_post_tax",
+          "valuePerLevel": 2.0,
+          "explanation": "Deducts 2.0% tax fee per level from trading post resource shipments (Up to 10% lower tax)."
+        }
+      }
+    ]
+  },
+  {
+    "category": "Military",
+    "researches": [
+      {
+        "id": "all_mil_shield_unity",
+        "name": "Unity of Shields",
+        "maxLevel": 15,
+        "description": "Teaches tightly coordinated shield wall formations for infantry troops.",
+        "costs": {
+          "alliancePointsBase": 40000,
+          "alliancePointsGrowthFactor": 1.35,
+          "requiredAllianceLevel": 1
+        },
+        "timers": {
+          "baseDurationSec": 18000,
+          "durationGrowthFactor": 1.4
+        },
+        "effects": {
+          "type": "percentage_bonus",
+          "statAffected": "infantry_defense",
+          "valuePerLevel": 2.0,
+          "explanation": "Bolsters alliance-wide Infantry Defense by +2.0% per level (Up to +30%)."
+        }
+      },
+      {
+        "id": "all_mil_drills",
+        "name": "Combined Drills",
+        "maxLevel": 15,
+        "description": "Inoculates cavalry steeds against heavy battlefield screams and fires.",
+        "costs": {
+          "alliancePointsBase": 40000,
+          "alliancePointsGrowthFactor": 1.35,
+          "requiredAllianceLevel": 1
+        },
+        "timers": {
+          "baseDurationSec": 18000,
+          "durationGrowthFactor": 1.4
+        },
+        "effects": {
+          "type": "percentage_bonus",
+          "statAffected": "cavalry_attack",
+          "valuePerLevel": 2.0,
+          "explanation": "Increases alliance-wide Cavalry Attack by +2.0% per level (Up to +30%)."
+        }
+      },
+      {
+        "id": "all_mil_windrunners",
+        "name": "Windrunners",
+        "maxLevel": 15,
+        "description": "Equips marksmen forces with lightweight travel quivers and lighter boots.",
+        "costs": {
+          "alliancePointsBase": 45000,
+          "alliancePointsGrowthFactor": 1.35,
+          "requiredAllianceLevel": 2
+        },
+        "timers": {
+          "baseDurationSec": 21600,
+          "durationGrowthFactor": 1.4
+        },
+        "effects": {
+          "type": "percentage_bonus",
+          "statAffected": "marksmen_attack",
+          "valuePerLevel": 2.0,
+          "explanation": "Increases alliance-wide Marksmen Attack by +2.0% per level (Up to +30%)."
+        }
+      },
+      {
+        "id": "all_mil_dreadnought",
+        "name": "Dreadnought Tactics",
+        "maxLevel": 10,
+        "description": "Conditions overall cardiovascular capacity and endurance in high-density armor.",
+        "costs": {
+          "alliancePointsBase": 60000,
+          "alliancePointsGrowthFactor": 1.5,
+          "requiredAllianceLevel": 3
+        },
+        "timers": {
+          "baseDurationSec": 43200,
+          "durationGrowthFactor": 1.6
+        },
+        "effects": {
+          "type": "percentage_bonus",
+          "statAffected": "all_troop_health",
+          "valuePerLevel": 1.5,
+          "explanation": "Increases Health of all deployed unit types by +1.5% per level (Up to +15%)."
+        }
+      },
+      {
+        "id": "all_mil_warhost",
+        "name": "War Host",
+        "maxLevel": 5,
+        "description": "Unlocks advanced tactics for synchronizing larger combined rally marches.",
+        "costs": {
+          "alliancePointsBase": 100000,
+          "alliancePointsGrowthFactor": 2.0,
+          "requiredAllianceLevel": 4
+        },
+        "timers": {
+          "baseDurationSec": 86400,
+          "durationGrowthFactor": 2.0
+        },
+        "effects": {
+          "type": "flat_increase",
+          "statAffected": "rally_capacity",
+          "valuePerLevel": 50000,
+          "explanation": "Increases maximum Alliance Rally Capacity by +50,000 per level (Up to +250,000)."
+        }
+      }
+    ]
+  },
+  {
+    "category": "Territory",
+    "researches": [
+      {
+        "id": "all_ter_expansion",
+        "name": "Border Expansion",
+        "maxLevel": 5,
+        "description": "Enables the construction of auxiliary watchtowers to expand sovereign lines.",
+        "costs": {
+          "alliancePointsBase": 100000,
+          "alliancePointsGrowthFactor": 1.8,
+          "requiredAllianceLevel": 2
+        },
+        "timers": {
+          "baseDurationSec": 43200,
+          "durationGrowthFactor": 1.8
+        },
+        "effects": {
+          "type": "flat_increase",
+          "statAffected": "max_alliance_towers",
+          "valuePerLevel": 3,
+          "explanation": "Increases the maximum alliance watchtower limit by +3 per level (Up to +15 towers)."
+        }
+      },
+      {
+        "id": "all_ter_bulwarks",
+        "name": "Fortress Bulwarks",
+        "maxLevel": 10,
+        "description": "Reinforces alliance fortress foundations with thick lime plaster and deep mortar layers.",
+        "costs": {
+          "alliancePointsBase": 75000,
+          "alliancePointsGrowthFactor": 1.45,
+          "requiredAllianceLevel": 3
+        },
+        "timers": {
+          "baseDurationSec": 28800,
+          "durationGrowthFactor": 1.5
+        },
+        "effects": {
+          "type": "percentage_bonus",
+          "statAffected": "fortresss_durability",
+          "valuePerLevel": 5.0,
+          "explanation": "Boosts maximum Alliance Fortress durability points by +5.0% per level (Up to +50%)."
+        }
+      },
+      {
+        "id": "all_ter_sentry",
+        "name": "Territory Sentry",
+        "maxLevel": 5,
+        "description": "Places eagle-scout glasses atop alliance structures to pierce through war fog.",
+        "costs": {
+          "alliancePointsBase": 50000,
+          "alliancePointsGrowthFactor": 1.6,
+          "requiredAllianceLevel": 2
+        },
+        "timers": {
+          "baseDurationSec": 21600,
+          "durationGrowthFactor": 1.6
+        },
+        "effects": {
+          "type": "percentage_bonus",
+          "statAffected": "structure_view_range",
+          "valuePerLevel": 10.0,
+          "explanation": "Expands territory watch range of all alliance fortresses/towers by +10.0% per level (Up to +50%)."
+        }
+      },
+      {
+        "id": "all_ter_gathering_dom",
+        "name": "Resource Dominance",
+        "maxLevel": 10,
+        "description": "Enhances coordination when harvesting within the alliance's secure borders.",
+        "costs": {
+          "alliancePointsBase": 60000,
+          "alliancePointsGrowthFactor": 1.4,
+          "requiredAllianceLevel": 1
+        },
+        "timers": {
+          "baseDurationSec": 28800,
+          "durationGrowthFactor": 1.5
+        },
+        "effects": {
+          "type": "percentage_bonus",
+          "statAffected": "territory_gather_speed",
+          "valuePerLevel": 2.5,
+          "explanation": "Boosts gathering speed by +2.5% per level when collecting on alliance territory (Up to +25%)."
+        }
+      },
+      {
+        "id": "all_ter_relocate",
+        "name": "Rapid Relocate",
+        "maxLevel": 5,
+        "description": "Simplifies administrative and magic procedures for moving cities to alliance lands.",
+        "costs": {
+          "alliancePointsBase": 80000,
+          "alliancePointsGrowthFactor": 1.7,
+          "requiredAllianceLevel": 3
+        },
+        "timers": {
+          "baseDurationSec": 57600,
+          "durationGrowthFactor": 1.7
+        },
+        "effects": {
+          "type": "percentage_reduction",
+          "statAffected": "teleport_cooldown",
+          "valuePerLevel": 5.0,
+          "explanation": "Decreases the cooldown timer of Alliance Relocate scrolls by 5.0% per level (Up to 25% faster)."
+        }
+      }
+    ]
+  },
+  {
+    "category": "Support",
+    "researches": [
+      {
+        "id": "all_sup_swift_aid",
+        "name": "Swift Aid",
+        "maxLevel": 10,
+        "description": "Increases urgency drill speed of defensive marches heading to allied nodes.",
+        "costs": {
+          "alliancePointsBase": 30000,
+          "alliancePointsGrowthFactor": 1.35,
+          "requiredAllianceLevel": 1
+        },
+        "timers": {
+          "baseDurationSec": 7200,
+          "durationGrowthFactor": 1.4
+        },
+        "effects": {
+          "type": "percentage_bonus",
+          "statAffected": "reinforce_march_speed",
+          "valuePerLevel": 4.0,
+          "explanation": "Speeds up alliance reinforcement march speeds by +4.0% per level (Up to +40%)."
+        }
+      },
+      {
+        "id": "all_sup_medicine",
+        "name": "Medicine Sharing",
+        "maxLevel": 10,
+        "description": "Shares elite herbal knowledge and sanitization standards cross-guild.",
+        "costs": {
+          "alliancePointsBase": 40000,
+          "alliancePointsGrowthFactor": 1.4,
+          "requiredAllianceLevel": 2
+        },
+        "timers": {
+          "baseDurationSec": 10800,
+          "durationGrowthFactor": 1.45
+        },
+        "effects": {
+          "type": "percentage_bonus",
+          "statAffected": "healing_speed",
+          "valuePerLevel": 3.0,
+          "explanation": "Accelerates member hospital recovery rates by +3.0% per level (Up to +30%)."
+        }
+      },
+      {
+        "id": "all_sup_assistance",
+        "name": "Mutual Assistance",
+        "maxLevel": 10,
+        "description": "Increases the efficiency of peer construction and research help triggers.",
+        "costs": {
+          "alliancePointsBase": 50000,
+          "alliancePointsGrowthFactor": 1.45,
+          "requiredAllianceLevel": 1
+        },
+        "timers": {
+          "baseDurationSec": 14400,
+          "durationGrowthFactor": 1.5
+        },
+        "effects": {
+          "type": "flat_increase_sec",
+          "statAffected": "alliance_help_timer_reduction",
+          "valuePerLevel": 15,
+          "explanation": "Adds +15 seconds of direct timer reduction per received alliance help trigger (Up to +150 seconds)."
+        }
+      },
+      {
+        "id": "all_sup_stamina",
+        "name": "Stamina Infusion",
+        "maxLevel": 5,
+        "description": "Provides specialized camp training that accelerates hero stamina replenishment.",
+        "costs": {
+          "alliancePointsBase": 120000,
+          "alliancePointsGrowthFactor": 1.9,
+          "requiredAllianceLevel": 4
+        },
+        "timers": {
+          "baseDurationSec": 72000,
+          "durationGrowthFactor": 1.8
+        },
+        "effects": {
+          "type": "percentage_bonus",
+          "statAffected": "member_stamina_regen",
+          "valuePerLevel": 4.0,
+          "explanation": "Boosts all members' hero Stamina recovery rates by +4.0% per level (Up to +20%)."
+        }
+      },
+      {
+        "id": "all_sup_bounty",
+        "name": "Bounty Division",
+        "maxLevel": 10,
+        "description": "Triggers bonus resource divisions inside premium alliance gift chests.",
+        "costs": {
+          "alliancePointsBase": 65000,
+          "alliancePointsGrowthFactor": 1.5,
+          "requiredAllianceLevel": 3
+        },
+        "timers": {
+          "baseDurationSec": 36000,
+          "durationGrowthFactor": 1.55
+        },
+        "effects": {
+          "type": "percentage_bonus",
+          "statAffected": "alliance_chest_rewards",
+          "valuePerLevel": 1.5,
+          "explanation": "Sparks +1.5% bonus resource counts when opening any alliance victory box (Up to +15%)."
+        }
+      }
+    ]
+  }
+]

@@ -1,0 +1,88 @@
+[gd_scene format=3 uid="uid://ctk6wysgpgpy0"]
+
+[ext_resource type="Script" uid="uid://c8nuhv1qtsi3g" path="res://Scripts/TroopTrainingPanel.gd" id="1_mojgn"]
+
+[node name="TroopTrainingPanel" type="CanvasLayer" unique_id=1106008155]
+script = ExtResource("1_mojgn")
+
+[node name="DarkBackground" type="ColorRect" parent="." unique_id=1488526457]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.6862745)
+
+[node name="Panel" type="Panel" parent="." unique_id=628284983]
+offset_left = 93.0
+offset_top = 126.0
+offset_right = 133.0
+offset_bottom = 166.0
+
+[node name="TitleLabel" type="Label" parent="Panel" unique_id=1241897516]
+layout_mode = 0
+offset_left = 207.0
+offset_top = -62.0
+offset_right = 314.0
+offset_bottom = -39.0
+text = "Train Infantry"
+
+[node name="CountLabel" type="Label" parent="Panel" unique_id=676968565]
+layout_mode = 0
+offset_left = 49.0
+offset_top = 2.0
+offset_right = 188.0
+offset_bottom = 25.0
+text = "Infantry Owned: 0"
+
+[node name="MaxLabel" type="Label" parent="Panel" unique_id=1209285448]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 44.0
+offset_right = 161.0
+offset_bottom = 67.0
+text = "Max Train: 100"
+
+[node name="AmountLabel" type="Label" parent="Panel" unique_id=1388167805]
+layout_mode = 0
+offset_left = 58.0
+offset_top = 78.0
+offset_right = 138.0
+offset_bottom = 101.0
+text = "Amount: 1"
+
+[node name="AmountSlider" type="HSlider" parent="Panel" unique_id=464316921]
+layout_mode = 0
+offset_left = 53.0
+offset_top = 118.0
+offset_right = 382.0
+offset_bottom = 134.0
+value = 1.0
+
+[node name="CostLabel" type="Label" parent="Panel" unique_id=1923199725]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = 48.0
+offset_top = 178.0
+offset_right = 109.0
+offset_bottom = 181.0
+text = "Cost: 10 food"
+
+[node name="TrainButton" type="Button" parent="Panel" unique_id=1065840094]
+layout_mode = 0
+offset_left = 56.0
+offset_top = 228.0
+offset_right = 104.0
+offset_bottom = 260.0
+text = "Train"
+
+[node name="CloseButton" type="Button" parent="Panel" unique_id=1366230961]
+layout_mode = 0
+offset_left = 72.0
+offset_top = 270.0
+offset_right = 90.0
+offset_bottom = 301.0
+text = "X"

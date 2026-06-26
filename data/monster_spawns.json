@@ -1,0 +1,18 @@
+[
+  {
+	"id": "spawn_1",
+	"monsterId": "monster_common_l1_s1_frost_lupine",
+	"name": "Minor Frostbite Lupine",
+	"level": 1,
+	"x": 150,
+	"y": 300
+  },
+  {
+	"id": "spawn_2",
+	"monsterId": "monster_common_l1_s2_cinder_spitter",
+	"name": "Minor Cinder Spitter",
+	"level": 1,
+	"x": 250,
+	"y": 400
+  }
+]

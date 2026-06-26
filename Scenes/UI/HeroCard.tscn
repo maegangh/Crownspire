@@ -1,0 +1,143 @@
+[gd_scene format=3 uid="uid://b6qwl4k5odyl"]
+
+[ext_resource type="Script" uid="uid://cbcp0fkcogaun" path="res://Scenes/UI/HeroCard.gd" id="1_hero_card"]
+[ext_resource type="Texture2D" uid="uid://b8oh1wrddtdu" path="res://ChatGPT Image Jun 24, 2026, 04_32_27 PM.png" id="2_fwbsk"]
+[ext_resource type="Texture2D" uid="uid://uqdm3lf36wm7" path="res://images/HeroCard/Legendary.png" id="3_ku4ci"]
+[ext_resource type="Texture2D" uid="uid://dhawjb4j762jw" path="res://Art/Heroes/Lorelai/portrait.png" id="4_fwbsk"]
+[ext_resource type="Texture2D" uid="uid://cuf4348yuljx6" path="res://assets/heroes/Icons/Marksman.png" id="5_76m53"]
+[ext_resource type="Texture2D" uid="uid://ciwmxytyy0qhe" path="res://ChatGPT Image Jun 24, 2026, 04_51_57 PM.png" id="6_sosio"]
+[ext_resource type="Texture2D" uid="uid://cp81kwspxf5qf" path="res://ChatGPT Image Jun 24, 2026, 04_36_32 PM.png" id="7_lk6oq"]
+
+[node name="HeroCard" type="Button" unique_id=446050875]
+custom_minimum_size = Vector2(200, 300)
+offset_top = -5.0
+offset_right = 200.0
+offset_bottom = 295.0
+flat = true
+script = ExtResource("1_hero_card")
+
+[node name="CardBackground" type="TextureRect" parent="." unique_id=292546998]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 11.0
+offset_top = -6.000002
+offset_right = -16.0
+offset_bottom = -70.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(1, 1.4)
+mouse_filter = 2
+texture = ExtResource("2_fwbsk")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="RarityFrame" type="TextureRect" parent="." unique_id=101233102]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("3_ku4ci")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HeroPortrait" type="TextureRect" parent="." unique_id=356291901]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = -17.0
+offset_right = -18.0
+offset_bottom = -34.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("4_fwbsk")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="RoleIcon" type="TextureRect" parent="." unique_id=1719011724]
+layout_mode = 0
+offset_left = 23.0
+offset_top = 49.0
+offset_right = 73.0
+offset_bottom = 99.0
+mouse_filter = 2
+texture = ExtResource("5_76m53")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NotificationDot" type="TextureRect" parent="." unique_id=520346747]
+layout_mode = 0
+offset_left = 138.0
+offset_top = 52.0
+offset_right = 168.0
+offset_bottom = 82.0
+scale = Vector2(0.8, 0.8)
+mouse_filter = 2
+texture = ExtResource("6_sosio")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HeroName" type="Label" parent="." unique_id=456833695]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 205.0
+offset_right = 188.0
+offset_bottom = 233.0
+text = "Lorelai"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Stars" type="HBoxContainer" parent="." unique_id=1021523825]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 228.0
+offset_right = 4235.0
+offset_bottom = 934.0
+scale = Vector2(0.04, 0.04)
+mouse_filter = 2
+alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="Stars" unique_id=1569467798]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+texture = ExtResource("7_lk6oq")
+expand_mode = 1
+
+[node name="TextureRect2" type="TextureRect" parent="Stars" unique_id=1519098477]
+layout_mode = 2
+texture = ExtResource("7_lk6oq")
+
+[node name="TextureRect3" type="TextureRect" parent="Stars" unique_id=916072172]
+layout_mode = 2
+texture = ExtResource("7_lk6oq")
+
+[node name="TextureRect4" type="TextureRect" parent="Stars" unique_id=1672736621]
+layout_mode = 2
+texture = ExtResource("7_lk6oq")
+
+[node name="TextureRect5" type="TextureRect" parent="Stars" unique_id=566424794]
+layout_mode = 2
+texture = ExtResource("7_lk6oq")
+
+[node name="TextureRect6" type="TextureRect" parent="Stars" unique_id=715627708]
+layout_mode = 2
+texture = ExtResource("7_lk6oq")
+
+[node name="LevelLabel" type="Label" parent="." unique_id=1673089803]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 250.0
+offset_right = 190.0
+offset_bottom = 278.0
+text = "Lv. 1"
+horizontal_alignment = 1
+vertical_alignment = 1

@@ -1,0 +1,8237 @@
+[
+  {
+	"id": "econ_food_prod_1",
+	"name": "Citadel Irrigation I",
+	"category": "economy",
+	"description": "Establish standard stone aqueducts and sluice gates to double riverbed soil fertility.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 150,
+		  "wood": 100,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 15,
+		"effects": [
+          "Food Production +10.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 218,
+		  "wood": 145,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 23,
+		"effects": [
+          "Food Production +20.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 315,
+		  "wood": 210,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 34,
+		"effects": [
+          "Food Production +30.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 457,
+		  "wood": 305,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 51,
+		"effects": [
+          "Food Production +40.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 663,
+		  "wood": 442,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 76,
+		"effects": [
+          "Food Production +50.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "econ_food_prod_2",
+	"name": "Citadel Irrigation II",
+	"category": "economy",
+	"description": "Draft steam-geared waterworks to carry continuous moisture to dry, high-altitude clay soil.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "econ_food_prod_1",
+		"level": 3
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 600,
+		  "wood": 450,
+		  "stone": 300,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 45,
+		"effects": [
+          "Food Production +15.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 900,
+		  "wood": 675,
+		  "stone": 450,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 68,
+		"effects": [
+          "Food Production +30.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 1350,
+		  "wood": 1013,
+		  "stone": 675,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 101,
+		"effects": [
+          "Food Production +45.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 2025,
+		  "wood": 1519,
+		  "stone": 1013,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 152,
+		"effects": [
+          "Food Production +60.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 3038,
+		  "wood": 2278,
+		  "stone": 1519,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 228,
+		"effects": [
+          "Food Production +75.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "econ_food_prod_3",
+	"name": "Sovereign Hydro-Arable Fields",
+	"category": "economy",
+	"description": "Introduce magical subterranean moisture nodes that nourish wheat fields in dead winter.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "econ_food_prod_2",
+		"level": 4
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 2500,
+		  "wood": 1800,
+		  "stone": 1500,
+		  "iron": 500,
+		  "valor": 0
+		},
+		"researchTimeSec": 120,
+		"effects": [
+          "Food Production +25.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 3875,
+		  "wood": 2790,
+		  "stone": 2325,
+		  "iron": 775,
+		  "valor": 0
+		},
+		"researchTimeSec": 192,
+		"effects": [
+          "Food Production +50.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 6006,
+		  "wood": 4325,
+		  "stone": 3604,
+		  "iron": 1201,
+		  "valor": 0
+		},
+		"researchTimeSec": 307,
+		"effects": [
+          "Food Production +75.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 9310,
+		  "wood": 6703,
+		  "stone": 5586,
+		  "iron": 1862,
+		  "valor": 0
+		},
+		"researchTimeSec": 492,
+		"effects": [
+          "Food Production +100.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 14430,
+		  "wood": 10390,
+		  "stone": 8658,
+		  "iron": 2886,
+		  "valor": 0
+		},
+		"researchTimeSec": 786,
+		"effects": [
+          "Food Production +125.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "econ_wood_prod_1",
+	"name": "Eldergrove Sawmills I",
+	"category": "economy",
+	"description": "Implement iron-toothed pulley saws to accelerate standard log timber refinement.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 100,
+		  "wood": 150,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 15,
+		"effects": [
+          "Wood Production +10.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 145,
+		  "wood": 218,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 23,
+		"effects": [
+          "Wood Production +20.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 210,
+		  "wood": 315,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 34,
+		"effects": [
+          "Wood Production +30.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 305,
+		  "wood": 457,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 51,
+		"effects": [
+          "Wood Production +40.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 442,
+		  "wood": 663,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 76,
+		"effects": [
+          "Wood Production +50.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "econ_wood_prod_2",
+	"name": "Eldergrove Sawmills II",
+	"category": "economy",
+	"description": "Reorganize lumber stockpiles with overhead rail trolleys to eliminate manual log carrying.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "econ_wood_prod_1",
+		"level": 3
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 450,
+		  "wood": 600,
+		  "stone": 300,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 45,
+		"effects": [
+          "Wood Production +15.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 675,
+		  "wood": 900,
+		  "stone": 450,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 68,
+		"effects": [
+          "Wood Production +30.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 1013,
+		  "wood": 1350,
+		  "stone": 675,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 101,
+		"effects": [
+          "Wood Production +45.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 1519,
+		  "wood": 2025,
+		  "stone": 1013,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 152,
+		"effects": [
+          "Wood Production +60.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 2278,
+		  "wood": 3038,
+		  "stone": 1519,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 228,
+		"effects": [
+          "Wood Production +75.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "econ_wood_prod_3",
+	"name": "Aether-Enchanted Forestry",
+	"category": "economy",
+	"description": "Apply growth-stimulating green wood-runes that cause felled giant conifers to rebuild within weeks.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "econ_wood_prod_2",
+		"level": 4
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 1800,
+		  "wood": 2500,
+		  "stone": 1500,
+		  "iron": 500,
+		  "valor": 0
+		},
+		"researchTimeSec": 120,
+		"effects": [
+          "Wood Production +25.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 2790,
+		  "wood": 3875,
+		  "stone": 2325,
+		  "iron": 775,
+		  "valor": 0
+		},
+		"researchTimeSec": 192,
+		"effects": [
+          "Wood Production +50.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 4325,
+		  "wood": 6006,
+		  "stone": 3604,
+		  "iron": 1201,
+		  "valor": 0
+		},
+		"researchTimeSec": 307,
+		"effects": [
+          "Wood Production +75.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 6703,
+		  "wood": 9310,
+		  "stone": 5586,
+		  "iron": 1862,
+		  "valor": 0
+		},
+		"researchTimeSec": 492,
+		"effects": [
+          "Wood Production +100.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 10390,
+		  "wood": 14430,
+		  "stone": 8658,
+		  "iron": 2886,
+		  "valor": 0
+		},
+		"researchTimeSec": 786,
+		"effects": [
+          "Wood Production +125.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "econ_stone_prod_1",
+	"name": "Crownspire Quarrying I",
+	"category": "economy",
+	"description": "Leverage steel stone-cleaving wedges to break flawless marble blocks from high canyon cliffs.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 150,
+		  "stone": 150,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 20,
+		"effects": [
+          "Stone Production +10.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 218,
+		  "stone": 218,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 30,
+		"effects": [
+          "Stone Production +20.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 315,
+		  "stone": 315,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 45,
+		"effects": [
+          "Stone Production +30.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 457,
+		  "stone": 457,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 68,
+		"effects": [
+          "Stone Production +40.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 663,
+		  "stone": 663,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 101,
+		"effects": [
+          "Stone Production +50.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "econ_stone_prod_2",
+	"name": "Crownspire Quarrying II",
+	"category": "economy",
+	"description": "Deploy weighted crane lifts to hoist gargantuan rubble blocks from the deep bedrock pit of the crater.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "econ_stone_prod_1",
+		"level": 3
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 500,
+		  "stone": 700,
+		  "iron": 250,
+		  "valor": 0
+		},
+		"researchTimeSec": 50,
+		"effects": [
+          "Stone Production +15.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 750,
+		  "stone": 1050,
+		  "iron": 375,
+		  "valor": 0
+		},
+		"researchTimeSec": 75,
+		"effects": [
+          "Stone Production +30.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 1125,
+		  "stone": 1575,
+		  "iron": 563,
+		  "valor": 0
+		},
+		"researchTimeSec": 113,
+		"effects": [
+          "Stone Production +45.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 1688,
+		  "stone": 2363,
+		  "iron": 844,
+		  "valor": 0
+		},
+		"researchTimeSec": 169,
+		"effects": [
+          "Stone Production +60.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 2531,
+		  "stone": 3544,
+		  "iron": 1266,
+		  "valor": 0
+		},
+		"researchTimeSec": 253,
+		"effects": [
+          "Stone Production +75.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "econ_stone_prod_3",
+	"name": "Demolition Runic Sigils",
+	"category": "economy",
+	"description": "Engrave micro-shattering runic syllables into heavy hammers so granite fragments under a single tap.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "econ_stone_prod_2",
+		"level": 4
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 1500,
+		  "wood": 1500,
+		  "stone": 3000,
+		  "iron": 800,
+		  "valor": 0
+		},
+		"researchTimeSec": 130,
+		"effects": [
+          "Stone Production +25.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 2325,
+		  "wood": 2325,
+		  "stone": 4650,
+		  "iron": 1240,
+		  "valor": 0
+		},
+		"researchTimeSec": 208,
+		"effects": [
+          "Stone Production +50.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 3604,
+		  "wood": 3604,
+		  "stone": 7208,
+		  "iron": 1922,
+		  "valor": 0
+		},
+		"researchTimeSec": 333,
+		"effects": [
+          "Stone Production +75.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 5586,
+		  "wood": 5586,
+		  "stone": 11172,
+		  "iron": 2979,
+		  "valor": 0
+		},
+		"researchTimeSec": 532,
+		"effects": [
+          "Stone Production +100.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 8658,
+		  "wood": 8658,
+		  "stone": 17316,
+		  "iron": 4618,
+		  "valor": 0
+		},
+		"researchTimeSec": 852,
+		"effects": [
+          "Stone Production +125.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "econ_iron_prod_1",
+	"name": "Deepground Metal Smelting I",
+	"category": "economy",
+	"description": "Inject high-pressure bellows draft tubes to reach stellar temperatures in charcoal iron ovens.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 200,
+		  "stone": 200,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 30,
+		"effects": [
+          "Iron Production +10.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 290,
+		  "stone": 290,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 45,
+		"effects": [
+          "Iron Production +20.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 421,
+		  "stone": 421,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 68,
+		"effects": [
+          "Iron Production +30.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 610,
+		  "stone": 610,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 101,
+		"effects": [
+          "Iron Production +40.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 884,
+		  "stone": 884,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 152,
+		"effects": [
+          "Iron Production +50.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "econ_iron_prod_2",
+	"name": "Deepground Metal Smelting II",
+	"category": "economy",
+	"description": "Integrate coal mixing furnaces to reduce carbon impurities and maximize heavy bullion cast yields.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "econ_iron_prod_1",
+		"level": 3
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 600,
+		  "stone": 600,
+		  "iron": 450,
+		  "valor": 0
+		},
+		"researchTimeSec": 60,
+		"effects": [
+          "Iron Production +15.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 900,
+		  "stone": 900,
+		  "iron": 675,
+		  "valor": 0
+		},
+		"researchTimeSec": 90,
+		"effects": [
+          "Iron Production +30.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 1350,
+		  "stone": 1350,
+		  "iron": 1013,
+		  "valor": 0
+		},
+		"researchTimeSec": 135,
+		"effects": [
+          "Iron Production +45.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 2025,
+		  "stone": 2025,
+		  "iron": 1519,
+		  "valor": 0
+		},
+		"researchTimeSec": 203,
+		"effects": [
+          "Iron Production +60.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 3038,
+		  "stone": 3038,
+		  "iron": 2278,
+		  "valor": 0
+		},
+		"researchTimeSec": 304,
+		"effects": [
+          "Iron Production +75.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "econ_iron_prod_3",
+	"name": "Elemental Ingot Purification",
+	"category": "economy",
+	"description": "Infuse white-hot lava ores with igneous core spirits to separate raw magnetic ores from granite slate.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "econ_iron_prod_2",
+		"level": 4
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 1500,
+		  "wood": 1500,
+		  "stone": 2000,
+		  "iron": 2500,
+		  "valor": 0
+		},
+		"researchTimeSec": 140,
+		"effects": [
+          "Iron Production +25.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 2325,
+		  "wood": 2325,
+		  "stone": 3100,
+		  "iron": 3875,
+		  "valor": 0
+		},
+		"researchTimeSec": 224,
+		"effects": [
+          "Iron Production +50.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 3604,
+		  "wood": 3604,
+		  "stone": 4805,
+		  "iron": 6006,
+		  "valor": 0
+		},
+		"researchTimeSec": 358,
+		"effects": [
+          "Iron Production +75.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 5586,
+		  "wood": 5586,
+		  "stone": 7448,
+		  "iron": 9310,
+		  "valor": 0
+		},
+		"researchTimeSec": 573,
+		"effects": [
+          "Iron Production +100.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 8658,
+		  "wood": 8658,
+		  "stone": 11544,
+		  "iron": 14430,
+		  "valor": 0
+		},
+		"researchTimeSec": 918,
+		"effects": [
+          "Iron Production +125.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "econ_gather_food",
+	"name": "Pony Express Grain Logistics",
+	"category": "economy",
+	"description": "Establish standard military grain waystations so pack mules can rest and offload wheat immediately.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 200,
+		  "wood": 100,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 20,
+		"effects": [
+          "Gathering Speed +5.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 280,
+		  "wood": 140,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 28,
+		"effects": [
+          "Gathering Speed +10.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 392,
+		  "wood": 196,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 39,
+		"effects": [
+          "Gathering Speed +15.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 549,
+		  "wood": 274,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 55,
+		"effects": [
+          "Gathering Speed +20.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 768,
+		  "wood": 384,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 77,
+		"effects": [
+          "Gathering Speed +25.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "econ_gather_wood",
+	"name": "Heavy-Duty Wagon Suspension",
+	"category": "economy",
+	"description": "Equip cargo wagons with reinforced iron-bound spring rails to survive giant forest ruts with heavy lumber.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 200,
+		  "stone": 100,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 20,
+		"effects": [
+          "Gathering Speed +5.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 280,
+		  "stone": 140,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 28,
+		"effects": [
+          "Gathering Speed +10.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 392,
+		  "stone": 196,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 39,
+		"effects": [
+          "Gathering Speed +15.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 549,
+		  "stone": 274,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 55,
+		"effects": [
+          "Gathering Speed +20.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 768,
+		  "stone": 384,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 77,
+		"effects": [
+          "Gathering Speed +25.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "econ_gather_stone",
+	"name": "Caravan Guard Cartography",
+	"category": "economy",
+	"description": "Map out smooth mountain tracks that shave off hours from lumbering heavy quarry blocks.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 100,
+		  "stone": 200,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 20,
+		"effects": [
+          "Gathering Speed +5.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 140,
+		  "stone": 280,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 28,
+		"effects": [
+          "Gathering Speed +10.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 196,
+		  "stone": 392,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 39,
+		"effects": [
+          "Gathering Speed +15.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 274,
+		  "stone": 549,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 55,
+		"effects": [
+          "Gathering Speed +20.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 384,
+		  "stone": 768,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 77,
+		"effects": [
+          "Gathering Speed +25.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "econ_gather_iron",
+	"name": "Reinforced Bed Cargo Holds",
+	"category": "economy",
+	"description": "Widen carriage wooden cargo platforms with side steel guard stakes to stack deep iron slag safely.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 100,
+		  "iron": 150,
+		  "valor": 0
+		},
+		"researchTimeSec": 25,
+		"effects": [
+          "Gathering Speed +5.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 140,
+		  "iron": 210,
+		  "valor": 0
+		},
+		"researchTimeSec": 35,
+		"effects": [
+          "Gathering Speed +10.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 196,
+		  "iron": 294,
+		  "valor": 0
+		},
+		"researchTimeSec": 49,
+		"effects": [
+          "Gathering Speed +15.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 274,
+		  "iron": 412,
+		  "valor": 0
+		},
+		"researchTimeSec": 69,
+		"effects": [
+          "Gathering Speed +20.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 384,
+		  "iron": 576,
+		  "valor": 0
+		},
+		"researchTimeSec": 96,
+		"effects": [
+          "Gathering Speed +25.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "econ_gathering_speed",
+	"name": "Toll-Road Caravan Permits",
+	"category": "economy",
+	"description": "Authorize high-speed sovereign road passes that allow trade merchants to bypass border tolls and skip gridlock.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "econ_gather_food",
+		"level": 2
+	  },
+	  {
+		"researchId": "econ_gather_wood",
+		"level": 2
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 500,
+		  "wood": 500,
+		  "stone": 500,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 40,
+		"effects": [
+          "Gathering Speed +8.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 750,
+		  "wood": 750,
+		  "stone": 750,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 60,
+		"effects": [
+          "Gathering Speed +16.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 1125,
+		  "wood": 1125,
+		  "stone": 1125,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 90,
+		"effects": [
+          "Gathering Speed +24.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 1688,
+		  "wood": 1688,
+		  "stone": 1688,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 135,
+		"effects": [
+          "Gathering Speed +32.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 2531,
+		  "wood": 2531,
+		  "stone": 2531,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 203,
+		"effects": [
+          "Gathering Speed +40.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "econ_tax_efficiency",
+	"name": "Crown Sovereignty Assizes",
+	"category": "economy",
+	"description": "Standardize tax weights, eliminating corrupted middleman tariffs across district checkpoints.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 1000,
+		  "wood": 1000,
+		  "stone": 800,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 60,
+		"effects": [
+          "Resource Cost Discount +3.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 1450,
+		  "wood": 1450,
+		  "stone": 1160,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 90,
+		"effects": [
+          "Resource Cost Discount +6.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 2103,
+		  "wood": 2103,
+		  "stone": 1682,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 135,
+		"effects": [
+          "Resource Cost Discount +9.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 3049,
+		  "wood": 3049,
+		  "stone": 2439,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 203,
+		"effects": [
+          "Resource Cost Discount +12.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 4421,
+		  "wood": 4421,
+		  "stone": 3536,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 304,
+		"effects": [
+          "Resource Cost Discount +15.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "econ_storage_preserv",
+	"name": "Aetheric Granary Insulation",
+	"category": "economy",
+	"description": "Weave subtle salt-crystals and protective runes into granary walls to prevent rot from damp fall air.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 600,
+		  "stone": 600,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 35,
+		"effects": [
+          "Storage Capacity +15.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 870,
+		  "stone": 870,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 49,
+		"effects": [
+          "Storage Capacity +30.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 1262,
+		  "stone": 1262,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 69,
+		"effects": [
+          "Storage Capacity +45.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 1829,
+		  "stone": 1829,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 96,
+		"effects": [
+          "Storage Capacity +60.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 2652,
+		  "stone": 2652,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 134,
+		"effects": [
+          "Storage Capacity +75.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "econ_waste_reduction",
+	"name": "Zero-Waste Harvest Mandates",
+	"category": "economy",
+	"description": "Enact municipal commands regarding total carcass and crop stalk usage to capture every single leaf.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "econ_tax_efficiency",
+		"level": 2
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 1500,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 500,
+		  "valor": 0
+		},
+		"researchTimeSec": 80,
+		"effects": [
+		  "Food Production +10.0%",
+          "Wood Production +10.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 2250,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 750,
+		  "valor": 0
+		},
+		"researchTimeSec": 120,
+		"effects": [
+		  "Food Production +20.0%",
+          "Wood Production +20.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 3375,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 1125,
+		  "valor": 0
+		},
+		"researchTimeSec": 180,
+		"effects": [
+		  "Food Production +30.0%",
+          "Wood Production +30.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 5063,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 1688,
+		  "valor": 0
+		},
+		"researchTimeSec": 270,
+		"effects": [
+		  "Food Production +40.0%",
+          "Wood Production +40.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 7594,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 2531,
+		  "valor": 0
+		},
+		"researchTimeSec": 405,
+		"effects": [
+		  "Food Production +50.0%",
+          "Wood Production +50.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "mil_inf_atk_1",
+	"name": "Pike Wall Formations I",
+	"category": "military",
+	"description": "Train frontline foot soldiers to bind spears into nested walls, multiplying direct strike thrust energy.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 200,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 100,
+		  "valor": 0
+		},
+		"researchTimeSec": 20,
+		"effects": [
+          "Infantry Attack +8.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 300,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 150,
+		  "valor": 0
+		},
+		"researchTimeSec": 30,
+		"effects": [
+          "Infantry Attack +16.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 450,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 225,
+		  "valor": 0
+		},
+		"researchTimeSec": 45,
+		"effects": [
+          "Infantry Attack +24.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 675,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 338,
+		  "valor": 0
+		},
+		"researchTimeSec": 68,
+		"effects": [
+          "Infantry Attack +32.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 1013,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 506,
+		  "valor": 0
+		},
+		"researchTimeSec": 101,
+		"effects": [
+          "Infantry Attack +40.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "mil_inf_atk_2",
+	"name": "Pike Wall Formations II",
+	"category": "military",
+	"description": "Deploy weighted carbonized ash spears that do not shatter when absorbing heavy cavalry impacts.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "mil_inf_atk_1",
+		"level": 3
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 800,
+		  "wood": 0,
+		  "stone": 400,
+		  "iron": 600,
+		  "valor": 0
+		},
+		"researchTimeSec": 60,
+		"effects": [
+          "Infantry Attack +12.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 1240,
+		  "wood": 0,
+		  "stone": 620,
+		  "iron": 930,
+		  "valor": 0
+		},
+		"researchTimeSec": 90,
+		"effects": [
+          "Infantry Attack +24.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 1922,
+		  "wood": 0,
+		  "stone": 961,
+		  "iron": 1442,
+		  "valor": 0
+		},
+		"researchTimeSec": 135,
+		"effects": [
+          "Infantry Attack +36.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 2979,
+		  "wood": 0,
+		  "stone": 1490,
+		  "iron": 2234,
+		  "valor": 0
+		},
+		"researchTimeSec": 203,
+		"effects": [
+          "Infantry Attack +48.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 4618,
+		  "wood": 0,
+		  "stone": 2309,
+		  "iron": 3463,
+		  "valor": 0
+		},
+		"researchTimeSec": 304,
+		"effects": [
+          "Infantry Attack +60.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "mil_inf_def_1",
+	"name": "Heavy Iron Roundshields I",
+	"category": "military",
+	"description": "Cast standard iron shields with convex center bosses to easily deflect heavy arrow hails.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 150,
+		  "stone": 0,
+		  "iron": 150,
+		  "valor": 0
+		},
+		"researchTimeSec": 20,
+		"effects": [
+          "Infantry Defense +8.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 225,
+		  "stone": 0,
+		  "iron": 225,
+		  "valor": 0
+		},
+		"researchTimeSec": 30,
+		"effects": [
+          "Infantry Defense +16.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 338,
+		  "stone": 0,
+		  "iron": 338,
+		  "valor": 0
+		},
+		"researchTimeSec": 45,
+		"effects": [
+          "Infantry Defense +24.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 506,
+		  "stone": 0,
+		  "iron": 506,
+		  "valor": 0
+		},
+		"researchTimeSec": 68,
+		"effects": [
+          "Infantry Defense +32.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 759,
+		  "stone": 0,
+		  "iron": 759,
+		  "valor": 0
+		},
+		"researchTimeSec": 101,
+		"effects": [
+          "Infantry Defense +40.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "mil_inf_def_2",
+	"name": "Heavy Iron Roundshields II",
+	"category": "military",
+	"description": "Reinforce defensive shield walls with locking brass side hinges to block heavy kinetic broadsides.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "mil_inf_def_1",
+		"level": 3
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 500,
+		  "stone": 400,
+		  "iron": 800,
+		  "valor": 0
+		},
+		"researchTimeSec": 60,
+		"effects": [
+          "Infantry Defense +12.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 775,
+		  "stone": 620,
+		  "iron": 1240,
+		  "valor": 0
+		},
+		"researchTimeSec": 90,
+		"effects": [
+          "Infantry Defense +24.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 1201,
+		  "stone": 961,
+		  "iron": 1922,
+		  "valor": 0
+		},
+		"researchTimeSec": 135,
+		"effects": [
+          "Infantry Defense +36.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 1862,
+		  "stone": 1490,
+		  "iron": 2979,
+		  "valor": 0
+		},
+		"researchTimeSec": 203,
+		"effects": [
+          "Infantry Defense +48.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 2886,
+		  "stone": 2309,
+		  "iron": 4618,
+		  "valor": 0
+		},
+		"researchTimeSec": 304,
+		"effects": [
+          "Infantry Defense +60.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "mil_inf_hp_1",
+	"name": "Infantry Stature Training",
+	"category": "military",
+	"description": "Drill fresh conscripts in weighted sand running under burning daylight to harden vital stamina.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 400,
+		  "wood": 200,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 30,
+		"effects": [
+          "Infantry Health +6.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 580,
+		  "wood": 290,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 42,
+		"effects": [
+          "Infantry Health +12.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 841,
+		  "wood": 421,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 59,
+		"effects": [
+          "Infantry Health +18.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 1219,
+		  "wood": 610,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 82,
+		"effects": [
+          "Infantry Health +24.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 1768,
+		  "wood": 884,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 115,
+		"effects": [
+          "Infantry Health +30.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "mil_mark_atk_1",
+	"name": "Compound Composite Longbows I",
+	"category": "military",
+	"description": "Drape longbow frames in laminated horn and sinew bands to increase projectile pull velocity.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 150,
+		  "wood": 200,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 20,
+		"effects": [
+          "Marksmen Attack +8.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 225,
+		  "wood": 300,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 30,
+		"effects": [
+          "Marksmen Attack +16.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 338,
+		  "wood": 450,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 45,
+		"effects": [
+          "Marksmen Attack +24.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 506,
+		  "wood": 675,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 68,
+		"effects": [
+          "Marksmen Attack +32.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 759,
+		  "wood": 1013,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 101,
+		"effects": [
+          "Marksmen Attack +40.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "mil_mark_atk_2",
+	"name": "Compound Composite Longbows II",
+	"category": "military",
+	"description": "Standardize narrow, armor-piercing iron bodkin tips to penetrate heavy enemy metal plate.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "mil_mark_atk_1",
+		"level": 3
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 500,
+		  "wood": 800,
+		  "stone": 0,
+		  "iron": 550,
+		  "valor": 0
+		},
+		"researchTimeSec": 65,
+		"effects": [
+          "Marksmen Attack +12.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 775,
+		  "wood": 1240,
+		  "stone": 0,
+		  "iron": 853,
+		  "valor": 0
+		},
+		"researchTimeSec": 98,
+		"effects": [
+          "Marksmen Attack +24.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 1201,
+		  "wood": 1922,
+		  "stone": 0,
+		  "iron": 1321,
+		  "valor": 0
+		},
+		"researchTimeSec": 146,
+		"effects": [
+          "Marksmen Attack +36.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 1862,
+		  "wood": 2979,
+		  "stone": 0,
+		  "iron": 2048,
+		  "valor": 0
+		},
+		"researchTimeSec": 219,
+		"effects": [
+          "Marksmen Attack +48.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 2886,
+		  "wood": 4618,
+		  "stone": 0,
+		  "iron": 3175,
+		  "valor": 0
+		},
+		"researchTimeSec": 329,
+		"effects": [
+          "Marksmen Attack +60.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "mil_mark_def_1",
+	"name": "Leather Brigandine Padding I",
+	"category": "military",
+	"description": "Stitch light metal plates inside supple elk leather vests to protect high-mobility elite archers.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 200,
+		  "stone": 0,
+		  "iron": 100,
+		  "valor": 0
+		},
+		"researchTimeSec": 20,
+		"effects": [
+          "Marksmen Defense +8.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 300,
+		  "stone": 0,
+		  "iron": 150,
+		  "valor": 0
+		},
+		"researchTimeSec": 30,
+		"effects": [
+          "Marksmen Defense +16.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 450,
+		  "stone": 0,
+		  "iron": 225,
+		  "valor": 0
+		},
+		"researchTimeSec": 45,
+		"effects": [
+          "Marksmen Defense +24.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 675,
+		  "stone": 0,
+		  "iron": 338,
+		  "valor": 0
+		},
+		"researchTimeSec": 68,
+		"effects": [
+          "Marksmen Defense +32.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 1013,
+		  "stone": 0,
+		  "iron": 506,
+		  "valor": 0
+		},
+		"researchTimeSec": 101,
+		"effects": [
+          "Marksmen Defense +40.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "mil_mark_def_2",
+	"name": "Leather Brigandine Padding II",
+	"category": "military",
+	"description": "Integrate custom-boiled heavy splinted thigh guards to block low sweeps by heavy charging infantry.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "mil_mark_def_1",
+		"level": 3
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 700,
+		  "stone": 300,
+		  "iron": 700,
+		  "valor": 0
+		},
+		"researchTimeSec": 65,
+		"effects": [
+          "Marksmen Defense +12.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 1085,
+		  "stone": 465,
+		  "iron": 1085,
+		  "valor": 0
+		},
+		"researchTimeSec": 98,
+		"effects": [
+          "Marksmen Defense +24.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 1682,
+		  "stone": 721,
+		  "iron": 1682,
+		  "valor": 0
+		},
+		"researchTimeSec": 146,
+		"effects": [
+          "Marksmen Defense +36.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 2607,
+		  "stone": 1117,
+		  "iron": 2607,
+		  "valor": 0
+		},
+		"researchTimeSec": 219,
+		"effects": [
+          "Marksmen Defense +48.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 4040,
+		  "stone": 1732,
+		  "iron": 4040,
+		  "valor": 0
+		},
+		"researchTimeSec": 329,
+		"effects": [
+          "Marksmen Defense +60.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "mil_mark_hp_1",
+	"name": "Marksmen Breathing Control",
+	"category": "military",
+	"description": "Instruct range-combat cohorts to sync arrows with stable heart rhythms, extending pulse limits.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 350,
+		  "wood": 250,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 30,
+		"effects": [
+          "Marksmen Health +6.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 508,
+		  "wood": 363,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 42,
+		"effects": [
+          "Marksmen Health +12.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 736,
+		  "wood": 526,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 59,
+		"effects": [
+          "Marksmen Health +18.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 1067,
+		  "wood": 762,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 82,
+		"effects": [
+          "Marksmen Health +24.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 1547,
+		  "wood": 1105,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 115,
+		"effects": [
+          "Marksmen Health +30.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "mil_cav_atk_1",
+	"name": "Royal Lances & Shock Saddles I",
+	"category": "military",
+	"description": "Anchor heavy high-backed wooden war saddles, allowing full heavy lance strikes directly on horseback.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 250,
+		  "wood": 100,
+		  "stone": 0,
+		  "iron": 150,
+		  "valor": 0
+		},
+		"researchTimeSec": 25,
+		"effects": [
+          "Cavalry Attack +8.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 375,
+		  "wood": 150,
+		  "stone": 0,
+		  "iron": 225,
+		  "valor": 0
+		},
+		"researchTimeSec": 38,
+		"effects": [
+          "Cavalry Attack +16.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 563,
+		  "wood": 225,
+		  "stone": 0,
+		  "iron": 338,
+		  "valor": 0
+		},
+		"researchTimeSec": 56,
+		"effects": [
+          "Cavalry Attack +24.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 844,
+		  "wood": 338,
+		  "stone": 0,
+		  "iron": 506,
+		  "valor": 0
+		},
+		"researchTimeSec": 84,
+		"effects": [
+          "Cavalry Attack +32.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 1266,
+		  "wood": 506,
+		  "stone": 0,
+		  "iron": 759,
+		  "valor": 0
+		},
+		"researchTimeSec": 127,
+		"effects": [
+          "Cavalry Attack +40.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "mil_cav_atk_2",
+	"name": "Royal Lances & Shock Saddles II",
+	"category": "military",
+	"description": "Forge double-edged steel lance heads blessed in sanctuary light to punch right through tower walls.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "mil_cav_atk_1",
+		"level": 3
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 1000,
+		  "wood": 400,
+		  "stone": 0,
+		  "iron": 900,
+		  "valor": 0
+		},
+		"researchTimeSec": 75,
+		"effects": [
+          "Cavalry Attack +12.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 1550,
+		  "wood": 620,
+		  "stone": 0,
+		  "iron": 1395,
+		  "valor": 0
+		},
+		"researchTimeSec": 113,
+		"effects": [
+          "Cavalry Attack +24.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 2403,
+		  "wood": 961,
+		  "stone": 0,
+		  "iron": 2162,
+		  "valor": 0
+		},
+		"researchTimeSec": 169,
+		"effects": [
+          "Cavalry Attack +36.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 3724,
+		  "wood": 1490,
+		  "stone": 0,
+		  "iron": 3351,
+		  "valor": 0
+		},
+		"researchTimeSec": 253,
+		"effects": [
+          "Cavalry Attack +48.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 5772,
+		  "wood": 2309,
+		  "stone": 0,
+		  "iron": 5195,
+		  "valor": 0
+		},
+		"researchTimeSec": 380,
+		"effects": [
+          "Cavalry Attack +60.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "mil_cav_def_1",
+	"name": "Reinforced Steel Barding I",
+	"category": "military",
+	"description": "Drape equine shoulders in double-layered leather caparisons to stop light flying arrow storms.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 150,
+		  "stone": 0,
+		  "iron": 200,
+		  "valor": 0
+		},
+		"researchTimeSec": 25,
+		"effects": [
+          "Cavalry Defense +8.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 225,
+		  "stone": 0,
+		  "iron": 300,
+		  "valor": 0
+		},
+		"researchTimeSec": 38,
+		"effects": [
+          "Cavalry Defense +16.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 338,
+		  "stone": 0,
+		  "iron": 450,
+		  "valor": 0
+		},
+		"researchTimeSec": 56,
+		"effects": [
+          "Cavalry Defense +24.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 506,
+		  "stone": 0,
+		  "iron": 675,
+		  "valor": 0
+		},
+		"researchTimeSec": 84,
+		"effects": [
+          "Cavalry Defense +32.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 759,
+		  "stone": 0,
+		  "iron": 1013,
+		  "valor": 0
+		},
+		"researchTimeSec": 127,
+		"effects": [
+          "Cavalry Defense +40.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "mil_cav_def_2",
+	"name": "Reinforced Steel Barding II",
+	"category": "military",
+	"description": "Rig jointed steel plates fitted cleanly on destrier legs to safely ride over razor-sharp pike rows.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "mil_cav_def_1",
+		"level": 3
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 500,
+		  "stone": 300,
+		  "iron": 1000,
+		  "valor": 0
+		},
+		"researchTimeSec": 75,
+		"effects": [
+          "Cavalry Defense +12.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 775,
+		  "stone": 465,
+		  "iron": 1550,
+		  "valor": 0
+		},
+		"researchTimeSec": 113,
+		"effects": [
+          "Cavalry Defense +24.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 1201,
+		  "stone": 721,
+		  "iron": 2403,
+		  "valor": 0
+		},
+		"researchTimeSec": 169,
+		"effects": [
+          "Cavalry Defense +36.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 1862,
+		  "stone": 1117,
+		  "iron": 3724,
+		  "valor": 0
+		},
+		"researchTimeSec": 253,
+		"effects": [
+          "Cavalry Defense +48.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 2886,
+		  "stone": 1732,
+		  "iron": 5772,
+		  "valor": 0
+		},
+		"researchTimeSec": 380,
+		"effects": [
+          "Cavalry Defense +60.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "mil_cav_hp_1",
+	"name": "Cavalry Steed Endurance",
+	"category": "military",
+	"description": "Breed noble stallion lines fed in mountain clover fields to boost standard life-force resilience.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 500,
+		  "wood": 200,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 30,
+		"effects": [
+          "Cavalry Health +6.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 725,
+		  "wood": 290,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 42,
+		"effects": [
+          "Cavalry Health +12.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 1051,
+		  "wood": 421,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 59,
+		"effects": [
+          "Cavalry Health +18.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 1524,
+		  "wood": 610,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 82,
+		"effects": [
+          "Cavalry Health +24.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 2210,
+		  "wood": 884,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 115,
+		"effects": [
+          "Cavalry Health +30.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "mil_march_cap_1",
+	"name": "Supply Chain Quartermasters",
+	"category": "military",
+	"description": "Appoint administrative logisticians to calculate marching rations, swelling standard squadron size.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 600,
+		  "wood": 400,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 40,
+		"effects": [
+          "March Capacity +50"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 900,
+		  "wood": 600,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 60,
+		"effects": [
+          "March Capacity +100"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 1350,
+		  "wood": 900,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 90,
+		"effects": [
+          "March Capacity +150"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 2025,
+		  "wood": 1350,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 135,
+		"effects": [
+          "March Capacity +200"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 3038,
+		  "wood": 2025,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 203,
+		"effects": [
+          "March Capacity +250"
+		]
+	  }
+	]
+  },
+  {
+	"id": "mil_march_cap_2",
+	"name": "Grand Campaign Caravan Lines",
+	"category": "military",
+	"description": "Double available campaign slots through nested high-wheel heavy carrier logistics arrays.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "mil_march_cap_1",
+		"level": 3
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 2000,
+		  "wood": 1500,
+		  "stone": 1000,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 100,
+		"effects": [
+          "March Capacity +150"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 3100,
+		  "wood": 2325,
+		  "stone": 1550,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 160,
+		"effects": [
+          "March Capacity +300"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 4805,
+		  "wood": 3604,
+		  "stone": 2403,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 256,
+		"effects": [
+          "March Capacity +450"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 7448,
+		  "wood": 5586,
+		  "stone": 3724,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 410,
+		"effects": [
+          "March Capacity +600"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 11544,
+		  "wood": 8658,
+		  "stone": 5772,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 655,
+		"effects": [
+          "March Capacity +750"
+		]
+	  }
+	]
+  },
+  {
+	"id": "mil_scout_speed",
+	"name": "Light-Saddle Outriders",
+	"category": "military",
+	"description": "Remove all non-essential iron weapons from scouts, allowing rapid swift map-probing rounds.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 300,
+		  "wood": 300,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 25,
+		"effects": [
+          "Troop Speed +5.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 420,
+		  "wood": 420,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 35,
+		"effects": [
+          "Troop Speed +10.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 588,
+		  "wood": 588,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 49,
+		"effects": [
+          "Troop Speed +15.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 823,
+		  "wood": 823,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 69,
+		"effects": [
+          "Troop Speed +20.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 1152,
+		  "wood": 1152,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 96,
+		"effects": [
+          "Troop Speed +25.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "mil_overall_power",
+	"name": "Crownspire Valor Doctrines",
+	"category": "military",
+	"description": "Enlist elite royal scholars to recite verses of the High Citadel, fueling universal soldier fury.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "mil_inf_atk_2",
+		"level": 2
+	  },
+	  {
+		"researchId": "mil_mark_atk_2",
+		"level": 2
+	  },
+	  {
+		"researchId": "mil_cav_atk_2",
+		"level": 2
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 2000,
+		  "wood": 0,
+		  "stone": 1500,
+		  "iron": 1500,
+		  "valor": 0
+		},
+		"researchTimeSec": 110,
+		"effects": [
+		  "Troop Attack +5.0%",
+          "Troop Defense +5.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 3200,
+		  "wood": 0,
+		  "stone": 2400,
+		  "iron": 2400,
+		  "valor": 0
+		},
+		"researchTimeSec": 176,
+		"effects": [
+		  "Troop Attack +10.0%",
+          "Troop Defense +10.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 5120,
+		  "wood": 0,
+		  "stone": 3840,
+		  "iron": 3840,
+		  "valor": 0
+		},
+		"researchTimeSec": 282,
+		"effects": [
+		  "Troop Attack +15.0%",
+          "Troop Defense +15.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 8192,
+		  "wood": 0,
+		  "stone": 6144,
+		  "iron": 6144,
+		  "valor": 0
+		},
+		"researchTimeSec": 451,
+		"effects": [
+		  "Troop Attack +20.0%",
+          "Troop Defense +20.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 13107,
+		  "wood": 0,
+		  "stone": 9830,
+		  "iron": 9830,
+		  "valor": 0
+		},
+		"researchTimeSec": 721,
+		"effects": [
+		  "Troop Attack +25.0%",
+          "Troop Defense +25.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "mil_tactician_shroud",
+	"name": "Ambush Camouflage Drills",
+	"category": "military",
+	"description": "Instruct garrison watch guards to drape low outer walls in evergreen boughs and forest moss.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 500,
+		  "stone": 500,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 45,
+		"effects": [
+          "Troop Defense +5.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 725,
+		  "stone": 725,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 68,
+		"effects": [
+          "Troop Defense +10.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 1051,
+		  "stone": 1051,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 101,
+		"effects": [
+          "Troop Defense +15.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 1524,
+		  "stone": 1524,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 152,
+		"effects": [
+          "Troop Defense +20.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 2210,
+		  "stone": 2210,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 228,
+		"effects": [
+          "Troop Defense +25.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "dev_const_speed_1",
+	"name": "Runic Scaffold Engineering I",
+	"category": "development",
+	"description": "Draft interlocking spruce scaffolding that supports double concrete pouring loads.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 150,
+		  "stone": 100,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 15,
+		"effects": [
+          "Construction Speed +5.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 218,
+		  "stone": 145,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 23,
+		"effects": [
+          "Construction Speed +10.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 315,
+		  "stone": 210,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 34,
+		"effects": [
+          "Construction Speed +15.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 457,
+		  "stone": 305,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 51,
+		"effects": [
+          "Construction Speed +20.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 663,
+		  "stone": 442,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 76,
+		"effects": [
+          "Construction Speed +25.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "dev_const_speed_2",
+	"name": "Runic Scaffold Engineering II",
+	"category": "development",
+	"description": "Deploy leverage-balanced iron counterweights to haul heavy granite blocks up high levels.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "dev_const_speed_1",
+		"level": 3
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 600,
+		  "stone": 600,
+		  "iron": 300,
+		  "valor": 0
+		},
+		"researchTimeSec": 45,
+		"effects": [
+          "Construction Speed +8.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 900,
+		  "stone": 900,
+		  "iron": 450,
+		  "valor": 0
+		},
+		"researchTimeSec": 68,
+		"effects": [
+          "Construction Speed +16.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 1350,
+		  "stone": 1350,
+		  "iron": 675,
+		  "valor": 0
+		},
+		"researchTimeSec": 101,
+		"effects": [
+          "Construction Speed +24.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 2025,
+		  "stone": 2025,
+		  "iron": 1013,
+		  "valor": 0
+		},
+		"researchTimeSec": 152,
+		"effects": [
+          "Construction Speed +32.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 3038,
+		  "stone": 3038,
+		  "iron": 1519,
+		  "valor": 0
+		},
+		"researchTimeSec": 228,
+		"effects": [
+          "Construction Speed +40.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "dev_const_speed_3",
+	"name": "Sub-Level Masonry Overhaul",
+	"category": "development",
+	"description": "Unfurl highly detailed pre-cut architectural blocks so buildings assemble block-by-block.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "dev_const_speed_2",
+		"level": 4
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 2000,
+		  "stone": 2500,
+		  "iron": 1200,
+		  "valor": 0
+		},
+		"researchTimeSec": 120,
+		"effects": [
+          "Construction Speed +12.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 3100,
+		  "stone": 3875,
+		  "iron": 1860,
+		  "valor": 0
+		},
+		"researchTimeSec": 192,
+		"effects": [
+          "Construction Speed +24.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 4805,
+		  "stone": 6006,
+		  "iron": 2883,
+		  "valor": 0
+		},
+		"researchTimeSec": 307,
+		"effects": [
+          "Construction Speed +36.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 7448,
+		  "stone": 9310,
+		  "iron": 4469,
+		  "valor": 0
+		},
+		"researchTimeSec": 492,
+		"effects": [
+          "Construction Speed +48.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 11544,
+		  "stone": 14430,
+		  "iron": 6926,
+		  "valor": 0
+		},
+		"researchTimeSec": 786,
+		"effects": [
+          "Construction Speed +60.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "dev_res_speed_1",
+	"name": "Grand Archive Scholasticism I",
+	"category": "development",
+	"description": "Introduce cross-referenced parchment scrolls, cutting library scanning times in half.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 150,
+		  "wood": 150,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 15,
+		"effects": [
+          "Research Speed +5.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 218,
+		  "wood": 218,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 23,
+		"effects": [
+          "Research Speed +10.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 315,
+		  "wood": 315,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 34,
+		"effects": [
+          "Research Speed +15.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 457,
+		  "wood": 457,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 51,
+		"effects": [
+          "Research Speed +20.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 663,
+		  "wood": 663,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 76,
+		"effects": [
+          "Research Speed +25.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "dev_res_speed_2",
+	"name": "Grand Archive Scholasticism II",
+	"category": "development",
+	"description": "Authorize high-scholars access to the Inner Vaults to examine high ancient scroll files.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "dev_res_speed_1",
+		"level": 3
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 600,
+		  "wood": 600,
+		  "stone": 400,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 50,
+		"effects": [
+          "Research Speed +8.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 900,
+		  "wood": 900,
+		  "stone": 600,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 75,
+		"effects": [
+          "Research Speed +16.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 1350,
+		  "wood": 1350,
+		  "stone": 900,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 113,
+		"effects": [
+          "Research Speed +24.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 2025,
+		  "wood": 2025,
+		  "stone": 1350,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 169,
+		"effects": [
+          "Research Speed +32.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 3038,
+		  "wood": 3038,
+		  "stone": 2025,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 253,
+		"effects": [
+          "Research Speed +40.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "dev_res_speed_3",
+	"name": "Aether Oracle Focus Lens",
+	"category": "development",
+	"description": "Suspend a hovering raw crystal magnifier above scholars to channel universal scientific ideas.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "dev_res_speed_2",
+		"level": 4
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 2000,
+		  "wood": 2000,
+		  "stone": 1500,
+		  "iron": 1000,
+		  "valor": 0
+		},
+		"researchTimeSec": 130,
+		"effects": [
+          "Research Speed +12.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 3100,
+		  "wood": 3100,
+		  "stone": 2325,
+		  "iron": 1550,
+		  "valor": 0
+		},
+		"researchTimeSec": 208,
+		"effects": [
+          "Research Speed +24.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 4805,
+		  "wood": 4805,
+		  "stone": 3604,
+		  "iron": 2403,
+		  "valor": 0
+		},
+		"researchTimeSec": 333,
+		"effects": [
+          "Research Speed +36.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 7448,
+		  "wood": 7448,
+		  "stone": 5586,
+		  "iron": 3724,
+		  "valor": 0
+		},
+		"researchTimeSec": 532,
+		"effects": [
+          "Research Speed +48.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 11544,
+		  "wood": 11544,
+		  "stone": 8658,
+		  "iron": 5772,
+		  "valor": 0
+		},
+		"researchTimeSec": 852,
+		"effects": [
+          "Research Speed +60.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "dev_train_speed_1",
+	"name": "Drill Sergeant Standardization I",
+	"category": "development",
+	"description": "Standardize commands to prevent confusion, shrinking the rookie training hours block.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 200,
+		  "wood": 100,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 20,
+		"effects": [
+          "Training Speed +5.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 290,
+		  "wood": 145,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 30,
+		"effects": [
+          "Training Speed +10.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 421,
+		  "wood": 210,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 45,
+		"effects": [
+          "Training Speed +15.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 610,
+		  "wood": 305,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 68,
+		"effects": [
+          "Training Speed +20.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 884,
+		  "wood": 442,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 101,
+		"effects": [
+          "Training Speed +25.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "dev_train_speed_2",
+	"name": "Drill Sergeant Standardization II",
+	"category": "development",
+	"description": "Construct realistic wooden target dummies with spring shield arms to teach close-quarters dodge limits.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "dev_train_speed_1",
+		"level": 3
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 800,
+		  "wood": 400,
+		  "stone": 0,
+		  "iron": 400,
+		  "valor": 0
+		},
+		"researchTimeSec": 50,
+		"effects": [
+          "Training Speed +8.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 1200,
+		  "wood": 600,
+		  "stone": 0,
+		  "iron": 600,
+		  "valor": 0
+		},
+		"researchTimeSec": 75,
+		"effects": [
+          "Training Speed +16.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 1800,
+		  "wood": 900,
+		  "stone": 0,
+		  "iron": 900,
+		  "valor": 0
+		},
+		"researchTimeSec": 113,
+		"effects": [
+          "Training Speed +24.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 2700,
+		  "wood": 1350,
+		  "stone": 0,
+		  "iron": 1350,
+		  "valor": 0
+		},
+		"researchTimeSec": 169,
+		"effects": [
+          "Training Speed +32.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 4050,
+		  "wood": 2025,
+		  "stone": 0,
+		  "iron": 2025,
+		  "valor": 0
+		},
+		"researchTimeSec": 253,
+		"effects": [
+          "Training Speed +40.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "dev_train_speed_3",
+	"name": "War Academy Call-To-Arms",
+	"category": "development",
+	"description": "Establish municipal draft centers that automatically fit raw farmers directly with pre-forged leather and swords.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "dev_train_speed_2",
+		"level": 4
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 2500,
+		  "wood": 1500,
+		  "stone": 1500,
+		  "iron": 1200,
+		  "valor": 0
+		},
+		"researchTimeSec": 140,
+		"effects": [
+          "Training Speed +12.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 3875,
+		  "wood": 2325,
+		  "stone": 2325,
+		  "iron": 1860,
+		  "valor": 0
+		},
+		"researchTimeSec": 224,
+		"effects": [
+          "Training Speed +24.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 6006,
+		  "wood": 3604,
+		  "stone": 3604,
+		  "iron": 2883,
+		  "valor": 0
+		},
+		"researchTimeSec": 358,
+		"effects": [
+          "Training Speed +36.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 9310,
+		  "wood": 5586,
+		  "stone": 5586,
+		  "iron": 4469,
+		  "valor": 0
+		},
+		"researchTimeSec": 573,
+		"effects": [
+          "Training Speed +48.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 14430,
+		  "wood": 8658,
+		  "stone": 8658,
+		  "iron": 6926,
+		  "valor": 0
+		},
+		"researchTimeSec": 918,
+		"effects": [
+          "Training Speed +60.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "dev_heal_speed_1",
+	"name": "Apothecary Ointment Reserves I",
+	"category": "development",
+	"description": "Boil high concentrations of swamp marigolds to extract rapid skin-knitting salve.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 150,
+		  "wood": 150,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 20,
+		"effects": [
+          "Healing Speed +8.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 218,
+		  "wood": 218,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 30,
+		"effects": [
+          "Healing Speed +16.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 315,
+		  "wood": 315,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 45,
+		"effects": [
+          "Healing Speed +24.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 457,
+		  "wood": 457,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 68,
+		"effects": [
+          "Healing Speed +32.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 663,
+		  "wood": 663,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 101,
+		"effects": [
+          "Healing Speed +40.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "dev_heal_speed_2",
+	"name": "Apothecary Ointment Reserves II",
+	"category": "development",
+	"description": "Manufacture sterilizing silver-dust vapors to clear septic wounds in battlefield hospitals.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "dev_heal_speed_1",
+		"level": 3
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 600,
+		  "wood": 600,
+		  "stone": 400,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 50,
+		"effects": [
+          "Healing Speed +12.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 900,
+		  "wood": 900,
+		  "stone": 600,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 75,
+		"effects": [
+          "Healing Speed +24.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 1350,
+		  "wood": 1350,
+		  "stone": 900,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 113,
+		"effects": [
+          "Healing Speed +36.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 2025,
+		  "wood": 2025,
+		  "stone": 1350,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 169,
+		"effects": [
+          "Healing Speed +48.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 3038,
+		  "wood": 3038,
+		  "stone": 2025,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 253,
+		"effects": [
+          "Healing Speed +60.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "dev_heal_speed_3",
+	"name": "Runic Sanctuary Infusions",
+	"category": "development",
+	"description": "Erect an arch of crystal quartz in medical halls to envelope recovering knights in raw life power.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "dev_heal_speed_2",
+		"level": 4
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 2000,
+		  "wood": 1500,
+		  "stone": 1500,
+		  "iron": 1000,
+		  "valor": 0
+		},
+		"researchTimeSec": 130,
+		"effects": [
+          "Healing Speed +20.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 3100,
+		  "wood": 2325,
+		  "stone": 2325,
+		  "iron": 1550,
+		  "valor": 0
+		},
+		"researchTimeSec": 208,
+		"effects": [
+          "Healing Speed +40.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 4805,
+		  "wood": 3604,
+		  "stone": 3604,
+		  "iron": 2403,
+		  "valor": 0
+		},
+		"researchTimeSec": 333,
+		"effects": [
+          "Healing Speed +60.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 7448,
+		  "wood": 5586,
+		  "stone": 5586,
+		  "iron": 3724,
+		  "valor": 0
+		},
+		"researchTimeSec": 532,
+		"effects": [
+          "Healing Speed +80.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 11544,
+		  "wood": 8658,
+		  "stone": 8658,
+		  "iron": 5772,
+		  "valor": 0
+		},
+		"researchTimeSec": 852,
+		"effects": [
+          "Healing Speed +100.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "dev_house_capacity",
+	"name": "Multi-Tier Citadel Tenements",
+	"category": "development",
+	"description": "Enforce narrow three-story building codes so twice as many housing blocks fit on a single platform street.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 500,
+		  "stone": 500,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 40,
+		"effects": [
+          "Population Max +100"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 725,
+		  "stone": 725,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 56,
+		"effects": [
+          "Population Max +200"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 1051,
+		  "stone": 1051,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 78,
+		"effects": [
+          "Population Max +300"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 1524,
+		  "stone": 1524,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 110,
+		"effects": [
+          "Population Max +400"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 2210,
+		  "stone": 2210,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 154,
+		"effects": [
+          "Population Max +500"
+		]
+	  }
+	]
+  },
+  {
+	"id": "dev_store_food",
+	"name": "Pest-Proof Underground Granary",
+	"category": "development",
+	"description": "Seal base granary vaults behind heavy double-latched iron trapdoors to lock out rats completely.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 300,
+		  "stone": 300,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 25,
+		"effects": [
+          "Storage Capacity +20.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 420,
+		  "stone": 420,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 35,
+		"effects": [
+          "Storage Capacity +40.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 588,
+		  "stone": 588,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 49,
+		"effects": [
+          "Storage Capacity +60.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 823,
+		  "stone": 823,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 69,
+		"effects": [
+          "Storage Capacity +80.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 1152,
+		  "stone": 1152,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 96,
+		"effects": [
+          "Storage Capacity +100.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "dev_store_wood",
+	"name": "Dehumidified Timber Sheds",
+	"category": "development",
+	"description": "Install low charcoal furnace slots inside lumber stockpiles to dry giant cedar planks.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 300,
+		  "stone": 300,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 25,
+		"effects": [
+          "Storage Capacity +20.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 420,
+		  "stone": 420,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 35,
+		"effects": [
+          "Storage Capacity +40.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 588,
+		  "stone": 588,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 49,
+		"effects": [
+          "Storage Capacity +60.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 823,
+		  "stone": 823,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 69,
+		"effects": [
+          "Storage Capacity +80.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 1152,
+		  "stone": 1152,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 96,
+		"effects": [
+          "Storage Capacity +100.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "dev_store_stone",
+	"name": "Reinforced Granite Yard Slots",
+	"category": "development",
+	"description": "Carve designated stack channels lined with wood cushions to hold massive slate blocks safely.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 200,
+		  "stone": 400,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 25,
+		"effects": [
+          "Storage Capacity +20.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 280,
+		  "stone": 560,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 35,
+		"effects": [
+          "Storage Capacity +40.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 392,
+		  "stone": 784,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 49,
+		"effects": [
+          "Storage Capacity +60.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 549,
+		  "stone": 1098,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 69,
+		"effects": [
+          "Storage Capacity +80.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 768,
+		  "stone": 1537,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 96,
+		"effects": [
+          "Storage Capacity +100.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "dev_store_iron",
+	"name": "Coated Iron Vault Lining",
+	"category": "development",
+	"description": "Melt protective beeswax on storage lockers to prevent heavy metal ore oxidization.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 300,
+		  "iron": 300,
+		  "valor": 0
+		},
+		"researchTimeSec": 30,
+		"effects": [
+          "Storage Capacity +20.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 420,
+		  "iron": 420,
+		  "valor": 0
+		},
+		"researchTimeSec": 42,
+		"effects": [
+          "Storage Capacity +40.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 588,
+		  "iron": 588,
+		  "valor": 0
+		},
+		"researchTimeSec": 59,
+		"effects": [
+          "Storage Capacity +60.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 823,
+		  "iron": 823,
+		  "valor": 0
+		},
+		"researchTimeSec": 82,
+		"effects": [
+          "Storage Capacity +80.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 1152,
+		  "iron": 1152,
+		  "valor": 0
+		},
+		"researchTimeSec": 115,
+		"effects": [
+          "Storage Capacity +100.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "dev_tax_bureaucracy",
+	"name": "Revenue Office Standardization",
+	"category": "development",
+	"description": "Standardize tax books with ink scroll entries, squeezing more gold into state banks.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 1000,
+		  "wood": 1000,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 50,
+		"effects": [
+          "Resource Cost Discount +2.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 1500,
+		  "wood": 1500,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 75,
+		"effects": [
+          "Resource Cost Discount +4.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 2250,
+		  "wood": 2250,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 113,
+		"effects": [
+          "Resource Cost Discount +6.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 3375,
+		  "wood": 3375,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 169,
+		"effects": [
+          "Resource Cost Discount +8.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 5063,
+		  "wood": 5063,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 253,
+		"effects": [
+          "Resource Cost Discount +10.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "dev_defense_walls",
+	"name": "Bastion Perimeter Buttresses",
+	"category": "development",
+	"description": "Affix thick diagnostic triangular stone braces on outer fort corners to withstand projectile blows.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 1500,
+		  "iron": 500,
+		  "valor": 0
+		},
+		"researchTimeSec": 90,
+		"effects": [
+          "Troop Defense +5.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 2250,
+		  "iron": 750,
+		  "valor": 0
+		},
+		"researchTimeSec": 135,
+		"effects": [
+          "Troop Defense +10.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 3375,
+		  "iron": 1125,
+		  "valor": 0
+		},
+		"researchTimeSec": 203,
+		"effects": [
+          "Troop Defense +15.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 5063,
+		  "iron": 1688,
+		  "valor": 0
+		},
+		"researchTimeSec": 304,
+		"effects": [
+          "Troop Defense +20.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 7594,
+		  "iron": 2531,
+		  "valor": 0
+		},
+		"researchTimeSec": 456,
+		"effects": [
+          "Troop Defense +25.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "dev_scout_intelligence",
+	"name": "Extended Spyglass Watchtowers",
+	"category": "development",
+	"description": "Grind precision convex ocular glass lenses to spot encroaching military columns miles away.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 800,
+		  "stone": 800,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 60,
+		"effects": [
+          "Troop Speed +4.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 1160,
+		  "stone": 1160,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 90,
+		"effects": [
+          "Troop Speed +8.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 1682,
+		  "stone": 1682,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 135,
+		"effects": [
+          "Troop Speed +12.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 2439,
+		  "stone": 2439,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 203,
+		"effects": [
+          "Troop Speed +16.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 3536,
+		  "stone": 3536,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 304,
+		"effects": [
+          "Troop Speed +20.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "all_help_eff_1",
+	"name": "Allied Envoy Protocols I",
+	"category": "alliance",
+	"description": "Open a permanent envoy desk inside the guild-hall, reducing allied cooperation lags.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 200,
+		  "wood": 200,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 20,
+		"effects": [
+          "Alliance Help Efficiency +5.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 280,
+		  "wood": 280,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 28,
+		"effects": [
+          "Alliance Help Efficiency +10.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 392,
+		  "wood": 392,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 39,
+		"effects": [
+          "Alliance Help Efficiency +15.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 549,
+		  "wood": 549,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 55,
+		"effects": [
+          "Alliance Help Efficiency +20.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 768,
+		  "wood": 768,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 77,
+		"effects": [
+          "Alliance Help Efficiency +25.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "all_help_eff_2",
+	"name": "Allied Envoy Protocols II",
+	"category": "alliance",
+	"description": "Issue shared parchment registries, helping friendly builders sync work lines instantly.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "all_help_eff_1",
+		"level": 3
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 800,
+		  "wood": 800,
+		  "stone": 500,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 50,
+		"effects": [
+          "Alliance Help Efficiency +8.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 1160,
+		  "wood": 1160,
+		  "stone": 725,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 70,
+		"effects": [
+          "Alliance Help Efficiency +16.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 1682,
+		  "wood": 1682,
+		  "stone": 1051,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 98,
+		"effects": [
+          "Alliance Help Efficiency +24.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 2439,
+		  "wood": 2439,
+		  "stone": 1524,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 137,
+		"effects": [
+          "Alliance Help Efficiency +32.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 3536,
+		  "wood": 3536,
+		  "stone": 2210,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 192,
+		"effects": [
+          "Alliance Help Efficiency +40.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "all_help_eff_3",
+	"name": "Grand Citadel Help-Desk Delegacy",
+	"category": "alliance",
+	"description": "Dedicate an entire floor of the tower to incoming messenger pigeons from surrounding allies.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "all_help_eff_2",
+		"level": 4
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 3000,
+		  "wood": 3000,
+		  "stone": 2000,
+		  "iron": 1000,
+		  "valor": 0
+		},
+		"researchTimeSec": 120,
+		"effects": [
+          "Alliance Help Efficiency +12.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 4500,
+		  "wood": 4500,
+		  "stone": 3000,
+		  "iron": 1500,
+		  "valor": 0
+		},
+		"researchTimeSec": 180,
+		"effects": [
+          "Alliance Help Efficiency +24.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 6750,
+		  "wood": 6750,
+		  "stone": 4500,
+		  "iron": 2250,
+		  "valor": 0
+		},
+		"researchTimeSec": 270,
+		"effects": [
+          "Alliance Help Efficiency +36.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 10125,
+		  "wood": 10125,
+		  "stone": 6750,
+		  "iron": 3375,
+		  "valor": 0
+		},
+		"researchTimeSec": 405,
+		"effects": [
+          "Alliance Help Efficiency +48.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 15188,
+		  "wood": 15188,
+		  "stone": 10125,
+		  "iron": 5063,
+		  "valor": 0
+		},
+		"researchTimeSec": 608,
+		"effects": [
+          "Alliance Help Efficiency +60.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "all_donation_eff_1",
+	"name": "Guildmaster Trade Tollways I",
+	"category": "alliance",
+	"description": "Pave alliance-specific trade canals, boosting resource delivery rates to guild vaults.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 300,
+		  "stone": 300,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 25,
+		"effects": [
+          "Alliance Resource Donations +10.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 420,
+		  "stone": 420,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 35,
+		"effects": [
+          "Alliance Resource Donations +20.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 588,
+		  "stone": 588,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 49,
+		"effects": [
+          "Alliance Resource Donations +30.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 823,
+		  "stone": 823,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 69,
+		"effects": [
+          "Alliance Resource Donations +40.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 1152,
+		  "stone": 1152,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 96,
+		"effects": [
+          "Alliance Resource Donations +50.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "all_donation_eff_2",
+	"name": "Guildmaster Trade Tollways II",
+	"category": "alliance",
+	"description": "Deploy cargo wagons with double wood axle bands to reduce timber damage per delivery.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "all_donation_eff_1",
+		"level": 3
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 1000,
+		  "stone": 1000,
+		  "iron": 400,
+		  "valor": 0
+		},
+		"researchTimeSec": 55,
+		"effects": [
+          "Alliance Resource Donations +15.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 1450,
+		  "stone": 1450,
+		  "iron": 580,
+		  "valor": 0
+		},
+		"researchTimeSec": 77,
+		"effects": [
+          "Alliance Resource Donations +30.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 2103,
+		  "stone": 2103,
+		  "iron": 841,
+		  "valor": 0
+		},
+		"researchTimeSec": 108,
+		"effects": [
+          "Alliance Resource Donations +45.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 3049,
+		  "stone": 3049,
+		  "iron": 1219,
+		  "valor": 0
+		},
+		"researchTimeSec": 151,
+		"effects": [
+          "Alliance Resource Donations +60.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 4421,
+		  "stone": 4421,
+		  "iron": 1768,
+		  "valor": 0
+		},
+		"researchTimeSec": 211,
+		"effects": [
+          "Alliance Resource Donations +75.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "all_donation_eff_3",
+	"name": "Tribute Convoy Escorts",
+	"category": "alliance",
+	"description": "Commission heavy armed spear-squads to ride side-by-side with trade caravan wagons.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "all_donation_eff_2",
+		"level": 4
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 2500,
+		  "wood": 0,
+		  "stone": 2500,
+		  "iron": 2500,
+		  "valor": 0
+		},
+		"researchTimeSec": 130,
+		"effects": [
+          "Alliance Resource Donations +25.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 3750,
+		  "wood": 0,
+		  "stone": 3750,
+		  "iron": 3750,
+		  "valor": 0
+		},
+		"researchTimeSec": 195,
+		"effects": [
+          "Alliance Resource Donations +50.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 5625,
+		  "wood": 0,
+		  "stone": 5625,
+		  "iron": 5625,
+		  "valor": 0
+		},
+		"researchTimeSec": 293,
+		"effects": [
+          "Alliance Resource Donations +75.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 8438,
+		  "wood": 0,
+		  "stone": 8438,
+		  "iron": 8438,
+		  "valor": 0
+		},
+		"researchTimeSec": 439,
+		"effects": [
+          "Alliance Resource Donations +100.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 12656,
+		  "wood": 0,
+		  "stone": 12656,
+		  "iron": 12656,
+		  "valor": 0
+		},
+		"researchTimeSec": 658,
+		"effects": [
+          "Alliance Resource Donations +125.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "all_collab_science",
+	"name": "Joint Scholastic Expeditions",
+	"category": "alliance",
+	"description": "Share raw archaeological field manuscripts with coalition scientists to unlock new studies.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 800,
+		  "wood": 800,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 40,
+		"effects": [
+          "Research Speed +5.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 1160,
+		  "wood": 1160,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 56,
+		"effects": [
+          "Research Speed +10.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 1682,
+		  "wood": 1682,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 78,
+		"effects": [
+          "Research Speed +15.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 2439,
+		  "wood": 2439,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 110,
+		"effects": [
+          "Research Speed +20.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 3536,
+		  "wood": 3536,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 154,
+		"effects": [
+          "Research Speed +25.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "all_comm_speed",
+	"name": "Aetheric Alliance Signal Towers",
+	"category": "alliance",
+	"description": "Build hilltop magic fire pots to transfer war details between towns instantly.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 500,
+		  "stone": 500,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 30,
+		"effects": [
+          "Troop Speed +4.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 700,
+		  "stone": 700,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 42,
+		"effects": [
+          "Troop Speed +8.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 980,
+		  "stone": 980,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 59,
+		"effects": [
+          "Troop Speed +12.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 1372,
+		  "stone": 1372,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 82,
+		"effects": [
+          "Troop Speed +16.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 1921,
+		  "stone": 1921,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 115,
+		"effects": [
+          "Troop Speed +20.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "all_def_support",
+	"name": "Shield of the Vanguard Accord",
+	"category": "alliance",
+	"description": "Realign mutual protective defensive boundaries with friendly coalition border counts.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 600,
+		  "iron": 300,
+		  "valor": 0
+		},
+		"researchTimeSec": 45,
+		"effects": [
+          "Troop Defense +5.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 870,
+		  "iron": 435,
+		  "valor": 0
+		},
+		"researchTimeSec": 68,
+		"effects": [
+          "Troop Defense +10.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 1262,
+		  "iron": 631,
+		  "valor": 0
+		},
+		"researchTimeSec": 101,
+		"effects": [
+          "Troop Defense +15.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 1829,
+		  "iron": 915,
+		  "valor": 0
+		},
+		"researchTimeSec": 152,
+		"effects": [
+          "Troop Defense +20.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 2652,
+		  "iron": 1326,
+		  "valor": 0
+		},
+		"researchTimeSec": 228,
+		"effects": [
+          "Troop Defense +25.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "all_atk_support",
+	"name": "Blade of the Coalition Alliance",
+	"category": "alliance",
+	"description": "Establish shared weapon depots at border stations to arm alliance columns immediately.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 600,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 400,
+		  "valor": 0
+		},
+		"researchTimeSec": 45,
+		"effects": [
+          "Troop Attack +5.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 870,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 580,
+		  "valor": 0
+		},
+		"researchTimeSec": 68,
+		"effects": [
+          "Troop Attack +10.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 1262,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 841,
+		  "valor": 0
+		},
+		"researchTimeSec": 101,
+		"effects": [
+          "Troop Attack +15.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 1829,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 1219,
+		  "valor": 0
+		},
+		"researchTimeSec": 152,
+		"effects": [
+          "Troop Attack +20.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 2652,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 1768,
+		  "valor": 0
+		},
+		"researchTimeSec": 228,
+		"effects": [
+          "Troop Attack +25.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "all_loot_sharing",
+	"name": "Coordinated Syndicate Spoils",
+	"category": "alliance",
+	"description": "Assign trade accountants to distribute raw raid scrap and resources from victory claims.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 1000,
+		  "wood": 1000,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 50,
+		"effects": [
+          "Gathering Speed +4.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 1450,
+		  "wood": 1450,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 70,
+		"effects": [
+          "Gathering Speed +8.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 2103,
+		  "wood": 2103,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 98,
+		"effects": [
+          "Gathering Speed +12.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 3049,
+		  "wood": 3049,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 137,
+		"effects": [
+          "Gathering Speed +16.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 4421,
+		  "wood": 4421,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 192,
+		"effects": [
+          "Gathering Speed +20.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "all_rally_capacity",
+	"name": "Assembly Horn Beacon Drills",
+	"category": "alliance",
+	"description": "Enact systemized assembly trumpets to pull multiple military heads into a single line quickly.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "all_comm_speed",
+		"level": 2
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 1500,
+		  "wood": 1500,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 80,
+		"effects": [
+          "March Capacity +100"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 2250,
+		  "wood": 2250,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 120,
+		"effects": [
+          "March Capacity +200"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 3375,
+		  "wood": 3375,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 180,
+		"effects": [
+          "March Capacity +300"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 5063,
+		  "wood": 5063,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 270,
+		"effects": [
+          "March Capacity +400"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 7594,
+		  "wood": 7594,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 405,
+		"effects": [
+          "March Capacity +500"
+		]
+	  }
+	]
+  },
+  {
+	"id": "all_camp_recovery",
+	"name": "Campfire Rest Station Networks",
+	"category": "alliance",
+	"description": "Set up designated safe campfire points inside friendly territory maps for soldiers to recover.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 800,
+		  "wood": 800,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 40,
+		"effects": [
+          "Healing Speed +5.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 1120,
+		  "wood": 1120,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 56,
+		"effects": [
+          "Healing Speed +10.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 1568,
+		  "wood": 1568,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 78,
+		"effects": [
+          "Healing Speed +15.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 2195,
+		  "wood": 2195,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 110,
+		"effects": [
+          "Healing Speed +20.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 3073,
+		  "wood": 3073,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 154,
+		"effects": [
+          "Healing Speed +25.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "all_march_reinforce",
+	"name": "Fast-Response Liaison Cohorts",
+	"category": "alliance",
+	"description": "Pledge swift defense horse-riders that drop everything to rush to a besieged ally under warning fire.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 1200,
+		  "wood": 800,
+		  "stone": 0,
+		  "iron": 400,
+		  "valor": 0
+		},
+		"researchTimeSec": 60,
+		"effects": [
+          "Troop Speed +8.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 1740,
+		  "wood": 1160,
+		  "stone": 0,
+		  "iron": 580,
+		  "valor": 0
+		},
+		"researchTimeSec": 84,
+		"effects": [
+          "Troop Speed +16.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 2523,
+		  "wood": 1682,
+		  "stone": 0,
+		  "iron": 841,
+		  "valor": 0
+		},
+		"researchTimeSec": 118,
+		"effects": [
+          "Troop Speed +24.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 3658,
+		  "wood": 2439,
+		  "stone": 0,
+		  "iron": 1219,
+		  "valor": 0
+		},
+		"researchTimeSec": 165,
+		"effects": [
+          "Troop Speed +32.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 5305,
+		  "wood": 3536,
+		  "stone": 0,
+		  "iron": 1768,
+		  "valor": 0
+		},
+		"researchTimeSec": 230,
+		"effects": [
+          "Troop Speed +40.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "all_border_patrol",
+	"name": "Coalition Bastion Cartography",
+	"category": "alliance",
+	"description": "Map border gaps to secure vulnerable mountain entries from flanking military hosts.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 1000,
+		  "stone": 1000,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 50,
+		"effects": [
+          "Troop Defense +4.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 1400,
+		  "stone": 1400,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 70,
+		"effects": [
+          "Troop Defense +8.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 1960,
+		  "stone": 1960,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 98,
+		"effects": [
+          "Troop Defense +12.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 2744,
+		  "stone": 2744,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 137,
+		"effects": [
+          "Troop Defense +16.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 3842,
+		  "stone": 3842,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 192,
+		"effects": [
+          "Troop Defense +20.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "all_resource_shuttle",
+	"name": "Aerodynamic Carriage Fleets",
+	"category": "alliance",
+	"description": "Rig carriages with lightweight linen awnings to race assets safely under storm conditions.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 800,
+		  "stone": 800,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 45,
+		"effects": [
+          "Gathering Speed +5.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 1160,
+		  "stone": 1160,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 63,
+		"effects": [
+          "Gathering Speed +10.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 1682,
+		  "stone": 1682,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 88,
+		"effects": [
+          "Gathering Speed +15.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 2439,
+		  "stone": 2439,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 123,
+		"effects": [
+          "Gathering Speed +20.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 3536,
+		  "stone": 3536,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 173,
+		"effects": [
+          "Gathering Speed +25.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "all_merc_hiring",
+	"name": "Alliance Contract Free-Companies",
+	"category": "alliance",
+	"description": "Draft master contract deals with regional sellswords to cut tavern hire values.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 2000,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 800,
+		  "valor": 0
+		},
+		"researchTimeSec": 80,
+		"effects": [
+          "Resource Cost Discount +3.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 3000,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 1200,
+		  "valor": 0
+		},
+		"researchTimeSec": 120,
+		"effects": [
+          "Resource Cost Discount +6.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 4500,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 1800,
+		  "valor": 0
+		},
+		"researchTimeSec": 180,
+		"effects": [
+          "Resource Cost Discount +9.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 6750,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 2700,
+		  "valor": 0
+		},
+		"researchTimeSec": 270,
+		"effects": [
+          "Resource Cost Discount +12.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 10125,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 4050,
+		  "valor": 0
+		},
+		"researchTimeSec": 405,
+		"effects": [
+          "Resource Cost Discount +15.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "all_reconnaissance",
+	"name": "Allied Scout Pigeon Relays",
+	"category": "alliance",
+	"description": "Sync scout birds with ally loops to coordinate tracking on mysterious rogue nodes.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 800,
+		  "wood": 800,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 40,
+		"effects": [
+          "Troop Speed +5.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 1120,
+		  "wood": 1120,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 56,
+		"effects": [
+          "Troop Speed +10.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 1568,
+		  "wood": 1568,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 78,
+		"effects": [
+          "Troop Speed +15.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 2195,
+		  "wood": 2195,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 110,
+		"effects": [
+          "Troop Speed +20.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 3073,
+		  "wood": 3073,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 154,
+		"effects": [
+          "Troop Speed +25.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "all_war_room",
+	"name": "Sovereign War Room Acoustics",
+	"category": "alliance",
+	"description": "Equip coalition maps with miniature carved stone units to draw dynamic attack coordinates.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "all_atk_support",
+		"level": 3
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 1500,
+		  "stone": 1500,
+		  "iron": 1000,
+		  "valor": 0
+		},
+		"researchTimeSec": 100,
+		"effects": [
+          "Troop Attack +6.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 2325,
+		  "stone": 2325,
+		  "iron": 1550,
+		  "valor": 0
+		},
+		"researchTimeSec": 150,
+		"effects": [
+          "Troop Attack +12.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 3604,
+		  "stone": 3604,
+		  "iron": 2403,
+		  "valor": 0
+		},
+		"researchTimeSec": 225,
+		"effects": [
+          "Troop Attack +18.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 5586,
+		  "stone": 5586,
+		  "iron": 3724,
+		  "valor": 0
+		},
+		"researchTimeSec": 338,
+		"effects": [
+          "Troop Attack +24.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 8658,
+		  "stone": 8658,
+		  "iron": 5772,
+		  "valor": 0
+		},
+		"researchTimeSec": 506,
+		"effects": [
+          "Troop Attack +30.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "all_prestige_influence",
+	"name": "Crown Seal Court Diplomatists",
+	"category": "alliance",
+	"description": "Politic with the central royal barony, multiplying the visual standing weight of your crest.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 2500,
+		  "wood": 0,
+		  "stone": 2000,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 90,
+		"effects": [
+          "Troop Defense +5.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 3750,
+		  "wood": 0,
+		  "stone": 3000,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 135,
+		"effects": [
+          "Troop Defense +10.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 5625,
+		  "wood": 0,
+		  "stone": 4500,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 203,
+		"effects": [
+          "Troop Defense +15.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 8438,
+		  "wood": 0,
+		  "stone": 6750,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 304,
+		"effects": [
+          "Troop Defense +20.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 12656,
+		  "wood": 0,
+		  "stone": 10125,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 456,
+		"effects": [
+          "Troop Defense +25.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "hero_exp_gain_1",
+	"name": "Commander Memoir Chronicles I",
+	"category": "hero",
+	"description": "Document historic tactical defenses of the Keep to inspire rookies during battlefield drills.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 250,
+		  "wood": 250,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 25,
+		"effects": [
+          "Hero Experience +8.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 350,
+		  "wood": 350,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 35,
+		"effects": [
+          "Hero Experience +16.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 490,
+		  "wood": 490,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 49,
+		"effects": [
+          "Hero Experience +24.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 686,
+		  "wood": 686,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 69,
+		"effects": [
+          "Hero Experience +32.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 960,
+		  "wood": 960,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 96,
+		"effects": [
+          "Hero Experience +40.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "hero_exp_gain_2",
+	"name": "Commander Memoir Chronicles II",
+	"category": "hero",
+	"description": "Collect legendary parchment books regarding external war tactics and bind them cleanly in deep leather folders.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "hero_exp_gain_1",
+		"level": 3
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 1000,
+		  "wood": 1000,
+		  "stone": 600,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 60,
+		"effects": [
+          "Hero Experience +12.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 1450,
+		  "wood": 1450,
+		  "stone": 870,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 84,
+		"effects": [
+          "Hero Experience +24.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 2103,
+		  "wood": 2103,
+		  "stone": 1262,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 118,
+		"effects": [
+          "Hero Experience +36.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 3049,
+		  "wood": 3049,
+		  "stone": 1829,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 165,
+		"effects": [
+          "Hero Experience +48.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 4421,
+		  "wood": 4421,
+		  "stone": 2652,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 230,
+		"effects": [
+          "Hero Experience +60.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "hero_exp_gain_3",
+	"name": "Ancestral War Hero Reliquaries",
+	"category": "hero",
+	"description": "Retrieve historic crown flags carrying the direct blood of veteran kings to excite battle commanders.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "hero_exp_gain_2",
+		"level": 4
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 4000,
+		  "wood": 0,
+		  "stone": 3000,
+		  "iron": 1500,
+		  "valor": 0
+		},
+		"researchTimeSec": 140,
+		"effects": [
+          "Hero Experience +18.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 6000,
+		  "wood": 0,
+		  "stone": 4500,
+		  "iron": 2250,
+		  "valor": 0
+		},
+		"researchTimeSec": 210,
+		"effects": [
+          "Hero Experience +36.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 9000,
+		  "wood": 0,
+		  "stone": 6750,
+		  "iron": 3375,
+		  "valor": 0
+		},
+		"researchTimeSec": 315,
+		"effects": [
+          "Hero Experience +54.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 13500,
+		  "wood": 0,
+		  "stone": 10125,
+		  "iron": 5063,
+		  "valor": 0
+		},
+		"researchTimeSec": 473,
+		"effects": [
+          "Hero Experience +72.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 20250,
+		  "wood": 0,
+		  "stone": 15188,
+		  "iron": 7594,
+		  "valor": 0
+		},
+		"researchTimeSec": 709,
+		"effects": [
+          "Hero Experience +90.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "hero_skill_pwr_1",
+	"name": "Runic Armament Engravings I",
+	"category": "hero",
+	"description": "Trace subtle glowing white runes along sword hilt pins to multiply captain skill thrust speed.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 300,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 150,
+		  "valor": 0
+		},
+		"researchTimeSec": 30,
+		"effects": [
+          "Hero Skill Power +8.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 435,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 218,
+		  "valor": 0
+		},
+		"researchTimeSec": 42,
+		"effects": [
+          "Hero Skill Power +16.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 631,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 315,
+		  "valor": 0
+		},
+		"researchTimeSec": 59,
+		"effects": [
+          "Hero Skill Power +24.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 915,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 457,
+		  "valor": 0
+		},
+		"researchTimeSec": 82,
+		"effects": [
+          "Hero Skill Power +32.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 1326,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 663,
+		  "valor": 0
+		},
+		"researchTimeSec": 115,
+		"effects": [
+          "Hero Skill Power +40.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "hero_skill_pwr_2",
+	"name": "Runic Armament Engravings II",
+	"category": "hero",
+	"description": "Smelt precursor glass beads inside the weapons, echoing elemental critical strike energy.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "hero_skill_pwr_1",
+		"level": 3
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 1200,
+		  "wood": 0,
+		  "stone": 800,
+		  "iron": 800,
+		  "valor": 0
+		},
+		"researchTimeSec": 70,
+		"effects": [
+          "Hero Skill Power +12.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 1800,
+		  "wood": 0,
+		  "stone": 1200,
+		  "iron": 1200,
+		  "valor": 0
+		},
+		"researchTimeSec": 98,
+		"effects": [
+          "Hero Skill Power +24.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 2700,
+		  "wood": 0,
+		  "stone": 1800,
+		  "iron": 1800,
+		  "valor": 0
+		},
+		"researchTimeSec": 137,
+		"effects": [
+          "Hero Skill Power +36.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 4050,
+		  "wood": 0,
+		  "stone": 2700,
+		  "iron": 2700,
+		  "valor": 0
+		},
+		"researchTimeSec": 192,
+		"effects": [
+          "Hero Skill Power +48.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 6075,
+		  "wood": 0,
+		  "stone": 4050,
+		  "iron": 4050,
+		  "valor": 0
+		},
+		"researchTimeSec": 269,
+		"effects": [
+          "Hero Skill Power +60.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "hero_skill_pwr_3",
+	"name": "Precursor Core Infusion Runes",
+	"category": "hero",
+	"description": "Melt magical red fire gems into standard brass breastplates, shielding hero cores completely.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "hero_skill_pwr_2",
+		"level": 4
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 4000,
+		  "wood": 0,
+		  "stone": 4000,
+		  "iron": 3000,
+		  "valor": 0
+		},
+		"researchTimeSec": 150,
+		"effects": [
+          "Hero Skill Power +20.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 6200,
+		  "wood": 0,
+		  "stone": 6200,
+		  "iron": 4650,
+		  "valor": 0
+		},
+		"researchTimeSec": 225,
+		"effects": [
+          "Hero Skill Power +40.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 9610,
+		  "wood": 0,
+		  "stone": 9610,
+		  "iron": 7208,
+		  "valor": 0
+		},
+		"researchTimeSec": 338,
+		"effects": [
+          "Hero Skill Power +60.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 14896,
+		  "wood": 0,
+		  "stone": 14896,
+		  "iron": 11172,
+		  "valor": 0
+		},
+		"researchTimeSec": 506,
+		"effects": [
+          "Hero Skill Power +80.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 23088,
+		  "wood": 0,
+		  "stone": 23088,
+		  "iron": 17316,
+		  "valor": 0
+		},
+		"researchTimeSec": 759,
+		"effects": [
+          "Hero Skill Power +100.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "hero_march_cap_1",
+	"name": "Legendary Bannerman Pageant I",
+	"category": "hero",
+	"description": "Embroider high-visibility giant banners representing the hero class to draw massive local recruits.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 500,
+		  "wood": 500,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 40,
+		"effects": [
+          "March Capacity +100"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 725,
+		  "wood": 725,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 56,
+		"effects": [
+          "March Capacity +200"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 1051,
+		  "wood": 1051,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 78,
+		"effects": [
+          "March Capacity +300"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 1524,
+		  "wood": 1524,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 110,
+		"effects": [
+          "March Capacity +400"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 2210,
+		  "wood": 2210,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 154,
+		"effects": [
+          "March Capacity +500"
+		]
+	  }
+	]
+  },
+  {
+	"id": "hero_march_cap_2",
+	"name": "Legendary Bannerman Pageant II",
+	"category": "hero",
+	"description": "Mount silver war trumpets on carriage cabins, letting commanders direct double lines across deep sands.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "hero_march_cap_1",
+		"level": 3
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 2000,
+		  "wood": 2000,
+		  "stone": 1000,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 90,
+		"effects": [
+          "March Capacity +250"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 3000,
+		  "wood": 3000,
+		  "stone": 1500,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 135,
+		"effects": [
+          "March Capacity +500"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 4500,
+		  "wood": 4500,
+		  "stone": 2250,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 203,
+		"effects": [
+          "March Capacity +750"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 6750,
+		  "wood": 6750,
+		  "stone": 3375,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 304,
+		"effects": [
+          "March Capacity +1000"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 10125,
+		  "wood": 10125,
+		  "stone": 5063,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 456,
+		"effects": [
+          "March Capacity +1250"
+		]
+	  }
+	]
+  },
+  {
+	"id": "hero_summon_discount",
+	"name": "Tavern Guildmaster Brokerage",
+	"category": "hero",
+	"description": "Constitute an alliance trade charter inside the Grand Tavern, cutting total summoned command rates.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 1000,
+		  "wood": 0,
+		  "stone": 800,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 50,
+		"effects": [
+          "Resource Cost Discount +4.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 1500,
+		  "wood": 0,
+		  "stone": 1200,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 70,
+		"effects": [
+          "Resource Cost Discount +8.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 2250,
+		  "wood": 0,
+		  "stone": 1800,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 98,
+		"effects": [
+          "Resource Cost Discount +12.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 3375,
+		  "wood": 0,
+		  "stone": 2700,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 137,
+		"effects": [
+          "Resource Cost Discount +16.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 5063,
+		  "wood": 0,
+		  "stone": 4050,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 192,
+		"effects": [
+          "Resource Cost Discount +20.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "hero_stamina_regen",
+	"name": "Vigor-Injecting Herbal Tonics",
+	"category": "hero",
+	"description": "Mix crushed wild ginger roots into the standard commander beer glasses, charging general stamina.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 800,
+		  "wood": 400,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 35,
+		"effects": [
+          "Hero Experience +6.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 1120,
+		  "wood": 560,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 49,
+		"effects": [
+          "Hero Experience +12.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 1568,
+		  "wood": 784,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 69,
+		"effects": [
+          "Hero Experience +18.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 2195,
+		  "wood": 1098,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 96,
+		"effects": [
+          "Hero Experience +24.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 3073,
+		  "wood": 1537,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 134,
+		"effects": [
+          "Hero Experience +30.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "hero_ap_reserve",
+	"name": "Military High-Command Commendations",
+	"category": "hero",
+	"description": "Enact system honors that keep professional field marshals focused on aggressive tactical patrols.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 1500,
+		  "wood": 1000,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 60,
+		"effects": [
+          "Hero Experience +10.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 2175,
+		  "wood": 1450,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 84,
+		"effects": [
+          "Hero Experience +20.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 3154,
+		  "wood": 2103,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 118,
+		"effects": [
+          "Hero Experience +30.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 4573,
+		  "wood": 3049,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 165,
+		"effects": [
+          "Hero Experience +40.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 6631,
+		  "wood": 4421,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 230,
+		"effects": [
+          "Hero Experience +50.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "hero_vanguard_atk",
+	"name": "Aldric's Frontline Directives",
+	"category": "hero",
+	"description": "Inscribe defense sword formulas of Master Captain Aldric directly onto frontline gear shields.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 1200,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 600,
+		  "valor": 0
+		},
+		"researchTimeSec": 55,
+		"effects": [
+          "Infantry Attack +6.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 1800,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 900,
+		  "valor": 0
+		},
+		"researchTimeSec": 77,
+		"effects": [
+          "Infantry Attack +12.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 2700,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 1350,
+		  "valor": 0
+		},
+		"researchTimeSec": 108,
+		"effects": [
+          "Infantry Attack +18.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 4050,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 2025,
+		  "valor": 0
+		},
+		"researchTimeSec": 151,
+		"effects": [
+          "Infantry Attack +24.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 6075,
+		  "wood": 0,
+		  "stone": 0,
+		  "iron": 3038,
+		  "valor": 0
+		},
+		"researchTimeSec": 211,
+		"effects": [
+          "Infantry Attack +30.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "hero_ranger_atk",
+	"name": "Eldergrove Arrow-Storm Sigils",
+	"category": "hero",
+	"description": "Bind tracking magical silk feathers to range shafts to guide arrows onto vital organic spots.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 1200,
+		  "stone": 0,
+		  "iron": 600,
+		  "valor": 0
+		},
+		"researchTimeSec": 55,
+		"effects": [
+          "Marksmen Attack +6.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 1800,
+		  "stone": 0,
+		  "iron": 900,
+		  "valor": 0
+		},
+		"researchTimeSec": 77,
+		"effects": [
+          "Marksmen Attack +12.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 2700,
+		  "stone": 0,
+		  "iron": 1350,
+		  "valor": 0
+		},
+		"researchTimeSec": 108,
+		"effects": [
+          "Marksmen Attack +18.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 4050,
+		  "stone": 0,
+		  "iron": 2025,
+		  "valor": 0
+		},
+		"researchTimeSec": 151,
+		"effects": [
+          "Marksmen Attack +24.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 6075,
+		  "stone": 0,
+		  "iron": 3038,
+		  "valor": 0
+		},
+		"researchTimeSec": 211,
+		"effects": [
+          "Marksmen Attack +30.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "hero_knight_def",
+	"name": "Cavalry Sovereign Banner-Guards",
+	"category": "hero",
+	"description": "Arrange elite protective armor riders around active field commanders to absorb high-risk flank strikes.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 1200,
+		  "iron": 800,
+		  "valor": 0
+		},
+		"researchTimeSec": 55,
+		"effects": [
+          "Cavalry Defense +6.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 1800,
+		  "iron": 1200,
+		  "valor": 0
+		},
+		"researchTimeSec": 77,
+		"effects": [
+          "Cavalry Defense +12.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 2700,
+		  "iron": 1800,
+		  "valor": 0
+		},
+		"researchTimeSec": 108,
+		"effects": [
+          "Cavalry Defense +18.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 4050,
+		  "iron": 2700,
+		  "valor": 0
+		},
+		"researchTimeSec": 151,
+		"effects": [
+          "Cavalry Defense +24.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 6075,
+		  "iron": 4050,
+		  "valor": 0
+		},
+		"researchTimeSec": 211,
+		"effects": [
+          "Cavalry Defense +30.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "hero_critical_strike",
+	"name": "Fatal-Vitals Combat Anatometrics",
+	"category": "hero",
+	"description": "Lecture commanders on the subtle weaknesses of beast necks, granting critical combat edge.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 1500,
+		  "wood": 0,
+		  "stone": 1000,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 70,
+		"effects": [
+          "Troop Attack +5.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 2250,
+		  "wood": 0,
+		  "stone": 1500,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 105,
+		"effects": [
+          "Troop Attack +10.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 3375,
+		  "wood": 0,
+		  "stone": 2250,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 158,
+		"effects": [
+          "Troop Attack +15.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 5063,
+		  "wood": 0,
+		  "stone": 3375,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 236,
+		"effects": [
+          "Troop Attack +20.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 7594,
+		  "wood": 0,
+		  "stone": 5063,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 354,
+		"effects": [
+          "Troop Attack +25.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "hero_governor_bonus",
+	"name": "Aron's Agrarian Treasury Seals",
+	"category": "hero",
+	"description": "Apply Governor Aron agricultural commands systemically, boosting general wheat production structures.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 2000,
+		  "wood": 1000,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 50,
+		"effects": [
+          "Food Production +8.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 2900,
+		  "wood": 1450,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 70,
+		"effects": [
+          "Food Production +16.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 4205,
+		  "wood": 2103,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 98,
+		"effects": [
+          "Food Production +24.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 6097,
+		  "wood": 3049,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 137,
+		"effects": [
+          "Food Production +32.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 8841,
+		  "wood": 4421,
+		  "stone": 0,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 192,
+		"effects": [
+          "Food Production +40.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "hero_garrison_shield",
+	"name": "Fortification Ward-Stone Runes",
+	"category": "hero",
+	"description": "Carve colossal raw quartz guard plates, creating high magical dome auras when commanders rest inside.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 2000,
+		  "iron": 1000,
+		  "valor": 0
+		},
+		"researchTimeSec": 85,
+		"effects": [
+          "Troop Defense +6.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 3000,
+		  "iron": 1500,
+		  "valor": 0
+		},
+		"researchTimeSec": 128,
+		"effects": [
+          "Troop Defense +12.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 4500,
+		  "iron": 2250,
+		  "valor": 0
+		},
+		"researchTimeSec": 191,
+		"effects": [
+          "Troop Defense +18.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 6750,
+		  "iron": 3375,
+		  "valor": 0
+		},
+		"researchTimeSec": 287,
+		"effects": [
+          "Troop Defense +24.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 0,
+		  "wood": 0,
+		  "stone": 10125,
+		  "iron": 5063,
+		  "valor": 0
+		},
+		"researchTimeSec": 430,
+		"effects": [
+          "Troop Defense +30.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "hero_dual_command",
+	"name": "Adjutant Tactical Coordination",
+	"category": "hero",
+	"description": "Draft coordinate codes to couple command efforts, improving total combat power rating indicators.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "hero_vanguard_atk",
+		"level": 3
+	  },
+	  {
+		"researchId": "hero_ranger_atk",
+		"level": 3
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 3000,
+		  "wood": 3000,
+		  "stone": 0,
+		  "iron": 1500,
+		  "valor": 0
+		},
+		"researchTimeSec": 110,
+		"effects": [
+		  "Troop Attack +5.0%",
+          "Troop Defense +5.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 4650,
+		  "wood": 4650,
+		  "stone": 0,
+		  "iron": 2325,
+		  "valor": 0
+		},
+		"researchTimeSec": 165,
+		"effects": [
+		  "Troop Attack +10.0%",
+          "Troop Defense +10.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 7208,
+		  "wood": 7208,
+		  "stone": 0,
+		  "iron": 3604,
+		  "valor": 0
+		},
+		"researchTimeSec": 248,
+		"effects": [
+		  "Troop Attack +15.0%",
+          "Troop Defense +15.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 11172,
+		  "wood": 11172,
+		  "stone": 0,
+		  "iron": 5586,
+		  "valor": 0
+		},
+		"researchTimeSec": 371,
+		"effects": [
+		  "Troop Attack +20.0%",
+          "Troop Defense +20.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 17316,
+		  "wood": 17316,
+		  "stone": 0,
+		  "iron": 8658,
+		  "valor": 0
+		},
+		"researchTimeSec": 557,
+		"effects": [
+		  "Troop Attack +25.0%",
+          "Troop Defense +25.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "hero_ascension_luck",
+	"name": "Aetheric Ley-Line Star Alignment",
+	"category": "hero",
+	"description": "Recite ancestral horoscopes before tactical drills, expanding maximum commander potentials.",
+	"maxLevel": 5,
+	"prerequisites": [],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 2500,
+		  "wood": 0,
+		  "stone": 2500,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 80,
+		"effects": [
+          "Hero Experience +12.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 3625,
+		  "wood": 0,
+		  "stone": 3625,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 112,
+		"effects": [
+          "Hero Experience +24.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 5256,
+		  "wood": 0,
+		  "stone": 5256,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 157,
+		"effects": [
+          "Hero Experience +36.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 7622,
+		  "wood": 0,
+		  "stone": 7622,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 220,
+		"effects": [
+          "Hero Experience +48.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 11051,
+		  "wood": 0,
+		  "stone": 11051,
+		  "iron": 0,
+		  "valor": 0
+		},
+		"researchTimeSec": 307,
+		"effects": [
+          "Hero Experience +60.0%"
+		]
+	  }
+	]
+  },
+  {
+	"id": "hero_legendary_legacy",
+	"name": "Crownspire Valor Archival Scrolls",
+	"category": "hero",
+	"description": "Record command records inside the eternal scroll cylinders of Crownspire, giving heroes grand weight.",
+	"maxLevel": 5,
+	"prerequisites": [
+	  {
+		"researchId": "hero_exp_gain_3",
+		"level": 2
+	  },
+	  {
+		"researchId": "hero_skill_pwr_3",
+		"level": 2
+	  }
+	],
+	"levels": [
+	  {
+		"level": 1,
+		"costs": {
+		  "food": 5000,
+		  "wood": 0,
+		  "stone": 4000,
+		  "iron": 3000,
+		  "valor": 0
+		},
+		"researchTimeSec": 160,
+		"effects": [
+		  "Hero Skill Power +20.0%",
+          "Hero Experience +20.0%"
+		]
+	  },
+	  {
+		"level": 2,
+		"costs": {
+		  "food": 8000,
+		  "wood": 0,
+		  "stone": 6400,
+		  "iron": 4800,
+		  "valor": 0
+		},
+		"researchTimeSec": 256,
+		"effects": [
+		  "Hero Skill Power +40.0%",
+          "Hero Experience +40.0%"
+		]
+	  },
+	  {
+		"level": 3,
+		"costs": {
+		  "food": 12800,
+		  "wood": 0,
+		  "stone": 10240,
+		  "iron": 7680,
+		  "valor": 0
+		},
+		"researchTimeSec": 410,
+		"effects": [
+		  "Hero Skill Power +60.0%",
+          "Hero Experience +60.0%"
+		]
+	  },
+	  {
+		"level": 4,
+		"costs": {
+		  "food": 20480,
+		  "wood": 0,
+		  "stone": 16384,
+		  "iron": 12288,
+		  "valor": 0
+		},
+		"researchTimeSec": 655,
+		"effects": [
+		  "Hero Skill Power +80.0%",
+          "Hero Experience +80.0%"
+		]
+	  },
+	  {
+		"level": 5,
+		"costs": {
+		  "food": 32768,
+		  "wood": 0,
+		  "stone": 26214,
+		  "iron": 19661,
+		  "valor": 0
+		},
+		"researchTimeSec": 1049,
+		"effects": [
+		  "Hero Skill Power +100.0%",
+          "Hero Experience +100.0%"
+		]
+	  }
+	]
+  }
+]

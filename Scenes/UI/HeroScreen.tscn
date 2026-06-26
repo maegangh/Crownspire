@@ -1,0 +1,34 @@
+[gd_scene format=3 uid="uid://ch3mv0n5c1cd6"]
+
+[node name="HeroScreen" type="Control" unique_id=1538218519]
+layout_mode = 3
+anchors_preset = 0
+
+[node name="HallBackground" type="TextureRect" parent="." unique_id=278985005]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="WindowFrame" type="TextureRect" parent="." unique_id=146629259]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="BackButton" type="TextureButton" parent="." unique_id=1935128208]
+layout_mode = 0
+offset_top = 2.0
+offset_right = 40.0
+offset_bottom = 42.0
+
+[node name="TitleLabel" type="Label" parent="." unique_id=1203576909]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="ScrollContainer" type="ScrollContainer" parent="." unique_id=434357413]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="HeroGrid" type="GridContainer" parent="ScrollContainer" unique_id=258227219]
+layout_mode = 2

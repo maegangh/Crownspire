@@ -1,0 +1,151 @@
+{
+  "systemName": "Crownspire Rally System",
+  "rallyCapacity": {
+    "baseRallyCapacity": 100000,
+    "capacityModifiers": [
+      {
+        "source": "Embassy Level",
+        "multiplierPerLevel": 0.05,
+        "flatPerLevel": 20000
+      },
+      {
+        "source": "Hero Skill: Commander Force",
+        "maxFlatIncrease": 150000
+      },
+      {
+        "source": "Academy Research: Joined March",
+        "maxPercentageBonus": 0.25
+      }
+    ],
+    "maxPossibleRallyCapacity": 1500000
+  },
+  "rallyTimers": {
+    "availableOptionsSec": [
+      300,
+      600,
+      1800,
+      3600
+    ],
+    "defaultTimerSec": 300,
+    "automaticCancelCondition": "If no other alliance members join the rally before the timer expires, the rally march is automatically cancelled and stamina is refunded."
+  },
+  "rallyTypes": [
+    {
+      "id": "rally_common_monster",
+      "name": "Monster Rallies",
+      "targetType": "Normal Monster",
+      "staminaCost": 10,
+      "baseCapacity": 150000,
+      "minParticipants": 2,
+      "maxParticipants": 5,
+      "description": "A minor coordinated rally used early on by new alliance members to defeat higher-tier common monsters without high losses."
+    },
+    {
+      "id": "rally_elite_monster",
+      "name": "Elite Monster Rallies",
+      "targetType": "Elite Monster",
+      "staminaCost": 20,
+      "baseCapacity": 400000,
+      "minParticipants": 2,
+      "maxParticipants": 10,
+      "description": "Standard high-value target runs targeting high stake region elite bosses to gather rare ores and equipment crests."
+    },
+    {
+      "id": "rally_world_boss",
+      "name": "World Boss Rallies",
+      "targetType": "World Boss",
+      "staminaCost": 40,
+      "baseCapacity": 1000000,
+      "minParticipants": 3,
+      "maxParticipants": 30,
+      "description": "Multi-player ultra raids against massive world bosses near the sovereign core throne. Massive rewards."
+    },
+    {
+      "id": "rally_alliance_fortress",
+      "name": "Fortress Rallies",
+      "targetType": "Alliance Fortress",
+      "staminaCost": 0,
+      "baseCapacity": 1200000,
+      "minParticipants": 3,
+      "maxParticipants": 50,
+      "description": "Heavy siege style PvP / GvG campaign forces to storm, capture, or dismantle rival alliance territories."
+    }
+  ],
+  "rallyDamageBonuses": {
+    "coordinationMultiplier": [
+      {
+        "participantCount": 2,
+        "damageBonusPct": 5
+      },
+      {
+        "participantCount": 3,
+        "damageBonusPct": 10
+      },
+      {
+        "participantCount": 5,
+        "damageBonusPct": 15
+      },
+      {
+        "participantCount": 10,
+        "damageBonusPct": 25
+      },
+      {
+        "participantCount": 20,
+        "damageBonusPct": 40
+      }
+    ],
+    "tacticalAura": {
+      "infantryLeaderBonus": "If the initiator has Infantry specialized leadership, infantry defense is increased by 15% for all rally participants.",
+      "cavalryLeaderBonus": "If the initiator has Cavalry specialized leadership, cavalry travel speed is increased by 20% for all rally participants.",
+      "marksmenLeaderBonus": "If the initiator has Marksmen specialized leadership, marksmen armor penetration is increased by 10% for all rally participants."
+    }
+  },
+  "rallyParticipationRewards": {
+    "initiatorBonusPct": 15,
+    "joinerRewards": {
+      "Monster Rallies": {
+        "guildPoints": 100,
+        "valor": 50,
+        "resourceCrates": [
+          "Common Food Pack",
+          "Common Wood Pack"
+        ]
+      },
+      "Elite Monster Rallies": {
+        "guildPoints": 300,
+        "valor": 150,
+        "resourceCrates": [
+          "Garrison Stone Pack",
+          "Garrison Iron Pack"
+        ],
+        "itemDropsChance": 0.25,
+        "itemDrops": [
+          "Elite Crest Shard",
+          "Medium Speedup"
+        ]
+      },
+      "World Boss Rallies": {
+        "guildPoints": 1000,
+        "valor": 1500,
+        "heroXP": 50000,
+        "shardDropsChance": 1.0,
+        "shardDrops": [
+          {
+            "heroId": "kaelen_phoenix",
+            "count": 1
+          }
+        ],
+        "itemDrops": [
+          "Epic Ore",
+          "Legendary Speedup"
+        ]
+      },
+      "Fortress Rallies": {
+        "guildPoints": 2000,
+        "valor": 2500,
+        "alliancePrestige": 100,
+        "honorTokens": 10
+      }
+    }
+  }
+}

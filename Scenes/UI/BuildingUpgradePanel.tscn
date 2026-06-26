@@ -1,0 +1,73 @@
+[gd_scene format=3 uid="uid://bjrwswc31lm64"]
+
+[ext_resource type="Script" uid="uid://yy8b3cxrbj0r" path="res://Scenes/UI/building_upgrade_panel.gd" id="1_qjhi1"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qjhi1"]
+bg_color = Color(0.3654211, 0.0016978604, 0.6986423, 1)
+
+[node name="BuildingUpgradePanel" type="Node2D" unique_id=1549878025]
+position = Vector2(13, 50)
+script = ExtResource("1_qjhi1")
+
+[node name="Panel" type="Panel" parent="." unique_id=2146560190]
+offset_left = 200.0
+offset_top = 94.0
+offset_right = 800.0
+offset_bottom = 494.0
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_qjhi1")
+
+[node name="TitleLabel" type="Label" parent="Panel" unique_id=1086638969]
+layout_mode = 0
+offset_left = 50.0
+offset_top = 30.0
+offset_right = 186.0
+offset_bottom = 53.0
+text = "Castle"
+
+[node name="LevelLabel" type="Label" parent="Panel" unique_id=1829921330]
+layout_mode = 0
+offset_left = 50.0
+offset_top = 70.0
+offset_right = 108.0
+offset_bottom = 93.0
+text = "Level: 1"
+
+[node name="CostLabel" type="Label" parent="Panel" unique_id=737072440]
+layout_mode = 0
+offset_left = 50.0
+offset_top = 120.0
+offset_right = 134.0
+offset_bottom = 221.0
+text = "Food: 1000
+Wood: 500
+Stone: 200
+Iron: 50"
+
+[node name="ShortLabel" type="Label" parent="Panel" unique_id=1641320768]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 120.0
+offset_right = 381.0
+offset_bottom = 221.0
+text = "Missing:
+Food: 200
+Stone: 100
+Iron: 25"
+
+[node name="UpgradeButton" type="Button" parent="Panel" unique_id=806256251]
+layout_mode = 0
+offset_left = 180.0
+offset_top = 320.0
+offset_right = 255.0
+offset_bottom = 351.0
+text = "Upgrade"
+
+[node name="CloseButton" type="Button" parent="Panel" unique_id=850180380]
+layout_mode = 0
+offset_left = 320.0
+offset_top = 320.0
+offset_right = 370.0
+offset_bottom = 351.0
+text = "Close"

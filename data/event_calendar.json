@@ -1,0 +1,394 @@
+[
+  {
+    "id": "event_infernal_beast",
+    "name": "Infernal Beast",
+    "description": "An ancient, molten leviathan rises from the Abyssal Core. Rally with your alliance to defeat it before it scorches the outer fields.",
+    "eventType": "Alliance PvE Raid",
+    "durationHours": 48,
+    "scheduleType": "Bi-weekly",
+    "pointSystem": {
+      "rules": [
+        { "action": "Launch/Join an Infernal Beast Rally", "points": 500 },
+        { "action": "Deal 1,000,000 damage to the Infernal Beast", "points": 100 },
+        { "action": "Deliver a killing blow to an Infernal Beast", "points": 2500 }
+      ]
+    },
+    "participationRequirements": {
+      "minimumCastleLevel": 10,
+      "minimumRallyCapacity": 100000,
+      "allianceRequired": true
+    },
+    "rewards": [
+      { "item": "Beast Fang Ember", "quantity": 3 },
+      { "item": "Gold Chest (Medium)", "quantity": 5 },
+      { "item": "Hero EXP Scrolls", "quantity": 10 }
+    ],
+    "allianceRewards": [
+      { "item": "Alliance Prestige", "quantity": 500 },
+      { "item": "Guild Contribution Points", "quantity": 1000 },
+      { "item": "Shared Red Envelopes (Food)", "quantity": 2 }
+    ],
+    "rankingRewards": [
+      { "rank": "1st Place Alliance", "reward": "Lord of Cinder Title, 50 Mythic Shard Crests" },
+      { "rank": "2nd-5th Place Alliance", "reward": "30 Mythic Shard Crests, 10x 8h Speedups" },
+      { "rank": "Top Personal Damager", "reward": "Fiery Phoenix Wing (Mount Skin), 5000 Valor" }
+    ],
+    "unlockRequirement": "Castle Level 10 and Embassy unlocked"
+  },
+  {
+    "id": "event_guardian_assault",
+    "name": "Guardian Assault",
+    "description": "Hostile corrupted guardians spawn near the Royal obelisks. Strike them down in individual combat to prove your hero's merit.",
+    "eventType": "Solo PvE Hunt",
+    "durationHours": 24,
+    "scheduleType": "Weekly",
+    "pointSystem": {
+      "rules": [
+        { "action": "Defeat a level 1-10 Guardian", "points": 200 },
+        { "action": "Defeat a level 11-20 Guardian", "points": 500 },
+        { "action": "Defeat a level 21-30 Guardian", "points": 1200 }
+      ]
+    },
+    "participationRequirements": {
+      "minimumCastleLevel": 8,
+      "minimumRallyCapacity": 0,
+      "allianceRequired": false
+    },
+    "rewards": [
+      { "item": "Guardian Emblem", "quantity": 5 },
+      { "item": "Stamina Potion (Small)", "quantity": 2 },
+      { "item": "Iron Ore Pile", "quantity": 50000 }
+    ],
+    "allianceRewards": [],
+    "rankingRewards": [
+      { "rank": "Rank 1-10 Personal", "reward": "Sentinel Emblem (Avatar Frame), 5 Legendary Shards" },
+      { "rank": "Rank 11-50 Personal", "reward": "3 Legendary Shards, 5x 1h Speedups" }
+    ],
+    "unlockRequirement": "Castle Level 8"
+  },
+  {
+    "id": "event_alliance_feast",
+    "name": "Alliance Feast",
+    "description": "Gather around the alliance banquet table to roast royal beasts and drink crown mead. Donate ingredients together for massive passive boosts.",
+    "eventType": "Alliance Social & Eco",
+    "durationHours": 4,
+    "scheduleType": "Weekly",
+    "pointSystem": {
+      "rules": [
+        { "action": "Donate Rare Meat", "points": 150 },
+        { "action": "Donate Fine Spices", "points": 300 },
+        { "action": "Attend active Feast hours", "points": 1000 }
+      ]
+    },
+    "participationRequirements": {
+      "minimumCastleLevel": 5,
+      "minimumRallyCapacity": 0,
+      "allianceRequired": true
+    },
+    "rewards": [
+      { "item": "Feast Token", "quantity": 10 },
+      { "item": "Alliance Loyalty Gold", "quantity": 25000 },
+      { "item": "Resource Selection Box", "quantity": 3 }
+    ],
+    "allianceRewards": [
+      { "item": "All Member Food Production +50% for 24h", "quantity": 1 },
+      { "item": "Alliance Chest Box lvl 3", "quantity": 1 }
+    ],
+    "rankingRewards": [
+      { "rank": "Top Feast Chef", "reward": "Gourmet Apron Skin, 1500 Guild Points" }
+    ],
+    "unlockRequirement": "Castle Level 5 and Alliance Membership"
+  },
+  {
+    "id": "event_oblivion_war",
+    "name": "Oblivion War",
+    "description": "Dark tears tear open the landscape, spewing Oblivion soldiers. Build protective defensive nodes with allies to seal the rifts.",
+    "eventType": "Alliance Defend & PvE",
+    "durationHours": 72,
+    "scheduleType": "Monthly",
+    "pointSystem": {
+      "rules": [
+        { "action": "Kill a Void Invader marching toward defensive nodes", "points": 10 },
+        { "action": "Repair a broken Void Barrier", "points": 150 },
+        { "action": "Destroy an Oblivion Portal Rift", "points": 5000 }
+      ]
+    },
+    "participationRequirements": {
+      "minimumCastleLevel": 12,
+      "minimumRallyCapacity": 200000,
+      "allianceRequired": true
+    },
+    "rewards": [
+      { "item": "Void Shard Core", "quantity": 2 },
+      { "item": "Epic Skill Tome", "quantity": 1 },
+      { "item": "Stone Crate (Large)", "quantity": 3 }
+    ],
+    "allianceRewards": [
+      { "item": "Alliance Treasury Gold", "quantity": 1000000 },
+      { "item": "All Member Teleport Scroll", "quantity": 1 }
+    ],
+    "rankingRewards": [
+      { "rank": "Top 3 Alliances", "reward": "Oblivion Conqueror Castle Skin, 100 Epic Shard Crests" },
+      { "rank": "Rank 4-10 Alliances", "reward": "50 Epic Shard Crests, 10x 3h Speedups" }
+    ],
+    "unlockRequirement": "Castle Level 12"
+  },
+  {
+    "id": "event_fortress_siege",
+    "name": "Fortress Siege",
+    "description": "Neutral region fortresses open up for annexation. Wage war against competing alliances to hold the walls and lock down borders.",
+    "eventType": "GvG PvP Territory Conquest",
+    "durationHours": 8,
+    "scheduleType": "Bi-weekly",
+    "pointSystem": {
+      "rules": [
+        { "action": "Hold the main Fortress (Per minute)", "points": 1000 },
+        { "action": "Neutralize an enemy watchtower", "points": 1500 },
+        { "action": "Defeat hostile tier-4+ troops in battle", "points": 20 }
+      ]
+    },
+    "participationRequirements": {
+      "minimumCastleLevel": 15,
+      "minimumRallyCapacity": 400000,
+      "allianceRequired": true
+    },
+    "rewards": [
+      { "item": "Honor Badges", "quantity": 50 },
+      { "item": "Lord Prestige Currency", "quantity": 250 },
+      { "item": "Gold Chest (Large)", "quantity": 3 }
+    ],
+    "allianceRewards": [
+      { "item": "Tax Income from region: 5% passive gold production increase to members for 2 weeks", "quantity": 1 },
+      { "item": "Fortress Territory Border Expansion Option", "quantity": 1 }
+    ],
+    "rankingRewards": [
+      { "rank": "Winner Alliance Lord", "reward": "Fortress Governor Title, 100 Mythic Shard Rerolls" },
+      { "rank": "Top Combat Alliance", "reward": "Iron Fortress Skin, 5 Royal Crest Selection Chests" }
+    ],
+    "unlockRequirement": "Castle Level 15 and member of an Alliance with 20+ active users"
+  },
+  {
+    "id": "event_kingdom_conquest",
+    "name": "Kingdom Conquest",
+    "description": "Pre-concession shields fall inside the high center Crownspire. Fight of all rival kingdoms in cross-realm server vs server battles for absolute domain.",
+    "eventType": "Cross-Server PvP War",
+    "durationHours": 24,
+    "scheduleType": "Monthly",
+    "pointSystem": {
+      "rules": [
+        { "action": "Hold the Crownspire Throne (Per minute)", "points": 5000 },
+        { "action": "Defeat an opposing server player's commander troop", "points": 1000 },
+        { "action": "Defeat an opposing server city defense garrison", "points": 5000 }
+      ]
+    },
+    "participationRequirements": {
+      "minimumCastleLevel": 20,
+      "minimumRallyCapacity": 800000,
+      "allianceRequired": true
+    },
+    "rewards": [
+      { "item": "Sovereign Diamonds", "quantity": 2000 },
+      { "item": "Crown Crest Token", "quantity": 15 },
+      { "item": "Universal Legendary Shards", "quantity": 10 }
+    ],
+    "allianceRewards": [
+      { "item": "Alliance Capital Flag Upgrade Skill", "quantity": 1 },
+      { "item": "Guaranteed Mythic Pet Box", "quantity": 1 }
+    ],
+    "rankingRewards": [
+      { "rank": "Supreme Monarch (Overall top scorer)", "reward": "Crownspire Emperor Throne Skin, 'Absolute Ruler' Title, 200 Sovereign Shards" },
+      { "rank": "Sovereign Alliances (Top 3)", "reward": "Gold Sovereign Border Frame, 100x 24h Build Speedups" }
+    ],
+    "unlockRequirement": "Castle Level 20"
+  },
+  {
+    "id": "event_realm_hunt",
+    "name": "Realm Hunt",
+    "description": "Rare crystal behemoths sprout in remote sectors. Set out on personal exploration marches to hunt them for rare craft equipment elements.",
+    "eventType": "Solo PvE Hunt",
+    "durationHours": 72,
+    "scheduleType": "Weekly",
+    "pointSystem": {
+      "rules": [
+        { "action": "Destroy a level 1-5 Behemoth Node", "points": 150 },
+        { "action": "Destroy a level 6-10 Behemoth Node", "points": 400 },
+        { "action": "Collect Behemoth Residual Ores", "points": 2 }
+      ]
+    },
+    "participationRequirements": {
+      "minimumCastleLevel": 10,
+      "minimumRallyCapacity": 0,
+      "allianceRequired": false
+    },
+    "rewards": [
+      { "item": "Raw Behemoth Ore Chunk", "quantity": 12 },
+      { "item": "Equipment Scroll Shards", "quantity": 5 },
+      { "item": "Cavalry Stable Speedup (8h)", "quantity": 1 }
+    ],
+    "allianceRewards": [],
+    "rankingRewards": [
+      { "rank": "Rank 1-50 Personal", "reward": "Golden Hammer Emblem, Rare Forge Polish Shards" },
+      { "rank": "Rank 51-200 Personal", "reward": "3x Rare Forge Polish Shards, 2x 3h Speedups" }
+    ],
+    "unlockRequirement": "Castle Level 10 and Smithy unlocked"
+  },
+  {
+    "id": "event_crystal_caravan",
+    "name": "Crystal Caravan",
+    "description": "Protect ally merchant crystal wagons moving from the Trading Post to the sovereign core, or build raiding squads to loot incoming enemy caravans.",
+    "eventType": "PvP Escort & Loot",
+    "durationHours": 12,
+    "scheduleType": "Bi-weekly",
+    "pointSystem": {
+      "rules": [
+        { "action": "Fully escort your Alliance Caravan safely", "points": 3000 },
+        { "action": "Raid an enemy caravan of equal Castle tier", "points": 1500 },
+        { "action": "Help reinforce an ally caravan under attack", "points": 500 }
+      ]
+    },
+    "participationRequirements": {
+      "minimumCastleLevel": 11,
+      "minimumRallyCapacity": 120000,
+      "allianceRequired": true
+    },
+    "rewards": [
+      { "item": "Caravan Crystal Shard", "quantity": 8 },
+      { "item": "Gold Chest (Large)", "quantity": 1 },
+      { "item": "Resource Package", "quantity": 5 }
+    ],
+    "allianceRewards": [
+      { "item": "Grand Alliance Chest Progress +40%", "quantity": 1 }
+    ],
+    "rankingRewards": [
+      { "rank": "Top Raider (Personal)", "reward": "Bandit King Title, 150 Sovereign Diamonds" },
+      { "rank": "Top Guardian (Personal)", "reward": "Sovereign Escort Shield, 150 Sovereign Diamonds" }
+    ],
+    "unlockRequirement": "Castle Level 11 and Trading Post unlocked"
+  },
+  {
+    "id": "event_match_3_festival",
+    "name": "Match-3 Festival",
+    "description": "Take a tactical rest in the tavern. Solve magical match-3 boards to release element waves and earn festival coins for the event store.",
+    "eventType": "Solo Puzzle Minigame",
+    "durationHours": 168,
+    "scheduleType": "Monthly",
+    "pointSystem": {
+      "rules": [
+        { "action": "Complete a Match-3 Stage", "points": 100 },
+        { "action": "Trigger a Combo of 5+ Gems", "points": 25 },
+        { "action": "Shatter a Rainbow Mana Stone", "points": 50 }
+      ]
+    },
+    "participationRequirements": {
+      "minimumCastleLevel": 3,
+      "minimumRallyCapacity": 0,
+      "allianceRequired": false
+    },
+    "rewards": [
+      { "item": "Festival Candy", "quantity": 25 },
+      { "item": "Shaman's Puzzle Book", "quantity": 1 },
+      { "item": "Wood Crate (Small)", "quantity": 5 }
+    ],
+    "allianceRewards": [],
+    "rankingRewards": [
+      { "rank": "Top 10 Puzzle Masters", "reward": "Tactical Intelligence Ring, 30 Epic Shard Crests" }
+    ],
+    "unlockRequirement": "Castle Level 3"
+  },
+  {
+    "id": "event_dragon_awakening",
+    "name": "Dragon Awakening",
+    "description": "Feed, groom, and complete dragon trials inside the Citadel. Join hands to release the legendary Crownspire dragon's full battle aura.",
+    "eventType": "Global Server Campaign",
+    "durationHours": 120,
+    "scheduleType": "Seasonal",
+    "pointSystem": {
+      "rules": [
+        { "action": "Donate Dragon Scales to the Obelisks", "points": 100 },
+        { "action": "Complete a Dragon Awakening Trial Command", "points": 800 },
+        { "action": "Purify dragon breath cores", "points": 1500 }
+      ]
+    },
+    "participationRequirements": {
+      "minimumCastleLevel": 16,
+      "minimumRallyCapacity": 0,
+      "allianceRequired": false
+    },
+    "rewards": [
+      { "item": "Dragon Pearl Dust", "quantity": 10 },
+      { "item": "Upgrade Speedup (24h)", "quantity": 1 },
+      { "item": "Tethered Mythic Ore", "quantity": 2 }
+    ],
+    "allianceRewards": [
+      { "item": "Alliance Dragon Aegis (Reduces all member PvP casualty death rates by 10% for 7 days)", "quantity": 1 }
+    ],
+    "rankingRewards": [
+      { "rank": "Rank 1 Server Dragon tamer", "reward": "Draconic Majesty Aura, 100 Kaelen Phoenix shards" },
+      { "rank": "Rank 2-10 Server Dragon tamers", "reward": "Draconic Aura (30d), 50 Kaelen Phoenix shards" }
+    ],
+    "unlockRequirement": "Castle Level 16"
+  },
+  {
+    "id": "event_pet_expedition",
+    "name": "Pet Expedition",
+    "description": "Assemble specialized pet search squads and dispatch them on remote, hidden trade trails to gather legendary seeds.",
+    "eventType": "Solo Passive Strategy",
+    "durationHours": 72,
+    "scheduleType": "Weekly",
+    "pointSystem": {
+      "rules": [
+        { "action": "Successfully dispatch a Pet Expedition", "points": 200 },
+        { "action": "Achieve Perfect Expedition (Great Success)", "points": 500 },
+        { "action": "Level up any Pet during the event period", "points": 100 }
+      ]
+    },
+    "participationRequirements": {
+      "minimumCastleLevel": 7,
+      "minimumRallyCapacity": 0,
+      "allianceRequired": false
+    },
+    "rewards": [
+      { "item": "Standard Pet Feed Pack", "quantity": 20 },
+      { "item": "Pet Star Shard Chest", "quantity": 3 },
+      { "item": "Sovereign Gold", "quantity": 15000 }
+    ],
+    "allianceRewards": [],
+    "rankingRewards": [
+      { "rank": "Top Personal Pet Handlers (Rank 1-5)", "reward": "Chameleonic Pet Star-Reroller, 20 Chronos Sprite shards" }
+    ],
+    "unlockRequirement": "Castle Level 7 and Sanctuary unlocked"
+  },
+  {
+    "id": "event_crownspire_trials",
+    "name": "Crownspire Trials",
+    "description": "Ascend through endless vertical stages inside the center Spire structure. Pit your supreme hero setups against specialized guardian formations.",
+    "eventType": "Solo Tower Defense / Arena",
+    "durationHours": 168,
+    "scheduleType": "Seasonal",
+    "pointSystem": {
+      "rules": [
+        { "action": "Defeat a standard Trial Floor", "points": 1000 },
+        { "action": "Defeat a boss Trial Floor with 3-stars", "points": 3500 },
+        { "action": "Clear a Floor without using items/potions", "points": 1500 }
+      ]
+    },
+    "participationRequirements": {
+      "minimumCastleLevel": 14,
+      "minimumRallyCapacity": 0,
+      "allianceRequired": false
+    },
+    "rewards": [
+      { "item": "Crown Seal Shard", "quantity": 5 },
+      { "item": "Tomb of Ancient Wisdom", "quantity": 2 },
+      { "item": "Universal Shards Selection Box", "quantity": 6 }
+    ],
+    "allianceRewards": [
+      { "item": "Alliance Trial Chest Box", "quantity": 1 }
+    ],
+    "rankingRewards": [
+      { "rank": "Overall Floor Record Rank 1", "reward": "Tower Champion Title, 200 Mythic Shards, 'Supreme Strategist' Flag Design" },
+      { "rank": "Overall Floor Record Rank 2-10", "reward": "100 Mythic Shards, 'Elite Strategist' Flag Design" }
+    ],
+    "unlockRequirement": "Castle Level 14"
+  }
+]

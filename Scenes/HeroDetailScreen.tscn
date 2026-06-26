@@ -1,0 +1,104 @@
+[gd_scene format=3 uid="uid://ckdxuarrw16p4"]
+
+[ext_resource type="Texture2D" uid="uid://ddjf8vxs6na20" path="res://Art/Heroes/Maegan/fullbody.png" id="1_ibg6w"]
+
+[node name="HeroDetailScreen" type="Control" unique_id=1855720542]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 720.0
+offset_bottom = 1280.0
+
+[node name="Background" type="TextureRect" parent="." unique_id=1215224543]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DarkOverlay" type="ColorRect" parent="." unique_id=1971595147]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.19607843)
+
+[node name="Panel" type="TextureRect" parent="." unique_id=2003171956]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="CloseButton" type="Button" parent="Panel" unique_id=1836091173]
+layout_mode = 0
+offset_right = 8.0
+offset_bottom = 8.0
+
+[node name="LargePortrait" type="TextureRect" parent="Panel" unique_id=594063156]
+layout_mode = 0
+offset_left = 110.0
+offset_top = 120.0
+offset_right = 610.0
+offset_bottom = 870.0
+texture = ExtResource("1_ibg6w")
+expand_mode = 1
+
+[node name="HeroNameLabel" type="Label" parent="Panel" unique_id=993209517]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="RarityLabel" type="Label" parent="Panel" unique_id=464487941]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="RoleIcon" type="TextureRect" parent="Panel" unique_id=269182538]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="PowerLabel" type="Label" parent="Panel" unique_id=1539237188]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="LevelLabel" type="Label" parent="Panel" unique_id=318453943]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="StatsBox" type="VBoxContainer" parent="Panel" unique_id=1288003974]
+layout_mode = 0
+offset_left = 36.0
+offset_top = 965.0
+offset_right = 76.0
+offset_bottom = 1069.0
+
+[node name="AttackLabel" type="Label" parent="Panel/StatsBox" unique_id=1587562153]
+layout_mode = 2
+
+[node name="DefenseLabel" type="Label" parent="Panel/StatsBox" unique_id=1398366693]
+layout_mode = 2
+
+[node name="HealthLabel" type="Label" parent="Panel/StatsBox" unique_id=1116279183]
+layout_mode = 2
+
+[node name="LeadershipLabel" type="Label" parent="Panel/StatsBox" unique_id=1299969428]
+layout_mode = 2
+
+[node name="SkillsTitle" type="Label" parent="Panel" unique_id=1758245882]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="SkillsList" type="VBoxContainer" parent="Panel" unique_id=460167897]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="UpgradeButton" type="Button" parent="Panel" unique_id=633985445]
+layout_mode = 0
+offset_right = 8.0
+offset_bottom = 8.0

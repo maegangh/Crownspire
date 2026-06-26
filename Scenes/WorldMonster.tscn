@@ -1,0 +1,25 @@
+[gd_scene format=3 uid="uid://cwpcfybx3323n"]
+
+[ext_resource type="Script" uid="uid://cbye6ocbbgosh" path="res://Scripts/WorldMonster.gd" id="1_d5wdu"]
+[ext_resource type="Texture2D" uid="uid://cqbkytyxv0sw0" path="res://assets/monsters/Level_1_Crystalfang_Beast.png" id="2_vom82"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_vom82"]
+radius = 250.0
+
+[node name="WorldMonster" type="Area2D" unique_id=657694269]
+script = ExtResource("1_d5wdu")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=255749865]
+z_index = 100
+scale = Vector2(0.2, 0.2)
+texture = ExtResource("2_vom82")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1283611953]
+shape = SubResource("CircleShape2D_vom82")
+
+[node name="Label" type="Label" parent="." unique_id=743962542]
+z_index = 100
+offset_left = -40.0
+offset_top = -160.0
+offset_bottom = -137.0
+text = "Lv. 1"

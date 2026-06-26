@@ -1,0 +1,127 @@
+{
+  "systemName": "Crownspire March System",
+  "basePerformance": {
+    "baseMarchSpeed": 100,
+    "maxMarchDistance": 1448,
+    "baseStaminaCapacity": 100,
+    "baseStaminaRegenPerSec": 0.05
+  },
+  "marchTypes": [
+    {
+      "type": "Gather",
+      "baseSpeedMultiplier": 1.0,
+      "staminaCost": 0,
+      "staminaCostExplanation": "Gathering does not consume Stamina; uses standard march queues.",
+      "minTroopRequirement": 10,
+      "maxMarchDurationSec": 7200,
+      "description": "Send troops to gather food, wood, stone, or iron resource nodes on the world map."
+    },
+    {
+      "type": "Monster Hunt",
+      "baseSpeedMultiplier": 1.25,
+      "staminaCost": 10,
+      "staminaCostExplanation": "Costs 10 Stamina for Common, 20 for Elite.",
+      "minTroopRequirement": 1,
+      "maxMarchDurationSec": 600,
+      "description": "Engage common and elite monster spawns on the map to earn resources, hero XP, and shards."
+    },
+    {
+      "type": "Rally",
+      "baseSpeedMultiplier": 0.85,
+      "staminaCost": 40,
+      "staminaCostExplanation": "Costs 40 Stamina to initialize or join a World Boss rally.",
+      "minTroopRequirement": 500,
+      "maxMarchDurationSec": 1800,
+      "description": "Organize a combined alliance strike against strong World Bosses or hostile capitals."
+    },
+    {
+      "type": "Reinforce",
+      "baseSpeedMultiplier": 1.3,
+      "staminaCost": 0,
+      "staminaCostExplanation": "Reinforcing friendly alliance assets consumes no Stamina.",
+      "minTroopRequirement": 100,
+      "maxMarchDurationSec": 3600,
+      "description": "Station your defensive troops inside an allied fortress, tower, or teammate's city."
+    },
+    {
+      "type": "Scout",
+      "baseSpeedMultiplier": 2.5,
+      "staminaCost": 0,
+      "staminaCostExplanation": "Scouting is immediate and consumes no Stamina.",
+      "minTroopRequirement": 0,
+      "maxMarchDurationSec": 300,
+      "description": "Send rapid scouts to reveal hostile garrison sizes, current resource caches, and defense structures."
+    },
+    {
+      "type": "Attack",
+      "baseSpeedMultiplier": 1.0,
+      "staminaCost": 0,
+      "staminaCostExplanation": "Regular PvP or structural battles do not consume hero Stamina.",
+      "minTroopRequirement": 100,
+      "maxMarchDurationSec": 1200,
+      "description": "Launch an aggressive military strike against rival cities, garrisons, or contested neutral structures."
+    }
+  ],
+  "troopSystem": {
+    "infantry": {
+      "name": "Infantry",
+      "speed": 60,
+      "load": 20,
+      "staminaEfficiency": 1.0,
+      "combatRole": "Front-line shield and durable weight"
+    },
+    "cavalry": {
+      "name": "Cavalry",
+      "speed": 120,
+      "load": 15,
+      "staminaEfficiency": 1.2,
+      "combatRole": "Rapid vanguard flanking and quick-strike travel"
+    },
+    "marksmen": {
+      "name": "Marksmen",
+      "speed": 80,
+      "load": 12,
+      "staminaEfficiency": 1.0,
+      "combatRole": "Rear-guard high DPS skirmisher and medium-weight load"
+    }
+  },
+  "heroBonusSystem": {
+    "marchSpeedBonus": {
+      "statType": "pct_multiplier",
+      "supportedBonusType": "march speed",
+      "description": "Increases overall travel speed of the marching army across the map.",
+      "calculationFormula": "actualSpeed = baseSpeed * baseSpeedMultiplier * (1 + heroMarchSpeedBonusPct + petMarchSpeedBonusPct)"
+    },
+    "gatheringSpeedBonus": {
+      "statType": "pct_multiplier",
+      "supportedBonusType": "gathering speed",
+      "description": "Accelerates the rate at which resources are harvested from map nodes.",
+      "calculationFormula": "gatherRate = baseGatherRate * (1 + heroGatheringSpeedBonusPct + petGatheringSpeedBonusPct)"
+    },
+    "monsterDamageBonus": {
+      "statType": "flat_multiplier",
+      "supportedBonusType": "monster damage",
+      "description": "Amplifies overall troop damage exclusively when battling map monster nodes.",
+      "calculationFormula": "damageAgainstMonster = standardDamage * (1 + heroMonsterDamageBonusPct + petMonsterDamageBonusPct)"
+    },
+    "rallySizeBonus": {
+      "statType": "flat_increase",
+      "supportedBonusType": "rally size",
+      "description": "Expands the maximum cumulative army capacity of rallies hosted by this hero.",
+      "calculationFormula": "maxRallySize = baseRallySizeLimit + heroRallySizeBonus + castleEmbassyBonus"
+    },
+    "troopLoadBonus": {
+      "statType": "pct_multiplier",
+      "supportedBonusType": "troop load",
+      "description": "Enables individual troop units to carry more payload or resources home.",
+      "calculationFormula": "actualLoad = baseLoad * (1 + heroTroopLoadBonusPct + petTroopLoadBonusPct)"
+    }
+  },
+  "staminaCosts": {
+    "baseCommonMonsterStamina": 10,
+    "baseEliteMonsterStamina": 20,
+    "baseWorldBossMonsterStamina": 40,
+    "baseRivalCityAttackStamina": 0,
+    "staminaRegenPeriodMinutes": 10
+  }
+}

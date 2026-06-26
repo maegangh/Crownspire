@@ -1,0 +1,804 @@
+[
+  {
+    "chapterNumber": 1,
+    "chapterName": "Solaria's Call",
+    "chapterRegion": "Gilded Grasslands",
+    "storyIntro": "Marshal Maegan mobilizes the vanguard against the first shadow rifts.",
+    "storyOutro": "The grasslands are clear, but echoes lead deeper into the woods.",
+    "stages": [
+      {
+        "stageNumber": 1, "stageId": "c1_s1", "stageName": "Marshal's Muster", "isBossStage": false, "recommendedPower": 40,
+        "storyDialogue": [{"speaker": "Maegan", "text": "Prepare the front lines!"}],
+        "enemyComposition": [{"enemyId": "frost_lupine", "count": 2}],
+        "rewards": {"heroXP": 100, "food": 500, "wood": 500}
+      },
+      {
+        "stageNumber": 2, "stageId": "c1_s2", "stageName": "Lupine Patrol", "isBossStage": false, "recommendedPower": 50,
+        "storyDialogue": [{"speaker": "Rex", "text": "I hear wolves in the high brush."}],
+        "enemyComposition": [{"enemyId": "frost_lupine", "count": 3}],
+        "rewards": {"heroXP": 110, "food": 550, "wood": 550}
+      },
+      {
+        "stageNumber": 3, "stageId": "c1_s3", "stageName": "Searing Flames", "isBossStage": false, "recommendedPower": 70,
+        "storyDialogue": [{"speaker": "Dominic", "text": "Cinder spitters sighted!"}],
+        "enemyComposition": [{"enemyId": "cinder_spitter", "count": 2}],
+        "rewards": {"heroXP": 120, "food": 600, "wood": 600}
+      },
+      {
+        "stageNumber": 4, "stageId": "c1_s4", "stageName": "Solaria Fields", "isBossStage": false, "recommendedPower": 90,
+        "storyDialogue": [{"speaker": "Maegan", "text": "Deploy the archers."}],
+        "enemyComposition": [{"enemyId": "frost_lupine", "count": 4}],
+        "rewards": {"heroXP": 130, "food": 650, "wood": 650}
+      },
+      {
+        "stageNumber": 5, "stageId": "c1_s5", "stageName": "Caldera Spark", "isBossStage": false, "recommendedPower": 110,
+        "storyDialogue": [{"speaker": "Lumi", "text": "Keep water flasks close."}],
+        "enemyComposition": [{"enemyId": "cinder_spitter", "count": 3}],
+        "rewards": {"heroXP": 140, "food": 700, "wood": 700}
+      },
+      {
+        "stageNumber": 6, "stageId": "c1_s6", "stageName": "Woodland Crossing", "isBossStage": false, "recommendedPower": 130,
+        "storyDialogue": [{"speaker": "Rex", "text": "Stay on the gravel path."}],
+        "enemyComposition": [{"enemyId": "frost_lupine", "count": 3}],
+        "rewards": {"heroXP": 150, "food": 750, "wood": 750}
+      },
+      {
+        "stageNumber": 7, "stageId": "c1_s7", "stageName": "Rift Skirmish", "isBossStage": false, "recommendedPower": 150,
+        "storyDialogue": [{"speaker": "Dominic", "text": "Reborn soldiers ahead!"}],
+        "enemyComposition": [{"enemyId": "cinder_spitter", "count": 4}],
+        "rewards": {"heroXP": 160, "food": 800, "wood": 800}
+      },
+      {
+        "stageNumber": 8, "stageId": "c1_s8", "stageName": "Solar Outpost", "isBossStage": false, "recommendedPower": 180,
+        "storyDialogue": [{"speaker": "Maegan", "text": "Hold this hill!"}],
+        "enemyComposition": [{"enemyId": "frost_lupine", "count": 5}],
+        "rewards": {"heroXP": 170, "food": 850, "wood": 850}
+      },
+      {
+        "stageNumber": 9, "stageId": "c1_s9", "stageName": "Ashland Ridge", "isBossStage": false, "recommendedPower": 210,
+        "storyDialogue": [{"speaker": "Rex", "text": "The heat grows heavy."}],
+        "enemyComposition": [{"enemyId": "cinder_spitter", "count": 5}],
+        "rewards": {"heroXP": 180, "food": 900, "wood": 900}
+      },
+      {
+        "stageNumber": 10, "stageId": "c1_s10", "stageName": "Lupine Alpha", "isBossStage": true, "recommendedPower": 250,
+        "storyDialogue": [{"speaker": "Maegan", "text": "Defeat the alpha to seal the Solarian rift!"}],
+        "enemyComposition": [{"enemyId": "frost_lupine", "count": 8}],
+        "rewards": {"heroXP": 300, "food": 2000, "wood": 2000, "valor": 50}
+      }
+    ]
+  },
+  {
+    "chapterNumber": 2,
+    "chapterName": "Whispers in Wildwood",
+    "chapterRegion": "Whispering Canopy",
+    "storyIntro": "Sylvana leads the vanguard deeper into the giant primeval tree kingdom.",
+    "storyOutro": "The corrupted boughs have been pruned. New paths unfold.",
+    "stages": [
+      {
+        "stageNumber": 1, "stageId": "c2_s1", "stageName": "Harpy Sighting", "isBossStage": false, "recommendedPower": 280,
+        "storyDialogue": [{"speaker": "Sylvana", "text": "Watch the sky slopes!"}],
+        "enemyComposition": [{"enemyId": "mossy_harpy", "count": 3}],
+        "rewards": {"heroXP": 200, "food": 1000, "wood": 1000}
+      },
+      {
+        "stageNumber": 2, "stageId": "c2_s2", "stageName": "Ancient Trunk", "isBossStage": false, "recommendedPower": 320,
+        "storyDialogue": [{"speaker": "Mira", "text": "Nature speaks of pain."}],
+        "enemyComposition": [{"enemyId": "ironwood_golem", "count": 2}],
+        "rewards": {"heroXP": 210, "food": 1050, "wood": 1050}
+      },
+      {
+        "stageNumber": 3, "stageId": "c2_s3", "stageName": "Feather Storm", "isBossStage": false, "recommendedPower": 360,
+        "storyDialogue": [{"speaker": "Rowan", "text": "Ready your marksmen!"}],
+        "enemyComposition": [{"enemyId": "mossy_harpy", "count": 4}],
+        "rewards": {"heroXP": 220, "food": 1100, "wood": 1100}
+      },
+      {
+        "stageNumber": 4, "stageId": "c2_s4", "stageName": "Root Clash", "isBossStage": false, "recommendedPower": 400,
+        "storyDialogue": [{"speaker": "Sylvana", "text": "Aim for their core knees."}],
+        "enemyComposition": [{"enemyId": "ironwood_golem", "count": 3}],
+        "rewards": {"heroXP": 230, "food": 1150, "wood": 1150}
+      },
+      {
+        "stageNumber": 5, "stageId": "c2_s5", "stageName": "Troll Sighting", "isBossStage": false, "recommendedPower": 450,
+        "storyDialogue": [{"speaker": "Mira", "text": "Massive footsteps approach!"}],
+        "enemyComposition": [{"enemyId": "forest_troll", "count": 1}],
+        "rewards": {"heroXP": 240, "food": 1200, "wood": 1200}
+      },
+      {
+        "stageNumber": 6, "stageId": "c2_s6", "stageName": "Canopy Shallows", "isBossStage": false, "recommendedPower": 500,
+        "storyDialogue": [{"speaker": "Rowan", "text": "Keep moving quietly."}],
+        "enemyComposition": [{"enemyId": "mossy_harpy", "count": 5}],
+        "rewards": {"heroXP": 250, "food": 1250, "wood": 1250}
+      },
+      {
+        "stageNumber": 7, "stageId": "c2_s7", "stageName": "Stony Golem", "isBossStage": false, "recommendedPower": 550,
+        "storyDialogue": [{"speaker": "Sylvana", "text": "These are moss-veined."}],
+        "enemyComposition": [{"enemyId": "ironwood_golem", "count": 4}],
+        "rewards": {"heroXP": 260, "food": 1300, "wood": 1300}
+      },
+      {
+        "stageNumber": 8, "stageId": "c2_s8", "stageName": "Oak Grove", "isBossStage": false, "recommendedPower": 610,
+        "storyDialogue": [{"speaker": "Mira", "text": "Fell the rot!"}],
+        "enemyComposition": [{"enemyId": "forest_troll", "count": 2}],
+        "rewards": {"heroXP": 270, "food": 1350, "wood": 1350}
+      },
+      {
+        "stageNumber": 9, "stageId": "c2_s9", "stageName": "Ranger Ambush", "isBossStage": false, "recommendedPower": 680,
+        "storyDialogue": [{"speaker": "Rowan", "text": "We have them surrounded."}],
+        "enemyComposition": [{"enemyId": "mossy_harpy", "count": 6}],
+        "rewards": {"heroXP": 280, "food": 1400, "wood": 1400}
+      },
+      {
+        "stageNumber": 10, "stageId": "c2_s10", "stageName": "Ironwood Colossus", "isBossStage": true, "recommendedPower": 750,
+        "storyDialogue": [{"speaker": "Sylvana", "text": "Fell the guardian golem!"}],
+        "enemyComposition": [{"enemyId": "ironwood_golem", "count": 6}, {"enemyId": "forest_troll", "count": 2}],
+        "rewards": {"heroXP": 400, "food": 3000, "wood": 3000, "valor": 75}
+      }
+    ]
+  },
+  {
+    "chapterNumber": 3,
+    "chapterName": "Frosted Ridge Patrol",
+    "chapterRegion": "Everfrost Ridge",
+    "storyIntro": "Commander Lumi and Boreas secure the glacier pass boundaries.",
+    "storyOutro": "The blizzard calms as the pass gates are refortified.",
+    "stages": [
+      {
+        "stageNumber": 1, "stageId": "c3_s1", "stageName": "Ice Wolves", "isBossStage": false, "recommendedPower": 820,
+        "storyDialogue": [{"speaker": "Lumi", "text": "Cold vapors rise."}],
+        "enemyComposition": [{"enemyId": "frost_lupine", "count": 5}],
+        "rewards": {"heroXP": 300, "food": 1500, "stone": 1000}
+      },
+      {
+        "stageNumber": 2, "stageId": "c3_s2", "stageName": "Frostbite Peak", "isBossStage": false, "recommendedPower": 900,
+        "storyDialogue": [{"speaker": "Boreas", "text": "My wings shred snowstorms!"}],
+        "enemyComposition": [{"enemyId": "frost_lupine", "count": 6}],
+        "rewards": {"heroXP": 310, "food": 1550, "stone": 1050}
+      },
+      {
+        "stageNumber": 3, "stageId": "c3_s3", "stageName": "Deep Glacier", "isBossStage": false, "recommendedPower": 980,
+        "storyDialogue": [{"speaker": "Lumi", "text": "Preserve squad stamina."}],
+        "enemyComposition": [{"enemyId": "mossy_harpy", "count": 4}],
+        "rewards": {"heroXP": 320, "food": 1600, "stone": 1100}
+      },
+      {
+        "stageNumber": 4, "stageId": "c3_s4", "stageName": "Rift Shards", "isBossStage": false, "recommendedPower": 1060,
+        "storyDialogue": [{"speaker": "Boreas", "text": "Shatter the dark seals."}],
+        "enemyComposition": [{"enemyId": "frost_lupine", "count": 7}],
+        "rewards": {"heroXP": 330, "food": 1650, "stone": 1150}
+      },
+      {
+        "stageNumber": 5, "stageId": "c3_s5", "stageName": "Glacial Cave", "isBossStage": false, "recommendedPower": 1150,
+        "storyDialogue": [{"speaker": "Lumi", "text": "Prepare the fire pots."}],
+        "enemyComposition": [{"enemyId": "ironwood_golem", "count": 4}],
+        "rewards": {"heroXP": 340, "food": 1700, "stone": 1200}
+      },
+      {
+        "stageNumber": 6, "stageId": "c3_s6", "stageName": "Peak Ascent", "isBossStage": false, "recommendedPower": 1250,
+        "storyDialogue": [{"speaker": "Boreas", "text": "Steel claws primed."}],
+        "enemyComposition": [{"enemyId": "frost_lupine", "count": 8}],
+        "rewards": {"heroXP": 350, "food": 1750, "stone": 1250}
+      },
+      {
+        "stageNumber": 7, "stageId": "c3_s7", "stageName": "Icy Crevasse", "isBossStage": false, "recommendedPower": 1360,
+        "storyDialogue": [{"speaker": "Lumi", "text": "Tread slowly here."}],
+        "enemyComposition": [{"enemyId": "mossy_harpy", "count": 6}],
+        "rewards": {"heroXP": 360, "food": 1800, "stone": 1300}
+      },
+      {
+        "stageNumber": 8, "stageId": "c3_s8", "stageName": "Snow Harpy Nest", "isBossStage": false, "recommendedPower": 1480,
+        "storyDialogue": [{"speaker": "Boreas", "text": "Aim for their master."}],
+        "enemyComposition": [{"enemyId": "mossy_harpy", "count": 7}],
+        "rewards": {"heroXP": 370, "food": 1850, "stone": 1350}
+      },
+      {
+        "stageNumber": 9, "stageId": "c3_s9", "stageName": "Frozen Blockade", "isBossStage": false, "recommendedPower": 1610,
+        "storyDialogue": [{"speaker": "Lumi", "text": "Use the hot siege rams!"}],
+        "enemyComposition": [{"enemyId": "frost_lupine", "count": 10}],
+        "rewards": {"heroXP": 380, "food": 1900, "stone": 1400}
+      },
+      {
+        "stageNumber": 10, "stageId": "c3_s10", "stageName": "Peak Overseer", "isBossStage": true, "recommendedPower": 1750,
+        "storyDialogue": [{"speaker": "Boreas", "text": "Defeat the Frozen Behemoth of the ridge!"}],
+        "enemyComposition": [{"enemyId": "forest_troll", "count": 4}],
+        "rewards": {"heroXP": 500, "food": 4000, "stone": 3000, "valor": 100}
+      }
+    ]
+  },
+  {
+    "chapterNumber": 4,
+    "chapterName": "Shrouds of Shadowvale",
+    "chapterRegion": "Silent Fenns",
+    "storyIntro": "Rogue hero Shadow tracks dark misty entities creeping across Silent Fenns.",
+    "storyOutro": "Shadow pledges his blades and scouting networks to Crownspire's Marshal.",
+    "stages": [
+      {
+        "stageNumber": 1, "stageId": "c4_s1", "stageName": "Mist Shadows", "isBossStage": false, "recommendedPower": 1900,
+        "storyDialogue": [{"speaker": "Shadow", "text": "Grave creepers hide in deep mist."}],
+        "enemyComposition": [{"enemyId": "grave_creeper", "count": 4}],
+        "rewards": {"heroXP": 400, "food": 2000, "wood": 2000}
+      },
+      {
+        "stageNumber": 2, "stageId": "c4_s2", "stageName": "Crypt Watchers", "isBossStage": false, "recommendedPower": 2060,
+        "storyDialogue": [{"speaker": "Noxx", "text": "Armored remains are rising."}],
+        "enemyComposition": [{"enemyId": "crypt_wight", "count": 4}],
+        "rewards": {"heroXP": 415, "food": 2050, "wood": 2050}
+      },
+      {
+        "stageNumber": 3, "stageId": "c4_s3", "stageName": "Fenn Harvester", "isBossStage": false, "recommendedPower": 2230,
+        "storyDialogue": [{"speaker": "Shadow", "text": "Silent steps find their marks."}],
+        "enemyComposition": [{"enemyId": "grave_creeper", "count": 5}],
+        "rewards": {"heroXP": 430, "food": 2100, "wood": 2100}
+      },
+      {
+        "stageNumber": 4, "stageId": "c4_s4", "stageName": "Wight Vanguard", "isBossStage": false, "recommendedPower": 2410,
+        "storyDialogue": [{"speaker": "Noxx", "text": "Steel plate blades forward."}],
+        "enemyComposition": [{"enemyId": "crypt_wight", "count": 5}],
+        "rewards": {"heroXP": 445, "food": 2150, "wood": 2150}
+      },
+      {
+        "stageNumber": 5, "stageId": "c4_s5", "stageName": "Spider Fangs", "isBossStage": false, "recommendedPower": 2600,
+        "storyDialogue": [{"speaker": "Shadow", "text": "Watch the damp web traps!"}],
+        "enemyComposition": [{"enemyId": "grave_creeper", "count": 6}],
+        "rewards": {"heroXP": 460, "food": 2200, "wood": 2200}
+      },
+      {
+        "stageNumber": 6, "stageId": "c4_s6", "stageName": "Silent Swamps", "isBossStage": false, "recommendedPower": 2800,
+        "storyDialogue": [{"speaker": "Noxx", "text": "Water levels are toxic."}],
+        "enemyComposition": [{"enemyId": "crypt_wight", "count": 6}],
+        "rewards": {"heroXP": 475, "food": 2250, "wood": 2250}
+      },
+      {
+        "stageNumber": 7, "stageId": "c4_s7", "stageName": "Cemetery Gates", "isBossStage": false, "recommendedPower": 3010,
+        "storyDialogue": [{"speaker": "Shadow", "text": "We breach their perimeter."}],
+        "enemyComposition": [{"enemyId": "grave_creeper", "count": 8}],
+        "rewards": {"heroXP": 490, "food": 2300, "wood": 2300}
+      },
+      {
+        "stageNumber": 8, "stageId": "c4_s8", "stageName": "Wisp Patrol", "isBossStage": false, "recommendedPower": 3230,
+        "storyDialogue": [{"speaker": "Noxx", "text": "Tainted souls roam."}],
+        "enemyComposition": [{"enemyId": "crypt_wight", "count": 8}],
+        "rewards": {"heroXP": 505, "food": 2350, "wood": 2350}
+      },
+      {
+        "stageNumber": 9, "stageId": "c4_s9", "stageName": "Tomb Raiders", "isBossStage": false, "recommendedPower": 3460,
+        "storyDialogue": [{"speaker": "Shadow", "text": "Protect the ancient urns."}],
+        "enemyComposition": [{"enemyId": "grave_creeper", "count": 10}],
+        "rewards": {"heroXP": 520, "food": 2400, "wood": 2400}
+      },
+      {
+        "stageNumber": 10, "stageId": "c4_s10", "stageName": "Mistwood Shade", "isBossStage": true, "recommendedPower": 3700,
+        "storyDialogue": [{"speaker": "Shadow", "text": "Shatter the Lich shadow commander!"}],
+        "enemyComposition": [{"enemyId": "crypt_wight", "count": 10}, {"enemyId": "grave_creeper", "count": 10}],
+        "rewards": {"heroXP": 600, "food": 5000, "wood": 5000, "valor": 120}
+      }
+    ]
+  },
+  {
+    "chapterNumber": 5,
+    "chapterName": "Ashfire Fissures",
+    "chapterRegion": "Ashfire Crater",
+    "storyIntro": "Demon and Pyrogarr lead Solarian forces directly into volcanic sulfur cracks.",
+    "storyOutro": "Brimstone waves are sealed behind thick, heavy obsidian walls.",
+    "stages": [
+      {
+        "stageNumber": 1, "stageId": "c5_s1", "stageName": "Lava Sparks", "isBossStage": false, "recommendedPower": 4000,
+        "storyDialogue": [{"speaker": "Demon", "text": "Unleash molten fury!"}],
+        "enemyComposition": [{"enemyId": "cinder_spitter", "count": 6}],
+        "rewards": {"heroXP": 500, "food": 3000, "iron": 1500}
+      },
+      {
+        "stageNumber": 2, "stageId": "c5_s2", "stageName": "Sulfur Haze", "isBossStage": false, "recommendedPower": 4250,
+        "storyDialogue": [{"speaker": "Volkan", "text": "This forge heat is perfect."}],
+        "enemyComposition": [{"enemyId": "cinder_spitter", "count": 7}],
+        "rewards": {"heroXP": 515, "food": 3050, "iron": 1550}
+      },
+      {
+        "stageNumber": 3, "stageId": "c5_s3", "stageName": "Magma Core", "isBossStage": false, "recommendedPower": 4510,
+        "storyDialogue": [{"speaker": "Demon", "text": "Keep foot soldiers away from lava grids."}],
+        "enemyComposition": [{"enemyId": "cinder_spitter", "count": 8}],
+        "rewards": {"heroXP": 530, "food": 3100, "iron": 1600}
+      },
+      {
+        "stageNumber": 4, "stageId": "c5_s4", "stageName": "Ashfall Pass", "isBossStage": false, "recommendedPower": 4780,
+        "storyDialogue": [{"speaker": "Volkan", "text": "Siege lines hold!"}],
+        "enemyComposition": [{"enemyId": "cinder_spitter", "count": 10}],
+        "rewards": {"heroXP": 545, "food": 3150, "iron": 1650}
+      },
+      {
+        "stageNumber": 5, "stageId": "c5_s5", "stageName": "Burned Glade", "isBossStage": false, "recommendedPower": 5060,
+        "storyDialogue": [{"speaker": "Demon", "text": "Troll elementals rising!"}],
+        "enemyComposition": [{"enemyId": "forest_troll", "count": 2}],
+        "rewards": {"heroXP": 560, "food": 3200, "iron": 1700}
+      },
+      {
+        "stageNumber": 6, "stageId": "c5_s6", "stageName": "Ember Gates", "isBossStage": false, "recommendedPower": 5350,
+        "storyDialogue": [{"speaker": "Volkan", "text": "Aim for their heat plates."}],
+        "enemyComposition": [{"enemyId": "cinder_spitter", "count": 12}],
+        "rewards": {"heroXP": 575, "food": 3250, "iron": 1750}
+      },
+      {
+        "stageNumber": 7, "stageId": "c5_s7", "stageName": "Crater Slope", "isBossStage": false, "recommendedPower": 5650,
+        "storyDialogue": [{"speaker": "Demon", "text": "The ground splits!"}],
+        "enemyComposition": [{"enemyId": "cinder_spitter", "count": 14}],
+        "rewards": {"heroXP": 590, "food": 3300, "iron": 1800}
+      },
+      {
+        "stageNumber": 8, "stageId": "c5_s8", "stageName": "Sulfur Pools", "isBossStage": false, "recommendedPower": 5960,
+        "storyDialogue": [{"speaker": "Volkan", "text": "Use the coolant sprays."}],
+        "enemyComposition": [{"enemyId": "forest_troll", "count": 3}],
+        "rewards": {"heroXP": 605, "food": 3350, "iron": 1850}
+      },
+      {
+        "stageNumber": 9, "stageId": "c5_s9", "stageName": "Volcanic Pit", "isBossStage": false, "recommendedPower": 6280,
+        "storyDialogue": [{"speaker": "Demon", "text": "Their front lines break!"}],
+        "enemyComposition": [{"enemyId": "cinder_spitter", "count": 16}],
+        "rewards": {"heroXP": 620, "food": 3400, "iron": 1900}
+      },
+      {
+        "stageNumber": 10, "stageId": "c5_s10", "stageName": "Caldera Golem", "isBossStage": true, "recommendedPower": 6600,
+        "storyDialogue": [{"speaker": "Demon", "text": "Extinguish the molten heart overlord!"}],
+        "enemyComposition": [{"enemyId": "forest_troll", "count": 5}, {"enemyId": "cinder_spitter", "count": 20}],
+        "rewards": {"heroXP": 750, "food": 6000, "iron": 3000, "valor": 150}
+      }
+    ]
+  },
+  {
+    "chapterNumber": 6,
+    "chapterName": "Deep Ironvein Chasm",
+    "chapterRegion": "Ironvein Chasm",
+    "storyIntro": "Arch-Geomancer Myshla uncovers massive crystal giants inside deep rifts.",
+    "storyOutro": "A secure path is carved, yielding infinite mineral resources.",
+    "stages": [
+      {
+        "stageNumber": 1, "stageId": "c6_s1", "stageName": "Deep Dunes", "isBossStage": false, "recommendedPower": 7000,
+        "storyDialogue": [{"speaker": "Myshla", "text": "Watch the silent sand dwellers!"}],
+        "enemyComposition": [{"enemyId": "sand_dweller", "count": 6}],
+        "rewards": {"heroXP": 600, "food": 4000, "stone": 3000}
+      },
+      {
+        "stageNumber": 2, "stageId": "c6_s2", "stageName": "Granite Rift", "isBossStage": false, "recommendedPower": 7400,
+        "storyDialogue": [{"speaker": "Lumi", "text": "Medic lines are stable."}],
+        "enemyComposition": [{"enemyId": "sand_dweller", "count": 8}],
+        "rewards": {"heroXP": 615, "food": 4100, "stone": 3100}
+      },
+      {
+        "stageNumber": 3, "stageId": "c6_s3", "stageName": "Slate Pillar", "isBossStage": false, "recommendedPower": 7800,
+        "storyDialogue": [{"speaker": "Myshla", "text": "Crystals emit pathfinder energy."}],
+        "enemyComposition": [{"enemyId": "sand_dweller", "count": 10}],
+        "rewards": {"heroXP": 630, "food": 4200, "stone": 3200}
+      },
+      {
+        "stageNumber": 4, "stageId": "c6_s4", "stageName": "Ore Caves", "isBossStage": false, "recommendedPower": 8200,
+        "storyDialogue": [{"speaker": "Lumi", "text": "Eat clean rations."}],
+        "enemyComposition": [{"enemyId": "sand_dweller", "count": 12}],
+        "rewards": {"heroXP": 645, "food": 4300, "stone": 3300}
+      },
+      {
+        "stageNumber": 5, "stageId": "c6_s5", "stageName": "Rocky Overhang", "isBossStage": false, "recommendedPower": 8630,
+        "storyDialogue": [{"speaker": "Myshla", "text": "A stone titan steps forward."}],
+        "enemyComposition": [{"enemyId": "stone_giant", "count": 1}],
+        "rewards": {"heroXP": 660, "food": 4400, "stone": 3400}
+      },
+      {
+        "stageNumber": 6, "stageId": "c6_s6", "stageName": "Deep Quarry", "isBossStage": false, "recommendedPower": 9070,
+        "storyDialogue": [{"speaker": "Lumi", "text": "Ready the ice packs."}],
+        "enemyComposition": [{"enemyId": "sand_dweller", "count": 14}],
+        "rewards": {"heroXP": 675, "food": 4500, "stone": 3500}
+      },
+      {
+        "stageNumber": 7, "stageId": "c6_s7", "stageName": "Silt Hollow", "isBossStage": false, "recommendedPower": 9520,
+        "storyDialogue": [{"speaker": "Myshla", "text": "Tectonic waves here."}],
+        "enemyComposition": [{"enemyId": "sand_dweller", "count": 16}],
+        "rewards": {"heroXP": 690, "food": 4600, "stone": 3600}
+      },
+      {
+        "stageNumber": 8, "stageId": "c6_s8", "stageName": "Crystal Mine", "isBossStage": false, "recommendedPower": 9980,
+        "storyDialogue": [{"speaker": "Lumi", "text": "Bandage the front guard."}],
+        "enemyComposition": [{"enemyId": "stone_giant", "count": 2}],
+        "rewards": {"heroXP": 705, "food": 4700, "stone": 3700}
+      },
+      {
+        "stageNumber": 9, "stageId": "c6_s9", "stageName": "Vein Access", "isBossStage": false, "recommendedPower": 10450,
+        "storyDialogue": [{"speaker": "Myshla", "text": "We stand near the core."}],
+        "enemyComposition": [{"enemyId": "sand_dweller", "count": 20}],
+        "rewards": {"heroXP": 720, "food": 4800, "stone": 3800}
+      },
+      {
+        "stageNumber": 10, "stageId": "c6_s10", "stageName": "Master Stone Giant", "isBossStage": true, "recommendedPower": 11000,
+        "storyDialogue": [{"speaker": "Myshla", "text": "Shatter the gargantuan high granite giant!"}],
+        "enemyComposition": [{"enemyId": "stone_giant", "count": 3}, {"enemyId": "sand_dweller", "count": 15}],
+        "rewards": {"heroXP": 900, "food": 7000, "stone": 5000, "valor": 180}
+      }
+    ]
+  },
+  {
+    "chapterNumber": 7,
+    "chapterName": "Shattered Reefs Siege",
+    "chapterRegion": "Shattered Reefs",
+    "storyIntro": "Lorelai coordinates naval lines against marine drakes and sirens.",
+    "storyOutro": "Harbor chains are rebuilt and coastal routes reopen.",
+    "stages": [
+      {
+        "stageNumber": 1, "stageId": "c7_s1", "stageName": "Wetland Shallows", "isBossStage": false, "recommendedPower": 11500,
+        "storyDialogue": [{"speaker": "Lorelai", "text": "Ooze creatures block the dock."}],
+        "enemyComposition": [{"enemyId": "bog_mire_ooze", "count": 8}],
+        "rewards": {"heroXP": 700, "food": 5000, "wood": 3000}
+      },
+      {
+        "stageNumber": 2, "stageId": "c7_s2", "stageName": "Ocean Reef", "isBossStage": false, "recommendedPower": 12050,
+        "storyDialogue": [{"speaker": "Skye", "text": "Swooping from above!"}],
+        "enemyComposition": [{"enemyId": "mossy_harpy", "count": 8}],
+        "rewards": {"heroXP": 715, "food": 5100, "wood": 3100}
+      },
+      {
+        "stageNumber": 3, "stageId": "c7_s3", "stageName": "Tidal Basin", "isBossStage": false, "recommendedPower": 12610,
+        "storyDialogue": [{"speaker": "Lorelai", "text": "Keep your shields high."}],
+        "enemyComposition": [{"enemyId": "bog_mire_ooze", "count": 10}],
+        "rewards": {"heroXP": 730, "food": 5200, "wood": 3200}
+      },
+      {
+        "stageNumber": 4, "stageId": "c7_s4", "stageName": "Coral Crest", "isBossStage": false, "recommendedPower": 13180,
+        "storyDialogue": [{"speaker": "Skye", "text": "Flank them now!"}],
+        "enemyComposition": [{"enemyId": "mossy_harpy", "count": 10}],
+        "rewards": {"heroXP": 745, "food": 5300, "wood": 3300}
+      },
+      {
+        "stageNumber": 5, "stageId": "c7_s5", "stageName": "Drake Cave", "isBossStage": false, "recommendedPower": 13760,
+        "storyDialogue": [{"speaker": "Lorelai", "text": "Drake scales detected."}],
+        "enemyComposition": [{"enemyId": "shadow_drake", "count": 1}],
+        "rewards": {"heroXP": 760, "food": 5400, "wood": 3400}
+      },
+      {
+        "stageNumber": 6, "stageId": "c7_s6", "stageName": "Salt Marsh", "isBossStage": false, "recommendedPower": 14350,
+        "storyDialogue": [{"speaker": "Skye", "text": "Gale wind gusts ready."}],
+        "enemyComposition": [{"enemyId": "bog_mire_ooze", "count": 12}],
+        "rewards": {"heroXP": 775, "food": 5500, "wood": 3500}
+      },
+      {
+        "stageNumber": 7, "stageId": "c7_s7", "stageName": "Shingle Shore", "isBossStage": false, "recommendedPower": 14950,
+        "storyDialogue": [{"speaker": "Lorelai", "text": "Protect the supply ships."}],
+        "enemyComposition": [{"enemyId": "bog_mire_ooze", "count": 14}],
+        "rewards": {"heroXP": 790, "food": 5600, "wood": 3600}
+      },
+      {
+        "stageNumber": 8, "stageId": "c7_s8", "stageName": "Cliff Harpy Nest", "isBossStage": false, "recommendedPower": 15560,
+        "storyDialogue": [{"speaker": "Skye", "text": "Cleared their nests."}],
+        "enemyComposition": [{"enemyId": "mossy_harpy", "count": 12}],
+        "rewards": {"heroXP": 805, "food": 5700, "wood": 3700}
+      },
+      {
+        "stageNumber": 9, "stageId": "c7_s9", "stageName": "Shipwreck", "isBossStage": false, "recommendedPower": 16180,
+        "storyDialogue": [{"speaker": "Lorelai", "text": "Drakes returning."}],
+        "enemyComposition": [{"enemyId": "shadow_drake", "count": 2}],
+        "rewards": {"heroXP": 820, "food": 5800, "wood": 3800}
+      },
+      {
+        "stageNumber": 10, "stageId": "c7_s10", "stageName": "Harpy Sovereign", "isBossStage": true, "recommendedPower": 16800,
+        "storyDialogue": [{"speaker": "Lorelai", "text": "Exterminate the majestic Coastal Harpy!"}],
+        "enemyComposition": [{"enemyId": "shadow_drake", "count": 3}, {"enemyId": "bog_mire_ooze", "count": 15}],
+        "rewards": {"heroXP": 1000, "food": 8000, "wood": 5000, "valor": 200}
+      }
+    ]
+  },
+  {
+    "chapterNumber": 8,
+    "chapterName": "Skyward Relics",
+    "chapterRegion": "Skyward Plateau",
+    "storyIntro": "Faith protects high stargazing relays from greedy goblin bands.",
+    "storyOutro": "Cosmic relays are stable; astronomical formulas secured.",
+    "stages": [
+      {
+        "stageNumber": 1, "stageId": "c8_s1", "stageName": "Plateau Trail", "isBossStage": false, "recommendedPower": 17400,
+        "storyDialogue": [{"speaker": "Faith", "text": "Pillagers spotted on the path!"}],
+        "enemyComposition": [{"enemyId": "goblin_pillager", "count": 8}],
+        "rewards": {"heroXP": 800, "food": 6000, "iron": 2000}
+      },
+      {
+        "stageNumber": 2, "stageId": "c8_s2", "stageName": "Relic Chamber", "isBossStage": false, "recommendedPower": 18050,
+        "storyDialogue": [{"speaker": "Remi", "text": "Watch the masonry walls."}],
+        "enemyComposition": [{"enemyId": "goblin_pillager", "count": 10}],
+        "rewards": {"heroXP": 815, "food": 6120, "iron": 2050}
+      },
+      {
+        "stageNumber": 3, "stageId": "c8_s3", "stageName": "Beacon Ruins", "isBossStage": false, "recommendedPower": 18710,
+        "storyDialogue": [{"speaker": "Faith", "text": "Starlight glows brightly."}],
+        "enemyComposition": [{"enemyId": "goblin_pillager", "count": 12}],
+        "rewards": {"heroXP": 830, "food": 6240, "iron": 2100}
+      },
+      {
+        "stageNumber": 4, "stageId": "c8_s4", "stageName": "Observation deck", "isBossStage": false, "recommendedPower": 19380,
+        "storyDialogue": [{"speaker": "Remi", "text": "Fortified scaffolding ready."}],
+        "enemyComposition": [{"enemyId": "goblin_pillager", "count": 14}],
+        "rewards": {"heroXP": 845, "food": 6360, "iron": 2150}
+      },
+      {
+        "stageNumber": 5, "stageId": "c8_s5", "stageName": "Drake Roost", "isBossStage": false, "recommendedPower": 20060,
+        "storyDialogue": [{"speaker": "Faith", "text": "A shadowed drake roams."}],
+        "enemyComposition": [{"enemyId": "shadow_drake", "count": 2}],
+        "rewards": {"heroXP": 860, "food": 6480, "iron": 2200}
+      },
+      {
+        "stageNumber": 6, "stageId": "c8_s6", "stageName": "Mountain Spur", "isBossStage": false, "recommendedPower": 20750,
+        "storyDialogue": [{"speaker": "Remi", "text": "Mine raw ore plaques."}],
+        "enemyComposition": [{"enemyId": "goblin_pillager", "count": 16}],
+        "rewards": {"heroXP": 875, "food": 6600, "iron": 2250}
+      },
+      {
+        "stageNumber": 7, "stageId": "c8_s7", "stageName": "Rune Vault", "isBossStage": false, "recommendedPower": 21450,
+        "storyDialogue": [{"speaker": "Faith", "text": "Translate the ancient script."}],
+        "enemyComposition": [{"enemyId": "goblin_pillager", "count": 18}],
+        "rewards": {"heroXP": 890, "food": 6720, "iron": 2300}
+      },
+      {
+        "stageNumber": 8, "stageId": "c8_s8", "stageName": "Pillager Camp", "isBossStage": false, "recommendedPower": 22160,
+        "storyDialogue": [{"speaker": "Remi", "text": "Burn their supplies!"}],
+        "enemyComposition": [{"enemyId": "goblin_pillager", "count": 20}],
+        "rewards": {"heroXP": 905, "food": 6840, "iron": 2350}
+      },
+      {
+        "stageNumber": 9, "stageId": "c8_s9", "stageName": "Outer Gallery", "isBossStage": false, "recommendedPower": 22880,
+        "storyDialogue": [{"speaker": "Faith", "text": "The wind grows fierce."}],
+        "enemyComposition": [{"enemyId": "shadow_drake", "count": 3}],
+        "rewards": {"heroXP": 920, "food": 6960, "iron": 2400}
+      },
+      {
+        "stageNumber": 10, "stageId": "c8_s10", "stageName": "Skyward Overlord", "isBossStage": true, "recommendedPower": 23600,
+        "storyDialogue": [{"speaker": "Faith", "text": "Defeat the rogue sky lord chief!"}],
+        "enemyComposition": [{"enemyId": "shadow_drake", "count": 4}, {"enemyId": "goblin_pillager", "count": 25}],
+        "rewards": {"heroXP": 1100, "food": 9000, "iron": 4000, "valor": 220}
+      }
+    ]
+  },
+  {
+    "chapterNumber": 9,
+    "chapterName": "Canopy Purge",
+    "chapterRegion": "Whispering Canopy Deep",
+    "storyIntro": "Mira Greenleaf tracks corrupted elemental forces rotting old roots.",
+    "storyOutro": "Blighted boughs are fully purged and forest spirits calm down.",
+    "stages": [
+      {"stageNumber": 1, "stageId": "c9_s1", "stageName": "Blight Shallows", "isBossStage": false, "recommendedPower": 24000, "storyDialogue": [{"speaker": "Mira", "text": "Clear the rot!"}], "enemyComposition": [{"enemyId": "cinder_spitter", "count": 10}], "rewards": {"heroXP": 900, "food": 7000, "wood": 4000}},
+      {"stageNumber": 2, "stageId": "c9_s2", "stageName": "Ancient Root", "isBossStage": false, "recommendedPower": 24800, "storyDialogue": [{"speaker": "Rowan", "text": "Hold active positions."}], "enemyComposition": [{"enemyId": "ironwood_golem", "count": 6}], "rewards": {"heroXP": 915, "food": 7100, "wood": 4100}},
+      {"stageNumber": 3, "stageId": "c9_s3", "stageName": "Blight Harpy", "isBossStage": false, "recommendedPower": 25610, "storyDialogue": [{"speaker": "Mira", "text": "Their wings are stained."}], "enemyComposition": [{"enemyId": "mossy_harpy", "count": 10}], "rewards": {"heroXP": 930, "food": 7200, "wood": 4200}},
+      {"stageNumber": 4, "stageId": "c9_s4", "stageName": "Canopy Claws", "isBossStage": false, "recommendedPower": 26430, "storyDialogue": [{"speaker": "Rowan", "text": "Ready bowstrings!"}], "enemyComposition": [{"enemyId": "mossy_harpy", "count": 12}], "rewards": {"heroXP": 945, "food": 7300, "wood": 4300}},
+      {"stageNumber": 5, "stageId": "c9_s5", "stageName": "Decaying Golem", "isBossStage": false, "recommendedPower": 27260, "storyDialogue": [{"speaker": "Mira", "text": "Their elemental centers fracture."}], "enemyComposition": [{"enemyId": "ironwood_golem", "count": 8}], "rewards": {"heroXP": 960, "food": 7400, "wood": 4400}},
+      {"stageNumber": 6, "stageId": "c9_s6", "stageName": "Blight Forest", "isBossStage": false, "recommendedPower": 28100, "storyDialogue": [{"speaker": "Rowan", "text": "Flank their vanguard!"}], "enemyComposition": [{"enemyId": "ironwood_golem", "count": 10}], "rewards": {"heroXP": 975, "food": 7500, "wood": 4500}},
+      {"stageNumber": 7, "stageId": "c9_s7", "stageName": "Deep Moss", "isBossStage": false, "recommendedPower": 28950, "storyDialogue": [{"speaker": "Mira", "text": "Nature feels lighter."}], "enemyComposition": [{"enemyId": "mossy_harpy", "count": 14}], "rewards": {"heroXP": 990, "food": 7600, "wood": 4600}},
+      {"stageNumber": 8, "stageId": "c9_s8", "stageName": "Searing Root", "isBossStage": false, "recommendedPower": 29810, "storyDialogue": [{"speaker": "Rowan", "text": "Extinguish their path!"}], "enemyComposition": [{"enemyId": "cinder_spitter", "count": 15}], "rewards": {"heroXP": 1005, "food": 7700, "wood": 4700}},
+      {"stageNumber": 9, "stageId": "c9_s9", "stageName": "Canopy Verge", "isBossStage": false, "recommendedPower": 30680, "storyDialogue": [{"speaker": "Mira", "text": "Defend the Great Tree!"}], "enemyComposition": [{"enemyId": "ironwood_golem", "count": 12}], "rewards": {"heroXP": 1020, "food": 7800, "wood": 4800}},
+      {"stageNumber": 10, "stageId": "c9_s10", "stageName": "Sovereign Blight", "isBossStage": true, "recommendedPower": 31560, "storyDialogue": [{"speaker": "Mira", "text": "Vanquish the grand infected colossus!"}], "enemyComposition": [{"enemyId": "ironwood_golem", "count": 15}, {"enemyId": "forest_troll", "count": 5}], "rewards": {"heroXP": 1250, "food": 10000, "wood": 6000, "valor": 250}}
+    ]
+  },
+  {
+    "chapterNumber": 10,
+    "chapterName": "Frozen Citadel",
+    "chapterRegion": "Glacial Refuge",
+    "storyIntro": "Commander Rex coordinates icy defense operations against frost wyrm raids.",
+    "storyOutro": "The central frozen vaults are secure, preserving holy solar seeds.",
+    "stages": [
+      {"stageNumber": 1, "stageId": "c10_s1", "stageName": "Pass Skirmish", "isBossStage": false, "recommendedPower": 32000, "storyDialogue": [{"speaker": "Rex", "text": "Shields locked!"}], "enemyComposition": [{"enemyId": "frost_lupine", "count": 15}], "rewards": {"heroXP": 1000, "food": 8000, "stone": 4500}},
+      {"stageNumber": 2, "stageId": "c10_s2", "stageName": "Citadel Verge", "isBossStage": false, "recommendedPower": 32900, "storyDialogue": [{"speaker": "Lumi", "text": "Keep warm embers close."}], "enemyComposition": [{"enemyId": "frost_lupine", "count": 18}], "rewards": {"heroXP": 1015, "food": 8100, "stone": 4600}},
+      {"stageNumber": 3, "stageId": "c10_s3", "stageName": "Ice Gates", "isBossStage": false, "recommendedPower": 33810, "storyDialogue": [{"speaker": "Rex", "text": "They cannot crack this stone!"}], "enemyComposition": [{"enemyId": "mossy_harpy", "count": 12}], "rewards": {"heroXP": 1030, "food": 8200, "stone": 4700}},
+      {"stageNumber": 4, "stageId": "c10_s4", "stageName": "Bastion Wall", "isBossStage": false, "recommendedPower": 34730, "storyDialogue": [{"speaker": "Lumi", "text": "Rations distributed."}], "enemyComposition": [{"enemyId": "mossy_harpy", "count": 14}], "rewards": {"heroXP": 1045, "food": 8300, "stone": 4800}},
+      {"stageNumber": 5, "stageId": "c10_s5", "stageName": "Wyrm Attack", "isBossStage": false, "recommendedPower": 35660, "storyDialogue": [{"speaker": "Rex", "text": "Ice dragon sighted aloft!"}], "enemyComposition": [{"enemyId": "frost_wyrm", "count": 1}], "rewards": {"heroXP": 1060, "food": 8400, "stone": 4900}},
+      {"stageNumber": 6, "stageId": "c10_s6", "stageName": "Citadel Hall", "isBossStage": false, "recommendedPower": 36600, "storyDialogue": [{"speaker": "Lumi", "text": "Heal the vanguard ranks."}], "enemyComposition": [{"enemyId": "frost_lupine", "count": 20}], "rewards": {"heroXP": 1075, "food": 8500, "stone": 5000}},
+      {"stageNumber": 7, "stageId": "c10_s7", "stageName": "Vault Defense", "isBossStage": false, "recommendedPower": 37550, "storyDialogue": [{"speaker": "Rex", "text": "Hold positions at the door."}], "enemyComposition": [{"enemyId": "frost_lupine", "count": 22}], "rewards": {"heroXP": 1090, "food": 8600, "stone": 5100}},
+      {"stageNumber": 8, "stageId": "c10_s8", "stageName": "Cryo Towers", "isBossStage": false, "recommendedPower": 38510, "storyDialogue": [{"speaker": "Lumi", "text": "They strike from high decks."}], "enemyComposition": [{"enemyId": "mossy_harpy", "count": 16}], "rewards": {"heroXP": 1105, "food": 8700, "stone": 5200}},
+      {"stageNumber": 9, "stageId": "c10_s9", "stageName": "Citadel Keep", "isBossStage": false, "recommendedPower": 39480, "storyDialogue": [{"speaker": "Rex", "text": "Marshal Maegan approaches!"}], "enemyComposition": [{"enemyId": "frost_wyrm", "count": 2}], "rewards": {"heroXP": 1120, "food": 8800, "stone": 5300}},
+      {"stageNumber": 10, "stageId": "c10_s10", "stageName": "Frostwyrm Overlord", "isBossStage": true, "recommendedPower": 40460, "storyDialogue": [{"speaker": "Rex", "text": "Slay the gargantuan Glacial Frost Wyrm!"}], "enemyComposition": [{"enemyId": "frost_wyrm", "count": 3}, {"enemyId": "frost_lupine", "count": 25}],
+      "rewards": {"heroXP": 1500, "food": 12000, "stone": 8000, "valor": 300}
+      }
+    ]
+  },
+  {
+    "chapterNumber": 11,
+    "chapterName": "Tidewater Bastion",
+    "chapterRegion": "Shattered Reefs Sea",
+    "storyIntro": "Lorelai sails deep waters to purge high tides of pirate ambush craft.",
+    "storyOutro": "Ships anchor secure; safe mercantile trade pathways established.",
+    "stages": [
+      {"stageNumber": 1, "stageId": "c11_s1", "stageName": "Coast Trail", "isBossStage": false, "recommendedPower": 41500, "storyDialogue": [{"speaker": "Lorelai", "text": "Bandits hide in cliffs."}], "enemyComposition": [{"enemyId": "goblin_pillager", "count": 15}], "rewards": {"heroXP": 1100, "food": 9000, "wood": 5000}},
+      {"stageNumber": 2, "stageId": "c11_s2", "stageName": "Beach Clash", "isBossStage": false, "recommendedPower": 42560, "storyDialogue": [{"speaker": "Skye", "text": "Pegasus flight ready!"}], "enemyComposition": [{"enemyId": "bog_mire_ooze", "count": 15}], "rewards": {"heroXP": 1115, "food": 9100, "wood": 5100}},
+      {"stageNumber": 3, "stageId": "c11_s3", "stageName": "Cove Skirmish", "isBossStage": false, "recommendedPower": 43630, "storyDialogue": [{"speaker": "Lorelai", "text": "Surround their pirate vessels."}], "enemyComposition": [{"enemyId": "goblin_pillager", "count": 18}], "rewards": {"heroXP": 1130, "food": 9200, "wood": 5200}},
+      {"stageNumber": 4, "stageId": "c11_s4", "stageName": "Sand Dunes", "isBossStage": false, "recommendedPower": 44710, "storyDialogue": [{"speaker": "Skye", "text": "Watch deep sand pits."}], "enemyComposition": [{"enemyId": "bog_mire_ooze", "count": 18}], "rewards": {"heroXP": 1145, "food": 9300, "wood": 5300}},
+      {"stageNumber": 5, "stageId": "c11_s5", "stageName": "Sea Drake", "isBossStage": false, "recommendedPower": 45800, "storyDialogue": [{"speaker": "Lorelai", "text": "A swamp dragon!"}], "enemyComposition": [{"enemyId": "shadow_drake", "count": 2}], "rewards": {"heroXP": 1160, "food": 9400, "wood": 5400}},
+      {"stageNumber": 6, "stageId": "c11_s6", "stageName": "Reef Crossing", "isBossStage": false, "recommendedPower": 46900, "storyDialogue": [{"speaker": "Skye", "text": "Hold their main ship."}], "enemyComposition": [{"enemyId": "goblin_pillager", "count": 20}], "rewards": {"heroXP": 1175, "food": 9500, "wood": 5500}},
+      {"stageNumber": 7, "stageId": "c11_s7", "stageName": "Shallow Port", "isBossStage": false, "recommendedPower": 48010, "storyDialogue": [{"speaker": "Lorelai", "text": "Merchant fleets safe."}], "enemyComposition": [{"enemyId": "goblin_pillager", "count": 22}], "rewards": {"heroXP": 1190, "food": 9600, "wood": 5600}},
+      {"stageNumber": 8, "stageId": "c11_s8", "stageName": "Cove Fort", "isBossStage": false, "recommendedPower": 49130, "storyDialogue": [{"speaker": "Skye", "text": "We breach their center."}], "enemyComposition": [{"enemyId": "bog_mire_ooze", "count": 20}], "rewards": {"heroXP": 1205, "food": 9700, "wood": 5700}},
+      {"stageNumber": 9, "stageId": "c11_s9", "stageName": "Black Flag", "isBossStage": false, "recommendedPower": 50260, "storyDialogue": [{"speaker": "Lorelai", "text": "Pirate captains engage."}], "enemyComposition": [{"enemyId": "shadow_drake", "count": 3}], "rewards": {"heroXP": 1220, "food": 9800, "wood": 5800}},
+      {"stageNumber": 10, "stageId": "c11_s10", "stageName": "Pirate Overlord", "isBossStage": true, "recommendedPower": 51400, "storyDialogue": [{"speaker": "Lorelai", "text": "Exterminate the rogue fleet master!"}], "enemyComposition": [{"enemyId": "shadow_drake", "count": 4}, {"enemyId": "goblin_pillager", "count": 30}],
+      "rewards": {"heroXP": 1600, "food": 14000, "wood": 9000, "valor": 320}
+      }
+    ]
+  },
+  {
+    "chapterNumber": 12,
+    "chapterName": "Caldera Descent",
+    "chapterRegion": "Sulfur Springs",
+    "storyIntro": "Commander Volkan leads core miners down the deep sulfur pits.",
+    "storyOutro": "Brimstone reservoirs are securely mined and locked away.",
+    "stages": [
+      {"stageNumber": 1, "stageId": "c12_s1", "stageName": "Pit Gate", "isBossStage": false, "recommendedPower": 52500, "storyDialogue": [{"speaker": "Volkan", "text": "Watch the lava drips."}], "enemyComposition": [{"enemyId": "cinder_spitter", "count": 20}], "rewards": {"heroXP": 1200, "food": 10000, "iron": 5000}},
+      {"stageNumber": 2, "stageId": "c12_s2", "stageName": "Lava Mine", "isBossStage": false, "recommendedPower": 53650, "storyDialogue": [{"speaker": "Demon", "text": "This brimstone is ready."}], "enemyComposition": [{"enemyId": "cinder_spitter", "count": 22}], "rewards": {"heroXP": 1215, "food": 10100, "iron": 5100}},
+      {"stageNumber": 3, "stageId": "c12_s3", "stageName": "Basalt Shaft", "isBossStage": false, "recommendedPower": 54810, "storyDialogue": [{"speaker": "Volkan", "text": "Erect the heat shields."}], "enemyComposition": [{"enemyId": "cinder_spitter", "count": 24}], "rewards": {"heroXP": 1230, "food": 10200, "iron": 5200}},
+      {"stageNumber": 4, "stageId": "c12_s4", "stageName": "Searing Core", "isBossStage": false, "recommendedPower": 55980, "storyDialogue": [{"speaker": "Demon", "text": "Smelt the raw metals!"}], "enemyComposition": [{"enemyId": "cinder_spitter", "count": 26}], "rewards": {"heroXP": 1245, "food": 10300, "iron": 5300}},
+      {"stageNumber": 5, "stageId": "c12_s5", "stageName": "Magma Pool", "isBossStage": false, "recommendedPower": 57160, "storyDialogue": [{"speaker": "Volkan", "text": "A fire colossus rising!"}], "enemyComposition": [{"enemyId": "infernal_behemoth", "count": 1}], "rewards": {"heroXP": 1260, "food": 10400, "iron": 5400}},
+      {"stageNumber": 6, "stageId": "c12_s6", "stageName": "Sulfur Floor", "isBossStage": false, "recommendedPower": 58350, "storyDialogue": [{"speaker": "Demon", "text": "Water sprays active."}], "enemyComposition": [{"enemyId": "cinder_spitter", "count": 28}], "rewards": {"heroXP": 1275, "food": 10500, "iron": 5500}},
+      {"stageNumber": 7, "stageId": "c12_s7", "stageName": "Hot Fissure", "isBossStage": false, "recommendedPower": 59550, "storyDialogue": [{"speaker": "Volkan", "text": "Hold active footing."}], "enemyComposition": [{"enemyId": "cinder_spitter", "count": 30}], "rewards": {"heroXP": 1290, "food": 10600, "iron": 5600}},
+      {"stageNumber": 8, "stageId": "c12_s8", "stageName": "Iron Forge", "isBossStage": false, "recommendedPower": 60760, "storyDialogue": [{"speaker": "Demon", "text": "Ember storms rising."}], "enemyComposition": [{"enemyId": "infernal_behemoth", "count": 2}], "rewards": {"heroXP": 1305, "food": 10700, "iron": 5700}},
+      {"stageNumber": 9, "stageId": "c12_s9", "stageName": "Volcano Mouth", "isBossStage": false, "recommendedPower": 61980, "storyDialogue": [{"speaker": "Volkan", "text": "The caldera is unstable."}], "enemyComposition": [{"enemyId": "cinder_spitter", "count": 32}], "rewards": {"heroXP": 1320, "food": 10800, "iron": 5800}},
+      {"stageNumber": 10, "stageId": "c12_s10", "stageName": "Caldera Monarch", "isBossStage": true, "recommendedPower": 63200, "storyDialogue": [{"speaker": "Volkan", "text": "Seal the molten sulfur giant king!"}], "enemyComposition": [{"enemyId": "infernal_behemoth", "count": 3}, {"enemyId": "cinder_spitter", "count": 30}],
+      "rewards": {"heroXP": 1800, "food": 15000, "iron": 10000, "valor": 350}
+      }
+    ]
+  },
+  {
+    "chapterNumber": 13,
+    "chapterName": "Celestial Trials",
+    "chapterRegion": "Aurelia Palace Square",
+    "storyIntro": "Commander Heaven evaluates vanguard recruits through holy selection tasks.",
+    "storyOutro": "Selection complete; gold paladins stand ready under Sovereign command.",
+    "stages": [
+      {"stageNumber": 1, "stageId": "c13_s1", "stageName": "Palace Gates", "isBossStage": false, "recommendedPower": 64000, "storyDialogue": [{"speaker": "Heaven", "text": "Show your militaristic posture!"}], "enemyComposition": [{"enemyId": "frost_lupine", "count": 25}], "rewards": {"heroXP": 1300, "food": 12000, "wood": 6000}},
+      {"stageNumber": 2, "stageId": "c13_s2", "stageName": "Golden Arch", "isBossStage": false, "recommendedPower": 65200, "storyDialogue": [{"speaker": "Maegan", "text": "Tactical coordination is key."}], "enemyComposition": [{"enemyId": "cinder_spitter", "count": 25}], "rewards": {"heroXP": 1315, "food": 12100, "wood": 6100}},
+      {"stageNumber": 3, "stageId": "c13_s3", "stageName": "Courtyard Clash", "isBossStage": false, "recommendedPower": 66410, "storyDialogue": [{"speaker": "Heaven", "text": "Speed and stamina are tested."}], "enemyComposition": [{"enemyId": "mossy_harpy", "count": 20}], "rewards": {"heroXP": 1330, "food": 12200, "wood": 6200}},
+      {"stageNumber": 4, "stageId": "c13_s4", "stageName": "Sacred Pillars", "isBossStage": false, "recommendedPower": 67630, "storyDialogue": [{"speaker": "Maegan", "text": "Hold this central ring."}], "enemyComposition": [{"enemyId": "ironwood_golem", "count": 15}], "rewards": {"heroXP": 1345, "food": 12300, "wood": 6300}},
+      {"stageNumber": 5, "stageId": "c13_s5", "stageName": "Titan Avatar", "isBossStage": false, "recommendedPower": 68860, "storyDialogue": [{"speaker": "Heaven", "text": "Stone defenses rising!"}], "enemyComposition": [{"enemyId": "stone_giant", "count": 3}], "rewards": {"heroXP": 1360, "food": 12400, "wood": 6400}},
+      {"stageNumber": 6, "stageId": "c13_s6", "stageName": "Light Dome", "isBossStage": false, "recommendedPower": 70100, "storyDialogue": [{"speaker": "Maegan", "text": "Aegis protection active."}], "enemyComposition": [{"enemyId": "goblin_pillager", "count": 25}], "rewards": {"heroXP": 1375, "food": 12500, "wood": 6500}},
+      {"stageNumber": 7, "stageId": "c13_s7", "stageName": "Vanguard Deck", "isBossStage": false, "recommendedPower": 71350, "storyDialogue": [{"speaker": "Heaven", "text": "The holy lance shines!"}], "enemyComposition": [{"enemyId": "crypt_wight", "count": 25}], "rewards": {"heroXP": 1390, "food": 12600, "wood": 6600}},
+      {"stageNumber": 8, "stageId": "c13_s8", "stageName": "Rune Hall", "isBossStage": false, "recommendedPower": 72610, "storyDialogue": [{"speaker": "Maegan", "text": "Seal the portal."}], "enemyComposition": [{"enemyId": "grave_creeper", "count": 25}], "rewards": {"heroXP": 1405, "food": 12700, "wood": 6700}},
+      {"stageNumber": 9, "stageId": "c13_s9", "stageName": "Throne Ascent", "isBossStage": false, "recommendedPower": 73880, "storyDialogue": [{"speaker": "Heaven", "text": "The final test nears."}], "enemyComposition": [{"enemyId": "shadow_drake", "count": 4}], "rewards": {"heroXP": 1420, "food": 12800, "wood": 6800}},
+      {"stageNumber": 10, "stageId": "c13_s10", "stageName": "Valorous Marshal", "isBossStage": true, "recommendedPower": 75170, "storyDialogue": [{"speaker": "Heaven", "text": "Prove your absolute tactical fury!"}], "enemyComposition": [{"enemyId": "ignis_the_volcanic_leviathan", "count": 1}],
+      "rewards": {"heroXP": 2000, "food": 20000, "wood": 12000, "valor": 400}
+      }
+    ]
+  },
+  {
+    "chapterNumber": 14,
+    "chapterName": "Fenns Cleanse",
+    "chapterRegion": "Shadowvale Swamps",
+    "storyIntro": "Shadow leads a secret medical legion to heal corrupted misty fens.",
+    "storyOutro": "Blighted vapors dissipate; natural spring flows restored.",
+    "stages": [
+      {"stageNumber": 1, "stageId": "c14_s1", "stageName": "Toxic Creek", "isBossStage": false, "recommendedPower": 76000, "storyDialogue": [{"speaker": "Shadow", "text": "Avoid deep vapors."}], "enemyComposition": [{"enemyId": "grave_creeper", "count": 25}], "rewards": {"heroXP": 1400, "food": 13000, "wood": 7000}},
+      {"stageNumber": 2, "stageId": "c14_s2", "stageName": "Damp Caves", "isBossStage": false, "recommendedPower": 77280, "storyDialogue": [{"speaker": "Lumi", "text": "Medic kits distributed."}], "enemyComposition": [{"enemyId": "bog_mire_ooze", "count": 25}], "rewards": {"heroXP": 1415, "food": 13100, "wood": 7100}},
+      {"stageNumber": 3, "stageId": "c14_s3", "stageName": "Mist Bridge", "isBossStage": false, "recommendedPower": 78570, "storyDialogue": [{"speaker": "Shadow", "text": "Hold active silence."}], "enemyComposition": [{"enemyId": "crypt_wight", "count": 25}], "rewards": {"heroXP": 1430, "food": 13200, "wood": 7200}},
+      {"stageNumber": 4, "stageId": "c14_s4", "stageName": "Tainted Well", "isBossStage": false, "recommendedPower": 79870, "storyDialogue": [{"speaker": "Lumi", "text": "Fenn flowers active."}], "enemyComposition": [{"enemyId": "bog_mire_ooze", "count": 30}], "rewards": {"heroXP": 1445, "food": 13300, "wood": 7300}},
+      {"stageNumber": 5, "stageId": "c14_s5", "stageName": "Miasma Hill", "isBossStage": false, "recommendedPower": 81180, "storyDialogue": [{"speaker": "Shadow", "text": "A massive shade approaches."}], "enemyComposition": [{"enemyId": "shadow_drake", "count": 4}], "rewards": {"heroXP": 1460, "food": 13400, "wood": 7400}},
+      {"stageNumber": 6, "stageId": "c14_s6", "stageName": "Sunken Ships", "isBossStage": false, "recommendedPower": 82500, "storyDialogue": [{"speaker": "Lumi", "text": "Purify current pools."}], "enemyComposition": [{"enemyId": "bog_mire_ooze", "count": 35}], "rewards": {"heroXP": 1475, "food": 13500, "wood": 7500}},
+      {"stageNumber": 7, "stageId": "c14_s7", "stageName": "Rotting Arbor", "isBossStage": false, "recommendedPower": 83830, "storyDialogue": [{"speaker": "Shadow", "text": "Cut the old roots."}], "enemyComposition": [{"enemyId": "ironwood_golem", "count": 25}], "rewards": {"heroXP": 1490, "food": 13600, "wood": 7600}},
+      {"stageNumber": 8, "stageId": "c14_s8", "stageName": "Catacombs", "isBossStage": false, "recommendedPower": 85170, "storyDialogue": [{"speaker": "Lumi", "text": "Heal the fallen veterans."}], "enemyComposition": [{"enemyId": "crypt_wight", "count": 30}], "rewards": {"heroXP": 1505, "food": 13700, "wood": 7700}},
+      {"stageNumber": 9, "stageId": "c14_s9", "stageName": "Shadow Portal", "isBossStage": false, "recommendedPower": 86520, "storyDialogue": [{"speaker": "Shadow", "text": "We stand near the cure."}], "enemyComposition": [{"enemyId": "grave_creeper", "count": 30}], "rewards": {"heroXP": 1520, "food": 13800, "wood": 7800}},
+      {"stageNumber": 10, "stageId": "c14_s10", "stageName": "Miasma Monarch", "isBossStage": true, "recommendedPower": 87880, "storyDialogue": [{"speaker": "Shadow", "text": "Defeat the grand Fenn shadow spinner!"}], "enemyComposition": [{"enemyId": "shadow_drake", "count": 5}, {"enemyId": "grave_creeper", "count": 30}],
+      "rewards": {"heroXP": 2100, "food": 22000, "wood": 14000, "valor": 420}
+      }
+    ]
+  },
+  {
+    "chapterNumber": 15,
+    "chapterName": "Summit Hunt",
+    "chapterRegion": "Spire Ridge peak",
+    "storyIntro": "Commander Rex patrols towering peaks to secure nesting legendary dragons.",
+    "storyOutro": "Brave alliance lines hold; nest territories fortified.",
+    "stages": [
+      {"stageNumber": 1, "stageId": "c15_s1", "stageName": "Wind Pass", "isBossStage": false, "recommendedPower": 89000, "storyDialogue": [{"speaker": "Rex", "text": "Look out for steep drops!"}], "enemyComposition": [{"enemyId": "frost_lupine", "count": 30}], "rewards": {"heroXP": 1500, "food": 14000, "stone": 7000}},
+      {"stageNumber": 2, "stageId": "c15_s2", "stageName": "High Nest", "isBossStage": false, "recommendedPower": 90350, "storyDialogue": [{"speaker": "Boreas", "text": "Ice winds blow cold."}], "enemyComposition": [{"enemyId": "mossy_harpy", "count": 30}], "rewards": {"heroXP": 1515, "food": 14100, "stone": 7100}},
+      {"stageNumber": 3, "stageId": "c15_s3", "stageName": "Snow Field", "isBossStage": false, "recommendedPower": 91710, "storyDialogue": [{"speaker": "Rex", "text": "Ready the solid shields."}], "enemyComposition": [{"enemyId": "frost_lupine", "count": 35}], "rewards": {"heroXP": 1530, "food": 14200, "stone": 7200}},
+      {"stageNumber": 4, "stageId": "c15_s4", "stageName": "Glacier Cave", "isBossStage": false, "recommendedPower": 93080, "storyDialogue": [{"speaker": "Boreas", "text": "Frost scales locked."}], "enemyComposition": [{"enemyId": "mossy_harpy", "count": 35}], "rewards": {"heroXP": 1545, "food": 14300, "stone": 7300}},
+      {"stageNumber": 5, "stageId": "c15_s5", "stageName": "Wyrm Roost", "isBossStage": false, "recommendedPower": 94460, "storyDialogue": [{"speaker": "Rex", "text": "Ice dragon warning!"}], "enemyComposition": [{"enemyId": "frost_wyrm", "count": 2}], "rewards": {"heroXP": 1560, "food": 14400, "stone": 7400}},
+      {"stageNumber": 6, "stageId": "c15_s6", "stageName": "Sheer Cliff", "isBossStage": false, "recommendedPower": 95850, "storyDialogue": [{"speaker": "Boreas", "text": "My wind claws strike."}], "enemyComposition": [{"enemyId": "frost_lupine", "count": 40}], "rewards": {"heroXP": 1575, "food": 14500, "stone": 7500}},
+      {"stageNumber": 7, "stageId": "c15_s7", "stageName": "Cracked Ice", "isBossStage": false, "recommendedPower": 7260, "storyDialogue": [{"speaker": "Rex", "text": "Walk on the stone slabs."}], "enemyComposition": [{"enemyId": "frost_lupine", "count": 45}], "rewards": {"heroXP": 1590, "food": 14600, "stone": 7600}},
+      {"stageNumber": 8, "stageId": "c15_s8", "stageName": "Snow Golem", "isBossStage": false, "recommendedPower": 98660, "storyDialogue": [{"speaker": "Boreas", "text": "Ready the ice breath."}], "enemyComposition": [{"enemyId": "stone_giant", "count": 4}], "rewards": {"heroXP": 1605, "food": 14700, "stone": 7700}},
+      {"stageNumber": 9, "stageId": "c15_s9", "stageName": "Sovereign Apex", "isBossStage": false, "recommendedPower": 100080, "storyDialogue": [{"speaker": "Rex", "text": "We reach the summit vault."}], "enemyComposition": [{"enemyId": "frost_wyrm", "count": 3}], "rewards": {"heroXP": 1620, "food": 14800, "stone": 7800}},
+      {"stageNumber": 10, "stageId": "c15_s10", "stageName": "Peak Sovereign", "isBossStage": true, "recommendedPower": 101510, "storyDialogue": [{"speaker": "Rex", "text": "Subdue the ancient mountain behemoth wyrm!"}], "enemyComposition": [{"enemyId": "frost_wyrm", "count": 4}, {"enemyId": "frost_lupine", "count": 40}],
+      "rewards": {"heroXP": 2200, "food": 25000, "stone": 15000, "valor": 450}
+      }
+    ]
+  },
+  {
+    "chapterNumber": 16,
+    "chapterName": "Anvil Revolt",
+    "chapterRegion": "Anvil Spire Forge",
+    "storyIntro": "Commander Volkan subdues corrupted furnace sparks inside central armories.",
+    "storyOutro": "Furnace fires are safe; military master arms secure.",
+    "stages": [
+      {"stageNumber": 1, "stageId": "c16_s1", "stageName": "Spire Gate", "isBossStage": false, "recommendedPower": 103000, "storyDialogue": [{"speaker": "Volkan", "text": "Armory under attack!"}], "enemyComposition": [{"enemyId": "cinder_spitter", "count": 30}], "rewards": {"heroXP": 1600, "food": 15000, "iron": 8000}},
+      {"stageNumber": 2, "stageId": "c16_s2", "stageName": "Smelting Room", "isBossStage": false, "recommendedPower": 104440, "storyDialogue": [{"speaker": "Remi", "text": "The brick walls are cracking."}], "enemyComposition": [{"enemyId": "cinder_spitter", "count": 32}], "rewards": {"heroXP": 1615, "food": 15100, "iron": 8100}},
+      {"stageNumber": 3, "stageId": "c16_s3", "stageName": "Anvil Hall", "isBossStage": false, "recommendedPower": 105890, "storyDialogue": [{"speaker": "Volkan", "text": "Protect the grand hammers."}], "enemyComposition": [{"enemyId": "cinder_spitter", "count": 35}], "rewards": {"heroXP": 1630, "food": 15200, "iron": 8200}},
+      {"stageNumber": 4, "stageId": "c16_s4", "stageName": "Steam Pipe", "isBossStage": false, "recommendedPower": 107350, "storyDialogue": [{"speaker": "Remi", "text": "Fix the valves."}], "enemyComposition": [{"enemyId": "cinder_spitter", "count": 38}], "rewards": {"heroXP": 1645, "food": 15300, "iron": 8300}},
+      {"stageNumber": 5, "stageId": "c16_s5", "stageName": "Iron Giant", "isBossStage": false, "recommendedPower": 108820, "storyDialogue": [{"speaker": "Volkan", "text": "A steel golem breaks loose!"}], "enemyComposition": [{"enemyId": "stone_giant", "count": 4}], "rewards": {"heroXP": 1660, "food": 15400, "iron": 8400}},
+      {"stageNumber": 6, "stageId": "c16_s6", "stageName": "Ventilation Shaft", "isBossStage": false, "recommendedPower": 110300, "storyDialogue": [{"speaker": "Remi", "text": "The wind runs hot."}], "enemyComposition": [{"enemyId": "cinder_spitter", "count": 40}], "rewards": {"heroXP": 1675, "food": 15500, "iron": 8500}},
+      {"stageNumber": 7, "stageId": "c16_s7", "stageName": "Fuel Reserve", "isBossStage": false, "recommendedPower": 111790, "storyDialogue": [{"speaker": "Volkan", "text": "Keep heat spikes low."}], "enemyComposition": [{"enemyId": "cinder_spitter", "count": 42}], "rewards": {"heroXP": 1690, "food": 15600, "iron": 8600}},
+      {"stageNumber": 8, "stageId": "c16_s8", "stageName": "Smelt Crane", "isBossStage": false, "recommendedPower": 113290, "storyDialogue": [{"speaker": "Remi", "text": "The crane structures hold."}], "enemyComposition": [{"enemyId": "stone_giant", "count": 5}], "rewards": {"heroXP": 1705, "food": 15700, "iron": 8700}},
+      {"stageNumber": 9, "stageId": "c16_s9", "stageName": "Master Forge", "isBossStage": false, "recommendedPower": 114800, "storyDialogue": [{"speaker": "Volkan", "text": "Heal the foundry workers."}], "enemyComposition": [{"enemyId": "cinder_spitter", "count": 45}], "rewards": {"heroXP": 1720, "food": 15800, "iron": 8800}},
+      {"stageNumber": 10, "stageId": "c16_s10", "stageName": "Furnace Colossus", "isBossStage": true, "recommendedPower": 116320, "storyDialogue": [{"speaker": "Volkan", "text": "Slay the gargantuan slag iron behemoth colossus!"}], "enemyComposition": [{"enemyId": "infernal_behemoth", "count": 4}, {"enemyId": "cinder_spitter", "count": 40}],
+      "rewards": {"heroXP": 2400, "food": 26000, "iron": 16000, "valor": 480}
+      }
+    ]
+  },
+  {
+    "chapterNumber": 17,
+    "chapterName": "Deep Oceans",
+    "chapterRegion": "Shattered Reefs Horizon",
+    "storyIntro": "Lorelai coordinates naval battle arrays against deep-lying ocean kraken spawns.",
+    "storyOutro": "Marine trade pathways are secured; sailors sing tribute.",
+    "stages": [
+      {"stageNumber": 1, "stageId": "c17_s1", "stageName": "Deep Coast", "isBossStage": false, "recommendedPower": 118000, "storyDialogue": [{"speaker": "Lorelai", "text": "Drakes block shipping paths."}], "enemyComposition": [{"enemyId": "shadow_drake", "count": 6}], "rewards": {"heroXP": 1700, "food": 16000, "wood": 9000}},
+      {"stageNumber": 2, "stageId": "c17_s2", "stageName": "Wet Sand", "isBossStage": false, "recommendedPower": 119530, "storyDialogue": [{"speaker": "Skye", "text": "Flank from sea cliffs."}], "enemyComposition": [{"enemyId": "bog_mire_ooze", "count": 30}], "rewards": {"heroXP": 1715, "food": 16100, "wood": 9100}},
+      {"stageNumber": 3, "stageId": "c17_s3", "stageName": "Water Spit", "isBossStage": false, "recommendedPower": 121070, "storyDialogue": [{"speaker": "Lorelai", "text": "These waters run wild."}], "enemyComposition": [{"enemyId": "shadow_drake", "count": 7}], "rewards": {"heroXP": 1730, "food": 16200, "wood": 9200}},
+      {"stageNumber": 4, "stageId": "c17_s4", "stageName": "Ocean Reef", "isBossStage": false, "recommendedPower": 122620, "storyDialogue": [{"speaker": "Skye", "text": "Pegasus speed boosters active."}], "enemyComposition": [{"enemyId": "bog_mire_ooze", "count": 35}], "rewards": {"heroXP": 1745, "food": 16300, "wood": 9300}},
+      {"stageNumber": 5, "stageId": "c17_s5", "stageName": "Sea Wyrm", "isBossStage": false, "recommendedPower": 124180, "storyDialogue": [{"speaker": "Lorelai", "text": "Deep scales detected."}], "enemyComposition": [{"enemyId": "shadow_drake", "count": 8}], "rewards": {"heroXP": 1760, "food": 16400, "wood": 9400}},
+      {"stageNumber": 6, "stageId": "c17_s6", "stageName": "Horizon Gap", "isBossStage": false, "recommendedPower": 125750, "storyDialogue": [{"speaker": "Skye", "text": "Aim for their main pack."}], "enemyComposition": [{"enemyId": "bog_mire_ooze", "count": 40}], "rewards": {"heroXP": 1775, "food": 16500, "wood": 9500}},
+      {"stageNumber": 7, "stageId": "c17_s7", "stageName": "Sandy Spit", "isBossStage": false, "recommendedPower": 127330, "storyDialogue": [{"speaker": "Lorelai", "text": "Hold harbor boundaries."}], "enemyComposition": [{"enemyId": "shadow_drake", "count": 10}], "rewards": {"heroXP": 1790, "food": 16600, "wood": 9600}},
+      {"stageNumber": 8, "stageId": "c17_s8", "stageName": "Reef Cliff", "isBossStage": false, "recommendedPower": 128920, "storyDialogue": [{"speaker": "Skye", "text": "Fell the harpy guards."}], "enemyComposition": [{"enemyId": "mossy_harpy", "count": 35}], "rewards": {"heroXP": 1805, "food": 16700, "wood": 9700}},
+      {"stageNumber": 9, "stageId": "c17_s9", "stageName": "Open Ocean", "isBossStage": false, "recommendedPower": 130520, "storyDialogue": [{"speaker": "Lorelai", "text": "Sea storms brew."}], "enemyComposition": [{"enemyId": "shadow_drake", "count": 12}], "rewards": {"heroXP": 1820, "food": 16800, "wood": 9800}},
+      {"stageNumber": 10, "stageId": "c17_s10", "stageName": "Deep Kraken", "isBossStage": true, "recommendedPower": 132130, "storyDialogue": [{"speaker": "Lorelai", "text": "Exterminate the multi-tentacled deep water Monarch!"}], "enemyComposition": [{"enemyId": "shadow_drake", "count": 15}, {"enemyId": "bog_mire_ooze", "count": 35}],
+      "rewards": {"heroXP": 2500, "food": 28000, "wood": 18000, "valor": 500}
+      }
+    ]
+  },
+  {
+    "chapterNumber": 18,
+    "chapterName": "Star Monoliths",
+    "chapterRegion": "Astralyn Union Ridge",
+    "storyIntro": "Faith defends ancient stardust monolith structures from void-energy drakes.",
+    "storyOutro": "Monolith relics are fully sealed; magical cosmic shields online.",
+    "stages": [
+      {"stageNumber": 1, "stageId": "c18_s1", "stageName": "Starlit Trail", "isBossStage": false, "recommendedPower": 134000, "storyDialogue": [{"speaker": "Faith", "text": "Void portals are opening!"}], "enemyComposition": [{"enemyId": "goblin_pillager", "count": 35}], "rewards": {"heroXP": 1800, "food": 18000, "iron": 9000}},
+      {"stageNumber": 2, "stageId": "c18_s2", "stageName": "Relic Chamber", "isBossStage": false, "recommendedPower": 135620, "storyDialogue": [{"speaker": "Myshla", "text": "Geomantic ley lines stable."}], "enemyComposition": [{"enemyId": "goblin_pillager", "count": 38}], "rewards": {"heroXP": 1815, "food": 18100, "iron": 9100}},
+      {"stageNumber": 3, "stageId": "c18_s3", "stageName": "Beacon Ruins", "isBossStage": false, "recommendedPower": 137250, "storyDialogue": [{"speaker": "Faith", "text": "Cosmic crystals are humming."}], "enemyComposition": [{"enemyId": "goblin_pillager", "count": 40}], "rewards": {"heroXP": 1830, "food": 18200, "iron": 9200}},
+      {"stageNumber": 4, "stageId": "c18_s4", "stageName": "Observation platform", "isBossStage": false, "recommendedPower": 138890, "storyDialogue": [{"speaker": "Myshla", "text": "Ready stone shields."}], "enemyComposition": [{"enemyId": "goblin_pillager", "count": 42}], "rewards": {"heroXP": 1845, "food": 18300, "iron": 9300}},
+      {"stageNumber": 5, "stageId": "c18_s5", "stageName": "Drake Cave", "isBossStage": false, "recommendedPower": 140540, "storyDialogue": [{"speaker": "Faith", "text": "Stardust drakes rove."}], "enemyComposition": [{"enemyId": "shadow_drake", "count": 5}], "rewards": {"heroXP": 1860, "food": 18400, "iron": 9400}},
+      {"stageNumber": 6, "stageId": "c18_s6", "stageName": "Union Spur", "isBossStage": false, "recommendedPower": 142200, "storyDialogue": [{"speaker": "Myshla", "text": "Tectonic anchors dropped."}], "enemyComposition": [{"enemyId": "goblin_pillager", "count": 45}], "rewards": {"heroXP": 1875, "food": 18500, "iron": 9500}},
+      {"stageNumber": 7, "stageId": "c18_s7", "stageName": "Star Vault", "isBossStage": false, "recommendedPower": 143870, "storyDialogue": [{"speaker": "Faith", "text": "Magical focus complete."}], "enemyComposition": [{"enemyId": "goblin_pillager", "count": 48}], "rewards": {"heroXP": 1890, "food": 18600, "iron": 9600}},
+      {"stageNumber": 8, "stageId": "c18_s8", "stageName": "Outlaw Camp", "isBossStage": false, "recommendedPower": 145550, "storyDialogue": [{"speaker": "Myshla", "text": "Erase their vanguard."}], "enemyComposition": [{"enemyId": "goblin_pillager", "count": 50}], "rewards": {"heroXP": 1905, "food": 18700, "iron": 9700}},
+      {"stageNumber": 9, "stageId": "c18_s9", "stageName": "Portal Verge", "isBossStage": false, "recommendedPower": 147240, "storyDialogue": [{"speaker": "Faith", "text": "Stellargrams alert."}], "enemyComposition": [{"enemyId": "shadow_drake", "count": 6}], "rewards": {"heroXP": 1920, "food": 18800, "iron": 9800}},
+      {"stageNumber": 10, "stageId": "c18_s10", "storyDialogue": [{"speaker": "Faith", "text": "Defeat the celestial stargaze boss!"}], "stageName": "Starlight Ravager", "isBossStage": true, "recommendedPower": 148940, "enemyComposition": [{"enemyId": "shadow_drake", "count": 8}, {"enemyId": "goblin_pillager", "count": 45}],
+      "rewards": {"heroXP": 2600, "food": 30000, "iron": 18000, "valor": 550}
+      }
+    ]
+  },
+  {
+    "chapterNumber": 19,
+    "chapterName": "Behemoth's Gate",
+    "chapterRegion": "Obsidian Ridge Gates",
+    "storyIntro": "Marshal Maegan coordinates final battle groupings against the lich vanguard.",
+    "storyOutro": "Gate coordinates are sealed; the ultimate confrontation path ready.",
+    "stages": [
+      {"stageNumber": 1, "stageId": "c19_s1", "stageName": "Ridge Edge", "isBossStage": false, "recommendedPower": 150000, "storyDialogue": [{"speaker": "Maegan", "text": "To absolute victory!"}], "enemyComposition": [{"enemyId": "frost_lupine", "count": 50}], "rewards": {"heroXP": 2000, "food": 20000, "stone": 10000}},
+      {"stageNumber": 2, "stageId": "c19_s2", "stageName": "Searing Ramp", "isBossStage": false, "recommendedPower": 151600, "storyDialogue": [{"speaker": "Demon", "text": "Hellfire frenzy primed!"}], "enemyComposition": [{"enemyId": "cinder_spitter", "count": 50}], "rewards": {"heroXP": 2015, "food": 20100, "stone": 10100}},
+      {"stageNumber": 3, "stageId": "c19_s3", "stageName": "Rift Portal", "isBossStage": false, "recommendedPower": 153210, "storyDialogue": [{"speaker": "Maegan", "text": "Lock secondary wings."}], "enemyComposition": [{"enemyId": "mossy_harpy", "count": 40}], "rewards": {"heroXP": 2030, "food": 20200, "stone": 10200}},
+      {"stageNumber": 4, "stageId": "c19_s4", "stageName": "Anvil Verge", "isBossStage": false, "recommendedPower": 154830, "storyDialogue": [{"speaker": "Volkan", "text": "Keep steel high."}], "enemyComposition": [{"enemyId": "ironwood_golem", "count": 30}], "rewards": {"heroXP": 2045, "food": 20300, "stone": 10300}},
+      {"stageNumber": 5, "stageId": "c19_s5", "stageName": "Lava Field", "isBossStage": false, "recommendedPower": 156460, "storyDialogue": [{"speaker": "Demon", "text": "Fire revenants sighted!"}], "enemyComposition": [{"enemyId": "infernal_behemoth", "count": 3}], "rewards": {"heroXP": 2060, "food": 20400, "stone": 10400}},
+      {"stageNumber": 6, "stageId": "c19_s6", "stageName": "Slate Wall", "isBossStage": false, "recommendedPower": 158100, "storyDialogue": [{"speaker": "Maegan", "text": "Sovereign Decree active!"}], "enemyComposition": [{"enemyId": "stone_giant", "count": 5}], "rewards": {"heroXP": 2075, "food": 20500, "stone": 10500}},
+      {"stageNumber": 7, "stageId": "c19_s7", "stageName": "Iron Chasm", "isBossStage": false, "recommendedPower": 159750, "storyDialogue": [{"speaker": "Volkan", "text": "Hammer down!"}], "enemyComposition": [{"enemyId": "sand_dweller", "count": 40}], "rewards": {"heroXP": 2090, "food": 20600, "stone": 10600}},
+      {"stageNumber": 8, "stageId": "c19_s8", "stageName": "Misty Pass", "isBossStage": false, "recommendedPower": 161410, "storyDialogue": [{"speaker": "Demon", "text": "Slay their vanguard scouts!"}], "enemyComposition": [{"enemyId": "crypt_wight", "count": 40}], "rewards": {"heroXP": 2105, "food": 20700, "stone": 10700}},
+      {"stageNumber": 9, "stageId": "c19_s9", "stageName": "Apex Gates", "isBossStage": false, "recommendedPower": 163080, "storyDialogue": [{"speaker": "Maegan", "text": "Ready the absolute shield walls!"}], "enemyComposition": [{"enemyId": "shadow_drake", "count": 8}], "rewards": {"heroXP": 2120, "food": 20800, "stone": 10800}},
+      {"stageNumber": 10, "stageId": "c19_s10", "stageName": "Master Behemoth", "isBossStage": true, "recommendedPower": 164760, "storyDialogue": [{"speaker": "Maegan", "text": "Vanquish the colossal Elite Infernal Behemoth guardian!"}], "enemyComposition": [{"enemyId": "infernal_behemoth", "count": 5}, {"enemyId": "cinder_spitter", "count": 50}],
+      "rewards": {"heroXP": 3000, "food": 35000, "stone": 20000, "valor": 600}
+      }
+    ]
+  },
+  {
+    "chapterNumber": 20,
+    "chapterName": "Crownspire Spire",
+    "chapterRegion": "Center Spire Sovereign Throne",
+    "storyIntro": "All legendary heroes unite on the steps of the central Sovereign Crown Throne to seal the final planar rift.",
+    "storyOutro": "Crownspire's magical dominion is eternally restored, and the Sovereign Crown glows forever.",
+    "stages": [
+      {"stageNumber": 1, "stageId": "c20_s1", "stageName": "Spire Step 1", "isBossStage": false, "recommendedPower": 170000, "storyDialogue": [{"speaker": "Maegan", "text": "Stand strong, union!"}], "enemyComposition": [{"enemyId": "frost_lupine", "count": 55}], "rewards": {"heroXP": 2500, "food": 25000, "wood": 15000}},
+      {"stageNumber": 2, "stageId": "c20_s2", "stageName": "Spire Step 2", "isBossStage": false, "recommendedPower": 171800, "storyDialogue": [{"speaker": "Lorelai", "text": "Siren chords ready."}], "enemyComposition": [{"enemyId": "cinder_spitter", "count": 55}], "rewards": {"heroXP": 2515, "food": 25100, "wood": 15150}},
+      {"stageNumber": 3, "stageId": "c20_s3", "stageName": "Spire Step 3", "isBossStage": false, "recommendedPower": 173610, "storyDialogue": [{"speaker": "Boreas", "text": "Gale blast speeds peak!"}], "enemyComposition": [{"enemyId": "mossy_harpy", "count": 45}], "rewards": {"heroXP": 2530, "food": 25200, "wood": 15300}},
+      {"stageNumber": 4, "stageId": "c20_s4", "stageName": "Spire Step 4", "isBossStage": false, "recommendedPower": 175430, "storyDialogue": [{"speaker": "Sylvana", "text": "Archers guide arrows."}], "enemyComposition": [{"enemyId": "ironwood_golem", "count": 35}], "rewards": {"heroXP": 2545, "food": 25300, "wood": 15450}},
+      {"stageNumber": 5, "stageId": "c20_s5", "stageName": "Spire Step 5", "isBossStage": false, "recommendedPower": 177260, "storyDialogue": [{"speaker": "Shadow", "text": "Silent assassination strike."}], "enemyComposition": [{"enemyId": "infernal_behemoth", "count": 4}], "rewards": {"heroXP": 2560, "food": 25400, "wood": 15600}},
+      {"stageNumber": 6, "stageId": "c20_s6", "stageName": "Spire Step 6", "isBossStage": false, "recommendedPower": 179100, "storyDialogue": [{"speaker": "Rex", "text": "Obsidian defense dome!"}], "enemyComposition": [{"enemyId": "stone_giant", "count": 6}], "rewards": {"heroXP": 2575, "food": 25500, "wood": 15750}},
+      {"stageNumber": 7, "stageId": "c20_s7", "stageName": "Spire Step 7", "isBossStage": false, "recommendedPower": 180950, "storyDialogue": [{"speaker": "Myshla", "text": "Resonance pulse locked."}], "enemyComposition": [{"enemyId": "sand_dweller", "count": 45}], "rewards": {"heroXP": 2590, "food": 25600, "wood": 15900}},
+      {"stageNumber": 8, "stageId": "c20_s8", "stageName": "Spire Step 8", "isBossStage": false, "recommendedPower": 182810, "storyDialogue": [{"speaker": "Lumi", "text": "Glacial ice heal!"}], "enemyComposition": [{"enemyId": "crypt_wight", "count": 45}], "rewards": {"heroXP": 2605, "food": 25700, "wood": 16050}},
+      {"stageNumber": 9, "stageId": "c20_s9", "stageName": "Spire Royal Gate", "isBossStage": false, "recommendedPower": 184680, "storyDialogue": [{"speaker": "Heaven", "text": "The sanctuary gates breach."}], "enemyComposition": [{"enemyId": "shadow_drake", "count": 10}], "rewards": {"heroXP": 2620, "food": 25800, "wood": 16200}},
+      {"stageNumber": 10, "stageId": "c20_s10", "stageName": "Sovereign Shard", "isBossStage": true, "recommendedPower": 186560, "storyDialogue": [{"speaker": "Maegan", "text": "Consolidate final sovereign cmd fury!"}], "enemyComposition": [{"enemyId": "ignis_the_volcanic_leviathan", "count": 1}, {"enemyId": "infernal_behemoth", "count": 5}],
+      "rewards": {"heroXP": 5000, "food": 50000, "wood": 30000, "stone": 20000, "iron": 10000, "valor": 1000}
+      }
+    ]
+  }
+]

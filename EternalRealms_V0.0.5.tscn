@@ -1,0 +1,608 @@
+[gd_scene format=3 uid="uid://b7nckj2xgx4es"]
+
+[ext_resource type="Script" uid="uid://b820vmumg2o7r" path="res://upgrade_castle_button.gd" id="1_3smhh"]
+[ext_resource type="Script" uid="uid://dova0c74f8122" path="res://Scripts/Managers/ResourceManager.gd" id="2_c60hs"]
+
+[node name="Control" type="Control" unique_id=368868041]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.8068964, 0.4493893)
+script = ExtResource("1_3smhh")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=182132709]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -12.393164
+offset_top = -15.576695
+offset_right = -12.393188
+offset_bottom = -15.576721
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(2.2001388, 3.49104)
+color = Color(0, 0.08661773, 0.398657, 1)
+
+[node name="CastleLevelLabel" type="Label" parent="." unique_id=596896754]
+layout_mode = 0
+offset_top = 73.0
+offset_right = 105.0
+offset_bottom = 96.0
+text = "Castle Level 1"
+
+[node name="FoodLabel" type="Label" parent="." unique_id=1466222346]
+layout_mode = 0
+offset_left = 9.0
+offset_top = 115.0
+offset_right = 93.0
+offset_bottom = 138.0
+text = "Food: 1000"
+
+[node name="WoodLabel" type="Label" parent="." unique_id=1776177528]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 140.0
+offset_right = 100.0
+offset_bottom = 189.0
+text = "Wood: 1000
+"
+
+[node name="StoneLabel" type="Label" parent="." unique_id=1149559336]
+layout_mode = 0
+offset_left = 13.0
+offset_top = 168.0
+offset_right = 103.0
+offset_bottom = 191.0
+text = "Stone: 1000"
+
+[node name="IronLabel" type="Label" parent="." unique_id=1725296820]
+layout_mode = 0
+offset_left = 19.0
+offset_top = 204.0
+offset_right = 96.0
+offset_bottom = 227.0
+text = "Iron: 1000"
+
+[node name="UpgradeCastleButton" type="Button" parent="." unique_id=1096145271]
+layout_mode = 0
+offset_left = 19.0
+offset_top = 264.0
+offset_right = 145.0
+offset_bottom = 295.0
+text = "Upgrade Castle"
+
+[node name="GatherResourcesButton" type="Button" parent="." unique_id=37574203]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 234.0
+offset_right = 155.0
+offset_bottom = 265.0
+text = "Gather Resources"
+
+[node name="FarmLevelLabel" type="Label" parent="." unique_id=1315540630]
+layout_mode = 0
+offset_left = 31.0
+offset_top = 308.0
+offset_right = 129.0
+offset_bottom = 331.0
+text = "Farm Level 1"
+
+[node name="UpgradeFarmButton" type="Button" parent="." unique_id=1818108142]
+layout_mode = 0
+offset_left = 25.0
+offset_top = 333.0
+offset_right = 144.0
+offset_bottom = 364.0
+text = "Upgrade Farm"
+
+[node name="LumberMillLevelLabel" type="Label" parent="." unique_id=503843124]
+layout_mode = 0
+offset_left = 23.0
+offset_top = 382.0
+offset_right = 174.0
+offset_bottom = 405.0
+text = "Lumber Mill Level 1"
+
+[node name="UpgradeLumberMillButton" type="Button" parent="." unique_id=773773078]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 422.0
+offset_right = 199.0
+offset_bottom = 453.0
+text = "Upgrade Lumber Mill"
+
+[node name="QuarryLevelLabel" type="Label" parent="." unique_id=784040349]
+layout_mode = 0
+offset_left = 44.0
+offset_top = 465.0
+offset_right = 157.0
+offset_bottom = 488.0
+text = "Quarry Level 1"
+
+[node name="UpgradeQuarryButton" type="Button" parent="." unique_id=688584746]
+layout_mode = 0
+offset_left = 44.0
+offset_top = 507.0
+offset_right = 177.0
+offset_bottom = 538.0
+text = "Upgrade Quarry"
+
+[node name="IronMineLevelLabel" type="Label" parent="." unique_id=1545096862]
+layout_mode = 0
+offset_left = 43.376076
+offset_top = 554.08527
+offset_right = 176.37607
+offset_bottom = 577.08527
+text = "Iron Mine Level 1"
+
+[node name="UpgradeIronMineButton" type="Button" parent="." unique_id=367109012]
+layout_mode = 0
+offset_left = 34.0
+offset_top = 580.0
+offset_right = 187.0
+offset_bottom = 611.0
+text = "Upgrade Iron Mine"
+
+[node name="InfantryLabel" type="Label" parent="." unique_id=1090762888]
+layout_mode = 0
+offset_left = 231.0
+offset_top = 59.0
+offset_right = 311.0
+offset_bottom = 82.0
+text = "Infantry: 0"
+
+[node name="TrainInfantryButton" type="Button" parent="." unique_id=1813523035]
+layout_mode = 0
+offset_left = 207.0
+offset_top = 89.0
+offset_right = 322.0
+offset_bottom = 120.0
+text = "Train Infantry"
+
+[node name="marksmenLabel" type="Label" parent="." unique_id=1855462715]
+layout_mode = 1
+anchors_preset = -1
+offset_left = 231.0
+offset_top = 176.0
+offset_right = 309.0
+offset_bottom = 199.0
+text = "Marksmen: 0"
+
+[node name="TrainmarksmenButton" type="Button" parent="." unique_id=520707971]
+layout_mode = 0
+offset_left = 205.0
+offset_top = 199.0
+offset_right = 317.0
+offset_bottom = 230.0
+text = "Train Marksmen"
+
+[node name="CavalryLabel" type="Label" parent="." unique_id=1699092426]
+layout_mode = 0
+offset_left = 249.0
+offset_top = 274.0
+offset_right = 324.0
+offset_bottom = 297.0
+text = "Cavalry: 0"
+
+[node name="TrainCavalryButton" type="Button" parent="." unique_id=2108632152]
+layout_mode = 0
+offset_left = 235.0
+offset_top = 304.0
+offset_right = 345.0
+offset_bottom = 335.0
+text = "Train Cavalry"
+
+[node name="HeroNameLabel" type="Label" parent="." unique_id=131024788]
+layout_mode = 0
+offset_left = 665.513
+offset_top = 133.51453
+offset_right = 754.513
+offset_bottom = 156.51453
+scale = Vector2(0.825841, 0.81176317)
+text = "Hero: None"
+
+[node name="HeroLevelLabel" type="Label" parent="." unique_id=1694649685]
+layout_mode = 0
+offset_left = 599.8292
+offset_top = 264.8038
+offset_right = 657.8292
+offset_bottom = 287.8038
+scale = Vector2(1.0450557, 0.870436)
+text = "Level: 0"
+
+[node name="HeroAttackLabel" type="Label" parent="." unique_id=100837545]
+layout_mode = 0
+offset_left = 601.0685
+offset_top = 222.52422
+offset_right = 669.0685
+offset_bottom = 245.52423
+text = "Attack: 0"
+
+[node name="HeroDefenseLabel" type="Label" parent="." unique_id=1340607213]
+layout_mode = 0
+offset_left = 586.1967
+offset_top = 184.6951
+offset_right = 667.1967
+offset_bottom = 207.6951
+text = "Defense: 0"
+
+[node name="RecruitHeroButton" type="Button" parent="." unique_id=2048853048]
+layout_mode = 0
+offset_left = 400.29922
+offset_top = 340.462
+offset_right = 506.29922
+offset_bottom = 371.462
+text = "Recruit Hero"
+
+[node name="LevelUpHeroButton" type="Button" parent="." unique_id=1806508591]
+layout_mode = 0
+offset_left = 396.58127
+offset_top = 384.96686
+offset_right = 513.5813
+offset_bottom = 415.96686
+text = "Level Up Hero"
+
+[node name="HeroTicketsLabel" type="Label" parent="." unique_id=1218315446]
+layout_mode = 0
+offset_left = 525.4702
+offset_top = 75.658264
+offset_right = 639.4702
+offset_bottom = 98.658264
+text = "Hero Tickets: 5"
+
+[node name="ValorLabel" type="Label" parent="." unique_id=1457046157]
+layout_mode = 0
+offset_left = 546.5386
+offset_top = 106.811676
+offset_right = 623.5386
+offset_bottom = 129.81168
+text = "Valor: 100"
+
+[node name="PreviousHeroButton" type="Button" parent="." unique_id=958370030]
+layout_mode = 0
+offset_left = 571.3249
+offset_top = 302.63293
+offset_right = 688.3249
+offset_bottom = 333.63293
+text = "Previous Hero"
+
+[node name="NextHeroButton" type="Button" parent="." unique_id=1100755710]
+layout_mode = 0
+offset_left = 706.4104
+offset_top = 304.85815
+offset_right = 793.4104
+offset_bottom = 335.85815
+text = "Next Hero"
+
+[node name="StoredFoodLabel" type="Label" parent="." unique_id=405604087]
+layout_mode = 0
+offset_left = 231.75218
+offset_top = 389.4174
+offset_right = 342.7522
+offset_bottom = 412.4174
+text = "Stored Food: 0"
+
+[node name="StoredWoodLabel" type="Label" parent="." unique_id=665256548]
+layout_mode = 0
+offset_left = 228.03424
+offset_top = 420.57077
+offset_right = 346.03424
+offset_bottom = 443.57077
+text = "Stored Wood: 0"
+
+[node name="StoredStoneLabel" type="Label" parent="." unique_id=1278317680]
+layout_mode = 0
+offset_left = 230.51286
+offset_top = 491.77853
+offset_right = 348.51288
+offset_bottom = 514.77856
+text = "Stored Stone: 0"
+
+[node name="StoredIronLabel" type="Label" parent="." unique_id=1292232563]
+layout_mode = 0
+offset_left = 230.51288
+offset_top = 453.94943
+offset_right = 335.51288
+offset_bottom = 476.94943
+text = "Stored Iron: 0"
+
+[node name="CollectResourcesButton" type="Button" parent="." unique_id=1450052734]
+layout_mode = 0
+offset_left = 232.9915
+offset_top = 525.15717
+offset_right = 376.99152
+offset_bottom = 556.15717
+text = "Collect Resources"
+
+[node name="ResearchHallLevelLabel" type="Label" parent="." unique_id=807290687]
+layout_mode = 0
+offset_left = 48.333344
+offset_top = 667.57263
+offset_right = 211.33334
+offset_bottom = 690.57263
+text = "Research Hall Level 1"
+
+[node name="UpgradeResearchHallButton" type="Button" parent="." unique_id=1652761402]
+layout_mode = 0
+offset_left = 32.22223
+offset_top = 703.1765
+offset_right = 216.22223
+offset_bottom = 734.1765
+text = "Upgrade Research Hall"
+
+[node name="EconomyResearchLabel" type="Label" parent="." unique_id=1241920026]
+layout_mode = 0
+offset_left = 401.53854
+offset_top = 542.9591
+offset_right = 604.5386
+offset_bottom = 565.9591
+text = "Economy Research Level 0"
+
+[node name="MilitaryResearchLabel" type="Label" parent="." unique_id=1666126495]
+layout_mode = 0
+offset_left = 638.248
+offset_top = 542.95905
+offset_right = 830.248
+offset_bottom = 565.95905
+text = "Military Research Level 0"
+
+[node name="ResearchEconomyButton" type="Button" parent="." unique_id=1738341362]
+layout_mode = 0
+offset_left = 430.04282
+offset_top = 583.01337
+offset_right = 584.04285
+offset_bottom = 614.01337
+text = "Research Economy"
+
+[node name="ResearchMilitaryButton" type="Button" parent="." unique_id=373016053]
+layout_mode = 0
+offset_left = 618.41895
+offset_top = 578.5629
+offset_right = 761.41895
+offset_bottom = 609.5629
+text = "Research Military"
+
+[node name="TroopAttackBonusLabel" type="Label" parent="." unique_id=872281871]
+layout_mode = 0
+offset_left = 411.45306
+offset_top = 473.97653
+offset_right = 595.45306
+offset_bottom = 496.97653
+text = "Troop Attack Bonus: 0%"
+
+[node name="EnemyLevelLabel" type="Label" parent="." unique_id=298648351]
+layout_mode = 0
+offset_left = 37.179493
+offset_top = 818.88904
+offset_right = 152.17949
+offset_bottom = 867.88904
+text = "Enemy Level: 1
+"
+
+[node name="EnemyInfantryLabel" type="Label" parent="." unique_id=2056288359]
+layout_mode = 0
+offset_left = 173.50432
+offset_top = 781.06
+offset_right = 319.50433
+offset_bottom = 830.06
+text = "Enemy Infantry: 50
+"
+
+[node name="EnemymarksmenLabel" type="Label" parent="." unique_id=1261123625]
+layout_mode = 0
+offset_left = 456.06848
+offset_top = 818.8891
+offset_right = 622.0685
+offset_bottom = 867.8891
+text = "Enemy Marksmen: 30
+"
+
+[node name="EnemyCavalryLabel" type="Label" parent="." unique_id=1108692984]
+layout_mode = 0
+offset_left = 45.85471
+offset_top = 854.4929
+offset_right = 186.8547
+offset_bottom = 903.4929
+text = "Enemy Cavalry: 20
+"
+
+[node name="BattleResultLabel" type="Label" parent="." unique_id=736733451]
+layout_mode = 0
+offset_left = 245.38466
+offset_top = 845.592
+offset_right = 394.38464
+offset_bottom = 894.592
+text = "Battle Result: None
+"
+
+[node name="PlayerPowerLabel" type="Label" parent="." unique_id=915221716]
+layout_mode = 0
+offset_left = 200.76927
+offset_top = 885.6463
+offset_right = 319.7693
+offset_bottom = 934.6463
+text = "Player Power: 0
+"
+
+[node name="EnemyPowerLabel" type="Label" parent="." unique_id=1673843284]
+layout_mode = 0
+offset_left = 463.50436
+offset_top = 863.3939
+offset_right = 586.5044
+offset_bottom = 886.3939
+text = "Enemy Power: 0"
+
+[node name="BattleEnemyButton" type="Button" parent="." unique_id=814578064]
+layout_mode = 0
+offset_left = 99.14532
+offset_top = 925.7006
+offset_right = 210.14532
+offset_bottom = 956.7006
+text = "Battle Enemy"
+
+[node name="AddHeroTicketButton" type="Button" parent="." unique_id=244154512]
+layout_mode = 0
+offset_left = 558.9317
+offset_top = 369.39017
+offset_right = 689.9317
+offset_bottom = 400.39017
+text = "Add Hero Ticket"
+
+[node name="HeroRoleLabel" type="Label" parent="." unique_id=959930533]
+layout_mode = 0
+offset_left = 731.1967
+offset_top = 189.14563
+offset_right = 815.1967
+offset_bottom = 212.14563
+text = "Role: None"
+
+[node name="HeroBonusLabel" type="Label" parent="." unique_id=623867860]
+layout_mode = 0
+offset_left = 723.7608
+offset_top = 238.10095
+offset_right = 822.7608
+offset_bottom = 261.10095
+text = "Bonus: None"
+
+[node name="HeroAbilityLabel" type="Label" parent="." unique_id=239105985]
+layout_mode = 0
+offset_left = 725.0001
+offset_top = 213.62323
+offset_right = 825.0001
+offset_bottom = 240.32614
+text = "Ability: None"
+
+[node name="HeroXPLabel" type="Label" parent="." unique_id=1012548620]
+layout_mode = 0
+offset_left = 816.7096
+offset_top = 391.64267
+offset_right = 888.7096
+offset_bottom = 414.64267
+text = "XP: 0/100"
+
+[node name="CampaignStageLabel" type="Label" parent="." unique_id=1338760864]
+layout_mode = 0
+offset_left = 604.78644
+offset_top = 763.258
+offset_right = 761.78644
+offset_bottom = 812.258
+text = "Campaign Stage: 1-1
+"
+
+[node name="CampaignProgressLabel" type="Label" parent="." unique_id=1520277135]
+layout_mode = 0
+offset_left = 570.0856
+offset_top = 700.9512
+offset_right = 761.0856
+offset_bottom = 749.9512
+text = "Campaign Progress: 0/10
+"
+
+[node name="Quest1Label" type="Label" parent="." unique_id=693131743]
+layout_mode = 0
+offset_left = 959.23096
+offset_top = 164.66791
+offset_right = 1156.231
+offset_bottom = 187.66791
+text = "Quest 1: Train 50 Infantry"
+
+[node name="Quest1ProgressLabel" type="Label" parent="." unique_id=1955112927]
+layout_mode = 0
+offset_left = 961.7096
+offset_top = 206.94751
+offset_right = 1071.7096
+offset_bottom = 229.94751
+text = "Progress: 0/50"
+
+[node name="Quest1RewardLabel" type="Label" parent="." unique_id=698366175]
+layout_mode = 0
+offset_left = 981.5387
+offset_top = 247.00188
+offset_right = 1118.5387
+offset_bottom = 270.0019
+text = "Reward: 500 Food"
+
+[node name="ClaimQuest1Button" type="Button" parent="." unique_id=1826637195]
+layout_mode = 0
+offset_left = 987.7352
+offset_top = 291.5067
+offset_right = 1102.7352
+offset_bottom = 322.5067
+text = "Claim Reward"
+
+[node name="Quest2Label" type="Label" parent="." unique_id=778047816]
+layout_mode = 0
+offset_left = 888.5899
+offset_top = 625.29297
+offset_right = 1139.5898
+offset_bottom = 648.29297
+text = "Quest 2: Win 3 Campaign Battles"
+
+[node name="Quest2ProgressLabel" type="Label" parent="." unique_id=1022217812]
+layout_mode = 0
+offset_left = 941.8805
+offset_top = 660.8969
+offset_right = 1042.8805
+offset_bottom = 683.8969
+text = "Progress: 0/3"
+
+[node name="Quest2RewardLabel" type="Label" parent="." unique_id=1819839870]
+layout_mode = 0
+offset_left = 930.7267
+offset_top = 698.726
+offset_right = 1061.7267
+offset_bottom = 721.726
+text = "Reward: 50 Valor"
+
+[node name="ClaimQuest2Button" type="Button" parent="." unique_id=564024241]
+layout_mode = 0
+offset_left = 934.4446
+offset_top = 729.87946
+offset_right = 1050.4446
+offset_bottom = 760.87946
+text = "Claim Quest 2"
+
+[node name="ResourceManager" type="Node2D" parent="." unique_id=1438535007]
+script = ExtResource("2_c60hs")
+
+[node name="HospitalCapacityLabel" type="Label" parent="." unique_id=1453142666]
+layout_mode = 0
+offset_left = 296.19666
+offset_top = 1181.6035
+offset_right = 435.19666
+offset_bottom = 1204.6035
+text = "Hospital Capacity "
+
+[node name="HospitalTroopsLabel" type="Label" parent="." unique_id=1936081990]
+layout_mode = 0
+offset_left = 299.91458
+offset_top = 1145.9998
+offset_right = 421.91458
+offset_bottom = 1168.9998
+text = "Hospital Troops"
+
+[node name="SanctuaryCapacityLabel" type="Label" parent="." unique_id=1663916756]
+layout_mode = 0
+offset_left = 28.504278
+offset_top = 1186.054
+offset_right = 176.50427
+offset_bottom = 1209.054
+text = "Sanctuary Capacity"
+
+[node name="SanctuaryTroopsLabel" type="Label" parent="." unique_id=1663739000]
+layout_mode = 0
+offset_left = 27.264961
+offset_top = 1150.4501
+offset_right = 162.26495
+offset_bottom = 1173.4501
+text = "Sanctuary Troops"
+
+[node name="HealButton" type="Button" parent="." unique_id=472594684]
+layout_mode = 0
+offset_right = 8.0
+offset_bottom = 8.0
+text = "Heal Troops"

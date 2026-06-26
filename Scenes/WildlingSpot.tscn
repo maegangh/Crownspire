@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://cfnx71j3olabs"]
+
+[ext_resource type="Texture2D" uid="uid://wh4338gwgf34" path="res://assets/Wildlings/wildling_wolf.png" id="1_cd5jj"]
+[ext_resource type="Script" uid="uid://5wtdcvt6jlc4" path="res://Scripts/wildling_click.gd" id="1_jw7i4"]
+[ext_resource type="Texture2D" uid="uid://bu1lilw8cq10u" path="res://assets/UI/wildling_cards/wolf_card.png" id="3_bummx"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_jw7i4"]
+size = Vector2(203, 165)
+
+[node name="WildlingSpot" type="Node2D" unique_id=518637497]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1626034732]
+position = Vector2(99.99999, 98.99999)
+scale = Vector2(0.2, 0.2)
+texture = ExtResource("1_cd5jj")
+
+[node name="Area2D" type="Area2D" parent="." unique_id=1870349191]
+script = ExtResource("1_jw7i4")
+card_texture = ExtResource("3_bummx")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=1840628258]
+position = Vector2(107.5, 108.5)
+shape = SubResource("RectangleShape2D_jw7i4")

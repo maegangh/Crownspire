@@ -1,0 +1,41 @@
+[gd_scene format=3 uid="uid://bf2f7lemnla5l"]
+
+[node name="HeroCard" type="Button" unique_id=1916888312]
+
+[node name="BackgroundPanel" type="TextureRect" parent="." unique_id=1095895410]
+layout_mode = 0
+offset_top = -2.0
+offset_right = 40.0
+offset_bottom = 38.0
+
+[node name="HeroPortrait" type="TextureRect" parent="." unique_id=1764842197]
+layout_mode = 0
+offset_top = -2.0
+offset_right = 40.0
+offset_bottom = 38.0
+
+[node name="CardFrame" type="TextureRect" parent="." unique_id=1015359388]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="RoleIcon" type="TextureRect" parent="." unique_id=1759244527]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="RedDot" type="Label" parent="." unique_id=1186748993]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="StarRow" type="HBoxContainer" parent="." unique_id=1337867598]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="LevelLabel" type="Label" parent="." unique_id=1087817143]
+layout_mode = 0
+offset_top = 1.0
+offset_right = 40.0
+offset_bottom = 24.0

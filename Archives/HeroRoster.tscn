@@ -1,0 +1,234 @@
+[gd_scene format=3 uid="uid://d18rhb3pmtnp1"]
+
+[ext_resource type="Texture2D" uid="uid://brswrre7481me" path="res://Art/Heroes/Maegan/portrait.png" id="1_a01kt"]
+[ext_resource type="Texture2D" uid="uid://dhawjb4j762jw" path="res://Art/Heroes/Lorelai/portrait.png" id="2_yui1q"]
+[ext_resource type="Texture2D" uid="uid://r48wn5ymdwqr" path="res://Art/Heroes/Allanna/portrait.png" id="3_cvcom"]
+[ext_resource type="Texture2D" uid="uid://bg0wfrnh05rgu" path="res://Art/Heroes/Shadow/portrait.png" id="4_pj00p"]
+[ext_resource type="Texture2D" uid="uid://clmxncntwmmrc" path="res://Art/Heroes/Skye/portrait.png" id="5_n55wi"]
+[ext_resource type="Texture2D" uid="uid://cdwlkj4rjvfi1" path="res://Art/Heroes/Remi/portrait.png" id="6_4tu15"]
+[ext_resource type="Texture2D" uid="uid://lt7o8pxb8dhp" path="res://Art/Heroes/Rubble/portrait.png" id="7_p4qju"]
+[ext_resource type="Texture2D" uid="uid://qfpryu58kt0k" path="res://Art/Heroes/Rayne/portrait.png" id="8_p1586"]
+[ext_resource type="Texture2D" uid="uid://bkumco75lmbl3" path="res://Art/Heroes/Demon/portrait.png" id="9_tasfl"]
+[ext_resource type="Texture2D" uid="uid://bw3kkbhudoy5g" path="res://Art/Heroes/Myshla/portrait.png" id="10_nlf6u"]
+[ext_resource type="Texture2D" uid="uid://crseu2e0tymxb" path="res://Art/Heroes/Lumi/portrait.png" id="11_k247b"]
+
+[node name="HeroRoster" type="Control" unique_id=1706623413]
+layout_mode = 3
+anchors_preset = 0
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1211592774]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="GridContainer" type="GridContainer" parent="MarginContainer" unique_id=395130165]
+layout_mode = 2
+columns = 3
+
+[node name="HeroCard" type="PanelContainer" parent="MarginContainer/GridContainer" unique_id=246691910]
+custom_minimum_size = Vector2(220, 300)
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/GridContainer/HeroCard" unique_id=782262090]
+layout_mode = 2
+
+[node name="Portrait" type="TextureRect" parent="MarginContainer/GridContainer/HeroCard/VBoxContainer" unique_id=2089022943]
+custom_minimum_size = Vector2(128, 128)
+layout_mode = 2
+texture = ExtResource("1_a01kt")
+expand_mode = 3
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="MarginContainer/GridContainer/HeroCard/VBoxContainer" unique_id=1379654556]
+layout_mode = 2
+text = "Maegan"
+horizontal_alignment = 1
+
+[node name="Lorelai" type="PanelContainer" parent="MarginContainer/GridContainer" unique_id=1617933558]
+custom_minimum_size = Vector2(220, 300)
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/GridContainer/Lorelai" unique_id=1656934656]
+layout_mode = 2
+
+[node name="Portrait" type="TextureRect" parent="MarginContainer/GridContainer/Lorelai/VBoxContainer" unique_id=1353383745]
+custom_minimum_size = Vector2(128, 128)
+layout_mode = 2
+texture = ExtResource("2_yui1q")
+expand_mode = 3
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="MarginContainer/GridContainer/Lorelai/VBoxContainer" unique_id=1395198998]
+layout_mode = 2
+text = "Lorelai"
+horizontal_alignment = 1
+
+[node name="Allanna" type="PanelContainer" parent="MarginContainer/GridContainer" unique_id=1290437946]
+custom_minimum_size = Vector2(220, 300)
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/GridContainer/Allanna" unique_id=1103410003]
+layout_mode = 2
+
+[node name="Portrait" type="TextureRect" parent="MarginContainer/GridContainer/Allanna/VBoxContainer" unique_id=555956768]
+custom_minimum_size = Vector2(128, 128)
+layout_mode = 2
+texture = ExtResource("3_cvcom")
+expand_mode = 3
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="MarginContainer/GridContainer/Allanna/VBoxContainer" unique_id=114334650]
+layout_mode = 2
+text = "Allanna"
+horizontal_alignment = 1
+
+[node name="Shadow" type="PanelContainer" parent="MarginContainer/GridContainer" unique_id=2054046284]
+custom_minimum_size = Vector2(220, 300)
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/GridContainer/Shadow" unique_id=618642893]
+layout_mode = 2
+
+[node name="Portrait" type="TextureRect" parent="MarginContainer/GridContainer/Shadow/VBoxContainer" unique_id=1664814970]
+custom_minimum_size = Vector2(128, 128)
+layout_mode = 2
+texture = ExtResource("4_pj00p")
+expand_mode = 3
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="MarginContainer/GridContainer/Shadow/VBoxContainer" unique_id=422257261]
+layout_mode = 2
+text = "Shadow"
+horizontal_alignment = 1
+
+[node name="Skye" type="PanelContainer" parent="MarginContainer/GridContainer" unique_id=532772315]
+custom_minimum_size = Vector2(220, 300)
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/GridContainer/Skye" unique_id=1843666298]
+layout_mode = 2
+
+[node name="Portrait" type="TextureRect" parent="MarginContainer/GridContainer/Skye/VBoxContainer" unique_id=1729874708]
+custom_minimum_size = Vector2(128, 128)
+layout_mode = 2
+texture = ExtResource("5_n55wi")
+expand_mode = 3
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="MarginContainer/GridContainer/Skye/VBoxContainer" unique_id=515206875]
+layout_mode = 2
+text = "Skye"
+horizontal_alignment = 1
+
+[node name="Remi" type="PanelContainer" parent="MarginContainer/GridContainer" unique_id=963371465]
+custom_minimum_size = Vector2(220, 300)
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/GridContainer/Remi" unique_id=1840902785]
+layout_mode = 2
+
+[node name="Portrait" type="TextureRect" parent="MarginContainer/GridContainer/Remi/VBoxContainer" unique_id=267498071]
+custom_minimum_size = Vector2(128, 128)
+layout_mode = 2
+texture = ExtResource("6_4tu15")
+expand_mode = 3
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="MarginContainer/GridContainer/Remi/VBoxContainer" unique_id=1118876476]
+layout_mode = 2
+text = "Remi"
+horizontal_alignment = 1
+
+[node name="Rubble" type="PanelContainer" parent="MarginContainer/GridContainer" unique_id=1592742497]
+custom_minimum_size = Vector2(220, 300)
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/GridContainer/Rubble" unique_id=2008031914]
+layout_mode = 2
+
+[node name="Portrait" type="TextureRect" parent="MarginContainer/GridContainer/Rubble/VBoxContainer" unique_id=940096994]
+custom_minimum_size = Vector2(128, 128)
+layout_mode = 2
+texture = ExtResource("7_p4qju")
+expand_mode = 3
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="MarginContainer/GridContainer/Rubble/VBoxContainer" unique_id=1558746648]
+layout_mode = 2
+text = "Rubble
+"
+
+[node name="Rayne" type="PanelContainer" parent="MarginContainer/GridContainer" unique_id=209600045]
+custom_minimum_size = Vector2(220, 300)
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/GridContainer/Rayne" unique_id=1818458475]
+layout_mode = 2
+
+[node name="Portrait" type="TextureRect" parent="MarginContainer/GridContainer/Rayne/VBoxContainer" unique_id=79578649]
+custom_minimum_size = Vector2(128, 128)
+layout_mode = 2
+texture = ExtResource("8_p1586")
+expand_mode = 3
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="MarginContainer/GridContainer/Rayne/VBoxContainer" unique_id=1934951301]
+layout_mode = 2
+text = "Rayne
+"
+
+[node name="Demon" type="PanelContainer" parent="MarginContainer/GridContainer" unique_id=1696045846]
+custom_minimum_size = Vector2(220, 300)
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/GridContainer/Demon" unique_id=523739936]
+layout_mode = 2
+
+[node name="Portrait" type="TextureRect" parent="MarginContainer/GridContainer/Demon/VBoxContainer" unique_id=723515376]
+custom_minimum_size = Vector2(128, 128)
+layout_mode = 2
+texture = ExtResource("9_tasfl")
+expand_mode = 3
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="MarginContainer/GridContainer/Demon/VBoxContainer" unique_id=1823656228]
+layout_mode = 2
+text = "Demon
+"
+
+[node name="Myshla" type="PanelContainer" parent="MarginContainer/GridContainer" unique_id=38141372]
+custom_minimum_size = Vector2(220, 300)
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/GridContainer/Myshla" unique_id=1578701326]
+layout_mode = 2
+
+[node name="Portrait" type="TextureRect" parent="MarginContainer/GridContainer/Myshla/VBoxContainer" unique_id=1347408188]
+custom_minimum_size = Vector2(128, 128)
+layout_mode = 2
+texture = ExtResource("10_nlf6u")
+expand_mode = 3
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="MarginContainer/GridContainer/Myshla/VBoxContainer" unique_id=1936959966]
+layout_mode = 2
+text = "Myshla
+"
+
+[node name="Lumi" type="PanelContainer" parent="MarginContainer/GridContainer" unique_id=1511318758]
+custom_minimum_size = Vector2(220, 300)
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/GridContainer/Lumi" unique_id=1295231089]
+layout_mode = 2
+
+[node name="Portrait" type="TextureRect" parent="MarginContainer/GridContainer/Lumi/VBoxContainer" unique_id=1799998264]
+custom_minimum_size = Vector2(128, 128)
+layout_mode = 2
+texture = ExtResource("11_k247b")
+expand_mode = 3
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="MarginContainer/GridContainer/Lumi/VBoxContainer" unique_id=401330857]
+layout_mode = 2
+text = "Lumi"

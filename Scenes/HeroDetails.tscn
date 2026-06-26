@@ -1,0 +1,275 @@
+[gd_scene format=3 uid="uid://cxthq4bwuwj4f"]
+
+[ext_resource type="Script" uid="uid://bnsdjpdbcck5k" path="res://Scenes/HeroDetails.gd" id="1_hero_details"]
+[ext_resource type="Texture2D" uid="uid://bm2tff4ud7170" path="res://assets/heroes/Icons/360_F_626662441_RfY4UVlXAtjILxxoNbO2ikdcFQNE3Bi4.jpg" id="1_lph01"]
+[ext_resource type="Texture2D" uid="uid://ddjf8vxs6na20" path="res://Art/Heroes/Maegan/fullbody.png" id="1_v8im1"]
+[ext_resource type="Texture2D" uid="uid://c75ix4ed7rum6" path="res://assets/Buttons/backarrow.png" id="2_5oagk"]
+[ext_resource type="Texture2D" uid="uid://dss0a86xstijf" path="res://Scenes/UI/star1.png" id="2_t6m5i"]
+[ext_resource type="Texture2D" uid="uid://dnstfdxlc7m8s" path="res://assets/Buttons/infantry.png" id="3_5oagk"]
+[ext_resource type="Texture2D" uid="uid://b7b5xaejkeys5" path="res://assets/Buttons/levelup.png" id="3_10k2a"]
+[ext_resource type="Texture2D" uid="uid://e20wmnqvmr1h" path="res://assets/Buttons/ascend.png" id="4_lph01"]
+[ext_resource type="Texture2D" uid="uid://cb3iuf0ivlbb2" path="res://images/HeroCard/mythic43.png" id="4_neop0"]
+[ext_resource type="Texture2D" uid="uid://b5qxa110cjyir" path="res://assets/Buttons/stats.png" id="5_cugc4"]
+[ext_resource type="Texture2D" uid="uid://cuc6wswfkiqop" path="res://assets/Buttons/skills.png" id="6_wnk2u"]
+[ext_resource type="Texture2D" uid="uid://cm68cm65c8td0" path="res://assets/Buttons/gear.png" id="7_neop0"]
+[ext_resource type="Texture2D" uid="uid://drvc5wnl55y26" path="res://assets/Buttons/troopskills.png" id="8_5oagk"]
+[ext_resource type="Texture2D" uid="uid://bqxuyrakptn6f" path="res://assets/Buttons/arrow.png" id="13_5oagk"]
+[ext_resource type="Texture2D" uid="uid://q3k6l1i45yko" path="res://assets/Buttons/rightarrow.png" id="14_7b2bv"]
+
+[sub_resource type="FontVariation" id="FontVariation_7b2bv"]
+
+[node name="HeroDetails" type="Control" unique_id=727900781]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 720.0
+offset_bottom = 1280.0
+script = ExtResource("1_hero_details")
+metadata/_edit_horizontal_guides_ = [-50.0]
+
+[node name="Background" type="TextureRect" parent="." unique_id=827689264]
+layout_mode = 0
+offset_right = 725.0
+offset_bottom = 1275.0
+mouse_filter = 2
+texture = ExtResource("1_lph01")
+
+[node name="BackButton" type="Button" parent="." unique_id=982515504]
+layout_mode = 0
+offset_left = 5.0
+offset_top = 15.0
+offset_right = 1037.0
+offset_bottom = 1047.0
+scale = Vector2(0.11, 0.11)
+icon = ExtResource("2_5oagk")
+
+[node name="HeroNameLabel" type="Label" parent="." unique_id=1755062879]
+layout_mode = 0
+offset_left = 255.0
+offset_top = 19.0
+offset_right = 447.0
+offset_bottom = 88.0
+theme_override_fonts/font = SubResource("FontVariation_7b2bv")
+theme_override_font_sizes/font_size = 50
+text = "Maegan"
+
+[node name="HeroTitleLabel" type="Label" parent="." unique_id=2068980700]
+visible = false
+layout_mode = 0
+offset_left = 203.0
+offset_top = 75.0
+offset_right = 534.0
+offset_bottom = 117.0
+theme_override_font_sizes/font_size = 30
+text = "Founder of Crownspire"
+
+[node name="RoleIcon" type="TextureRect" parent="." unique_id=1414082830]
+layout_mode = 0
+offset_left = 172.0
+offset_top = 104.0
+offset_right = 372.0
+offset_bottom = 174.0
+mouse_filter = 2
+texture = ExtResource("3_5oagk")
+expand_mode = 1
+
+[node name="Mythic" type="TextureRect" parent="." unique_id=221091428]
+layout_mode = 0
+offset_left = 382.0
+offset_top = 110.0
+offset_right = 582.0
+offset_bottom = 180.0
+mouse_filter = 2
+texture = ExtResource("4_neop0")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="LargePortrait" type="TextureRect" parent="." unique_id=1524873469]
+layout_mode = 0
+offset_left = 96.0
+offset_top = 137.0
+offset_right = 842.6667
+offset_bottom = 1325.0
+scale = Vector2(0.75, 0.75)
+mouse_filter = 2
+texture = ExtResource("1_v8im1")
+
+[node name="PowerLabel" type="Label" parent="." unique_id=751720315]
+layout_mode = 0
+offset_left = 229.0
+offset_top = 908.0
+offset_right = 464.0
+offset_bottom = 957.0
+theme_override_font_sizes/font_size = 30
+text = "Power:"
+
+[node name="Label" type="Label" parent="." unique_id=842905356]
+layout_mode = 0
+offset_left = 354.0
+offset_top = 908.0
+offset_right = 464.0
+offset_bottom = 1009.0
+theme_override_font_sizes/font_size = 35
+text = "12,450
+"
+
+[node name="Stars" type="HBoxContainer" parent="." unique_id=800794983]
+layout_mode = 0
+offset_left = 199.00002
+offset_top = 956.00006
+offset_right = 3087.0
+offset_bottom = 1724.0
+scale = Vector2(0.1, 0.1)
+mouse_filter = 2
+alignment = 1
+
+[node name="TextureRect2" type="TextureRect" parent="Stars" unique_id=1308181113]
+layout_mode = 2
+texture = ExtResource("2_t6m5i")
+
+[node name="TextureRect3" type="TextureRect" parent="Stars" unique_id=15770514]
+layout_mode = 2
+texture = ExtResource("2_t6m5i")
+
+[node name="TextureRect4" type="TextureRect" parent="Stars" unique_id=247673548]
+layout_mode = 2
+texture = ExtResource("2_t6m5i")
+
+[node name="TextureRect5" type="TextureRect" parent="Stars" unique_id=1683980718]
+layout_mode = 2
+texture = ExtResource("2_t6m5i")
+
+[node name="TextureRect6" type="TextureRect" parent="Stars" unique_id=684441144]
+layout_mode = 2
+texture = ExtResource("2_t6m5i")
+
+[node name="TextureRect7" type="TextureRect" parent="Stars" unique_id=721383887]
+layout_mode = 2
+texture = ExtResource("2_t6m5i")
+
+[node name="LevelLabel" type="Label" parent="." unique_id=90123413]
+layout_mode = 0
+offset_left = 301.0
+offset_top = 1052.0
+offset_right = 367.0
+offset_bottom = 1094.0
+theme_override_font_sizes/font_size = 25
+text = "Lv. 1"
+
+[node name="LevelUpButton" type="TextureButton" parent="." unique_id=956403991]
+layout_mode = 1
+offset_left = 91.0
+offset_top = 1096.0
+offset_right = 351.0
+offset_bottom = 1168.0
+texture_normal = ExtResource("3_10k2a")
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="AscendButton" type="TextureButton" parent="." unique_id=1798767160]
+layout_mode = 1
+offset_left = 383.0
+offset_top = 1100.0
+offset_right = 643.0
+offset_bottom = 1172.0
+texture_normal = ExtResource("4_lph01")
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="TabButtons" type="HBoxContainer" parent="." unique_id=1000441177]
+z_index = 20
+layout_mode = 0
+offset_left = 8.0
+offset_top = 971.00006
+offset_right = 3110.0
+offset_bottom = 1435.0
+scale = Vector2(1.15, 1.15)
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="StatsButton" type="TextureButton" parent="TabButtons" unique_id=1395871142]
+custom_minimum_size = Vector2(155, 55)
+layout_mode = 2
+size_flags_vertical = 4
+texture_normal = ExtResource("5_cugc4")
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="SkillsButton" type="TextureButton" parent="TabButtons" unique_id=856961146]
+custom_minimum_size = Vector2(155, 55)
+layout_mode = 2
+size_flags_vertical = 4
+texture_normal = ExtResource("6_wnk2u")
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="GearButton" type="TextureButton" parent="TabButtons" unique_id=11326452]
+custom_minimum_size = Vector2(155, 55)
+layout_mode = 2
+size_flags_vertical = 4
+texture_normal = ExtResource("7_neop0")
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="TroopSkillButton" type="TextureButton" parent="TabButtons" unique_id=392733438]
+custom_minimum_size = Vector2(155, 55)
+layout_mode = 2
+size_flags_vertical = 4
+size_flags_stretch_ratio = 0.97
+texture_normal = ExtResource("8_5oagk")
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="StatsPage" type="Control" parent="." unique_id=1434930845]
+anchors_preset = 0
+offset_left = 21.0
+offset_top = 1215.0
+offset_right = 185.0
+offset_bottom = 1272.0
+mouse_filter = 2
+
+[node name="SkillsPage" type="Control" parent="." unique_id=1288829734]
+anchors_preset = 0
+offset_left = 201.0
+offset_top = 1217.0
+offset_right = 361.0
+offset_bottom = 1266.0
+mouse_filter = 2
+
+[node name="GearPage" type="Control" parent="." unique_id=1048587191]
+anchors_preset = 0
+offset_left = 376.0
+offset_top = 1213.0
+offset_right = 539.0
+offset_bottom = 1274.0
+mouse_filter = 2
+
+[node name="TroopSkillPage" type="Control" parent="." unique_id=2004466226]
+anchors_preset = 0
+offset_left = 547.0
+offset_top = 1210.0
+offset_right = 717.0
+offset_bottom = 1264.0
+mouse_filter = 2
+
+[node name="LeftHeroArrow" type="TextureButton" parent="." unique_id=992120744]
+z_index = 20
+layout_mode = 0
+offset_left = 37.0
+offset_top = 512.0
+offset_right = 123.0
+offset_bottom = 614.0
+texture_normal = ExtResource("13_5oagk")
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="RightHeroArrow" type="TextureButton" parent="." unique_id=1843067306]
+z_index = 20
+layout_mode = 0
+offset_left = 615.0
+offset_top = 512.0
+offset_right = 701.0
+offset_bottom = 614.0
+rotation = -0.015861103
+texture_normal = ExtResource("14_7b2bv")
+ignore_texture_size = true
+stretch_mode = 0

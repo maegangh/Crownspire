@@ -1,0 +1,142 @@
+[gd_scene format=3 uid="uid://cgtdt5axeg478"]
+
+[ext_resource type="Script" uid="uid://cbcp0fkcogaun" path="res://Scenes/UI/HeroCard.gd" id="1_b1ex3"]
+[ext_resource type="Texture2D" uid="uid://coetiiyq5ctj" path="res://Scenes/UI/ChatGPT Image Jun 24, 2026, 06_42_27 PM (1).png" id="2_wrtqo"]
+[ext_resource type="Texture2D" uid="uid://dga6iw1ildn4h" path="res://images/HeroCard/ChatGPT Image Jun 24, 2026, 05_56_02 PM.png" id="3_anruk"]
+[ext_resource type="Texture2D" uid="uid://brswrre7481me" path="res://Art/Heroes/Maegan/portrait.png" id="4_ya36w"]
+[ext_resource type="Texture2D" uid="uid://br2ohs1m4lnt1" path="res://assets/heroes/Icons/Infantry.png" id="5_d0lpl"]
+[ext_resource type="Texture2D" uid="uid://ciwmxytyy0qhe" path="res://ChatGPT Image Jun 24, 2026, 04_51_57 PM.png" id="6_gyh1u"]
+[ext_resource type="Texture2D" uid="uid://dss0a86xstijf" path="res://Scenes/UI/star1.png" id="7_y7iv5"]
+
+[node name="MaeganHeroCard" type="Button" unique_id=446050875]
+custom_minimum_size = Vector2(200, 300)
+offset_left = -7.0
+offset_top = -7.0
+offset_right = 193.0
+offset_bottom = 293.0
+flat = true
+script = ExtResource("1_b1ex3")
+
+[node name="CardBackground" type="TextureRect" parent="." unique_id=292546998]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 11.0
+offset_top = 34.0
+offset_right = -16.0
+offset_bottom = -88.14285
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(1, 1.4)
+mouse_filter = 2
+texture = ExtResource("2_wrtqo")
+expand_mode = 1
+
+[node name="HeroPortrait" type="TextureRect" parent="." unique_id=356291901]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 17.0
+offset_top = 2.0
+offset_right = -24.0
+offset_bottom = -37.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("4_ya36w")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="RarityFrame" type="TextureRect" parent="." unique_id=101233102]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -13.0
+offset_right = 9.0
+offset_bottom = 29.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("3_anruk")
+expand_mode = 1
+
+[node name="RoleIcon" type="TextureRect" parent="." unique_id=1719011724]
+layout_mode = 0
+offset_left = 23.0
+offset_top = 49.0
+offset_right = 73.0
+offset_bottom = 99.0
+mouse_filter = 2
+texture = ExtResource("5_d0lpl")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NotificationDot" type="TextureRect" parent="." unique_id=520346747]
+layout_mode = 0
+offset_left = 138.0
+offset_top = 52.0
+offset_right = 168.0
+offset_bottom = 82.0
+scale = Vector2(0.8, 0.8)
+mouse_filter = 2
+texture = ExtResource("6_gyh1u")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HeroName" type="Label" parent="." unique_id=456833695]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 205.0
+offset_right = 188.0
+offset_bottom = 233.0
+text = "Maegan"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="Stars" type="HBoxContainer" parent="." unique_id=1383797506]
+layout_mode = 0
+offset_left = 34.0
+offset_top = 227.0
+offset_right = 2922.0
+offset_bottom = 995.0
+scale = Vector2(0.045, 0.04)
+mouse_filter = 2
+alignment = 1
+
+[node name="TextureRect2" type="TextureRect" parent="Stars" unique_id=1718195732]
+layout_mode = 2
+texture = ExtResource("7_y7iv5")
+
+[node name="TextureRect3" type="TextureRect" parent="Stars" unique_id=1037142406]
+layout_mode = 2
+texture = ExtResource("7_y7iv5")
+
+[node name="TextureRect4" type="TextureRect" parent="Stars" unique_id=2783350]
+layout_mode = 2
+texture = ExtResource("7_y7iv5")
+
+[node name="TextureRect5" type="TextureRect" parent="Stars" unique_id=683675859]
+layout_mode = 2
+texture = ExtResource("7_y7iv5")
+
+[node name="TextureRect6" type="TextureRect" parent="Stars" unique_id=1607676731]
+layout_mode = 2
+texture = ExtResource("7_y7iv5")
+
+[node name="TextureRect7" type="TextureRect" parent="Stars" unique_id=580581508]
+layout_mode = 2
+texture = ExtResource("7_y7iv5")
+
+[node name="LevelLabel" type="Label" parent="." unique_id=1673089803]
+layout_mode = 0
+offset_left = 164.14
+offset_top = 241.88
+offset_right = 199.14
+offset_bottom = 264.88
+text = "Lv. 1"
+horizontal_alignment = 1
+vertical_alignment = 1

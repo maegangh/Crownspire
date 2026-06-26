@@ -1,0 +1,67 @@
+[gd_scene format=3 uid="uid://bh08artiwt8rc"]
+
+[ext_resource type="Script" uid="uid://ds8opbj67egrc" path="res://Scenes/wildling_panel.gd" id="1_gg1im"]
+[ext_resource type="Texture2D" uid="uid://bu1lilw8cq10u" path="res://assets/UI/wildling_cards/wolf_card.png" id="2_sg275"]
+
+[node name="WildlingPanel" type="Control" unique_id=488162736]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_gg1im")
+
+[node name="CardImage" type="TextureRect" parent="." unique_id=1661483004]
+layout_mode = 0
+offset_left = 206.0
+offset_top = 30.000004
+offset_right = 246.0
+offset_bottom = 70.0
+scale = Vector2(10, 10)
+mouse_filter = 2
+texture = ExtResource("2_sg275")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LevelNumberLabel" type="Label" parent="." unique_id=856755673]
+layout_mode = 0
+offset_left = 418.0
+offset_top = 254.0
+offset_right = 458.0
+offset_bottom = 277.0
+theme_override_font_sizes/font_size = 10
+text = "1"
+
+[node name="PowerNumberLabel" type="Label" parent="." unique_id=1181657003]
+layout_mode = 0
+offset_left = 200.0
+offset_top = 181.0
+offset_right = 240.0
+offset_bottom = 204.0
+
+[node name="StaminaCostLabel" type="Label" parent="." unique_id=1498008493]
+layout_mode = 0
+offset_left = 400.0
+offset_top = 384.0
+offset_right = 440.0
+offset_bottom = 407.0
+theme_override_font_sizes/font_size = 11
+text = "10"
+
+[node name="PossibleDrops" type="ScrollContainer" parent="." unique_id=102674322]
+layout_mode = 0
+offset_left = 295.0
+offset_top = 289.0
+offset_right = 515.0
+offset_bottom = 329.0
+mouse_filter = 2
+vertical_scroll_mode = 0
+
+[node name="DropRow" type="HBoxContainer" parent="PossibleDrops" unique_id=858715301]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="AttackButton" type="Button" parent="." unique_id=366289450]
+modulate = Color(1, 1, 1, 0)
+layout_mode = 0
+offset_left = 326.0
+offset_top = 363.0
+offset_right = 490.0
+offset_bottom = 394.0

@@ -1,0 +1,2186 @@
+[
+  {
+	"id": "maegan_active_soldecree",
+	"heroId": "maegan",
+	"skillName": "Sovereign Decree",
+	"skillType": "Active",
+	"description": "Infuses allied foot soldiers with tactical absolute fury, boosting base damage.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 25,
+	  "increment": 5,
+	  "unit": "%",
+	  "stat": "Infantry Damage"
+	}
+  },
+  {
+	"id": "maegan_passive_authority",
+	"heroId": "maegan",
+	"skillName": "Sovereign Authority",
+	"skillType": "Passive",
+	"description": "Increases troop attack by an unyielding marshal command.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 15,
+	  "increment": 3,
+	  "unit": "%",
+	  "stat": "Troop Attack"
+	}
+  },
+  {
+	"id": "maegan_passive_baegis",
+	"heroId": "maegan",
+	"skillName": "Bastion Aegis",
+	"skillType": "Passive",
+	"description": "Erects a protective command barrier, boosting infantry defense values.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 12,
+	  "increment": 2.5,
+	  "unit": "%",
+	  "stat": "Infantry Defense"
+	}
+  },
+  {
+	"id": "lorelai_active_smelody",
+	"heroId": "lorelai",
+	"skillName": "Siren Melody",
+	"skillType": "Active",
+	"description": "Soothes battlefield panic, dramatically reducing wounded casualty rates.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 120,
+	  "increment": 25,
+	  "unit": "flat",
+	  "stat": "Medic Casualty Recovery"
+	}
+  },
+  {
+	"id": "lorelai_passive_echo",
+	"heroId": "lorelai",
+	"skillName": "Healing Echo",
+	"skillType": "Passive",
+	"description": "Echoing tones boost regional hospital recovery speeds.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 20,
+	  "increment": 4,
+	  "unit": "%",
+	  "stat": "Healing Speed"
+	}
+  },
+  {
+	"id": "lorelai_passive_chaste",
+	"heroId": "lorelai",
+	"skillName": "Canto of Haste",
+	"skillType": "Passive",
+	"description": "A mystical tune speeding up expeditionary march velocities.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 10,
+	  "increment": 2,
+	  "unit": "%",
+	  "stat": "March Speed"
+	}
+  },
+  {
+	"id": "myshla_active_mresonance",
+	"heroId": "myshla",
+	"skillName": "Mineral Resonance",
+	"skillType": "Active",
+	"description": "Whispers to deep quarry seams, accelerating extraction speeds.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 30,
+	  "increment": 6,
+	  "unit": "%",
+	  "stat": "Gathering Speed"
+	}
+  },
+  {
+	"id": "myshla_passive_crystals",
+	"heroId": "myshla",
+	"skillName": "Lined Crystals",
+	"skillType": "Passive",
+	"description": "Improves overall stone quarry extraction yields recursively.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 25,
+	  "increment": 5,
+	  "unit": "%",
+	  "stat": "Stone Production"
+	}
+  },
+  {
+	"id": "myshla_passive_svoyage",
+	"heroId": "myshla",
+	"skillName": "Safe Voyage",
+	"skillType": "Passive",
+	"description": "Surrounds transport caravans with pathfinding wind to increase carry weight.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 20,
+	  "increment": 4,
+	  "unit": "%",
+	  "stat": "Load Capacity"
+	}
+  },
+  {
+	"id": "shadow_active_eguillotine",
+	"heroId": "shadow",
+	"skillName": "Eclipse Guillotine",
+	"skillType": "Active",
+	"description": "Unleashes rapid backline punctures, striking enemy skirmishers directly.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 180,
+	  "increment": 35,
+	  "unit": "%",
+	  "stat": "Backline Damage"
+	}
+  },
+  {
+	"id": "shadow_passive_charge",
+	"heroId": "shadow",
+	"skillName": "Phantom Charge",
+	"skillType": "Passive",
+	"description": "Boosts cavalry squad dynamic shock power and velocity.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 18,
+	  "increment": 3.5,
+	  "unit": "%",
+	  "stat": "Cavalry Attack"
+	}
+  },
+  {
+	"id": "shadow_passive_veil",
+	"heroId": "shadow",
+	"skillName": "Phantom Veil",
+	"skillType": "Passive",
+	"description": "Conceals allied vanguard positions, granting high evasion traits.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 12,
+	  "increment": 2.5,
+	  "unit": "%",
+	  "stat": "Troop Evasion"
+	}
+  },
+  {
+	"id": "rayne_active_train",
+	"heroId": "rayne",
+	"skillName": "Tempest Rain",
+	"skillType": "Active",
+	"description": "Conjures a squall that drops heavy arrows across standard broad columns.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 140,
+	  "increment": 30,
+	  "unit": "%",
+	  "stat": "AOE Damage"
+	}
+  },
+  {
+	"id": "rayne_passive_tfocus",
+	"heroId": "rayne",
+	"skillName": "Thunderbolt Focus",
+	"skillType": "Passive",
+	"description": "Enhances bowman precision, boosting marksmen strike power.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 16,
+	  "increment": 3,
+	  "unit": "%",
+	  "stat": "Marksmen Attack"
+	}
+  },
+  {
+	"id": "rayne_passive_gguidance",
+	"heroId": "rayne",
+	"skillName": "Gale Guidance",
+	"skillType": "Passive",
+	"description": "Grants projectiles piercing momentum that ignores heavy plate shields.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 10,
+	  "increment": 2,
+	  "unit": "%",
+	  "stat": "Def Penetration"
+	}
+  },
+  {
+	"id": "rex_active_istance",
+	"heroId": "rex",
+	"skillName": "Indomitable Stance",
+	"skillType": "Active",
+	"description": "Hardens active posture to negate critical physical blows.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 25,
+	  "increment": 5,
+	  "unit": "%",
+	  "stat": "Damage Reduction"
+	}
+  },
+  {
+	"id": "rex_passive_vanguard",
+	"heroId": "rex",
+	"skillName": "Ironclad Vanguard",
+	"skillType": "Passive",
+	"description": "Reinforces dragonscale heavy plating for infantry cohorts.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 20,
+	  "increment": 4,
+	  "unit": "%",
+	  "stat": "Infantry Defense"
+	}
+  },
+  {
+	"id": "rex_passive_dvanguard",
+	"heroId": "rex",
+	"skillName": "Dragon Vanguard",
+	"skillType": "Passive",
+	"description": "Challengers are struck back by sharp shield studs, dealing thorns impact.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 40,
+	  "increment": 10,
+	  "unit": "flat",
+	  "stat": "Thorns Counterattack"
+	}
+  },
+  {
+	"id": "lumi_active_grejuvenation",
+	"heroId": "lumi",
+	"skillName": "Glacial Rejuvenation",
+	"skillType": "Active",
+	"description": "Slows blood loss using ice herbs, stabilizing fallen units instantly.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 150,
+	  "increment": 30,
+	  "unit": "flat",
+	  "stat": "Wounded Healing"
+	}
+  },
+  {
+	"id": "lumi_passive_reduct",
+	"heroId": "lumi",
+	"skillName": "Boreal Apothecary",
+	"skillType": "Passive",
+	"description": "Reduces medical materials and resource spending in city sanatoriums.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 15,
+	  "increment": 3,
+	  "unit": "%",
+	  "stat": "Healing Cost Reduction"
+	}
+  },
+  {
+	"id": "lumi_passive_bward",
+	"heroId": "lumi",
+	"skillName": "Blizzard Ward",
+	"skillType": "Passive",
+	"description": "A wall of hail that reduces incoming ranged damage on allied grids.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 10,
+	  "increment": 2,
+	  "unit": "%",
+	  "stat": "Ranged Def"
+	}
+  },
+  {
+	"id": "heaven_active_slance",
+	"heroId": "heaven",
+	"skillName": "Seraphic Lance",
+	"skillType": "Active",
+	"description": "Charges forward with white hot force, shattering defensive formations.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 190,
+	  "increment": 40,
+	  "unit": "%",
+	  "stat": "Formation Damage"
+	}
+  },
+  {
+	"id": "heaven_passive_wing",
+	"heroId": "heaven",
+	"skillName": "Celestial Wing",
+	"skillType": "Passive",
+	"description": "Imbues warhorses with holy speed and armor plating.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 18,
+	  "increment": 3.5,
+	  "unit": "%",
+	  "stat": "Cavalry Defense"
+	}
+  },
+  {
+	"id": "heaven_passive_sanctity",
+	"heroId": "heaven",
+	"skillName": "Aura of Sanctity",
+	"skillType": "Passive",
+	"description": "Gives nearby columns persistent glowing moral and attack protection.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 12,
+	  "increment": 2.5,
+	  "unit": "%",
+	  "stat": "Troop Attack"
+	}
+  },
+  {
+	"id": "demon_active_hfrenzy",
+	"heroId": "demon",
+	"skillName": "Hellfire Frenzy",
+	"skillType": "Active",
+	"description": "Trades structural health points for massive attack increases.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 40,
+	  "increment": 8,
+	  "unit": "%",
+	  "stat": "Self Berserk Attack"
+	}
+  },
+  {
+	"id": "demon_passive_wrath",
+	"heroId": "demon",
+	"skillName": "Volcanic Wrath",
+	"skillType": "Passive",
+	"description": "Wreathes footmen blades in magma-heat, boosting base infantry hits.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 22,
+	  "increment": 4.5,
+	  "unit": "%",
+	  "stat": "Infantry Attack"
+	}
+  },
+  {
+	"id": "demon_passive_rupture",
+	"heroId": "demon",
+	"skillName": "Obsidian Rupture",
+	"skillType": "Passive",
+	"description": "Shatters the ground, stunning frontlines with volcanic cracks.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 8,
+	  "increment": 2,
+	  "unit": "%",
+	  "stat": "Stun Duration/Def"
+	}
+  },
+  {
+	"id": "allanna_active_sdome",
+	"heroId": "allanna",
+	"skillName": "Sanctuary Dome",
+	"skillType": "Active",
+	"description": "Dampens hostile shockwaves to preserve march numbers.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 100,
+	  "increment": 20,
+	  "unit": "flat",
+	  "stat": "Damage Absorb Shield"
+	}
+  },
+  {
+	"id": "allanna_passive_warden",
+	"heroId": "allanna",
+	"skillName": "Faithful Warden",
+	"skillType": "Passive",
+	"description": "Boosts medical capacity boundaries in territorial hospitals.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 25,
+	  "increment": 5,
+	  "unit": "%",
+	  "stat": "Medic Hospital Capacity"
+	}
+  },
+  {
+	"id": "allanna_passive_guard",
+	"heroId": "allanna",
+	"skillName": "Divine Guard",
+	"skillType": "Passive",
+	"description": "Surrounds squads with aura of safety, boosting general defense.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 10,
+	  "increment": 2,
+	  "unit": "%",
+	  "stat": "Troop Defense"
+	}
+  },
+  {
+	"id": "savannah_active_bplains",
+	"heroId": "savannah",
+	"skillName": "Bountiful Plains",
+	"skillType": "Active",
+	"description": "Optimizes reaping sweeps to gather crops swiftly.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 25,
+	  "increment": 5,
+	  "unit": "%",
+	  "stat": "Food Gather Speed"
+	}
+  },
+  {
+	"id": "savannah_passive_care",
+	"heroId": "savannah",
+	"skillName": "Crop Care",
+	"skillType": "Passive",
+	"description": "Introduces agricultural designs, boosting crop production rates.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 25,
+	  "increment": 5,
+	  "unit": "%",
+	  "stat": "Food Production"
+	}
+  },
+  {
+	"id": "savannah_passive_explorer",
+	"heroId": "savannah",
+	"skillName": "Wild Explorer",
+	"skillType": "Passive",
+	"description": "Vanguard exploration skills improve broad wilderness gathering speeds.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 12,
+	  "increment": 2.5,
+	  "unit": "%",
+	  "stat": "General Gathering Speed"
+	}
+  },
+  {
+	"id": "aria_active_vbolt",
+	"heroId": "aria",
+	"skillName": "Vibrato Bolt",
+	"skillType": "Active",
+	"description": "Fires rapid-fire arrows on targeted enemy squads.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 130,
+	  "increment": 25,
+	  "unit": "%",
+	  "stat": "Tactical Strike Damage"
+	}
+  },
+  {
+	"id": "aria_passive_harmony",
+	"heroId": "aria",
+	"skillName": "Scout Harmony",
+	"skillType": "Passive",
+	"description": "Precision bowmanship buffs attack values of marksmen columns.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 14,
+	  "increment": 3,
+	  "unit": "%",
+	  "stat": "Marksmen Attack"
+	}
+  },
+  {
+	"id": "aria_passive_tune",
+	"heroId": "aria",
+	"skillName": "Perfect Tune",
+	"skillType": "Passive",
+	"description": "Harmonious focus keeps archers healthy and positioned.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 8,
+	  "increment": 2,
+	  "unit": "%",
+	  "stat": "Marksmen HP"
+	}
+  },
+  {
+	"id": "dominic_active_pwall",
+	"heroId": "dominic",
+	"skillName": "Phalanx Wall",
+	"skillType": "Active",
+	"description": "Fortifies soldier coordination, doubling hold capacity.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 30,
+	  "increment": 6,
+	  "unit": "%",
+	  "stat": "Defense Multiplier"
+	}
+  },
+  {
+	"id": "dominic_passive_defender",
+	"heroId": "dominic",
+	"skillName": "Spire Defender",
+	"skillType": "Passive",
+	"description": "Broad tactical coordination shields infantrymen.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 15,
+	  "increment": 3,
+	  "unit": "%",
+	  "stat": "Infantry Defense"
+	}
+  },
+  {
+	"id": "dominic_passive_pride",
+	"heroId": "dominic",
+	"skillName": "Veterans Pride",
+	"skillType": "Passive",
+	"description": "Rugged battle insights bolster foot soldier thrusts.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 10,
+	  "increment": 2,
+	  "unit": "%",
+	  "stat": "Infantry Attack"
+	}
+  },
+  {
+	"id": "skye_active_zstrike",
+	"heroId": "skye",
+	"skillName": "Zephyr Strike",
+	"skillType": "Active",
+	"description": "Swoops down with heavy wind gusts, scattering archer columns.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 150,
+	  "increment": 30,
+	  "unit": "%",
+	  "stat": "Cavalry Shock Damage"
+	}
+  },
+  {
+	"id": "skye_passive_spur",
+	"heroId": "skye",
+	"skillName": "Pegasus Spur",
+	"skillType": "Passive",
+	"description": "Aerial vantage boosts charge speed and vanguard attack values.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 15,
+	  "increment": 3,
+	  "unit": "%",
+	  "stat": "Cavalry Attack"
+	}
+  },
+  {
+	"id": "skye_passive_winds",
+	"heroId": "skye",
+	"skillName": "High Winds",
+	"skillType": "Passive",
+	"description": "Riding gale currents dramatically speeds up horse operations.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 10,
+	  "increment": 2,
+	  "unit": "%",
+	  "stat": "March Speed"
+	}
+  },
+  {
+	"id": "noxx_active_pblade",
+	"heroId": "noxx",
+	"skillName": "Plague Blade",
+	"skillType": "Active",
+	"description": "Inflicts decay on hostile ranks, draining current power.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 15,
+	  "increment": 3,
+	  "unit": "%",
+	  "stat": "Hostile Attack Debuff"
+	}
+  },
+  {
+	"id": "noxx_passive_despair",
+	"heroId": "noxx",
+	"skillName": "Despair Aura",
+	"skillType": "Passive",
+	"description": "Oppressive phantom fields weaken nearby enemy defense lines.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 8,
+	  "increment": 1.5,
+	  "unit": "%",
+	  "stat": "Enemy Defense Debuff"
+	}
+  },
+  {
+	"id": "noxx_passive_sshielding",
+	"heroId": "noxx",
+	"skillName": "Spectral Shielding",
+	"skillType": "Passive",
+	"description": "Dark armor traits fortify your cavalry vanguard.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 12,
+	  "increment": 2.5,
+	  "unit": "%",
+	  "stat": "Cavalry Defense"
+	}
+  },
+  {
+	"id": "remi_active_mmasonry",
+	"heroId": "remi",
+	"skillName": "Master Masonry",
+	"skillType": "Active",
+	"description": "Provides instant progress on current active structures.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 15,
+	  "increment": 5,
+	  "unit": "minutes",
+	  "stat": "Construction Time Skip"
+	}
+  },
+  {
+	"id": "remi_passive_vision",
+	"heroId": "remi",
+	"skillName": "Constructors Vision",
+	"skillType": "Passive",
+	"description": "Optimized scaffolds speed up city structure upgrades.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 12,
+	  "increment": 2.5,
+	  "unit": "%",
+	  "stat": "Construction Speed"
+	}
+  },
+  {
+	"id": "remi_passive_lmill",
+	"heroId": "remi",
+	"skillName": "Lumber Mill Care",
+	"skillType": "Passive",
+	"description": "Industrial forestry planning boosts local wood harvests.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 15,
+	  "increment": 3,
+	  "unit": "%",
+	  "stat": "Wood Production"
+	}
+  },
+  {
+	"id": "faith_active_enlightenment",
+	"heroId": "faith",
+	"skillName": "Enlightenment",
+	"skillType": "Active",
+	"description": "Saves raw research resource investment with mental focus.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 5,
+	  "increment": 1,
+	  "unit": "%",
+	  "stat": "Research Resource Save"
+	}
+  },
+  {
+	"id": "faith_passive_patron",
+	"heroId": "faith",
+	"skillName": "Academy Patron",
+	"skillType": "Passive",
+	"description": "Sponsors scholarship programs, boosting academy research output.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 12,
+	  "increment": 2.5,
+	  "unit": "%",
+	  "stat": "Research Speed"
+	}
+  },
+  {
+	"id": "faith_passive_reserves",
+	"heroId": "faith",
+	"skillName": "Deep Reserves",
+	"skillType": "Passive",
+	"description": "Deep veins mapping increases city iron extraction rates.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 15,
+	  "increment": 3,
+	  "unit": "%",
+	  "stat": "Iron Production"
+	}
+  },
+  {
+	"id": "volkan_active_ssmash",
+	"heroId": "volkan",
+	"skillName": "Sledge Smash",
+	"skillType": "Active",
+	"description": "Crushes enemy armor, reducing defense bonuses.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 20,
+	  "increment": 4,
+	  "unit": "%",
+	  "stat": "Target Defense Reduction"
+	}
+  },
+  {
+	"id": "volkan_passive_fmaster",
+	"heroId": "volkan",
+	"skillName": "Forge Master",
+	"skillType": "Passive",
+	"description": "Implements heat-forged heavy weaponry for foot cohorts.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 16,
+	  "increment": 3.2,
+	  "unit": "%",
+	  "stat": "Infantry Attack"
+	}
+  },
+  {
+	"id": "volkan_passive_hplates",
+	"heroId": "volkan",
+	"skillName": "Heated Plates",
+	"skillType": "Passive",
+	"description": "Tempered steel underlays boost general legion health.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 8,
+	  "increment": 1.6,
+	  "unit": "%",
+	  "stat": "Troop HP"
+	}
+  },
+  {
+	"id": "huarung_active_gsight",
+	"heroId": "huarung",
+	"skillName": "Grounded Sight",
+	"skillType": "Active",
+	"description": "Focuses stance, boosting damage output of marksmen.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 25,
+	  "increment": 5,
+	  "unit": "%",
+	  "stat": "Marksmen Damage Boost"
+	}
+  },
+  {
+	"id": "huarung_passive_geyes",
+	"heroId": "huarung",
+	"skillName": "Gale Eyes",
+	"skillType": "Passive",
+	"description": "Wind-whispering guidance aids longbow strikes.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 18,
+	  "increment": 3.6,
+	  "unit": "%",
+	  "stat": "Marksmen Attack"
+	}
+  },
+  {
+	"id": "huarung_passive_scover",
+	"heroId": "huarung",
+	"skillName": "Sniper Cover",
+	"skillType": "Passive",
+	"description": "Camouflage defensive strategies protect dynamic bow battalions.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 8,
+	  "increment": 1.6,
+	  "unit": "%",
+	  "stat": "Marksmen Defense"
+	}
+  },
+  {
+	"id": "violet_active_vslash",
+	"heroId": "violet",
+	"skillName": "Viper Slash",
+	"skillType": "Active",
+	"description": "Deals quick double impacts across flanking targets.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 160,
+	  "increment": 32,
+	  "unit": "%",
+	  "stat": "Flank Strike Damage"
+	}
+  },
+  {
+	"id": "violet_passive_swiftness",
+	"heroId": "violet",
+	"skillName": "Vanguard Swiftness",
+	"skillType": "Passive",
+	"description": "Aggressive flank training boosts cavalry pierce power.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 16,
+	  "increment": 3.2,
+	  "unit": "%",
+	  "stat": "Cavalry Attack"
+	}
+  },
+  {
+	"id": "violet_passive_momentum",
+	"heroId": "violet",
+	"skillName": "Flank Momentum",
+	"skillType": "Passive",
+	"description": "Sprinting drill patterns increase army march velocities.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 8,
+	  "increment": 1.6,
+	  "unit": "%",
+	  "stat": "March Speed"
+	}
+  },
+  {
+	"id": "sebastian_active_gambit",
+	"heroId": "sebastian",
+	"skillName": "Sebastian's Gambit",
+	"skillType": "Active",
+	"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 15,
+	  "increment": 3,
+	  "unit": "%",
+	  "stat": "Field Support Factor"
+	}
+  },
+  {
+	"id": "sebastian_passive_shield",
+	"heroId": "sebastian",
+	"skillName": "Sebastian's Shield",
+	"skillType": "Passive",
+	"description": "Classic shieldwall tactics bolster infantrymen defense outlines.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 8,
+	  "increment": 1.6,
+	  "unit": "%",
+	  "stat": "Infantry Defense"
+	}
+  },
+  {
+	"id": "sebastian_passive_resolve",
+	"heroId": "sebastian",
+	"skillName": "Sebastian's Resolve",
+	"skillType": "Passive",
+	"description": "Crownspire discipline maintains infantry squad health.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 6,
+	  "increment": 1.2,
+	  "unit": "%",
+	  "stat": "Infantry HP"
+	}
+  },
+  {
+	"id": "josh_active_gambit",
+	"heroId": "josh",
+	"skillName": "Josh's Gambit",
+	"skillType": "Active",
+	"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 15,
+	  "increment": 3,
+	  "unit": "%",
+	  "stat": "Field Support Factor"
+	}
+  },
+  {
+	"id": "josh_passive_precision",
+	"heroId": "josh",
+	"skillName": "Josh's Precision",
+	"skillType": "Passive",
+	"description": "Organized volley drills increase marksmen damage outcomes.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 8,
+	  "increment": 1.6,
+	  "unit": "%",
+	  "stat": "Marksmen Attack"
+	}
+  },
+  {
+	"id": "josh_passive_cover",
+	"heroId": "josh",
+	"skillName": "Josh's Cover",
+	"skillType": "Passive",
+	"description": "Forest vanguard alignments defend fragile bow specialists.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 6,
+	  "increment": 1.2,
+	  "unit": "%",
+	  "stat": "Marksmen Defense"
+	}
+  },
+  {
+	"id": "paul_active_gambit",
+	"heroId": "paul",
+	"skillName": "Paul's Gambit",
+	"skillType": "Active",
+	"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 15,
+	  "increment": 3,
+	  "unit": "%",
+	  "stat": "Field Support Factor"
+	}
+  },
+  {
+	"id": "paul_passive_wisdom",
+	"heroId": "paul",
+	"skillName": "Paul's Wisdom",
+	"skillType": "Passive",
+	"description": "Structured investigation procedures boost academy research rates.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 8,
+	  "increment": 1.6,
+	  "unit": "%",
+	  "stat": "Research Speed"
+	}
+  },
+  {
+	"id": "paul_passive_recovery",
+	"heroId": "paul",
+	"skillName": "Paul's Recovery",
+	"skillType": "Passive",
+	"description": "Systematic clinic layouts accelerate casualty handling lines.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 8,
+	  "increment": 1.6,
+	  "unit": "%",
+	  "stat": "Healing Speed"
+	}
+  },
+  {
+	"id": "tony_active_gambit",
+	"heroId": "tony",
+	"skillName": "Tony's Gambit",
+	"skillType": "Active",
+	"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 15,
+	  "increment": 3,
+	  "unit": "%",
+	  "stat": "Field Support Factor"
+	}
+  },
+  {
+	"id": "tony_passive_extraction",
+	"heroId": "tony",
+	"skillName": "Tony's Extraction",
+	"skillType": "Passive",
+	"description": "Deep miner coordination improves city iron infrastructure output.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 8,
+	  "increment": 1.6,
+	  "unit": "%",
+	  "stat": "Iron Production"
+	}
+  },
+  {
+	"id": "tony_passive_cartload",
+	"heroId": "tony",
+	"skillName": "Tony's Cartload",
+	"skillType": "Passive",
+	"description": "Rigged cargo frames increase open-world carry capabilities.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 8,
+	  "increment": 1.6,
+	  "unit": "%",
+	  "stat": "Gather Load Capacity"
+	}
+  },
+  {
+	"id": "chase_active_gambit",
+	"heroId": "chase",
+	"skillName": "Chase's Gambit",
+	"skillType": "Active",
+	"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 15,
+	  "increment": 3,
+	  "unit": "%",
+	  "stat": "Field Support Factor"
+	}
+  },
+  {
+	"id": "chase_passive_fury",
+	"heroId": "chase",
+	"skillName": "Chase's Fury",
+	"skillType": "Passive",
+	"description": "Aggressive flank cavalry training increases dynamic strike stats.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 8,
+	  "increment": 1.6,
+	  "unit": "%",
+	  "stat": "Cavalry Attack"
+	}
+  },
+  {
+	"id": "chase_passive_gallop",
+	"heroId": "chase",
+	"skillName": "Chase's Gallop",
+	"skillType": "Passive",
+	"description": "Lightweight tack speed-ups hasten cavalry operations.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 6,
+	  "increment": 1.2,
+	  "unit": "%",
+	  "stat": "Cavalry Speed"
+	}
+  },
+  {
+	"id": "everest_active_gambit",
+	"heroId": "everest",
+	"skillName": "Everest's Gambit",
+	"skillType": "Active",
+	"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 15,
+	  "increment": 3,
+	  "unit": "%",
+	  "stat": "Field Support Factor"
+	}
+  },
+  {
+	"id": "everest_passive_peak",
+	"heroId": "everest",
+	"skillName": "Everest's Peak",
+	"skillType": "Passive",
+	"description": "Mountain endurance drilling fortifies foot cohorts.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 8,
+	  "increment": 1.6,
+	  "unit": "%",
+	  "stat": "Infantry HP"
+	}
+  },
+  {
+	"id": "everest_passive_fortification",
+	"heroId": "everest",
+	"skillName": "Everest's Fortification",
+	"skillType": "Passive",
+	"description": "High wall watch guard setups guard active legion posts.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 6,
+	  "increment": 1.2,
+	  "unit": "%",
+	  "stat": "Legion Defense"
+	}
+  },
+  {
+	"id": "jayden_active_gambit",
+	"heroId": "jayden",
+	"skillName": "Jayden's Gambit",
+	"skillType": "Active",
+	"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 15,
+	  "increment": 3,
+	  "unit": "%",
+	  "stat": "Field Support Factor"
+	}
+  },
+  {
+	"id": "jayden_passive_vision",
+	"heroId": "jayden",
+	"skillName": "Jayden's Vision",
+	"skillType": "Passive",
+	"description": "Extended lookout range coordinates archer defense loops.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 8,
+	  "increment": 1.6,
+	  "unit": "%",
+	  "stat": "Marksmen Defense"
+	}
+  },
+  {
+	"id": "jayden_passive_quickdraw",
+	"heroId": "jayden",
+	"skillName": "Jayden's Quickdraw",
+	"skillType": "Passive",
+	"description": "Rapid reload paradigms boost archer squad punch.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 6,
+	  "increment": 1.2,
+	  "unit": "%",
+	  "stat": "Marksmen Attack"
+	}
+  },
+  {
+	"id": "karlie_active_gambit",
+	"heroId": "karlie",
+	"skillName": "Karlie's Gambit",
+	"skillType": "Active",
+	"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 15,
+	  "increment": 3,
+	  "unit": "%",
+	  "stat": "Field Support Factor"
+	}
+  },
+  {
+	"id": "karlie_passive_blueprints",
+	"heroId": "karlie",
+	"skillName": "Karlie's Blueprints",
+	"skillType": "Passive",
+	"description": "Precision city layouts accelerate construction processes.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 8,
+	  "increment": 1.6,
+	  "unit": "%",
+	  "stat": "Construction Speed"
+	}
+  },
+  {
+	"id": "karlie_passive_efficiency",
+	"heroId": "karlie",
+	"skillName": "Karlie's Efficiency",
+	"skillType": "Passive",
+	"description": "Standardized framing minimizes architectural resources.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 6,
+	  "increment": 1.2,
+	  "unit": "%",
+	  "stat": "Building Cost Reduct"
+	}
+  },
+  {
+	"id": "makenzi_active_gambit",
+	"heroId": "makenzi",
+	"skillName": "Makenzi's Gambit",
+	"skillType": "Active",
+	"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 15,
+	  "increment": 3,
+	  "unit": "%",
+	  "stat": "Field Support Factor"
+	}
+  },
+  {
+	"id": "makenzi_passive_timber",
+	"heroId": "makenzi",
+	"skillName": "Makenzi's Timber",
+	"skillType": "Passive",
+	"description": "Systematic forestry routines speed up wood logging yields.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 8,
+	  "increment": 1.6,
+	  "unit": "%",
+	  "stat": "Wood Production"
+	}
+  },
+  {
+	"id": "makenzi_passive_hauler",
+	"heroId": "makenzi",
+	"skillName": "Makenzi's Hauler",
+	"skillType": "Passive",
+	"description": "Optimized wagon beds expand open field extraction limits.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 8,
+	  "increment": 1.6,
+	  "unit": "%",
+	  "stat": "Gathering Capacity"
+	}
+  },
+  {
+	"id": "jazzy_active_gambit",
+	"heroId": "jazzy",
+	"skillName": "Jazzy's Gambit",
+	"skillType": "Active",
+	"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 15,
+	  "increment": 3,
+	  "unit": "%",
+	  "stat": "Field Support Factor"
+	}
+  },
+  {
+	"id": "jazzy_passive_drift",
+	"heroId": "jazzy",
+	"skillName": "Jazzy's Drift",
+	"skillType": "Passive",
+	"description": "Flanking route expertise speeds up quick strike marches.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 8,
+	  "increment": 1.6,
+	  "unit": "%",
+	  "stat": "Cavalry Speed"
+	}
+  },
+  {
+	"id": "jazzy_passive_vanguard",
+	"heroId": "jazzy",
+	"skillName": "Jazzy's Vanguard",
+	"skillType": "Passive",
+	"description": "Steel horse protectors fortify cavalry defense factors.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 6,
+	  "increment": 1.2,
+	  "unit": "%",
+	  "stat": "Cavalry Defense"
+	}
+  },
+  {
+	"id": "jose_active_gambit",
+	"heroId": "jose",
+	"skillName": "Jose's Gambit",
+	"skillType": "Active",
+	"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 15,
+	  "increment": 3,
+	  "unit": "%",
+	  "stat": "Field Support Factor"
+	}
+  },
+  {
+	"id": "jose_passive_phalanx",
+	"heroId": "jose",
+	"skillName": "Jose's Phalanx",
+	"skillType": "Passive",
+	"description": "Tight footmen alignments improve thrust impact factors.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 8,
+	  "increment": 1.6,
+	  "unit": "%",
+	  "stat": "Infantry Attack"
+	}
+  },
+  {
+	"id": "jose_passive_grit",
+	"heroId": "jose",
+	"skillName": "Jose's Grit",
+	"skillType": "Passive",
+	"description": "Combat endurance drills maintain cohort line integrity.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 6,
+	  "increment": 1.2,
+	  "unit": "%",
+	  "stat": "Infantry HP"
+	}
+  },
+  {
+	"id": "lindsey_active_gambit",
+	"heroId": "lindsey",
+	"skillName": "Lindsey's Gambit",
+	"skillType": "Active",
+	"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 15,
+	  "increment": 3,
+	  "unit": "%",
+	  "stat": "Field Support Factor"
+	}
+  },
+  {
+	"id": "lindsey_passive_aim",
+	"heroId": "lindsey",
+	"skillName": "Lindsey's Aim",
+	"skillType": "Passive",
+	"description": "Defensive range positioning raises archer survivability.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 8,
+	  "increment": 1.6,
+	  "unit": "%",
+	  "stat": "Marksmen HP"
+	}
+  },
+  {
+	"id": "lindsey_passive_arrow",
+	"heroId": "lindsey",
+	"skillName": "Lindsey's Arrow",
+	"skillType": "Passive",
+	"description": "Composite bow modifications increase arrow strike depth.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 6,
+	  "increment": 1.2,
+	  "unit": "%",
+	  "stat": "Marksmen Attack"
+	}
+  },
+  {
+	"id": "lisa_active_gambit",
+	"heroId": "lisa",
+	"skillName": "Lisa's Gambit",
+	"skillType": "Active",
+	"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 15,
+	  "increment": 3,
+	  "unit": "%",
+	  "stat": "Field Support Factor"
+	}
+  },
+  {
+	"id": "lisa_passive_bandage",
+	"heroId": "lisa",
+	"skillName": "Lisa's Bandage",
+	"skillType": "Passive",
+	"description": "Saves squad numbers in local clinics by boosting recovery rates.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 8,
+	  "increment": 1.6,
+	  "unit": "%",
+	  "stat": "Healing Speed"
+	}
+  },
+  {
+	"id": "lisa_passive_blessing",
+	"heroId": "lisa",
+	"skillName": "Lisa's Blessing",
+	"skillType": "Passive",
+	"description": "Protective chants coordinate troop defensive maneuvers.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 6,
+	  "increment": 1.2,
+	  "unit": "%",
+	  "stat": "Troop Defense"
+	}
+  },
+  {
+	"id": "dana_active_gambit",
+	"heroId": "dana",
+	"skillName": "Dana's Gambit",
+	"skillType": "Active",
+	"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 15,
+	  "increment": 3,
+	  "unit": "%",
+	  "stat": "Field Support Factor"
+	}
+  },
+  {
+	"id": "dana_passive_harvest",
+	"heroId": "dana",
+	"skillName": "Dana's Harvest",
+	"skillType": "Passive",
+	"description": "Advanced irrigation designs raise city wheat production.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 8,
+	  "increment": 1.6,
+	  "unit": "%",
+	  "stat": "Food Production"
+	}
+  },
+  {
+	"id": "dana_passive_carrier",
+	"heroId": "dana",
+	"skillName": "Dana's Carrier",
+	"skillType": "Passive",
+	"description": "Light, wide carts increase open-country resource hauling limits.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 8,
+	  "increment": 1.6,
+	  "unit": "%",
+	  "stat": "Gather load Limit"
+	}
+  },
+  {
+	"id": "jamie_active_gambit",
+	"heroId": "jamie",
+	"skillName": "Jamie's Gambit",
+	"skillType": "Active",
+	"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 15,
+	  "increment": 3,
+	  "unit": "%",
+	  "stat": "Field Support Factor"
+	}
+  },
+  {
+	"id": "jamie_passive_ridge",
+	"heroId": "jamie",
+	"skillName": "Jamie's Ridge",
+	"skillType": "Passive",
+	"description": "Ridge riding maneuvers increase defensive horse shielding.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 8,
+	  "increment": 1.6,
+	  "unit": "%",
+	  "stat": "Cavalry Defense"
+	}
+  },
+  {
+	"id": "jamie_passive_speedster",
+	"heroId": "jamie",
+	"skillName": "Jamie's Speedster",
+	"skillType": "Passive",
+	"description": "Saddle refinements speed up open territory cavalry marches.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 6,
+	  "increment": 1.2,
+	  "unit": "%",
+	  "stat": "March Speed"
+	}
+  },
+  {
+	"id": "gizem_active_gambit",
+	"heroId": "gizem",
+	"skillName": "Gizem's Gambit",
+	"skillType": "Active",
+	"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 15,
+	  "increment": 3,
+	  "unit": "%",
+	  "stat": "Field Support Factor"
+	}
+  },
+  {
+	"id": "gizem_passive_aura",
+	"heroId": "gizem",
+	"skillName": "Gizem's Aura",
+	"skillType": "Passive",
+	"description": "Deep combat leadership boosts absolute combat attack metrics.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 8,
+	  "increment": 1.6,
+	  "unit": "%",
+	  "stat": "Troop Attack"
+	}
+  },
+  {
+	"id": "gizem_passive_resilience",
+	"heroId": "gizem",
+	"skillName": "Gizem's Resilience",
+	"skillType": "Passive",
+	"description": "Elite troop coordinates shield frontline foot soldiers.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 6,
+	  "increment": 1.2,
+	  "unit": "%",
+	  "stat": "Troop Defense"
+	}
+  },
+  {
+	"id": "ivy_active_spirit",
+	"heroId": "ivy",
+	"skillName": "Ivy's Spirit",
+	"skillType": "Active",
+	"description": "Grants minor temporary buffs to speed or combat attributes.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 10,
+	  "increment": 2,
+	  "unit": "%",
+	  "stat": "Wild Spirit Multiplier"
+	}
+  },
+  {
+	"id": "ivy_passive_harvest",
+	"heroId": "ivy",
+	"skillName": "Ivy's Harvest",
+	"skillType": "Passive",
+	"description": "Herbal knowledge accelerates environmental resource pick-up speed.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 4,
+	  "increment": 0.8,
+	  "unit": "%",
+	  "stat": "Gathering Speed"
+	}
+  },
+  {
+	"id": "ivy_passive_route",
+	"heroId": "ivy",
+	"skillName": "Ivy's Route",
+	"skillType": "Passive",
+	"description": "Familiar border routes speed up wild country marches.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 4,
+	  "increment": 0.8,
+	  "unit": "%",
+	  "stat": "March Speed"
+	}
+  },
+  {
+	"id": "brady_active_spirit",
+	"heroId": "brady",
+	"skillName": "Brady's Spirit",
+	"skillType": "Active",
+	"description": "Grants minor temporary buffs to speed or combat attributes.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 10,
+	  "increment": 2,
+	  "unit": "%",
+	  "stat": "Wild Spirit Multiplier"
+	}
+  },
+  {
+	"id": "brady_passive_fort",
+	"heroId": "brady",
+	"skillName": "Brady's Fort",
+	"skillType": "Passive",
+	"description": "Fringe territory cover drill shields infantry cohorts.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 4,
+	  "increment": 0.8,
+	  "unit": "%",
+	  "stat": "Infantry Defense"
+	}
+  },
+  {
+	"id": "brady_passive_resolve",
+	"heroId": "brady",
+	"skillName": "Brady's Resolve",
+	"skillType": "Passive",
+	"description": "Frontier battle toughness maintains footmen ranks.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 4,
+	  "increment": 0.8,
+	  "unit": "%",
+	  "stat": "Infantry HP"
+	}
+  },
+  {
+	"id": "byank_active_spirit",
+	"heroId": "byank",
+	"skillName": "Byank's Spirit",
+	"skillType": "Active",
+	"description": "Grants minor temporary buffs to speed or combat attributes.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 10,
+	  "increment": 2,
+	  "unit": "%",
+	  "stat": "Wild Spirit Multiplier"
+	}
+  },
+  {
+	"id": "byank_passive_sight",
+	"heroId": "byank",
+	"skillName": "Byank's Sight",
+	"skillType": "Passive",
+	"description": "Forest hunting practice improves marksman bow-hits.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 4,
+	  "increment": 0.8,
+	  "unit": "%",
+	  "stat": "Marksmen Attack"
+	}
+  },
+  {
+	"id": "byank_passive_pierce",
+	"heroId": "byank",
+	"skillName": "Byank's Pierce",
+	"skillType": "Passive",
+	"description": "Pointed forest arrows increase marksman combat depth.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 3,
+	  "increment": 0.6,
+	  "unit": "%",
+	  "stat": "Armor Penetration"
+	}
+  },
+  {
+	"id": "catron_active_spirit",
+	"heroId": "catron",
+	"skillName": "Catron's Spirit",
+	"skillType": "Active",
+	"description": "Grants minor temporary buffs to speed or combat attributes.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 10,
+	  "increment": 2,
+	  "unit": "%",
+	  "stat": "Wild Spirit Multiplier"
+	}
+  },
+  {
+	"id": "catron_passive_gallop",
+	"heroId": "catron",
+	"skillName": "Catron's Gallop",
+	"skillType": "Passive",
+	"description": "Wilderness horse paths speed up cavalry march rates.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 4,
+	  "increment": 0.8,
+	  "unit": "%",
+	  "stat": "Cavalry Speed"
+	}
+  },
+  {
+	"id": "catron_passive_flank",
+	"heroId": "catron",
+	"skillName": "Catron's Flank",
+	"skillType": "Passive",
+	"description": "Saddle scouting maneuvers raise horse attack outcomes.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 4,
+	  "increment": 0.8,
+	  "unit": "%",
+	  "stat": "Cavalry Attack"
+	}
+  },
+  {
+	"id": "jas_active_spirit",
+	"heroId": "jas",
+	"skillName": "Jas's Spirit",
+	"skillType": "Active",
+	"description": "Grants minor temporary buffs to speed or combat attributes.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 10,
+	  "increment": 2,
+	  "unit": "%",
+	  "stat": "Wild Spirit Multiplier"
+	}
+  },
+  {
+	"id": "jas_passive_touch",
+	"heroId": "jas",
+	"skillName": "Jas's Touch",
+	"skillType": "Passive",
+	"description": "Ranger clinic layouts help wounded units recover speed.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 4,
+	  "increment": 0.8,
+	  "unit": "%",
+	  "stat": "Healing Speed"
+	}
+  },
+  {
+	"id": "jas_passive_shield",
+	"heroId": "jas",
+	"skillName": "Jas's Shield",
+	"skillType": "Passive",
+	"description": "Fortifying border wards raise total troop defense stats.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 3,
+	  "increment": 0.6,
+	  "unit": "%",
+	  "stat": "Troop Defense"
+	}
+  },
+  {
+	"id": "jack_active_spirit",
+	"heroId": "jack",
+	"skillName": "Jack's Spirit",
+	"skillType": "Active",
+	"description": "Grants minor temporary buffs to speed or combat attributes.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 10,
+	  "increment": 2,
+	  "unit": "%",
+	  "stat": "Wild Spirit Multiplier"
+	}
+  },
+  {
+	"id": "jack_passive_plentiful",
+	"heroId": "jack",
+	"skillName": "Jack's Plentiful",
+	"skillType": "Passive",
+	"description": "Rural soil practices improve local farm grain output.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 4,
+	  "increment": 0.8,
+	  "unit": "%",
+	  "stat": "Food Production"
+	}
+  },
+  {
+	"id": "jack_passive_sacks",
+	"heroId": "jack",
+	"skillName": "Jack's Sacks",
+	"skillType": "Passive",
+	"description": "Large canvas storage sack designs boost squad carry loads.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 4,
+	  "increment": 0.8,
+	  "unit": "%",
+	  "stat": "Gathering Load Limit"
+	}
+  },
+  {
+	"id": "laura_active_spirit",
+	"heroId": "laura",
+	"skillName": "Laura's Spirit",
+	"skillType": "Active",
+	"description": "Grants minor temporary buffs to speed or combat attributes.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 10,
+	  "increment": 2,
+	  "unit": "%",
+	  "stat": "Wild Spirit Multiplier"
+	}
+  },
+  {
+	"id": "laura_passive_wall",
+	"heroId": "laura",
+	"skillName": "Laura's Wall",
+	"skillType": "Passive",
+	"description": "Simple wooden shield tactics maintain footmen endurance.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 4,
+	  "increment": 0.8,
+	  "unit": "%",
+	  "stat": "Infantry HP"
+	}
+  },
+  {
+	"id": "laura_passive_guard",
+	"heroId": "laura",
+	"skillName": "Laura's Guard",
+	"skillType": "Passive",
+	"description": "Border outpost duties teach infantry defensive shields.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 3,
+	  "increment": 0.6,
+	  "unit": "%",
+	  "stat": "Infantry Defense"
+	}
+  },
+  {
+	"id": "may_active_spirit",
+	"heroId": "may",
+	"skillName": "May's Spirit",
+	"skillType": "Active",
+	"description": "Grants minor temporary buffs to speed or combat attributes.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 10,
+	  "increment": 2,
+	  "unit": "%",
+	  "stat": "Wild Spirit Multiplier"
+	}
+  },
+  {
+	"id": "may_passive_arrow",
+	"heroId": "may",
+	"skillName": "May's Arrow",
+	"skillType": "Passive",
+	"description": "High positioning coordinates archer squad health preservation.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 4,
+	  "increment": 0.8,
+	  "unit": "%",
+	  "stat": "Marksmen HP"
+	}
+  },
+  {
+	"id": "may_passive_breeze",
+	"heroId": "may",
+	"skillName": "May's Breeze",
+	"skillType": "Passive",
+	"description": "Wind-guiding focus points improve bow attack ratings.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 3,
+	  "increment": 0.6,
+	  "unit": "%",
+	  "stat": "Marksmen Attack"
+	}
+  },
+  {
+	"id": "pam_active_spirit",
+	"heroId": "pam",
+	"skillName": "Pam's Spirit",
+	"skillType": "Active",
+	"description": "Grants minor temporary buffs to speed or combat attributes.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 10,
+	  "increment": 2,
+	  "unit": "%",
+	  "stat": "Wild Spirit Multiplier"
+	}
+  },
+  {
+	"id": "pam_passive_swiftness",
+	"heroId": "pam",
+	"skillName": "Pam's Swiftness",
+	"skillType": "Passive",
+	"description": "Dynamic horse spurring speeds up open country march rates.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 4,
+	  "increment": 0.8,
+	  "unit": "%",
+	  "stat": "March Speed"
+	}
+  },
+  {
+	"id": "pam_passive_saddle",
+	"heroId": "pam",
+	"skillName": "Pam's Saddle",
+	"skillType": "Passive",
+	"description": "Light saddle setups bolster local cavalry defense ratings.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 3,
+	  "increment": 0.6,
+	  "unit": "%",
+	  "stat": "Cavalry Defense"
+	}
+  },
+  {
+	"id": "rass_active_spirit",
+	"heroId": "rass",
+	"skillName": "Rass's Spirit",
+	"skillType": "Active",
+	"description": "Grants minor temporary buffs to speed or combat attributes.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 10,
+	  "increment": 2,
+	  "unit": "%",
+	  "stat": "Wild Spirit Multiplier"
+	}
+  },
+  {
+	"id": "rass_passive_masonry",
+	"heroId": "rass",
+	"skillName": "Rass's Masonry",
+	"skillType": "Passive",
+	"description": "Simple timber frames accelerate city development tasks.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 4,
+	  "increment": 0.8,
+	  "unit": "%",
+	  "stat": "Construction Speed"
+	}
+  },
+  {
+	"id": "rass_passive_core",
+	"heroId": "rass",
+	"skillName": "Rass's Core",
+	"skillType": "Passive",
+	"description": "Local brickworks coordination defends active city walls.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 3,
+	  "increment": 0.6,
+	  "unit": "%",
+	  "stat": "Wall Defense"
+	}
+  },
+  {
+	"id": "rubble_active_spirit",
+	"heroId": "rubble",
+	"skillName": "Rubble's Spirit",
+	"skillType": "Active",
+	"description": "Grants minor temporary buffs to speed or combat attributes.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 10,
+	  "increment": 2,
+	  "unit": "%",
+	  "stat": "Wild Spirit Multiplier"
+	}
+  },
+  {
+	"id": "rubble_passive_sifting",
+	"heroId": "rubble",
+	"skillName": "Rubble's Sifting",
+	"skillType": "Passive",
+	"description": "Outpost gravel sorting boosts deep stone quarry output.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 4,
+	  "increment": 0.8,
+	  "unit": "%",
+	  "stat": "Stone Production"
+	}
+  },
+  {
+	"id": "rubble_passive_block",
+	"heroId": "rubble",
+	"skillName": "Rubble's Block",
+	"skillType": "Passive",
+	"description": "Stone block arrangements increase squad loading boundaries.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 4,
+	  "increment": 0.8,
+	  "unit": "%",
+	  "stat": "Gathering capacity"
+	}
+  },
+  {
+	"id": "tisha_active_spirit",
+	"heroId": "tisha",
+	"skillName": "Tisha's Spirit",
+	"skillType": "Active",
+	"description": "Grants minor temporary buffs to speed or combat attributes.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 10,
+	  "increment": 2,
+	  "unit": "%",
+	  "stat": "Wild Spirit Multiplier"
+	}
+  },
+  {
+	"id": "tisha_passive_pierce",
+	"heroId": "tisha",
+	"skillName": "Tisha's Pierce",
+	"skillType": "Passive",
+	"description": "Iron-tip pike updates raise infantrymen attack depth.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 4,
+	  "increment": 0.8,
+	  "unit": "%",
+	  "stat": "Infantry Attack"
+	}
+  },
+  {
+	"id": "tisha_passive_shield",
+	"heroId": "tisha",
+	"skillName": "Tisha's Shield",
+	"skillType": "Passive",
+	"description": "Coordinated defensive shields shield footmen cohorts.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 3,
+	  "increment": 0.6,
+	  "unit": "%",
+	  "stat": "Infantry Defense"
+	}
+  },
+  {
+	"id": "buzz_active_spirit",
+	"heroId": "buzz",
+	"skillName": "Buzz's Spirit",
+	"skillType": "Active",
+	"description": "Grants minor temporary buffs to speed or combat attributes.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 10,
+	  "increment": 2,
+	  "unit": "%",
+	  "stat": "Wild Spirit Multiplier"
+	}
+  },
+  {
+	"id": "buzz_passive_arrow",
+	"heroId": "buzz",
+	"skillName": "Buzz's Arrow",
+	"skillType": "Passive",
+	"description": "Outpost range sighting shields archers from surprise strikes.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 4,
+	  "increment": 0.8,
+	  "unit": "%",
+	  "stat": "Marksmen Defense"
+	}
+  },
+  {
+	"id": "buzz_passive_cover",
+	"heroId": "buzz",
+	"skillName": "Buzz's Cover",
+	"skillType": "Passive",
+	"description": "Camouflage forest covers protect fragile marksmen battalions.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 3,
+	  "increment": 0.6,
+	  "unit": "%",
+	  "stat": "Marksmen HP"
+	}
+  },
+  {
+	"id": "yunus_active_spirit",
+	"heroId": "yunus",
+	"skillName": "Yunus's Spirit",
+	"skillType": "Active",
+	"description": "Grants minor temporary buffs to speed or combat attributes.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 10,
+	  "increment": 2,
+	  "unit": "%",
+	  "stat": "Wild Spirit Multiplier"
+	}
+  },
+  {
+	"id": "yunus_passive_steed",
+	"heroId": "yunus",
+	"skillName": "Yunus's Steed",
+	"skillType": "Passive",
+	"description": "Wilderness horse care shields horse cohorts dynamically.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 4,
+	  "increment": 0.8,
+	  "unit": "%",
+	  "stat": "Cavalry Defense"
+	}
+  },
+  {
+	"id": "yunus_passive_armor",
+	"heroId": "yunus",
+	"skillName": "Yunus's Armor",
+	"skillType": "Passive",
+	"description": "Reinforced horse armor plates raise cavalry health ratings.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 3,
+	  "increment": 0.6,
+	  "unit": "%",
+	  "stat": "Cavalry HP"
+	}
+  },
+  {
+	"id": "anelia_active_spirit",
+	"heroId": "anelia",
+	"skillName": "Anelia's Spirit",
+	"skillType": "Active",
+	"description": "Grants minor temporary buffs to speed or combat attributes.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 10,
+	  "increment": 2,
+	  "unit": "%",
+	  "stat": "Wild Spirit Multiplier"
+	}
+  },
+  {
+	"id": "anelia_passive_study",
+	"heroId": "anelia",
+	"skillName": "Anelia's Study",
+	"skillType": "Passive",
+	"description": "Outpost libraries coordinate research tasks beautifully.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 4,
+	  "increment": 0.8,
+	  "unit": "%",
+	  "stat": "Research Speed"
+	}
+  },
+  {
+	"id": "anelia_passive_focus",
+	"heroId": "anelia",
+	"skillName": "Anelia's Focus",
+	"skillType": "Passive",
+	"description": "Basic scholarly practices reduce resource requirements in research.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 3,
+	  "increment": 0.6,
+	  "unit": "%",
+	  "stat": "Research Cost Reduct"
+	}
+  },
+  {
+	"id": "larfides_active_spirit",
+	"heroId": "larfides",
+	"skillName": "Larfides's Spirit",
+	"skillType": "Active",
+	"description": "Grants minor temporary buffs to speed or combat attributes.",
+	"unlockAscension": 0,
+	"powerScaling": {
+	  "baseValue": 10,
+	  "increment": 2,
+	  "unit": "%",
+	  "stat": "Wild Spirit Multiplier"
+	}
+  },
+  {
+	"id": "larfides_passive_glory",
+	"heroId": "larfides",
+	"skillName": "Larfides's Glory",
+	"skillType": "Passive",
+	"description": "Frontier battle leadership raises absolute march attack metrics.",
+	"unlockAscension": 1,
+	"powerScaling": {
+	  "baseValue": 4,
+	  "increment": 0.8,
+	  "unit": "%",
+	  "stat": "Troop Attack"
+	}
+  },
+  {
+	"id": "larfides_passive_command",
+	"heroId": "larfides",
+	"skillName": "Larfides's Command",
+	"skillType": "Passive",
+	"description": "Rugged defense positions raise total vanguard health traits.",
+	"unlockAscension": 3,
+	"powerScaling": {
+	  "baseValue": 3,
+	  "increment": 0.6,
+	  "unit": "%",
+	  "stat": "Troop Defense"
+	}
+  }
+]

@@ -1,0 +1,1622 @@
+[
+  {
+    "id": "eq_weapon_recruit_s_training",
+    "name": "Recruit's Iron Broadsword",
+    "slot": "Weapon",
+    "rarity": "Common",
+    "levelRequirement": 1,
+    "statBonuses": {
+      "attack": 15,
+      "defense": 0,
+      "health": 0
+    },
+    "troopBonuses": {
+      "infantryAttack": 0.0015,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 0.0015,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 0.0015,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Recruit's Training",
+    "upgradeCost": {
+      "gold": 100,
+      "iron": 10,
+      "stone": 15
+    },
+    "description": "A simple but reliable iron sword issued to freshly trained trainees."
+  },
+  {
+    "id": "eq_helmet_recruit_s_training",
+    "name": "Recruit's Leather Cap",
+    "slot": "Helmet",
+    "rarity": "Common",
+    "levelRequirement": 1,
+    "statBonuses": {
+      "attack": 0,
+      "defense": 8,
+      "health": 40
+    },
+    "troopBonuses": {
+      "infantryAttack": 0.0015,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 0.0015,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 0.0015,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Recruit's Training",
+    "upgradeCost": {
+      "gold": 100,
+      "iron": 10,
+      "stone": 15
+    },
+    "description": "Provides basic skull protection using cheap, cured leather."
+  },
+  {
+    "id": "eq_armor_recruit_s_training",
+    "name": "Recruit's Cloth Vest",
+    "slot": "Armor",
+    "rarity": "Common",
+    "levelRequirement": 1,
+    "statBonuses": {
+      "attack": 0,
+      "defense": 15,
+      "health": 60
+    },
+    "troopBonuses": {
+      "infantryAttack": 0.0015,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 0.0015,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 0.0015,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Recruit's Training",
+    "upgradeCost": {
+      "gold": 100,
+      "iron": 10,
+      "stone": 15
+    },
+    "description": "Covers the torso. Barely blocks anything thicker than a small branch."
+  },
+  {
+    "id": "eq_boots_recruit_s_training",
+    "name": "Recruit's Worn Boots",
+    "slot": "Boots",
+    "rarity": "Common",
+    "levelRequirement": 1,
+    "statBonuses": {
+      "attack": 2,
+      "defense": 6,
+      "health": 30
+    },
+    "troopBonuses": {
+      "infantryAttack": 0.0015,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 0.0015,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 0.0015,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Recruit's Training",
+    "upgradeCost": {
+      "gold": 100,
+      "iron": 10,
+      "stone": 15
+    },
+    "description": "Scuffed leather boots showing the wear of long training drills."
+  },
+  {
+    "id": "eq_ring_recruit_s_training",
+    "name": "Recruit's Copper Band",
+    "slot": "Ring",
+    "rarity": "Common",
+    "levelRequirement": 1,
+    "statBonuses": {
+      "attack": 8,
+      "defense": 0,
+      "health": 20
+    },
+    "troopBonuses": {
+      "infantryAttack": 0.0015,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 0.0015,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 0.0015,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Recruit's Training",
+    "upgradeCost": {
+      "gold": 100,
+      "iron": 10,
+      "stone": 15
+    },
+    "description": "A rough copper band given as a symbol of recruitment."
+  },
+  {
+    "id": "eq_amulet_recruit_s_training",
+    "name": "Recruit's Clay Talisman",
+    "slot": "Amulet",
+    "rarity": "Common",
+    "levelRequirement": 1,
+    "statBonuses": {
+      "attack": 5,
+      "defense": 5,
+      "health": 30
+    },
+    "troopBonuses": {
+      "infantryAttack": 0.0015,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 0.0015,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 0.0015,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Recruit's Training",
+    "upgradeCost": {
+      "gold": 100,
+      "iron": 10,
+      "stone": 15
+    },
+    "description": "Baked river clay engraved with a simple rune of courage."
+  },
+  {
+    "id": "eq_weapon_vanguard_warden",
+    "name": "Vanguard Steel Mace",
+    "slot": "Weapon",
+    "rarity": "Rare",
+    "levelRequirement": 10,
+    "statBonuses": {
+      "attack": 375,
+      "defense": 0,
+      "health": 0
+    },
+    "troopBonuses": {
+      "infantryAttack": 0.0625,
+      "infantryDefense": 0.15,
+      "infantryHealth": 0.15,
+      "cavalryAttack": 0,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 0,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Vanguard Warden",
+    "upgradeCost": {
+      "gold": 2500,
+      "iron": 250,
+      "stone": 375
+    },
+    "description": "A heavy steel mace designed to shatter normal monster shields."
+  },
+  {
+    "id": "eq_helmet_vanguard_warden",
+    "name": "Vanguard Iron Helm",
+    "slot": "Helmet",
+    "rarity": "Rare",
+    "levelRequirement": 10,
+    "statBonuses": {
+      "attack": 0,
+      "defense": 200,
+      "health": 1000
+    },
+    "troopBonuses": {
+      "infantryAttack": 0.0625,
+      "infantryDefense": 0.15,
+      "infantryHealth": 0.15,
+      "cavalryAttack": 0,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 0,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Vanguard Warden",
+    "upgradeCost": {
+      "gold": 2500,
+      "iron": 250,
+      "stone": 375
+    },
+    "description": "An iron barbuta helmet giving high protection for front-line chargers."
+  },
+  {
+    "id": "eq_armor_vanguard_warden",
+    "name": "Vanguard Plate Chest",
+    "slot": "Armor",
+    "rarity": "Rare",
+    "levelRequirement": 10,
+    "statBonuses": {
+      "attack": 0,
+      "defense": 375,
+      "health": 1500
+    },
+    "troopBonuses": {
+      "infantryAttack": 0.0625,
+      "infantryDefense": 0.15,
+      "infantryHealth": 0.15,
+      "cavalryAttack": 0,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 0,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Vanguard Warden",
+    "upgradeCost": {
+      "gold": 2500,
+      "iron": 250,
+      "stone": 375
+    },
+    "description": "Riveted steel segments covering vital organs with dense protection."
+  },
+  {
+    "id": "eq_boots_vanguard_warden",
+    "name": "Vanguard Heavy Sabatons",
+    "slot": "Boots",
+    "rarity": "Rare",
+    "levelRequirement": 10,
+    "statBonuses": {
+      "attack": 50,
+      "defense": 150,
+      "health": 750
+    },
+    "troopBonuses": {
+      "infantryAttack": 0.0625,
+      "infantryDefense": 0.15,
+      "infantryHealth": 0.15,
+      "cavalryAttack": 0,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 0,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Vanguard Warden",
+    "upgradeCost": {
+      "gold": 2500,
+      "iron": 250,
+      "stone": 375
+    },
+    "description": "Metal boots that provide steady footing in chaotic battlefield terrains."
+  },
+  {
+    "id": "eq_ring_vanguard_warden",
+    "name": "Vanguard Gold Signet",
+    "slot": "Ring",
+    "rarity": "Rare",
+    "levelRequirement": 10,
+    "statBonuses": {
+      "attack": 200,
+      "defense": 0,
+      "health": 500
+    },
+    "troopBonuses": {
+      "infantryAttack": 0.0625,
+      "infantryDefense": 0.15,
+      "infantryHealth": 0.15,
+      "cavalryAttack": 0,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 0,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Vanguard Warden",
+    "upgradeCost": {
+      "gold": 2500,
+      "iron": 250,
+      "stone": 375
+    },
+    "description": "Stamped with the insignia of the Royal Vanguard Regiment."
+  },
+  {
+    "id": "eq_amulet_vanguard_warden",
+    "name": "Vanguard Valor Medallion",
+    "slot": "Amulet",
+    "rarity": "Rare",
+    "levelRequirement": 10,
+    "statBonuses": {
+      "attack": 125,
+      "defense": 125,
+      "health": 750
+    },
+    "troopBonuses": {
+      "infantryAttack": 0.0625,
+      "infantryDefense": 0.15,
+      "infantryHealth": 0.15,
+      "cavalryAttack": 0,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 0,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Vanguard Warden",
+    "upgradeCost": {
+      "gold": 2500,
+      "iron": 250,
+      "stone": 375
+    },
+    "description": "Awarded to warriors who survive their first ten battlefield clashes."
+  },
+  {
+    "id": "eq_weapon_wildwood_hunter",
+    "name": "Wildwood Compound Longbow",
+    "slot": "Weapon",
+    "rarity": "Rare",
+    "levelRequirement": 20,
+    "statBonuses": {
+      "attack": 1200,
+      "defense": 0,
+      "health": 0
+    },
+    "troopBonuses": {
+      "infantryAttack": 0,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 0,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 0.6,
+      "marksmenDefense": 0.2,
+      "marksmenHealth": 0.24
+    },
+    "setName": "Wildwood Hunter",
+    "upgradeCost": {
+      "gold": 8000,
+      "iron": 800,
+      "stone": 1200
+    },
+    "description": "Reinforced with flexed oak leaves to maximize draw performance."
+  },
+  {
+    "id": "eq_helmet_wildwood_hunter",
+    "name": "Wildwood Feathered Hood",
+    "slot": "Helmet",
+    "rarity": "Rare",
+    "levelRequirement": 20,
+    "statBonuses": {
+      "attack": 0,
+      "defense": 640,
+      "health": 3200
+    },
+    "troopBonuses": {
+      "infantryAttack": 0,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 0,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 0.6,
+      "marksmenDefense": 0.2,
+      "marksmenHealth": 0.24
+    },
+    "setName": "Wildwood Hunter",
+    "upgradeCost": {
+      "gold": 8000,
+      "iron": 800,
+      "stone": 1200
+    },
+    "description": "Designed to blend in with foliage, muffling high winds."
+  },
+  {
+    "id": "eq_armor_wildwood_hunter",
+    "name": "Wildwood Leather Jerkin",
+    "slot": "Armor",
+    "rarity": "Rare",
+    "levelRequirement": 20,
+    "statBonuses": {
+      "attack": 0,
+      "defense": 1200,
+      "health": 4800
+    },
+    "troopBonuses": {
+      "infantryAttack": 0,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 0,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 0.6,
+      "marksmenDefense": 0.2,
+      "marksmenHealth": 0.24
+    },
+    "setName": "Wildwood Hunter",
+    "upgradeCost": {
+      "gold": 8000,
+      "iron": 800,
+      "stone": 1200
+    },
+    "description": "Lightweight hide jacket offering superb maneuverability."
+  },
+  {
+    "id": "eq_boots_wildwood_hunter",
+    "name": "Wildwood Silent Boots",
+    "slot": "Boots",
+    "rarity": "Rare",
+    "levelRequirement": 20,
+    "statBonuses": {
+      "attack": 160,
+      "defense": 480,
+      "health": 2400
+    },
+    "troopBonuses": {
+      "infantryAttack": 0,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 0,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 0.6,
+      "marksmenDefense": 0.2,
+      "marksmenHealth": 0.24
+    },
+    "setName": "Wildwood Hunter",
+    "upgradeCost": {
+      "gold": 8000,
+      "iron": 800,
+      "stone": 1200
+    },
+    "description": "Soft-sole leather shoes that make no sound on leaves or gravel."
+  },
+  {
+    "id": "eq_ring_wildwood_hunter",
+    "name": "Wildwood Wooden Ring",
+    "slot": "Ring",
+    "rarity": "Rare",
+    "levelRequirement": 20,
+    "statBonuses": {
+      "attack": 640,
+      "defense": 0,
+      "health": 1600
+    },
+    "troopBonuses": {
+      "infantryAttack": 0,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 0,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 0.6,
+      "marksmenDefense": 0.2,
+      "marksmenHealth": 0.24
+    },
+    "setName": "Wildwood Hunter",
+    "upgradeCost": {
+      "gold": 8000,
+      "iron": 800,
+      "stone": 1200
+    },
+    "description": "Carved from an ancient sleeping branch that softly pulses."
+  },
+  {
+    "id": "eq_amulet_wildwood_hunter",
+    "name": "Wildwood Clover Charm",
+    "slot": "Amulet",
+    "rarity": "Rare",
+    "levelRequirement": 20,
+    "statBonuses": {
+      "attack": 400,
+      "defense": 400,
+      "health": 2400
+    },
+    "troopBonuses": {
+      "infantryAttack": 0,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 0,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 0.6,
+      "marksmenDefense": 0.2,
+      "marksmenHealth": 0.24
+    },
+    "setName": "Wildwood Hunter",
+    "upgradeCost": {
+      "gold": 8000,
+      "iron": 800,
+      "stone": 1200
+    },
+    "description": "A pressed four-leaf clover preserved in a shimmering amber droplet."
+  },
+  {
+    "id": "eq_weapon_swiftwind_tempest",
+    "name": "Swiftwind Tempest Dagger",
+    "slot": "Weapon",
+    "rarity": "Epic",
+    "levelRequirement": 30,
+    "statBonuses": {
+      "attack": 3375,
+      "defense": 0,
+      "health": 0
+    },
+    "troopBonuses": {
+      "infantryAttack": 0,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 0,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 1.6875,
+      "marksmenDefense": 0.5625,
+      "marksmenHealth": 0.675
+    },
+    "setName": "Swiftwind Tempest",
+    "upgradeCost": {
+      "gold": 22500,
+      "iron": 2250,
+      "stone": 3375
+    },
+    "description": "Vibrates faintly, whistling with slicing air on every swing."
+  },
+  {
+    "id": "eq_helmet_swiftwind_tempest",
+    "name": "Swiftwind Aero Mask",
+    "slot": "Helmet",
+    "rarity": "Epic",
+    "levelRequirement": 30,
+    "statBonuses": {
+      "attack": 0,
+      "defense": 1800,
+      "health": 9000
+    },
+    "troopBonuses": {
+      "infantryAttack": 0,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 0,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 1.6875,
+      "marksmenDefense": 0.5625,
+      "marksmenHealth": 0.675
+    },
+    "setName": "Swiftwind Tempest",
+    "upgradeCost": {
+      "gold": 22500,
+      "iron": 2250,
+      "stone": 3375
+    },
+    "description": "Protects the face while channeling fresh airflow directly to lungs."
+  },
+  {
+    "id": "eq_armor_swiftwind_tempest",
+    "name": "Swiftwind Gale Cloak",
+    "slot": "Armor",
+    "rarity": "Epic",
+    "levelRequirement": 30,
+    "statBonuses": {
+      "attack": 0,
+      "defense": 3375,
+      "health": 13500
+    },
+    "troopBonuses": {
+      "infantryAttack": 0,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 0,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 1.6875,
+      "marksmenDefense": 0.5625,
+      "marksmenHealth": 0.675
+    },
+    "setName": "Swiftwind Tempest",
+    "upgradeCost": {
+      "gold": 22500,
+      "iron": 2250,
+      "stone": 3375
+    },
+    "description": "A lightweight flowing cloak woven with high-altitude storm fabrics."
+  },
+  {
+    "id": "eq_boots_swiftwind_tempest",
+    "name": "Swiftwind Gale Treads",
+    "slot": "Boots",
+    "rarity": "Epic",
+    "levelRequirement": 30,
+    "statBonuses": {
+      "attack": 450,
+      "defense": 1350,
+      "health": 6750
+    },
+    "troopBonuses": {
+      "infantryAttack": 0,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 0,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 1.6875,
+      "marksmenDefense": 0.5625,
+      "marksmenHealth": 0.675
+    },
+    "setName": "Swiftwind Tempest",
+    "upgradeCost": {
+      "gold": 22500,
+      "iron": 2250,
+      "stone": 3375
+    },
+    "description": "Boots that feel incredibly light, reducing stamina drain when moving."
+  },
+  {
+    "id": "eq_ring_swiftwind_tempest",
+    "name": "Swiftwind Jade Ring",
+    "slot": "Ring",
+    "rarity": "Epic",
+    "levelRequirement": 30,
+    "statBonuses": {
+      "attack": 1800,
+      "defense": 0,
+      "health": 4500
+    },
+    "troopBonuses": {
+      "infantryAttack": 0,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 0,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 1.6875,
+      "marksmenDefense": 0.5625,
+      "marksmenHealth": 0.675
+    },
+    "setName": "Swiftwind Tempest",
+    "upgradeCost": {
+      "gold": 22500,
+      "iron": 2250,
+      "stone": 3375
+    },
+    "description": "Crafted of swirling green jade found in high sky cliffs."
+  },
+  {
+    "id": "eq_amulet_swiftwind_tempest",
+    "name": "Swiftwind Eagle Eye Collar",
+    "slot": "Amulet",
+    "rarity": "Epic",
+    "levelRequirement": 30,
+    "statBonuses": {
+      "attack": 1125,
+      "defense": 1125,
+      "health": 6750
+    },
+    "troopBonuses": {
+      "infantryAttack": 0,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 0,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 1.6875,
+      "marksmenDefense": 0.5625,
+      "marksmenHealth": 0.675
+    },
+    "setName": "Swiftwind Tempest",
+    "upgradeCost": {
+      "gold": 22500,
+      "iron": 2250,
+      "stone": 3375
+    },
+    "description": "Grants focus, enabling split-second battle reaction speed."
+  },
+  {
+    "id": "eq_weapon_glacial_bulwark",
+    "name": "Glacial Icebreaker Axe",
+    "slot": "Weapon",
+    "rarity": "Epic",
+    "levelRequirement": 40,
+    "statBonuses": {
+      "attack": 7200,
+      "defense": 0,
+      "health": 0
+    },
+    "troopBonuses": {
+      "infantryAttack": 1.2,
+      "infantryDefense": 2.88,
+      "infantryHealth": 2.88,
+      "cavalryAttack": 0,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 0,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Glacial Bulwark",
+    "upgradeCost": {
+      "gold": 48000,
+      "iron": 4800,
+      "stone": 7200
+    },
+    "description": "Forged from heavy permafrost ice that never melts and freezes on impact."
+  },
+  {
+    "id": "eq_helmet_glacial_bulwark",
+    "name": "Glacial Frost Guard Helmet",
+    "slot": "Helmet",
+    "rarity": "Epic",
+    "levelRequirement": 40,
+    "statBonuses": {
+      "attack": 0,
+      "defense": 3840,
+      "health": 19200
+    },
+    "troopBonuses": {
+      "infantryAttack": 1.2,
+      "infantryDefense": 2.88,
+      "infantryHealth": 2.88,
+      "cavalryAttack": 0,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 0,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Glacial Bulwark",
+    "upgradeCost": {
+      "gold": 48000,
+      "iron": 4800,
+      "stone": 7200
+    },
+    "description": "Enveloped in chilled crystals to shield the mind from fire magic."
+  },
+  {
+    "id": "eq_armor_glacial_bulwark",
+    "name": "Glacial heavy Crystal Chestplate",
+    "slot": "Armor",
+    "rarity": "Epic",
+    "levelRequirement": 40,
+    "statBonuses": {
+      "attack": 0,
+      "defense": 7200,
+      "health": 28800
+    },
+    "troopBonuses": {
+      "infantryAttack": 1.2,
+      "infantryDefense": 2.88,
+      "infantryHealth": 2.88,
+      "cavalryAttack": 0,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 0,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Glacial Bulwark",
+    "upgradeCost": {
+      "gold": 48000,
+      "iron": 4800,
+      "stone": 7200
+    },
+    "description": "Impenetrable sheets of dense glacier ice reinforced by deep-ground iron."
+  },
+  {
+    "id": "eq_boots_glacial_bulwark",
+    "name": "Glacial Winter Sabatons",
+    "slot": "Boots",
+    "rarity": "Epic",
+    "levelRequirement": 40,
+    "statBonuses": {
+      "attack": 960,
+      "defense": 2880,
+      "health": 14400
+    },
+    "troopBonuses": {
+      "infantryAttack": 1.2,
+      "infantryDefense": 2.88,
+      "infantryHealth": 2.88,
+      "cavalryAttack": 0,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 0,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Glacial Bulwark",
+    "upgradeCost": {
+      "gold": 48000,
+      "iron": 4800,
+      "stone": 7200
+    },
+    "description": "Weighted boots that prevent you from being knocked back by colossi."
+  },
+  {
+    "id": "eq_ring_glacial_bulwark",
+    "name": "Glacial Cryo Ring",
+    "slot": "Ring",
+    "rarity": "Epic",
+    "levelRequirement": 40,
+    "statBonuses": {
+      "attack": 3840,
+      "defense": 0,
+      "health": 9600
+    },
+    "troopBonuses": {
+      "infantryAttack": 1.2,
+      "infantryDefense": 2.88,
+      "infantryHealth": 2.88,
+      "cavalryAttack": 0,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 0,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Glacial Bulwark",
+    "upgradeCost": {
+      "gold": 48000,
+      "iron": 4800,
+      "stone": 7200
+    },
+    "description": "A cold loop that preserves physical endurance in scorching heat."
+  },
+  {
+    "id": "eq_amulet_glacial_bulwark",
+    "name": "Glacial Everfrost Heart",
+    "slot": "Amulet",
+    "rarity": "Epic",
+    "levelRequirement": 40,
+    "statBonuses": {
+      "attack": 2400,
+      "defense": 2400,
+      "health": 14400
+    },
+    "troopBonuses": {
+      "infantryAttack": 1.2,
+      "infantryDefense": 2.88,
+      "infantryHealth": 2.88,
+      "cavalryAttack": 0,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 0,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Glacial Bulwark",
+    "upgradeCost": {
+      "gold": 48000,
+      "iron": 4800,
+      "stone": 7200
+    },
+    "description": "An amulet containing a fragment of the core of the absolute zero."
+  },
+  {
+    "id": "eq_weapon_solar_phoenix",
+    "name": "Solar Phoenix Fiery Scepter",
+    "slot": "Weapon",
+    "rarity": "Legendary",
+    "levelRequirement": 50,
+    "statBonuses": {
+      "attack": 18750,
+      "defense": 0,
+      "health": 0
+    },
+    "troopBonuses": {
+      "infantryAttack": 5,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 5,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 5,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Solar Phoenix",
+    "upgradeCost": {
+      "gold": 125000,
+      "iron": 12500,
+      "stone": 18750
+    },
+    "description": "Channels the blazing solar heat of Kaelen the Phoenix to incinerate all foes."
+  },
+  {
+    "id": "eq_helmet_solar_phoenix",
+    "name": "Solar Phoenix Radiant Crown",
+    "slot": "Helmet",
+    "rarity": "Legendary",
+    "levelRequirement": 50,
+    "statBonuses": {
+      "attack": 0,
+      "defense": 10000,
+      "health": 50000
+    },
+    "troopBonuses": {
+      "infantryAttack": 5,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 5,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 5,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Solar Phoenix",
+    "upgradeCost": {
+      "gold": 125000,
+      "iron": 12500,
+      "stone": 18750
+    },
+    "description": "A golden helm shaped like unfurling wings, glowing with holy light."
+  },
+  {
+    "id": "eq_armor_solar_phoenix",
+    "name": "Solar Phoenix Embossed Robes",
+    "slot": "Armor",
+    "rarity": "Legendary",
+    "levelRequirement": 50,
+    "statBonuses": {
+      "attack": 0,
+      "defense": 18750,
+      "health": 75000
+    },
+    "troopBonuses": {
+      "infantryAttack": 5,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 5,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 5,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Solar Phoenix",
+    "upgradeCost": {
+      "gold": 125000,
+      "iron": 12500,
+      "stone": 18750
+    },
+    "description": "Crimson silken robes reinforced with golden steel threads of supreme protection."
+  },
+  {
+    "id": "eq_boots_solar_phoenix",
+    "name": "Solar Phoenix Lava Slippers",
+    "slot": "Boots",
+    "rarity": "Legendary",
+    "levelRequirement": 50,
+    "statBonuses": {
+      "attack": 2500,
+      "defense": 7500,
+      "health": 37500
+    },
+    "troopBonuses": {
+      "infantryAttack": 5,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 5,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 5,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Solar Phoenix",
+    "upgradeCost": {
+      "gold": 125000,
+      "iron": 12500,
+      "stone": 18750
+    },
+    "description": "Allows the wearer to step effortlessly over magma-filled cracks."
+  },
+  {
+    "id": "eq_ring_solar_phoenix",
+    "name": "Solar Phoenix Ruby Band",
+    "slot": "Ring",
+    "rarity": "Legendary",
+    "levelRequirement": 50,
+    "statBonuses": {
+      "attack": 10000,
+      "defense": 0,
+      "health": 25000
+    },
+    "troopBonuses": {
+      "infantryAttack": 5,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 5,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 5,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Solar Phoenix",
+    "upgradeCost": {
+      "gold": 125000,
+      "iron": 12500,
+      "stone": 18750
+    },
+    "description": "Emits a warm aura that boosts and optimizes fire-attuned spellcraft."
+  },
+  {
+    "id": "eq_amulet_solar_phoenix",
+    "name": "Solar Phoenix Eternal Ash Pendant",
+    "slot": "Amulet",
+    "rarity": "Legendary",
+    "levelRequirement": 50,
+    "statBonuses": {
+      "attack": 6250,
+      "defense": 6250,
+      "health": 37500
+    },
+    "troopBonuses": {
+      "infantryAttack": 5,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 5,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 5,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Solar Phoenix",
+    "upgradeCost": {
+      "gold": 125000,
+      "iron": 12500,
+      "stone": 18750
+    },
+    "description": "Constructed using legendary soot that grants massive fire shield durability."
+  },
+  {
+    "id": "eq_weapon_doomsday_dreadlord",
+    "name": "Doomsday Obsidian Greatsword",
+    "slot": "Weapon",
+    "rarity": "Legendary",
+    "levelRequirement": 60,
+    "statBonuses": {
+      "attack": 40500,
+      "defense": 0,
+      "health": 0
+    },
+    "troopBonuses": {
+      "infantryAttack": 10.8,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 10.8,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 10.8,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Doomsday Dreadlord",
+    "upgradeCost": {
+      "gold": 270000,
+      "iron": 27000,
+      "stone": 40500
+    },
+    "description": "A terrifying colossal blade vibrating with cursed chaotic energies."
+  },
+  {
+    "id": "eq_helmet_doomsday_dreadlord",
+    "name": "Doomsday Spiked Skull Visor",
+    "slot": "Helmet",
+    "rarity": "Legendary",
+    "levelRequirement": 60,
+    "statBonuses": {
+      "attack": 0,
+      "defense": 21600,
+      "health": 108000
+    },
+    "troopBonuses": {
+      "infantryAttack": 10.8,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 10.8,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 10.8,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Doomsday Dreadlord",
+    "upgradeCost": {
+      "gold": 270000,
+      "iron": 27000,
+      "stone": 40500
+    },
+    "description": "Instills raw dread in opposing forces, weakening hostile morale."
+  },
+  {
+    "id": "eq_armor_doomsday_dreadlord",
+    "name": "Doomsday Soul-Devouring Plate",
+    "slot": "Armor",
+    "rarity": "Legendary",
+    "levelRequirement": 60,
+    "statBonuses": {
+      "attack": 0,
+      "defense": 40500,
+      "health": 162000
+    },
+    "troopBonuses": {
+      "infantryAttack": 10.8,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 10.8,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 10.8,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Doomsday Dreadlord",
+    "upgradeCost": {
+      "gold": 270000,
+      "iron": 27000,
+      "stone": 40500
+    },
+    "description": "Heavy dark plates that capture and harness the lifeforce of nearby fallen foes."
+  },
+  {
+    "id": "eq_boots_doomsday_dreadlord",
+    "name": "Doomsday Deathstriders",
+    "slot": "Boots",
+    "rarity": "Legendary",
+    "levelRequirement": 60,
+    "statBonuses": {
+      "attack": 5400,
+      "defense": 16200,
+      "health": 81000
+    },
+    "troopBonuses": {
+      "infantryAttack": 10.8,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 10.8,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 10.8,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Doomsday Dreadlord",
+    "upgradeCost": {
+      "gold": 270000,
+      "iron": 27000,
+      "stone": 40500
+    },
+    "description": "Leaves trail scorched footprints, reducing enemy movement options."
+  },
+  {
+    "id": "eq_ring_doomsday_dreadlord",
+    "name": "Doomsday Void Ring of Malice",
+    "slot": "Ring",
+    "rarity": "Legendary",
+    "levelRequirement": 60,
+    "statBonuses": {
+      "attack": 21600,
+      "defense": 0,
+      "health": 54000
+    },
+    "troopBonuses": {
+      "infantryAttack": 10.8,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 10.8,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 10.8,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Doomsday Dreadlord",
+    "upgradeCost": {
+      "gold": 270000,
+      "iron": 27000,
+      "stone": 40500
+    },
+    "description": "Cursed ring boosting heavy melee strike force at the cost of slight mercy."
+  },
+  {
+    "id": "eq_amulet_doomsday_dreadlord",
+    "name": "Doomsday Decaying Eye Amulet",
+    "slot": "Amulet",
+    "rarity": "Legendary",
+    "levelRequirement": 60,
+    "statBonuses": {
+      "attack": 13500,
+      "defense": 13500,
+      "health": 81000
+    },
+    "troopBonuses": {
+      "infantryAttack": 10.8,
+      "infantryDefense": 0,
+      "infantryHealth": 0,
+      "cavalryAttack": 10.8,
+      "cavalryDefense": 0,
+      "cavalryHealth": 0,
+      "marksmenAttack": 10.8,
+      "marksmenDefense": 0,
+      "marksmenHealth": 0
+    },
+    "setName": "Doomsday Dreadlord",
+    "upgradeCost": {
+      "gold": 270000,
+      "iron": 27000,
+      "stone": 40500
+    },
+    "description": "An organic eye structure encased in obsidian that tracks nearby target openings."
+  },
+  {
+    "id": "eq_weapon_crownspire_eternal",
+    "name": "Crownspire Royal Scepter",
+    "slot": "Weapon",
+    "rarity": "Mythic",
+    "levelRequirement": 70,
+    "statBonuses": {
+      "attack": 126000,
+      "defense": 0,
+      "health": 0
+    },
+    "troopBonuses": {
+      "infantryAttack": 42,
+      "infantryDefense": 42,
+      "infantryHealth": 42,
+      "cavalryAttack": 42,
+      "cavalryDefense": 42,
+      "cavalryHealth": 42,
+      "marksmenAttack": 42,
+      "marksmenDefense": 42,
+      "marksmenHealth": 42
+    },
+    "setName": "Crownspire Eternal",
+    "upgradeCost": {
+      "gold": 840000,
+      "iron": 84000,
+      "stone": 126000
+    },
+    "description": "The supreme symbol of ultimate authority in Crownspire, granting massive dominion."
+  },
+  {
+    "id": "eq_helmet_crownspire_eternal",
+    "name": "Crownspire Golden Diadem",
+    "slot": "Helmet",
+    "rarity": "Mythic",
+    "levelRequirement": 70,
+    "statBonuses": {
+      "attack": 0,
+      "defense": 67200,
+      "health": 336000
+    },
+    "troopBonuses": {
+      "infantryAttack": 42,
+      "infantryDefense": 42,
+      "infantryHealth": 42,
+      "cavalryAttack": 42,
+      "cavalryDefense": 42,
+      "cavalryHealth": 42,
+      "marksmenAttack": 42,
+      "marksmenDefense": 42,
+      "marksmenHealth": 42
+    },
+    "setName": "Crownspire Eternal",
+    "upgradeCost": {
+      "gold": 840000,
+      "iron": 84000,
+      "stone": 126000
+    },
+    "description": "A crown adorned with pure imperial diamonds that glow with sovereign majesty."
+  },
+  {
+    "id": "eq_armor_crownspire_eternal",
+    "name": "Crownspire Sovereign Plate",
+    "slot": "Armor",
+    "rarity": "Mythic",
+    "levelRequirement": 70,
+    "statBonuses": {
+      "attack": 0,
+      "defense": 126000,
+      "health": 504000
+    },
+    "troopBonuses": {
+      "infantryAttack": 42,
+      "infantryDefense": 42,
+      "infantryHealth": 42,
+      "cavalryAttack": 42,
+      "cavalryDefense": 42,
+      "cavalryHealth": 42,
+      "marksmenAttack": 42,
+      "marksmenDefense": 42,
+      "marksmenHealth": 42
+    },
+    "setName": "Crownspire Eternal",
+    "upgradeCost": {
+      "gold": 840000,
+      "iron": 84000,
+      "stone": 126000
+    },
+    "description": "Legendary heavy golden defense, completely impervious to mundane missile attacks."
+  },
+  {
+    "id": "eq_boots_crownspire_eternal",
+    "name": "Crownspire Gilded Greaves",
+    "slot": "Boots",
+    "rarity": "Mythic",
+    "levelRequirement": 70,
+    "statBonuses": {
+      "attack": 16800,
+      "defense": 50400,
+      "health": 252000
+    },
+    "troopBonuses": {
+      "infantryAttack": 42,
+      "infantryDefense": 42,
+      "infantryHealth": 42,
+      "cavalryAttack": 42,
+      "cavalryDefense": 42,
+      "cavalryHealth": 42,
+      "marksmenAttack": 42,
+      "marksmenDefense": 42,
+      "marksmenHealth": 42
+    },
+    "setName": "Crownspire Eternal",
+    "upgradeCost": {
+      "gold": 840000,
+      "iron": 84000,
+      "stone": 126000
+    },
+    "description": "Flawlessly designed heavy greaves carved with pictures of ancient crown conquests."
+  },
+  {
+    "id": "eq_ring_crownspire_eternal",
+    "name": "Crownspire Dynasty Signet",
+    "slot": "Ring",
+    "rarity": "Mythic",
+    "levelRequirement": 70,
+    "statBonuses": {
+      "attack": 67200,
+      "defense": 0,
+      "health": 168000
+    },
+    "troopBonuses": {
+      "infantryAttack": 42,
+      "infantryDefense": 42,
+      "infantryHealth": 42,
+      "cavalryAttack": 42,
+      "cavalryDefense": 42,
+      "cavalryHealth": 42,
+      "marksmenAttack": 42,
+      "marksmenDefense": 42,
+      "marksmenHealth": 42
+    },
+    "setName": "Crownspire Eternal",
+    "upgradeCost": {
+      "gold": 840000,
+      "iron": 84000,
+      "stone": 126000
+    },
+    "description": "A massive gold seal ring representing the endless lineage of the high throne."
+  },
+  {
+    "id": "eq_amulet_crownspire_eternal",
+    "name": "Crownspire Sovereign Star",
+    "slot": "Amulet",
+    "rarity": "Mythic",
+    "levelRequirement": 70,
+    "statBonuses": {
+      "attack": 42000,
+      "defense": 42000,
+      "health": 252000
+    },
+    "troopBonuses": {
+      "infantryAttack": 42,
+      "infantryDefense": 42,
+      "infantryHealth": 42,
+      "cavalryAttack": 42,
+      "cavalryDefense": 42,
+      "cavalryHealth": 42,
+      "marksmenAttack": 42,
+      "marksmenDefense": 42,
+      "marksmenHealth": 42
+    },
+    "setName": "Crownspire Eternal",
+    "upgradeCost": {
+      "gold": 840000,
+      "iron": 84000,
+      "stone": 126000
+    },
+    "description": "A cosmic pendant constructed with a meteor fragment from the Heavens."
+  },
+  {
+    "id": "eq_weapon_abyssal_void",
+    "name": "Abyssal Void Reaper Scythe",
+    "slot": "Weapon",
+    "rarity": "Mythic",
+    "levelRequirement": 80,
+    "statBonuses": {
+      "attack": 300000,
+      "defense": 0,
+      "health": 0
+    },
+    "troopBonuses": {
+      "infantryAttack": 100,
+      "infantryDefense": 100,
+      "infantryHealth": 100,
+      "cavalryAttack": 100,
+      "cavalryDefense": 100,
+      "cavalryHealth": 100,
+      "marksmenAttack": 100,
+      "marksmenDefense": 100,
+      "marksmenHealth": 100
+    },
+    "setName": "Abyssal Void",
+    "upgradeCost": {
+      "gold": 2000000,
+      "iron": 200000,
+      "stone": 300000
+    },
+    "description": "Slices through space and time itself, sending enemies' souls directly to the dark void."
+  },
+  {
+    "id": "eq_helmet_abyssal_void",
+    "name": "Abyssal Void Crown of Screams",
+    "slot": "Helmet",
+    "rarity": "Mythic",
+    "levelRequirement": 80,
+    "statBonuses": {
+      "attack": 0,
+      "defense": 160000,
+      "health": 800000
+    },
+    "troopBonuses": {
+      "infantryAttack": 100,
+      "infantryDefense": 100,
+      "infantryHealth": 100,
+      "cavalryAttack": 100,
+      "cavalryDefense": 100,
+      "cavalryHealth": 100,
+      "marksmenAttack": 100,
+      "marksmenDefense": 100,
+      "marksmenHealth": 100
+    },
+    "setName": "Abyssal Void",
+    "upgradeCost": {
+      "gold": 2000000,
+      "iron": 200000,
+      "stone": 300000
+    },
+    "description": "Constructed of dark matter and pulsing screams of imprisoned demigods."
+  },
+  {
+    "id": "eq_armor_abyssal_void",
+    "name": "Abyssal Void Shadow Carapace",
+    "slot": "Armor",
+    "rarity": "Mythic",
+    "levelRequirement": 80,
+    "statBonuses": {
+      "attack": 0,
+      "defense": 300000,
+      "health": 1200000
+    },
+    "troopBonuses": {
+      "infantryAttack": 100,
+      "infantryDefense": 100,
+      "infantryHealth": 100,
+      "cavalryAttack": 100,
+      "cavalryDefense": 100,
+      "cavalryHealth": 100,
+      "marksmenAttack": 100,
+      "marksmenDefense": 100,
+      "marksmenHealth": 100
+    },
+    "setName": "Abyssal Void",
+    "upgradeCost": {
+      "gold": 2000000,
+      "iron": 200000,
+      "stone": 300000
+    },
+    "description": "Bends light around the wearer, making them almost impossible to accurately target."
+  },
+  {
+    "id": "eq_boots_abyssal_void",
+    "name": "Abyssal Void Dimension Warp Treads",
+    "slot": "Boots",
+    "rarity": "Mythic",
+    "levelRequirement": 80,
+    "statBonuses": {
+      "attack": 40000,
+      "defense": 120000,
+      "health": 600000
+    },
+    "troopBonuses": {
+      "infantryAttack": 100,
+      "infantryDefense": 100,
+      "infantryHealth": 100,
+      "cavalryAttack": 100,
+      "cavalryDefense": 100,
+      "cavalryHealth": 100,
+      "marksmenAttack": 100,
+      "marksmenDefense": 100,
+      "marksmenHealth": 100
+    },
+    "setName": "Abyssal Void",
+    "upgradeCost": {
+      "gold": 2000000,
+      "iron": 200000,
+      "stone": 300000
+    },
+    "description": "Allows instantaneous teleportation over short combat distance steps."
+  },
+  {
+    "id": "eq_ring_abyssal_void",
+    "name": "Abyssal Void Singularity Ring",
+    "slot": "Ring",
+    "rarity": "Mythic",
+    "levelRequirement": 80,
+    "statBonuses": {
+      "attack": 160000,
+      "defense": 0,
+      "health": 400000
+    },
+    "troopBonuses": {
+      "infantryAttack": 100,
+      "infantryDefense": 100,
+      "infantryHealth": 100,
+      "cavalryAttack": 100,
+      "cavalryDefense": 100,
+      "cavalryHealth": 100,
+      "marksmenAttack": 100,
+      "marksmenDefense": 100,
+      "marksmenHealth": 100
+    },
+    "setName": "Abyssal Void",
+    "upgradeCost": {
+      "gold": 2000000,
+      "iron": 200000,
+      "stone": 300000
+    },
+    "description": "Pulls nearby matter into a mini-vortex, increasing spell strike blast radius."
+  },
+  {
+    "id": "eq_amulet_abyssal_void",
+    "name": "Abyssal Void Eye of Chaos",
+    "slot": "Amulet",
+    "rarity": "Mythic",
+    "levelRequirement": 80,
+    "statBonuses": {
+      "attack": 100000,
+      "defense": 100000,
+      "health": 600000
+    },
+    "troopBonuses": {
+      "infantryAttack": 100,
+      "infantryDefense": 100,
+      "infantryHealth": 100,
+      "cavalryAttack": 100,
+      "cavalryDefense": 100,
+      "cavalryHealth": 100,
+      "marksmenAttack": 100,
+      "marksmenDefense": 100,
+      "marksmenHealth": 100
+    },
+    "setName": "Abyssal Void",
+    "upgradeCost": {
+      "gold": 2000000,
+      "iron": 200000,
+      "stone": 300000
+    },
+    "description": "A flashing eye from the deep chaos dimension that exposes cosmic weaknesses."
+  }
+]

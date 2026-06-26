@@ -1,0 +1,59 @@
+[gd_scene format=3 uid="uid://bk3bfxmhjpxdx"]
+
+[ext_resource type="Script" uid="uid://26144s8ejr02" path="res://Scenes/UI/HeroRoster.gd" id="1_hero_roster"]
+[ext_resource type="Texture2D" uid="uid://cqxhg5o58ihxa" path="res://Scenes/UI/ChatGPT Image Jun 24, 2026, 06_34_10 PM.png" id="2_hps11"]
+[ext_resource type="PackedScene" uid="uid://cxthq4bwuwj4f" path="res://Scenes/HeroDetails.tscn" id="4_y45q5"]
+
+[node name="HeroRoster" type="Control" unique_id=1755422229]
+custom_minimum_size = Vector2(720, 1280)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 720.0
+offset_bottom = 1280.0
+script = ExtResource("1_hero_roster")
+
+[node name="Background" type="TextureRect" parent="." unique_id=774699109]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -93.0
+offset_top = -280.0
+offset_right = 53.0
+offset_bottom = 290.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_hps11")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TitleLabel" type="Label" parent="." unique_id=1822216396]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 696.0
+offset_bottom = 72.0
+theme_override_font_sizes/font_size = 32
+text = "Hero Roster"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="." unique_id=1251120809]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 88.0
+offset_right = 704.0
+offset_bottom = 1264.0
+horizontal_scroll_mode = 0
+
+[node name="HeroGrid" type="GridContainer" parent="ScrollContainer" unique_id=19440366]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
+columns = 3
+
+[node name="HeroDetails" parent="." unique_id=727900781 instance=ExtResource("4_y45q5")]
+visible = false
+layout_mode = 0

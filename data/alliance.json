@@ -1,0 +1,968 @@
+{
+  "allianceRoles": {
+	"R1": {
+	  "permissions": [
+		"contribute_research",
+		"receive_help",
+		"claim_gifts",
+        "read_chat"
+	  ],
+	  "inviteRights": false,
+	  "kickRights": false,
+	  "markerRights": false,
+	  "researchRights": false,
+	  "diplomacyRights": false
+	},
+	"R2": {
+	  "permissions": [
+		"contribute_research",
+		"receive_help",
+		"claim_gifts",
+		"read_chat",
+		"write_chat",
+        "council_access"
+	  ],
+	  "inviteRights": false,
+	  "kickRights": false,
+	  "markerRights": false,
+	  "researchRights": false,
+	  "diplomacyRights": false
+	},
+	"R3": {
+	  "permissions": [
+		"contribute_research",
+		"receive_help",
+		"claim_gifts",
+		"read_chat",
+		"write_chat",
+		"council_access",
+		"dispatch_invitations",
+        "place_strategic_markers"
+	  ],
+	  "inviteRights": true,
+	  "kickRights": false,
+	  "markerRights": true,
+	  "researchRights": false,
+	  "diplomacyRights": false
+	},
+	"R4": {
+	  "permissions": [
+		"contribute_research",
+		"receive_help",
+		"claim_gifts",
+		"read_chat",
+		"write_chat",
+		"council_access",
+		"dispatch_invitations",
+		"place_strategic_markers",
+		"kick_lower_ranks",
+		"trigger_tier_upgrades",
+		"construct_structures",
+        "schedule_events"
+	  ],
+	  "inviteRights": true,
+	  "kickRights": true,
+	  "markerRights": true,
+	  "researchRights": true,
+	  "diplomacyRights": true
+	},
+	"R5": {
+	  "permissions": [
+		"contribute_research",
+		"receive_help",
+		"claim_gifts",
+		"read_chat",
+		"write_chat",
+		"council_access",
+		"dispatch_invitations",
+		"place_strategic_markers",
+		"kick_lower_ranks",
+		"trigger_tier_upgrades",
+		"construct_structures",
+		"schedule_events",
+		"disband_alliance",
+		"delegate_lord_paramount",
+        "configure_roles_permissions"
+	  ],
+	  "inviteRights": true,
+	  "kickRights": true,
+	  "markerRights": true,
+	  "researchRights": true,
+	  "diplomacyRights": true
+	}
+  },
+  "allianceBuildings": [
+	{
+	  "id": "alliance_fortress",
+	  "name": "Alliance Fortress",
+	  "description": "The supreme command bastion of the coalition. Establishes the core bounds of your alliance territory.",
+	  "maxLevel": 5,
+	  "levels": [
+		{
+		  "level": 1,
+		  "costs": {
+			"allianceWood": 50000,
+			"allianceStone": 50000,
+			"allianceIron": 20000
+		  },
+		  "buildTimeSec": 1800,
+		  "requirements": {
+			"minAllianceLevel": 1
+		  },
+		  "bonuses": [
+			{
+			  "type": "territory_radius",
+			  "value": 15,
+			  "description": "Sovereign claim boundary extends to a 15-hex grid radius."
+			},
+			{
+			  "type": "member_capacity",
+			  "value": 50,
+			  "description": "Increases maximum member capacity limit to 50 lords."
+			}
+		  ]
+		},
+		{
+		  "level": 2,
+		  "costs": {
+			"allianceWood": 120000,
+			"allianceStone": 120000,
+			"allianceIron": 50000
+		  },
+		  "buildTimeSec": 3600,
+		  "requirements": {
+			"minAllianceLevel": 2
+		  },
+		  "bonuses": [
+			{
+			  "type": "territory_radius",
+			  "value": 20,
+			  "description": "Sovereign claim boundary extends to a 20-hex grid radius."
+			},
+			{
+			  "type": "member_capacity",
+			  "value": 60,
+			  "description": "Increases maximum member capacity limit to 60 lords."
+			},
+			{
+			  "type": "fortress_defense_bonus",
+			  "value": 0.1,
+			  "description": "All armies fighting inside territory receive +10% Defense."
+			}
+		  ]
+		},
+		{
+		  "level": 3,
+		  "costs": {
+			"allianceWood": 300000,
+			"allianceStone": 300000,
+			"allianceIron": 150000
+		  },
+		  "buildTimeSec": 7200,
+		  "requirements": {
+			"minAllianceLevel": 3
+		  },
+		  "bonuses": [
+			{
+			  "type": "territory_radius",
+			  "value": 25,
+			  "description": "Sovereign claim boundary extends to a 25-hex grid radius."
+			},
+			{
+			  "type": "member_capacity",
+			  "value": 70,
+			  "description": "Increases maximum member capacity limit to 70 lords."
+			},
+			{
+			  "type": "fortress_defense_bonus",
+			  "value": 0.15,
+			  "description": "All armies fighting inside territory receive +15% Defense."
+			}
+		  ]
+		},
+		{
+		  "level": 4,
+		  "costs": {
+			"allianceWood": 800000,
+			"allianceStone": 800000,
+			"allianceIron": 400000
+		  },
+		  "buildTimeSec": 14400,
+		  "requirements": {
+			"minAllianceLevel": 4
+		  },
+		  "bonuses": [
+			{
+			  "type": "territory_radius",
+			  "value": 30,
+			  "description": "Sovereign claim boundary extends to a 30-hex grid radius."
+			},
+			{
+			  "type": "member_capacity",
+			  "value": 80,
+			  "description": "Increases maximum member capacity limit to 80 lords."
+			},
+			{
+			  "type": "fortress_defense_bonus",
+			  "value": 0.2,
+			  "description": "All armies fighting inside territory receive +20% Defense."
+			},
+			{
+			  "type": "reinforce_speed",
+			  "value": 0.25,
+			  "description": "Speeds up reinforce march times to the Fortress by 25%."
+			}
+		  ]
+		},
+		{
+		  "level": 5,
+		  "costs": {
+			"allianceWood": 2000000,
+			"allianceStone": 2000000,
+			"allianceIron": 1000000
+		  },
+		  "buildTimeSec": 28800,
+		  "requirements": {
+			"minAllianceLevel": 5
+		  },
+		  "bonuses": [
+			{
+			  "type": "territory_radius",
+			  "value": 40,
+			  "description": "Sovereign claim boundary extends to a 40-hex grid radius."
+			},
+			{
+			  "type": "member_capacity",
+			  "value": 100,
+			  "description": "Increases maximum member capacity limit to 100 lords."
+			},
+			{
+			  "type": "fortress_defense_bonus",
+			  "value": 0.3,
+			  "description": "All armies fighting inside territory receive +30% Defense/Shield."
+			},
+			{
+			  "type": "reinforce_speed",
+			  "value": 0.5,
+			  "description": "Speeds up reinforce march times to the Fortress by 50%."
+			}
+		  ]
+		}
+	  ]
+	},
+	{
+	  "id": "alliance_tower",
+	  "name": "Alliance Towers",
+	  "description": "Frontier outpost turrets that secure connecting nodes, extending sovereignty bounds along standard mineral borders.",
+	  "maxLevel": 5,
+	  "levels": [
+		{
+		  "level": 1,
+		  "costs": {
+			"allianceWood": 20000,
+			"allianceStone": 20000,
+			"allianceIron": 5000
+		  },
+		  "buildTimeSec": 600,
+		  "requirements": {
+			"minAllianceLevel": 1
+		  },
+		  "bonuses": [
+			{
+			  "type": "max_towers",
+			  "value": 5,
+			  "description": "Permits constructing up to 5 strategic sentinel towers on the grid."
+			},
+			{
+			  "type": "tower_sight_range",
+			  "value": 8,
+			  "description": "Unfurls fog of war over an 8-hex radius around active towers."
+			}
+		  ]
+		},
+		{
+		  "level": 2,
+		  "costs": {
+			"allianceWood": 50000,
+			"allianceStone": 50000,
+			"allianceIron": 15000
+		  },
+		  "buildTimeSec": 1200,
+		  "requirements": {
+			"minAllianceLevel": 2
+		  },
+		  "bonuses": [
+			{
+			  "type": "max_towers",
+			  "value": 8,
+			  "description": "Permits constructing up to 8 strategic sentinel towers."
+			},
+			{
+			  "type": "tower_sight_range",
+			  "value": 10,
+			  "description": "Unfurls fog of war over a 10-hex radius."
+			},
+			{
+			  "type": "tower_arrow_damage",
+			  "value": 0.05,
+			  "description": "Towers automatically strike rogue marching hostiles for 5% of their squad rating."
+			}
+		  ]
+		},
+		{
+		  "level": 3,
+		  "costs": {
+			"allianceWood": 120000,
+			"allianceStone": 120000,
+			"allianceIron": 40000
+		  },
+		  "buildTimeSec": 2400,
+		  "requirements": {
+			"minAllianceLevel": 3
+		  },
+		  "bonuses": [
+			{
+			  "type": "max_towers",
+			  "value": 12,
+			  "description": "Permits constructing up to 12 strategic sentinel towers."
+			},
+			{
+			  "type": "tower_sight_range",
+			  "value": 12,
+			  "description": "Unfurls fog of war over a 12-hex radius."
+			},
+			{
+			  "type": "tower_arrow_damage",
+			  "value": 0.1,
+			  "description": "Towers strike rogue marching hostiles for 10% of their squad rating."
+			}
+		  ]
+		},
+		{
+		  "level": 4,
+		  "costs": {
+			"allianceWood": 350000,
+			"allianceStone": 350000,
+			"allianceIron": 120000
+		  },
+		  "buildTimeSec": 4800,
+		  "requirements": {
+			"minAllianceLevel": 4
+		  },
+		  "bonuses": [
+			{
+			  "type": "max_towers",
+			  "value": 18,
+			  "description": "Permits constructing up to 18 strategic sentinel towers."
+			},
+			{
+			  "type": "tower_sight_range",
+			  "value": 14,
+			  "description": "Unfurls fog of war over a 14-hex radius."
+			},
+			{
+			  "type": "tower_arrow_damage",
+			  "value": 0.15,
+			  "description": "Towers strike rogue marching hostiles for 15% of their squad rating."
+			}
+		  ]
+		},
+		{
+		  "level": 5,
+		  "costs": {
+			"allianceWood": 1000000,
+			"allianceStone": 1000000,
+			"allianceIron": 350000
+		  },
+		  "buildTimeSec": 9600,
+		  "requirements": {
+			"minAllianceLevel": 5
+		  },
+		  "bonuses": [
+			{
+			  "type": "max_towers",
+			  "value": 25,
+			  "description": "Permits constructing up to 25 strategic sentinel towers."
+			},
+			{
+			  "type": "tower_sight_range",
+			  "value": 18,
+			  "description": "Unfurls fog of war over an 18-hex radius."
+			},
+			{
+			  "type": "tower_arrow_damage",
+			  "value": 0.25,
+			  "description": "Towers strike rogue marching hostiles for 25% of their squad rating."
+			}
+		  ]
+		}
+	  ]
+	},
+	{
+	  "id": "alliance_resource_center",
+	  "name": "Alliance Resource Center",
+	  "description": "A colossal guild compound harvesting high-volume yields. Members can gather raw cargo here in complete safety from rival lords.",
+	  "maxLevel": 5,
+	  "levels": [
+		{
+		  "level": 1,
+		  "costs": {
+			"allianceWood": 35000,
+			"allianceStone": 35000,
+			"allianceIron": 10000
+		  },
+		  "buildTimeSec": 1200,
+		  "requirements": {
+			"minAllianceLevel": 1
+		  },
+		  "bonuses": [
+			{
+			  "type": "gather_speed_safety",
+			  "value": 0.1,
+			  "description": "Increases gathering efficiency inside the Center by +10%."
+			},
+			{
+			  "type": "resource_capacity",
+			  "value": 1000000,
+			  "description": "Stores up to 1,000,000 total reserve cargo units inside the nodes."
+			}
+		  ]
+		},
+		{
+		  "level": 2,
+		  "costs": {
+			"allianceWood": 80000,
+			"allianceStone": 80000,
+			"allianceIron": 25000
+		  },
+		  "buildTimeSec": 2400,
+		  "requirements": {
+			"minAllianceLevel": 2
+		  },
+		  "bonuses": [
+			{
+			  "type": "gather_speed_safety",
+			  "value": 0.15,
+			  "description": "Increases gathering efficiency inside the Center by +15%."
+			},
+			{
+			  "type": "resource_capacity",
+			  "value": 2500000,
+			  "description": "Stores up to 2,500,000 total reserve cargo units."
+			}
+		  ]
+		},
+		{
+		  "level": 3,
+		  "costs": {
+			"allianceWood": 200000,
+			"allianceStone": 200000,
+			"allianceIron": 75000
+		  },
+		  "buildTimeSec": 4800,
+		  "requirements": {
+			"minAllianceLevel": 3
+		  },
+		  "bonuses": [
+			{
+			  "type": "gather_speed_safety",
+			  "value": 0.2,
+			  "description": "Increases gathering efficiency inside the Center by +20%."
+			},
+			{
+			  "type": "resource_capacity",
+			  "value": 6000000,
+			  "description": "Stores up to 6,000,000 total reserve cargo units."
+			}
+		  ]
+		},
+		{
+		  "level": 4,
+		  "costs": {
+			"allianceWood": 500000,
+			"allianceStone": 500000,
+			"allianceIron": 200000
+		  },
+		  "buildTimeSec": 9600,
+		  "requirements": {
+			"minAllianceLevel": 4
+		  },
+		  "bonuses": [
+			{
+			  "type": "gather_speed_safety",
+			  "value": 0.3,
+			  "description": "Increases gathering efficiency inside the Center by +30%."
+			},
+			{
+			  "type": "resource_capacity",
+			  "value": 15000000,
+			  "description": "Stores up to 15,000,000 total reserve cargo units."
+			}
+		  ]
+		},
+		{
+		  "level": 5,
+		  "costs": {
+			"allianceWood": 1500000,
+			"allianceStone": 1500000,
+			"allianceIron": 600000
+		  },
+		  "buildTimeSec": 19200,
+		  "requirements": {
+			"minAllianceLevel": 5
+		  },
+		  "bonuses": [
+			{
+			  "type": "gather_speed_safety",
+			  "value": 0.5,
+			  "description": "Increases gathering efficiency inside the Center by +50%."
+			},
+			{
+			  "type": "resource_capacity",
+			  "value": 40000000,
+			  "description": "Stores up to 40,000,000 total reserve cargo units."
+			}
+		  ]
+		}
+	  ]
+	}
+  ],
+  "allianceResearch": [
+	{
+	  "id": "gathering_speed",
+	  "name": "Harvesting Caravan",
+	  "category": "Economy",
+	  "description": "Improves gathering wheels and pack mule training across world tiles.",
+	  "maxLevel": 5,
+	  "levels": [
+		{
+		  "level": 1,
+		  "costs": {
+			"pointsRequired": 1000,
+			"goldRequired": 5000
+		  },
+		  "researchTimeSec": 1200,
+		  "effects": [
+            "Gather Speed +4.0%"
+		  ]
+		},
+		{
+		  "level": 2,
+		  "costs": {
+			"pointsRequired": 3000,
+			"goldRequired": 15000
+		  },
+		  "researchTimeSec": 3600,
+		  "effects": [
+            "Gather Speed +8.0%"
+		  ]
+		},
+		{
+		  "level": 3,
+		  "costs": {
+			"pointsRequired": 8000,
+			"goldRequired": 40000
+		  },
+		  "researchTimeSec": 10800,
+		  "effects": [
+            "Gather Speed +12.0%"
+		  ]
+		},
+		{
+		  "level": 4,
+		  "costs": {
+			"pointsRequired": 20000,
+			"goldRequired": 100000
+		  },
+		  "researchTimeSec": 32400,
+		  "effects": [
+            "Gather Speed +18.0%"
+		  ]
+		},
+		{
+		  "level": 5,
+		  "costs": {
+			"pointsRequired": 50000,
+			"goldRequired": 250000
+		  },
+		  "researchTimeSec": 86400,
+		  "effects": [
+            "Gather Speed +25.0%"
+		  ]
+		}
+	  ]
+	},
+	{
+	  "id": "alliance_resource_production",
+	  "name": "State Guild Taxation",
+	  "category": "Economy",
+	  "description": "Optimizes passive extraction mills that stream income vectors directly into the collective treasury.",
+	  "maxLevel": 5,
+	  "levels": [
+		{
+		  "level": 1,
+		  "costs": {
+			"pointsRequired": 1200,
+			"goldRequired": 6000
+		  },
+		  "researchTimeSec": 1400,
+		  "effects": [
+            "Passive Territory Production Boost +5.0%"
+		  ]
+		},
+		{
+		  "level": 2,
+		  "costs": {
+			"pointsRequired": 3600,
+			"goldRequired": 18000
+		  },
+		  "researchTimeSec": 4200,
+		  "effects": [
+            "Passive Territory Production Boost +10.0%"
+		  ]
+		},
+		{
+		  "level": 3,
+		  "costs": {
+			"pointsRequired": 10000,
+			"goldRequired": 50000
+		  },
+		  "researchTimeSec": 12600,
+		  "effects": [
+            "Passive Territory Production Boost +15.0%"
+		  ]
+		},
+		{
+		  "level": 4,
+		  "costs": {
+			"pointsRequired": 25000,
+			"goldRequired": 125000
+		  },
+		  "researchTimeSec": 37800,
+		  "effects": [
+            "Passive Territory Production Boost +20.0%"
+		  ]
+		},
+		{
+		  "level": 5,
+		  "costs": {
+			"pointsRequired": 60000,
+			"goldRequired": 300000
+		  },
+		  "researchTimeSec": 100800,
+		  "effects": [
+            "Passive Territory Production Boost +30.0%"
+		  ]
+		}
+	  ]
+	},
+	{
+	  "id": "construction_help",
+	  "name": "Sentry Logistics",
+	  "category": "Support",
+	  "description": "Ensures construction helpers can shave off greater durations on castle upgrades.",
+	  "maxLevel": 5,
+	  "levels": [
+		{
+		  "level": 1,
+		  "costs": {
+			"pointsRequired": 1500,
+			"goldRequired": 7500
+		  },
+		  "researchTimeSec": 1500,
+		  "effects": [
+            "Construction Help Reduction +5.0%"
+		  ]
+		},
+		{
+		  "level": 2,
+		  "costs": {
+			"pointsRequired": 4500,
+			"goldRequired": 22500
+		  },
+		  "researchTimeSec": 4500,
+		  "effects": [
+            "Construction Help Reduction +10.0%"
+		  ]
+		},
+		{
+		  "level": 3,
+		  "costs": {
+			"pointsRequired": 12000,
+			"goldRequired": 60000
+		  },
+		  "researchTimeSec": 13550,
+		  "effects": [
+            "Construction Help Reduction +15.0%"
+		  ]
+		},
+		{
+		  "level": 4,
+		  "costs": {
+			"pointsRequired": 30000,
+			"goldRequired": 150000
+		  },
+		  "researchTimeSec": 40500,
+		  "effects": [
+            "Construction Help Reduction +22.0%"
+		  ]
+		},
+		{
+		  "level": 5,
+		  "costs": {
+			"pointsRequired": 75000,
+			"goldRequired": 375000
+		  },
+		  "researchTimeSec": 121500,
+		  "effects": [
+            "Construction Help Reduction +30.0%"
+		  ]
+		}
+	  ]
+	},
+	{
+	  "id": "training_help",
+	  "name": "Drill Instructors",
+	  "category": "Support",
+	  "description": "Enables quick guidance on drill routines when alliance members offer barracks speedups.",
+	  "maxLevel": 5,
+	  "levels": [
+		{
+		  "level": 1,
+		  "costs": {
+			"pointsRequired": 1500,
+			"goldRequired": 7500
+		  },
+		  "researchTimeSec": 1500,
+		  "effects": [
+            "Barracks Help Training speed reduction +5.0%"
+		  ]
+		},
+		{
+		  "level": 2,
+		  "costs": {
+			"pointsRequired": 4500,
+			"goldRequired": 22500
+		  },
+		  "researchTimeSec": 4500,
+		  "effects": [
+            "Barracks Help Training speed reduction +10.0%"
+		  ]
+		},
+		{
+		  "level": 3,
+		  "costs": {
+			"pointsRequired": 12000,
+			"goldRequired": 60000
+		  },
+		  "researchTimeSec": 13550,
+		  "effects": [
+            "Barracks Help Training speed reduction +15.0%"
+		  ]
+		},
+		{
+		  "level": 4,
+		  "costs": {
+			"pointsRequired": 30000,
+			"goldRequired": 150000
+		  },
+		  "researchTimeSec": 40500,
+		  "effects": [
+            "Barracks Help Training speed reduction +22.0%"
+		  ]
+		},
+		{
+		  "level": 5,
+		  "costs": {
+			"pointsRequired": 75000,
+			"goldRequired": 375000
+		  },
+		  "researchTimeSec": 121500,
+		  "effects": [
+            "Barracks Help Training speed reduction +30.0%"
+		  ]
+		}
+	  ]
+	},
+	{
+	  "id": "rally_size",
+	  "name": "Command Coordination",
+	  "category": "Military",
+	  "description": "Forges tighter war council communication pathways to support immense co-op battle arrays.",
+	  "maxLevel": 5,
+	  "levels": [
+		{
+		  "level": 1,
+		  "costs": {
+			"pointsRequired": 2500,
+			"valorRequired": 2000
+		  },
+		  "researchTimeSec": 2400,
+		  "effects": [
+            "Rally Army Size Capacity +10.0%"
+		  ]
+		},
+		{
+		  "level": 2,
+		  "costs": {
+			"pointsRequired": 7500,
+			"valorRequired": 6000
+		  },
+		  "researchTimeSec": 7200,
+		  "effects": [
+            "Rally Army Size Capacity +20.0%"
+		  ]
+		},
+		{
+		  "level": 3,
+		  "costs": {
+			"pointsRequired": 20000,
+			"valorRequired": 15000
+		  },
+		  "researchTimeSec": 21600,
+		  "effects": [
+            "Rally Army Size Capacity +30.0%"
+		  ]
+		},
+		{
+		  "level": 4,
+		  "costs": {
+			"pointsRequired": 50000,
+			"valorRequired": 40000
+		  },
+		  "researchTimeSec": 64800,
+		  "effects": [
+            "Rally Army Size Capacity +45.0%"
+		  ]
+		},
+		{
+		  "level": 5,
+		  "costs": {
+			"pointsRequired": 120000,
+			"valorRequired": 100000
+		  },
+		  "researchTimeSec": 172800,
+		  "effects": [
+            "Rally Army Size Capacity +60.0%"
+		  ]
+		}
+	  ]
+	}
+  ],
+  "allianceGifts": [
+	{
+	  "id": "boss_gifts",
+	  "name": "Slayer's Reliquary Box",
+	  "description": "Triggered when a member successfully conquers a Wilderness Monster or World Boss.",
+	  "basePointsAwarded": 150,
+	  "rewards": [
+		{
+		  "rewardType": "valor",
+		  "amount": 350,
+		  "guaranteed": true,
+		  "dropChance": 1
+		},
+		{
+		  "rewardType": "gold",
+		  "amount": 5000,
+		  "guaranteed": false,
+		  "dropChance": 0.4
+		},
+		{
+		  "rewardType": "speedups",
+		  "amount": 15,
+		  "guaranteed": false,
+		  "dropChance": 0.5
+		}
+	  ]
+	},
+	{
+	  "id": "purchase_gifts",
+	  "name": "Emperor's Tribute chest",
+	  "description": "Triggered when a fellow alliance pack purchases key resource expansions in credit cycles.",
+	  "basePointsAwarded": 500,
+	  "rewards": [
+		{
+		  "rewardType": "gold",
+		  "amount": 12000,
+		  "guaranteed": true,
+		  "dropChance": 1
+		},
+		{
+		  "rewardType": "iron",
+		  "amount": 15000,
+		  "guaranteed": true,
+		  "dropChance": 1
+		},
+		{
+		  "rewardType": "valor",
+		  "amount": 600,
+		  "guaranteed": false,
+		  "dropChance": 0.6
+		}
+	  ]
+	},
+	{
+	  "id": "event_gifts",
+	  "name": "Sovereign Guild Triumph Box",
+	  "description": "Commissioned based on completing high-score milestones during scheduled Event campaigns.",
+	  "basePointsAwarded": 250,
+	  "rewards": [
+		{
+		  "rewardType": "food",
+		  "amount": 25000,
+		  "guaranteed": true,
+		  "dropChance": 1
+		},
+		{
+		  "rewardType": "wood",
+		  "amount": 25000,
+		  "guaranteed": true,
+		  "dropChance": 1
+		},
+		{
+		  "rewardType": "stone",
+		  "amount": 20000,
+		  "guaranteed": true,
+		  "dropChance": 1
+		},
+		{
+		  "rewardType": "speedups",
+		  "amount": 30,
+		  "guaranteed": false,
+		  "dropChance": 0.7
+		}
+	  ]
+	}
+  ],
+  "allianceHelpSystem": {
+	"helpCounts": {
+	  "construction_help": 30,
+	  "research_help": 30,
+	  "healing_help": 25,
+	  "training_help": 20
+	},
+	"helpReductions": {
+	  "construction_help": {
+		"reductionPercentPerClick": 0.01,
+		"minReductionSeconds": 60
+	  },
+	  "research_help": {
+		"reductionPercentPerClick": 0.01,
+		"minReductionSeconds": 60
+	  },
+	  "healing_help": {
+		"reductionPercentPerClick": 0.015,
+		"minReductionSeconds": 45
+	  },
+	  "training_help": {
+		"reductionPercentPerClick": 0.008,
+		"minReductionSeconds": 30
+	  }
+	},
+	"cooldowns": {
+	  "requestBroadcastThrottleCooldownSec": 300,
+	  "helpAllClicksThrottleCooldownSec": 5
+	}
+  }
+}

@@ -1,0 +1,178 @@
+[
+  {
+    "kingdomId": "k_solaria",
+    "kingdomName": "Sovereign Solaria",
+    "kingdomDescription": "The radiant heart of the empire, blessed by the eternal beacon of light. Solarians build faster, stand taller, and field highly disciplined golden vanguard units.",
+    "kingdomBuffs": [
+      {
+        "statAffected": "construction_speed",
+        "value": 5.0,
+        "type": "percentage",
+        "description": "Construction Speed +5.0%"
+      },
+      {
+        "statAffected": "infantry_defense",
+        "value": 3.0,
+        "type": "percentage",
+        "description": "Infantry Defense +3.0%"
+      }
+    ],
+    "kingdomCapital": "Aurelia Palace",
+    "startingRegion": "Gilded Grasslands",
+    "kingdomColor": "#F59E0B"
+  },
+  {
+    "kingdomId": "k_frostborne",
+    "kingdomName": "Frostborne Peak",
+    "kingdomDescription": "An unforgiving northern frozen realm of sub-zero wind and ice. Its hardened deep-glacier people boast supreme defense and endless physical stamina.",
+    "kingdomBuffs": [
+      {
+        "statAffected": "wall_durability",
+        "value": 10.0,
+        "type": "percentage",
+        "description": "Wall Defense & Durability +10.0%"
+      },
+      {
+        "statAffected": "stamina_regen",
+        "value": 5.0,
+        "type": "percentage",
+        "description": "Hero Stamina Recovery +5.0%"
+      }
+    ],
+    "kingdomCapital": "Glacial Refuge",
+    "startingRegion": "Everfrost Ridge",
+    "kingdomColor": "#06B6D4"
+  },
+  {
+    "kingdomId": "k_ironfang",
+    "kingdomName": "Ironfang Dominion",
+    "kingdomDescription": "A heavy industrial territory hollowed out of deep, ore-rich mountain systems. They excel at forging master military weapons and mining raw metal plates.",
+    "kingdomBuffs": [
+      {
+        "statAffected": "iron_production",
+        "value": 15.0,
+        "type": "percentage",
+        "description": "Iron Ore Production +15.0%"
+      },
+      {
+        "statAffected": "cavalry_defense",
+        "value": 3.0,
+        "type": "percentage",
+        "description": "Cavalry Defense +3.0%"
+      }
+    ],
+    "kingdomCapital": "Anvil Spire",
+    "startingRegion": "Ironvein Chasm",
+    "kingdomColor": "#6B7280"
+  },
+  {
+    "kingdomId": "k_wildwood",
+    "kingdomName": "Wildwood Sanctuary",
+    "kingdomDescription": "A massive, dense primeval woodland where rangers and dryads converse. Their archers are peerless, shooting with extreme speed and accuracy from shadow boughs.",
+    "kingdomBuffs": [
+      {
+        "statAffected": "wood_production",
+        "value": 15.0,
+        "type": "percentage",
+        "description": "Lumber Wood Production +15.0%"
+      },
+      {
+        "statAffected": "marksmen_attack",
+        "value": 5.0,
+        "type": "percentage",
+        "description": "Marksmen Attack +5.0%"
+      }
+    ],
+    "kingdomCapital": "Elderwood Arbor",
+    "startingRegion": "Whispering Canopy",
+    "kingdomColor": "#10B981"
+  },
+  {
+    "kingdomId": "k_emberfall",
+    "kingdomName": "Emberfall Caldera",
+    "kingdomDescription": "Forged in sulfurous volcanic fissures, Emberfall warriors are aggressive, fast-marching conquerors who summon molten power to incinerate fields.",
+    "kingdomBuffs": [
+      {
+        "statAffected": "march_speed",
+        "value": 5.0,
+        "type": "percentage",
+        "description": "Overall March Speed +5.0%"
+      },
+      {
+        "statAffected": "infantry_attack",
+        "value": 4.0,
+        "type": "percentage",
+        "description": "Infantry Attack +4.0%"
+      }
+    ],
+    "kingdomCapital": "Obsidian Keep",
+    "startingRegion": "Ashfire Crater",
+    "kingdomColor": "#EF4444"
+  },
+  {
+    "kingdomId": "k_stormreach",
+    "kingdomName": "Stormreach Coast",
+    "kingdomDescription": "A seafaring merchant domain battered by perpetual ocean tempests. They carry rich payloads swiftly and dominate trading networks.",
+    "kingdomBuffs": [
+      {
+        "statAffected": "gold_production",
+        "value": 10.0,
+        "type": "percentage",
+        "description": "Gold Income Production +10.0%"
+      },
+      {
+        "statAffected": "troop_load",
+        "value": 10.0,
+        "type": "percentage",
+        "description": "Army Payload Capacity +10.0%"
+      }
+    ],
+    "kingdomCapital": "Tidewater Bastion",
+    "startingRegion": "Shattered Reefs",
+    "kingdomColor": "#3B82F6"
+  },
+  {
+    "kingdomId": "k_shadowvale",
+    "kingdomName": "Shadowvale Syndicate",
+    "kingdomDescription": "A mysterious realm of eternal dusk, mist-covered valleys, and silent blades. They specialize in hospital care, stealth maneuvers, and fast espionage.",
+    "kingdomBuffs": [
+      {
+        "statAffected": "healing_speed",
+        "value": 8.0,
+        "type": "percentage",
+        "description": "Hospital Healing Speed +8.0%"
+      },
+      {
+        "statAffected": "scout_speed",
+        "value": 15.0,
+        "type": "percentage",
+        "description": "Scout Travel Speed +15.0%"
+      }
+    ],
+    "kingdomCapital": "Mistshrouded Keep",
+    "startingRegion": "Silent Fenns",
+    "kingdomColor": "#8B5CF6"
+  },
+  {
+    "kingdomId": "k_astralyn",
+    "kingdomName": "Astralyn Union",
+    "kingdomDescription": "An intellectual collective of magi who study high cosmic structures. They leverage magical research to optimize resource spells and study development faster.",
+    "kingdomBuffs": [
+      {
+        "statAffected": "research_speed",
+        "value": 6.0,
+        "type": "percentage",
+        "description": "Academy Research Speed +6.0%"
+      },
+      {
+        "statAffected": "stone_production",
+        "value": 10.0,
+        "type": "percentage",
+        "description": "Stone quarry extraction +10.0%"
+      }
+    ],
+    "kingdomCapital": "Stellar Observatory",
+    "startingRegion": "Skyward Plateau",
+    "kingdomColor": "#06B6D4"
+  }
+]

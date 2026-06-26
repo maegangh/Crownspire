@@ -1,0 +1,4514 @@
+[
+  {
+	"id": "maegan",
+	"name": "Maegan",
+	"portrait": "res://Art/Heroes/Maegan/fullbody.png",
+	"troopType": "infantry",
+	"lore": "The supreme marshal of Crownspire, wielding an aura of unyielding command.",
+	"unlockMethod": "Ascendance Portal",
+	"baseAttack": 44,
+	"baseDefense": 47,
+	"baseHealth": 370,
+	"leadership": 174,
+	"passiveBonuses": [
+	  {
+		"stat": "Troop Attack",
+		"value": 0.15
+	  },
+	  {
+		"stat": "Infantry Defense",
+		"value": 0.12
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Sovereign Decree",
+		"description": "Infuses allied foot soldiers with tactical absolute fury, boosting base damage.",
+		"requiredAscension": 0
+	  },
+	  {
+		"name": "Bastion Aegis",
+		"description": "Erects a protective dome preserving active legion ranks.",
+		"requiredAscension": 3
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Sovereign Decree"
+	  ],
+	  "powerMultiplier": 1.2
+	},
+	"ascension1": {
+	  "shardRequirement": 20,
+	  "attackMultiplier": 1.25,
+	  "defenseMultiplier": 1.25,
+	  "healthMultiplier": 1.25,
+	  "leadershipMultiplier": 1.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.45
+	},
+	"ascension2": {
+	  "shardRequirement": 40,
+	  "attackMultiplier": 1.55,
+	  "defenseMultiplier": 1.55,
+	  "healthMultiplier": 1.55,
+	  "leadershipMultiplier": 1.55,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension3": {
+	  "shardRequirement": 80,
+	  "attackMultiplier": 1.9,
+	  "defenseMultiplier": 1.9,
+	  "healthMultiplier": 1.9,
+	  "leadershipMultiplier": 1.9,
+	  "unlockedSkills": [
+        "Bastion Aegis"
+	  ],
+	  "powerMultiplier": 2.15
+	},
+	"ascension4": {
+	  "shardRequirement": 160,
+	  "attackMultiplier": 2.3,
+	  "defenseMultiplier": 2.3,
+	  "healthMultiplier": 2.3,
+	  "leadershipMultiplier": 2.3,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.6
+	},
+	"ascension5": {
+	  "shardRequirement": 300,
+	  "attackMultiplier": 2.8,
+	  "defenseMultiplier": 2.8,
+	  "healthMultiplier": 2.8,
+	  "leadershipMultiplier": 2.8,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 3.2
+	},
+	"rarity": "Mythic",
+	"role": "War"
+  },
+  {
+	"id": "lorelai",
+	"name": "Lorelai",
+	"rarity": "Mythic",
+	"role": "Support",
+	"troopType": "support",
+	"lore": "An ethereal weaver of mystic strings who coordinates battlefield speeds.",
+	"unlockMethod": "Ascendance Portal",
+	"baseAttack": 46,
+	"baseDefense": 41,
+	"baseHealth": 382,
+	"leadership": 157,
+	"passiveBonuses": [
+	  {
+		"stat": "Healing Speed",
+		"value": 0.2
+	  },
+	  {
+		"stat": "March Speed",
+		"value": 0.1
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Siren Melody",
+		"description": "Soothes battlefield panic, dramatically reducing wounded casualty rates.",
+		"requiredAscension": 0
+	  },
+	  {
+		"name": "Canto of Haste",
+		"description": "A mystical tune speeding up expeditionary march velocities.",
+		"requiredAscension": 2
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Siren Melody"
+	  ],
+	  "powerMultiplier": 1.2
+	},
+	"ascension1": {
+	  "shardRequirement": 20,
+	  "attackMultiplier": 1.25,
+	  "defenseMultiplier": 1.25,
+	  "healthMultiplier": 1.25,
+	  "leadershipMultiplier": 1.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.45
+	},
+	"ascension2": {
+	  "shardRequirement": 40,
+	  "attackMultiplier": 1.55,
+	  "defenseMultiplier": 1.55,
+	  "healthMultiplier": 1.55,
+	  "leadershipMultiplier": 1.55,
+	  "unlockedSkills": [
+        "Canto of Haste"
+	  ],
+	  "powerMultiplier": 1.75
+	},
+	"ascension3": {
+	  "shardRequirement": 80,
+	  "attackMultiplier": 1.9,
+	  "defenseMultiplier": 1.9,
+	  "healthMultiplier": 1.9,
+	  "leadershipMultiplier": 1.9,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.15
+	},
+	"ascension4": {
+	  "shardRequirement": 160,
+	  "attackMultiplier": 2.3,
+	  "defenseMultiplier": 2.3,
+	  "healthMultiplier": 2.3,
+	  "leadershipMultiplier": 2.3,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.6
+	},
+	"ascension5": {
+	  "shardRequirement": 300,
+	  "attackMultiplier": 2.8,
+	  "defenseMultiplier": 2.8,
+	  "healthMultiplier": 2.8,
+	  "leadershipMultiplier": 2.8,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 3.2
+	}
+  },
+  {
+	"id": "myshla",
+	"name": "Myshla",
+	"rarity": "Mythic",
+	"role": "Gathering",
+	"troopType": "support",
+	"lore": "A devoted geomancer fluent in mineral patterns and natural ley lines.",
+	"unlockMethod": "Ascendance Portal",
+	"baseAttack": 45,
+	"baseDefense": 40,
+	"baseHealth": 363,
+	"leadership": 164,
+	"passiveBonuses": [
+	  {
+		"stat": "Stone Production",
+		"value": 0.25
+	  },
+	  {
+		"stat": "Gather Speed",
+		"value": 0.15
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Mineral Resonance",
+		"description": "Whispers to deep quarry seams, accelerating extraction rates.",
+		"requiredAscension": 0
+	  },
+	  {
+		"name": "Safe Voyage",
+		"description": "Surrounds transport caravans with pathfinding protective wind.",
+		"requiredAscension": 3
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Mineral Resonance"
+	  ],
+	  "powerMultiplier": 1.2
+	},
+	"ascension1": {
+	  "shardRequirement": 20,
+	  "attackMultiplier": 1.25,
+	  "defenseMultiplier": 1.25,
+	  "healthMultiplier": 1.25,
+	  "leadershipMultiplier": 1.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.45
+	},
+	"ascension2": {
+	  "shardRequirement": 40,
+	  "attackMultiplier": 1.55,
+	  "defenseMultiplier": 1.55,
+	  "healthMultiplier": 1.55,
+	  "leadershipMultiplier": 1.55,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension3": {
+	  "shardRequirement": 80,
+	  "attackMultiplier": 1.9,
+	  "defenseMultiplier": 1.9,
+	  "healthMultiplier": 1.9,
+	  "leadershipMultiplier": 1.9,
+	  "unlockedSkills": [
+        "Safe Voyage"
+	  ],
+	  "powerMultiplier": 2.15
+	},
+	"ascension4": {
+	  "shardRequirement": 160,
+	  "attackMultiplier": 2.3,
+	  "defenseMultiplier": 2.3,
+	  "healthMultiplier": 2.3,
+	  "leadershipMultiplier": 2.3,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.6
+	},
+	"ascension5": {
+	  "shardRequirement": 300,
+	  "attackMultiplier": 2.8,
+	  "defenseMultiplier": 2.8,
+	  "healthMultiplier": 2.8,
+	  "leadershipMultiplier": 2.8,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 3.2
+	}
+  },
+  {
+	"id": "shadow",
+	"name": "Shadow",
+	"rarity": "Mythic",
+	"role": "War",
+	"troopType": "cavalry",
+	"lore": "An enigmatic rogue riding a spectral charger, striking from dark corners.",
+	"unlockMethod": "Ascendance Portal",
+	"baseAttack": 48,
+	"baseDefense": 40,
+	"baseHealth": 418,
+	"leadership": 178,
+	"passiveBonuses": [
+	  {
+		"stat": "Cavalry Attack",
+		"value": 0.18
+	  },
+	  {
+		"stat": "March Speed",
+		"value": 0.12
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Eclipse Guillotine",
+		"description": "Unleashes rapid backline punctures, striking enemy skirmishers directly.",
+		"requiredAscension": 0
+	  },
+	  {
+		"name": "Phantom Veil",
+		"description": "Conceals allied vanguard positions, granting high evasion traits.",
+		"requiredAscension": 4
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Eclipse Guillotine"
+	  ],
+	  "powerMultiplier": 1.2
+	},
+	"ascension1": {
+	  "shardRequirement": 20,
+	  "attackMultiplier": 1.25,
+	  "defenseMultiplier": 1.25,
+	  "healthMultiplier": 1.25,
+	  "leadershipMultiplier": 1.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.45
+	},
+	"ascension2": {
+	  "shardRequirement": 40,
+	  "attackMultiplier": 1.55,
+	  "defenseMultiplier": 1.55,
+	  "healthMultiplier": 1.55,
+	  "leadershipMultiplier": 1.55,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension3": {
+	  "shardRequirement": 80,
+	  "attackMultiplier": 1.9,
+	  "defenseMultiplier": 1.9,
+	  "healthMultiplier": 1.9,
+	  "leadershipMultiplier": 1.9,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.15
+	},
+	"ascension4": {
+	  "shardRequirement": 160,
+	  "attackMultiplier": 2.3,
+	  "defenseMultiplier": 2.3,
+	  "healthMultiplier": 2.3,
+	  "leadershipMultiplier": 2.3,
+	  "unlockedSkills": [
+        "Phantom Veil"
+	  ],
+	  "powerMultiplier": 2.6
+	},
+	"ascension5": {
+	  "shardRequirement": 300,
+	  "attackMultiplier": 2.8,
+	  "defenseMultiplier": 2.8,
+	  "healthMultiplier": 2.8,
+	  "leadershipMultiplier": 2.8,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 3.2
+	}
+  },
+  {
+	"id": "rayne",
+	"name": "Rayne",
+	"rarity": "Mythic",
+	"role": "Marksmen",
+	"troopType": "marksmen",
+	"lore": "An arch-ranger who commands thunderclouds to rain down piercing bolts.",
+	"unlockMethod": "Ascendance Portal",
+	"baseAttack": 42,
+	"baseDefense": 42,
+	"baseHealth": 386,
+	"leadership": 173,
+	"passiveBonuses": [
+	  {
+		"stat": "Marksmen Attack",
+		"value": 0.16
+	  },
+	  {
+		"stat": "Marksmen Range",
+		"value": 0.1
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Tempest Rain",
+		"description": "Conjures a squall that drops heavy arrows across standard broad columns.",
+		"requiredAscension": 0
+	  },
+	  {
+		"name": "Gale Guidance",
+		"description": "Grants projectiles piercing momentum that ignores heavy plate shields.",
+		"requiredAscension": 2
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Tempest Rain"
+	  ],
+	  "powerMultiplier": 1.2
+	},
+	"ascension1": {
+	  "shardRequirement": 20,
+	  "attackMultiplier": 1.25,
+	  "defenseMultiplier": 1.25,
+	  "healthMultiplier": 1.25,
+	  "leadershipMultiplier": 1.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.45
+	},
+	"ascension2": {
+	  "shardRequirement": 40,
+	  "attackMultiplier": 1.55,
+	  "defenseMultiplier": 1.55,
+	  "healthMultiplier": 1.55,
+	  "leadershipMultiplier": 1.55,
+	  "unlockedSkills": [
+        "Gale Guidance"
+	  ],
+	  "powerMultiplier": 1.75
+	},
+	"ascension3": {
+	  "shardRequirement": 80,
+	  "attackMultiplier": 1.9,
+	  "defenseMultiplier": 1.9,
+	  "healthMultiplier": 1.9,
+	  "leadershipMultiplier": 1.9,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.15
+	},
+	"ascension4": {
+	  "shardRequirement": 160,
+	  "attackMultiplier": 2.3,
+	  "defenseMultiplier": 2.3,
+	  "healthMultiplier": 2.3,
+	  "leadershipMultiplier": 2.3,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.6
+	},
+	"ascension5": {
+	  "shardRequirement": 300,
+	  "attackMultiplier": 2.8,
+	  "defenseMultiplier": 2.8,
+	  "healthMultiplier": 2.8,
+	  "leadershipMultiplier": 2.8,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 3.2
+	}
+  },
+  {
+	"id": "rex",
+	"name": "Rex",
+	"rarity": "Mythic",
+	"role": "Infantry",
+	"troopType": "infantry",
+	"lore": "The hulking bulwark of the Crownspire gates, clad in impenetrable dragonscale.",
+	"unlockMethod": "Ascendance Portal",
+	"baseAttack": 48,
+	"baseDefense": 45,
+	"baseHealth": 366,
+	"leadership": 161,
+	"passiveBonuses": [
+	  {
+		"stat": "Infantry Defense",
+		"value": 0.2
+	  },
+	  {
+		"stat": "Infantry HP",
+		"value": 0.15
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Indomitable Stance",
+		"description": "Hardens active posture to negate critical physical blows.",
+		"requiredAscension": 0
+	  },
+	  {
+		"name": "Dragon Vanguard",
+		"description": "Challengers are struck back by sharp shield studs, dealing thorns impact.",
+		"requiredAscension": 3
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Indomitable Stance"
+	  ],
+	  "powerMultiplier": 1.2
+	},
+	"ascension1": {
+	  "shardRequirement": 20,
+	  "attackMultiplier": 1.25,
+	  "defenseMultiplier": 1.25,
+	  "healthMultiplier": 1.25,
+	  "leadershipMultiplier": 1.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.45
+	},
+	"ascension2": {
+	  "shardRequirement": 40,
+	  "attackMultiplier": 1.55,
+	  "defenseMultiplier": 1.55,
+	  "healthMultiplier": 1.55,
+	  "leadershipMultiplier": 1.55,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension3": {
+	  "shardRequirement": 80,
+	  "attackMultiplier": 1.9,
+	  "defenseMultiplier": 1.9,
+	  "healthMultiplier": 1.9,
+	  "leadershipMultiplier": 1.9,
+	  "unlockedSkills": [
+        "Dragon Vanguard"
+	  ],
+	  "powerMultiplier": 2.15
+	},
+	"ascension4": {
+	  "shardRequirement": 160,
+	  "attackMultiplier": 2.3,
+	  "defenseMultiplier": 2.3,
+	  "healthMultiplier": 2.3,
+	  "leadershipMultiplier": 2.3,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.6
+	},
+	"ascension5": {
+	  "shardRequirement": 300,
+	  "attackMultiplier": 2.8,
+	  "defenseMultiplier": 2.8,
+	  "healthMultiplier": 2.8,
+	  "leadershipMultiplier": 2.8,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 3.2
+	}
+  },
+  {
+	"id": "lumi",
+	"name": "Lumi",
+	"rarity": "Mythic",
+	"role": "Support",
+	"troopType": "support",
+	"lore": "An apothecary of frozen dew who sustains long-term expedition ranks.",
+	"unlockMethod": "Ascendance Portal",
+	"baseAttack": 46,
+	"baseDefense": 44,
+	"baseHealth": 413,
+	"leadership": 153,
+	"passiveBonuses": [
+	  {
+		"stat": "Healing Cost Reduction",
+		"value": 0.15
+	  },
+	  {
+		"stat": "Troop Health",
+		"value": 0.1
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Glacial Rejuvenation",
+		"description": "Slows blood loss using ice herbs, stabilizing fallen units instantly.",
+		"requiredAscension": 0
+	  },
+	  {
+		"name": "Blizzard Ward",
+		"description": "A wall of hail that reduces intake ranged damage inside active grids.",
+		"requiredAscension": 2
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Glacial Rejuvenation"
+	  ],
+	  "powerMultiplier": 1.2
+	},
+	"ascension1": {
+	  "shardRequirement": 20,
+	  "attackMultiplier": 1.25,
+	  "defenseMultiplier": 1.25,
+	  "healthMultiplier": 1.25,
+	  "leadershipMultiplier": 1.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.45
+	},
+	"ascension2": {
+	  "shardRequirement": 40,
+	  "attackMultiplier": 1.55,
+	  "defenseMultiplier": 1.55,
+	  "healthMultiplier": 1.55,
+	  "leadershipMultiplier": 1.55,
+	  "unlockedSkills": [
+        "Blizzard Ward"
+	  ],
+	  "powerMultiplier": 1.75
+	},
+	"ascension3": {
+	  "shardRequirement": 80,
+	  "attackMultiplier": 1.9,
+	  "defenseMultiplier": 1.9,
+	  "healthMultiplier": 1.9,
+	  "leadershipMultiplier": 1.9,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.15
+	},
+	"ascension4": {
+	  "shardRequirement": 160,
+	  "attackMultiplier": 2.3,
+	  "defenseMultiplier": 2.3,
+	  "healthMultiplier": 2.3,
+	  "leadershipMultiplier": 2.3,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.6
+	},
+	"ascension5": {
+	  "shardRequirement": 300,
+	  "attackMultiplier": 2.8,
+	  "defenseMultiplier": 2.8,
+	  "healthMultiplier": 2.8,
+	  "leadershipMultiplier": 2.8,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 3.2
+	}
+  },
+  {
+	"id": "heaven",
+	"name": "Heaven",
+	"rarity": "Mythic",
+	"role": "War",
+	"troopType": "cavalry",
+	"lore": "A gleaming heavy knight whose charge sparkles with celestial thunder.",
+	"unlockMethod": "Ascendance Portal",
+	"baseAttack": 46,
+	"baseDefense": 47,
+	"baseHealth": 362,
+	"leadership": 169,
+	"passiveBonuses": [
+	  {
+		"stat": "Cavalry Defense",
+		"value": 0.18
+	  },
+	  {
+		"stat": "Troop Attack",
+		"value": 0.12
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Seraphic Lance",
+		"description": "Charges forward with white hot force, shattering defensive formations.",
+		"requiredAscension": 0
+	  },
+	  {
+		"name": "Aura of Sanctity",
+		"description": "Gives nearby battalions constant passive morale boosts.",
+		"requiredAscension": 4
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Seraphic Lance"
+	  ],
+	  "powerMultiplier": 1.2
+	},
+	"ascension1": {
+	  "shardRequirement": 20,
+	  "attackMultiplier": 1.25,
+	  "defenseMultiplier": 1.25,
+	  "healthMultiplier": 1.25,
+	  "leadershipMultiplier": 1.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.45
+	},
+	"ascension2": {
+	  "shardRequirement": 40,
+	  "attackMultiplier": 1.55,
+	  "defenseMultiplier": 1.55,
+	  "healthMultiplier": 1.55,
+	  "leadershipMultiplier": 1.55,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension3": {
+	  "shardRequirement": 80,
+	  "attackMultiplier": 1.9,
+	  "defenseMultiplier": 1.9,
+	  "healthMultiplier": 1.9,
+	  "leadershipMultiplier": 1.9,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.15
+	},
+	"ascension4": {
+	  "shardRequirement": 160,
+	  "attackMultiplier": 2.3,
+	  "defenseMultiplier": 2.3,
+	  "healthMultiplier": 2.3,
+	  "leadershipMultiplier": 2.3,
+	  "unlockedSkills": [
+        "Aura of Sanctity"
+	  ],
+	  "powerMultiplier": 2.6
+	},
+	"ascension5": {
+	  "shardRequirement": 300,
+	  "attackMultiplier": 2.8,
+	  "defenseMultiplier": 2.8,
+	  "healthMultiplier": 2.8,
+	  "leadershipMultiplier": 2.8,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 3.2
+	}
+  },
+  {
+	"id": "demon",
+	"name": "Demon",
+	"rarity": "Mythic",
+	"role": "War",
+	"troopType": "infantry",
+	"lore": "An enraged champion from deep volcanic chasms, thriving in bloody combat.",
+	"unlockMethod": "Ascendance Portal",
+	"baseAttack": 44,
+	"baseDefense": 46,
+	"baseHealth": 389,
+	"leadership": 165,
+	"passiveBonuses": [
+	  {
+		"stat": "Infantry Attack",
+		"value": 0.22
+	  },
+	  {
+		"stat": "Troop Defense",
+		"value": 0.08
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Hellfire Frenzy",
+		"description": "Trades structural health points for massive attack increases.",
+		"requiredAscension": 0
+	  },
+	  {
+		"name": "Obsidian Rupture",
+		"description": "Shatters the ground, stunning frontlines with volcanic cracks.",
+		"requiredAscension": 3
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Hellfire Frenzy"
+	  ],
+	  "powerMultiplier": 1.2
+	},
+	"ascension1": {
+	  "shardRequirement": 20,
+	  "attackMultiplier": 1.25,
+	  "defenseMultiplier": 1.25,
+	  "healthMultiplier": 1.25,
+	  "leadershipMultiplier": 1.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.45
+	},
+	"ascension2": {
+	  "shardRequirement": 40,
+	  "attackMultiplier": 1.55,
+	  "defenseMultiplier": 1.55,
+	  "healthMultiplier": 1.55,
+	  "leadershipMultiplier": 1.55,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension3": {
+	  "shardRequirement": 80,
+	  "attackMultiplier": 1.9,
+	  "defenseMultiplier": 1.9,
+	  "healthMultiplier": 1.9,
+	  "leadershipMultiplier": 1.9,
+	  "unlockedSkills": [
+        "Obsidian Rupture"
+	  ],
+	  "powerMultiplier": 2.15
+	},
+	"ascension4": {
+	  "shardRequirement": 160,
+	  "attackMultiplier": 2.3,
+	  "defenseMultiplier": 2.3,
+	  "healthMultiplier": 2.3,
+	  "leadershipMultiplier": 2.3,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.6
+	},
+	"ascension5": {
+	  "shardRequirement": 300,
+	  "attackMultiplier": 2.8,
+	  "defenseMultiplier": 2.8,
+	  "healthMultiplier": 2.8,
+	  "leadershipMultiplier": 2.8,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 3.2
+	}
+  },
+  {
+	"id": "allanna",
+	"name": "Allanna",
+	"rarity": "Legendary",
+	"role": "Support",
+	"troopType": "support",
+	"lore": "A high-priestess whose blessings keep troops fortified.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 31,
+	"baseDefense": 31,
+	"baseHealth": 309,
+	"leadership": 131,
+	"passiveBonuses": [
+	  {
+		"stat": "Medic Capacity",
+		"value": 0.25
+	  },
+	  {
+		"stat": "Troop Defense",
+		"value": 0.1
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Sanctuary Dome",
+		"description": "Dampens hostile shockwaves to preserve march numbers.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Sanctuary Dome"
+	  ],
+	  "powerMultiplier": 1.15
+	},
+	"ascension1": {
+	  "shardRequirement": 15,
+	  "attackMultiplier": 1.2,
+	  "defenseMultiplier": 1.2,
+	  "healthMultiplier": 1.2,
+	  "leadershipMultiplier": 1.2,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.35
+	},
+	"ascension2": {
+	  "shardRequirement": 30,
+	  "attackMultiplier": 1.45,
+	  "defenseMultiplier": 1.45,
+	  "healthMultiplier": 1.45,
+	  "leadershipMultiplier": 1.45,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.6
+	},
+	"ascension3": {
+	  "shardRequirement": 60,
+	  "attackMultiplier": 1.75,
+	  "defenseMultiplier": 1.75,
+	  "healthMultiplier": 1.75,
+	  "leadershipMultiplier": 1.75,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.95
+	},
+	"ascension4": {
+	  "shardRequirement": 120,
+	  "attackMultiplier": 2.1,
+	  "defenseMultiplier": 2.1,
+	  "healthMultiplier": 2.1,
+	  "leadershipMultiplier": 2.1,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.35
+	},
+	"ascension5": {
+	  "shardRequirement": 220,
+	  "attackMultiplier": 2.5,
+	  "defenseMultiplier": 2.5,
+	  "healthMultiplier": 2.5,
+	  "leadershipMultiplier": 2.5,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.8
+	}
+  },
+  {
+	"id": "savannah",
+	"name": "Savannah",
+	"rarity": "Legendary",
+	"role": "Gathering",
+	"troopType": "support",
+	"lore": "A plains scholar quick at finding natural riches.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 33,
+	"baseDefense": 32,
+	"baseHealth": 299,
+	"leadership": 128,
+	"passiveBonuses": [
+	  {
+		"stat": "Food Production",
+		"value": 0.25
+	  },
+	  {
+		"stat": "Gather Speed",
+		"value": 0.12
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Bountiful Plains",
+		"description": "Optimizes reaping sweeps to gather crops swiftly.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Bountiful Plains"
+	  ],
+	  "powerMultiplier": 1.15
+	},
+	"ascension1": {
+	  "shardRequirement": 15,
+	  "attackMultiplier": 1.2,
+	  "defenseMultiplier": 1.2,
+	  "healthMultiplier": 1.2,
+	  "leadershipMultiplier": 1.2,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.35
+	},
+	"ascension2": {
+	  "shardRequirement": 30,
+	  "attackMultiplier": 1.45,
+	  "defenseMultiplier": 1.45,
+	  "healthMultiplier": 1.45,
+	  "leadershipMultiplier": 1.45,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.6
+	},
+	"ascension3": {
+	  "shardRequirement": 60,
+	  "attackMultiplier": 1.75,
+	  "defenseMultiplier": 1.75,
+	  "healthMultiplier": 1.75,
+	  "leadershipMultiplier": 1.75,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.95
+	},
+	"ascension4": {
+	  "shardRequirement": 120,
+	  "attackMultiplier": 2.1,
+	  "defenseMultiplier": 2.1,
+	  "healthMultiplier": 2.1,
+	  "leadershipMultiplier": 2.1,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.35
+	},
+	"ascension5": {
+	  "shardRequirement": 220,
+	  "attackMultiplier": 2.5,
+	  "defenseMultiplier": 2.5,
+	  "healthMultiplier": 2.5,
+	  "leadershipMultiplier": 2.5,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.8
+	}
+  },
+  {
+	"id": "aria",
+	"name": "Aria",
+	"rarity": "Legendary",
+	"role": "Marksmen",
+	"troopType": "marksmen",
+	"lore": "A silent scout whose bow shoots with musical precision.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 28,
+	"baseDefense": 28,
+	"baseHealth": 306,
+	"leadership": 122,
+	"passiveBonuses": [
+	  {
+		"stat": "Marksmen Attack",
+		"value": 0.14
+	  },
+	  {
+		"stat": "Marksmen HP",
+		"value": 0.08
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Vibrato Bolt",
+		"description": "Fires rapid-fire arrows on targeted squads.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Vibrato Bolt"
+	  ],
+	  "powerMultiplier": 1.15
+	},
+	"ascension1": {
+	  "shardRequirement": 15,
+	  "attackMultiplier": 1.2,
+	  "defenseMultiplier": 1.2,
+	  "healthMultiplier": 1.2,
+	  "leadershipMultiplier": 1.2,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.35
+	},
+	"ascension2": {
+	  "shardRequirement": 30,
+	  "attackMultiplier": 1.45,
+	  "defenseMultiplier": 1.45,
+	  "healthMultiplier": 1.45,
+	  "leadershipMultiplier": 1.45,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.6
+	},
+	"ascension3": {
+	  "shardRequirement": 60,
+	  "attackMultiplier": 1.75,
+	  "defenseMultiplier": 1.75,
+	  "healthMultiplier": 1.75,
+	  "leadershipMultiplier": 1.75,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.95
+	},
+	"ascension4": {
+	  "shardRequirement": 120,
+	  "attackMultiplier": 2.1,
+	  "defenseMultiplier": 2.1,
+	  "healthMultiplier": 2.1,
+	  "leadershipMultiplier": 2.1,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.35
+	},
+	"ascension5": {
+	  "shardRequirement": 220,
+	  "attackMultiplier": 2.5,
+	  "defenseMultiplier": 2.5,
+	  "healthMultiplier": 2.5,
+	  "leadershipMultiplier": 2.5,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.8
+	}
+  },
+  {
+	"id": "dominic",
+	"name": "Dominic",
+	"rarity": "Legendary",
+	"role": "Infantry",
+	"troopType": "infantry",
+	"lore": "A rugged veteran officer trained in tight pike formations.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 34,
+	"baseDefense": 29,
+	"baseHealth": 273,
+	"leadership": 125,
+	"passiveBonuses": [
+	  {
+		"stat": "Infantry Defense",
+		"value": 0.15
+	  },
+	  {
+		"stat": "Infantry Attack",
+		"value": 0.1
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Phalanx Wall",
+		"description": "Fortifies soldier coordination, doubling hold capacity.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Phalanx Wall"
+	  ],
+	  "powerMultiplier": 1.15
+	},
+	"ascension1": {
+	  "shardRequirement": 15,
+	  "attackMultiplier": 1.2,
+	  "defenseMultiplier": 1.2,
+	  "healthMultiplier": 1.2,
+	  "leadershipMultiplier": 1.2,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.35
+	},
+	"ascension2": {
+	  "shardRequirement": 30,
+	  "attackMultiplier": 1.45,
+	  "defenseMultiplier": 1.45,
+	  "healthMultiplier": 1.45,
+	  "leadershipMultiplier": 1.45,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.6
+	},
+	"ascension3": {
+	  "shardRequirement": 60,
+	  "attackMultiplier": 1.75,
+	  "defenseMultiplier": 1.75,
+	  "healthMultiplier": 1.75,
+	  "leadershipMultiplier": 1.75,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.95
+	},
+	"ascension4": {
+	  "shardRequirement": 120,
+	  "attackMultiplier": 2.1,
+	  "defenseMultiplier": 2.1,
+	  "healthMultiplier": 2.1,
+	  "leadershipMultiplier": 2.1,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.35
+	},
+	"ascension5": {
+	  "shardRequirement": 220,
+	  "attackMultiplier": 2.5,
+	  "defenseMultiplier": 2.5,
+	  "healthMultiplier": 2.5,
+	  "leadershipMultiplier": 2.5,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.8
+	}
+  },
+  {
+	"id": "skye",
+	"name": "Skye",
+	"rarity": "Legendary",
+	"role": "Cavalry",
+	"troopType": "cavalry",
+	"lore": "A pegasus rider who leads flank charges from above.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 35,
+	"baseDefense": 35,
+	"baseHealth": 264,
+	"leadership": 127,
+	"passiveBonuses": [
+	  {
+		"stat": "Cavalry Attack",
+		"value": 0.15
+	  },
+	  {
+		"stat": "March Speed",
+		"value": 0.1
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Zephyr Strike",
+		"description": "Swoops down with heavy wind gusts, scattering archer columns.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Zephyr Strike"
+	  ],
+	  "powerMultiplier": 1.15
+	},
+	"ascension1": {
+	  "shardRequirement": 15,
+	  "attackMultiplier": 1.2,
+	  "defenseMultiplier": 1.2,
+	  "healthMultiplier": 1.2,
+	  "leadershipMultiplier": 1.2,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.35
+	},
+	"ascension2": {
+	  "shardRequirement": 30,
+	  "attackMultiplier": 1.45,
+	  "defenseMultiplier": 1.45,
+	  "healthMultiplier": 1.45,
+	  "leadershipMultiplier": 1.45,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.6
+	},
+	"ascension3": {
+	  "shardRequirement": 60,
+	  "attackMultiplier": 1.75,
+	  "defenseMultiplier": 1.75,
+	  "healthMultiplier": 1.75,
+	  "leadershipMultiplier": 1.75,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.95
+	},
+	"ascension4": {
+	  "shardRequirement": 120,
+	  "attackMultiplier": 2.1,
+	  "defenseMultiplier": 2.1,
+	  "healthMultiplier": 2.1,
+	  "leadershipMultiplier": 2.1,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.35
+	},
+	"ascension5": {
+	  "shardRequirement": 220,
+	  "attackMultiplier": 2.5,
+	  "defenseMultiplier": 2.5,
+	  "healthMultiplier": 2.5,
+	  "leadershipMultiplier": 2.5,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.8
+	}
+  },
+  {
+	"id": "noxx",
+	"name": "Noxx",
+	"rarity": "Legendary",
+	"role": "War",
+	"troopType": "cavalry",
+	"lore": "A shadow knight who disrupts enemy supply routes.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 34,
+	"baseDefense": 34,
+	"baseHealth": 273,
+	"leadership": 124,
+	"passiveBonuses": [
+	  {
+		"stat": "Troop Attack",
+		"value": 0.12
+	  },
+	  {
+		"stat": "Cavalry Defense",
+		"value": 0.12
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Plague Blade",
+		"description": "Inflicts decay on hostile ranks, draining current power.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Plague Blade"
+	  ],
+	  "powerMultiplier": 1.15
+	},
+	"ascension1": {
+	  "shardRequirement": 15,
+	  "attackMultiplier": 1.2,
+	  "defenseMultiplier": 1.2,
+	  "healthMultiplier": 1.2,
+	  "leadershipMultiplier": 1.2,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.35
+	},
+	"ascension2": {
+	  "shardRequirement": 30,
+	  "attackMultiplier": 1.45,
+	  "defenseMultiplier": 1.45,
+	  "healthMultiplier": 1.45,
+	  "leadershipMultiplier": 1.45,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.6
+	},
+	"ascension3": {
+	  "shardRequirement": 60,
+	  "attackMultiplier": 1.75,
+	  "defenseMultiplier": 1.75,
+	  "healthMultiplier": 1.75,
+	  "leadershipMultiplier": 1.75,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.95
+	},
+	"ascension4": {
+	  "shardRequirement": 120,
+	  "attackMultiplier": 2.1,
+	  "defenseMultiplier": 2.1,
+	  "healthMultiplier": 2.1,
+	  "leadershipMultiplier": 2.1,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.35
+	},
+	"ascension5": {
+	  "shardRequirement": 220,
+	  "attackMultiplier": 2.5,
+	  "defenseMultiplier": 2.5,
+	  "healthMultiplier": 2.5,
+	  "leadershipMultiplier": 2.5,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.8
+	}
+  },
+  {
+	"id": "remi",
+	"name": "Remi",
+	"rarity": "Legendary",
+	"role": "Support",
+	"troopType": "support",
+	"lore": "An architect who speeds up infrastructure upgrades.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 33,
+	"baseDefense": 30,
+	"baseHealth": 282,
+	"leadership": 115,
+	"passiveBonuses": [
+	  {
+		"stat": "Construction Speed",
+		"value": 0.12
+	  },
+	  {
+		"stat": "Wood Production",
+		"value": 0.15
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Master Masonry",
+		"description": "Provides instant progress on current active structures.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Master Masonry"
+	  ],
+	  "powerMultiplier": 1.15
+	},
+	"ascension1": {
+	  "shardRequirement": 15,
+	  "attackMultiplier": 1.2,
+	  "defenseMultiplier": 1.2,
+	  "healthMultiplier": 1.2,
+	  "leadershipMultiplier": 1.2,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.35
+	},
+	"ascension2": {
+	  "shardRequirement": 30,
+	  "attackMultiplier": 1.45,
+	  "defenseMultiplier": 1.45,
+	  "healthMultiplier": 1.45,
+	  "leadershipMultiplier": 1.45,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.6
+	},
+	"ascension3": {
+	  "shardRequirement": 60,
+	  "attackMultiplier": 1.75,
+	  "defenseMultiplier": 1.75,
+	  "healthMultiplier": 1.75,
+	  "leadershipMultiplier": 1.75,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.95
+	},
+	"ascension4": {
+	  "shardRequirement": 120,
+	  "attackMultiplier": 2.1,
+	  "defenseMultiplier": 2.1,
+	  "healthMultiplier": 2.1,
+	  "leadershipMultiplier": 2.1,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.35
+	},
+	"ascension5": {
+	  "shardRequirement": 220,
+	  "attackMultiplier": 2.5,
+	  "defenseMultiplier": 2.5,
+	  "healthMultiplier": 2.5,
+	  "leadershipMultiplier": 2.5,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.8
+	}
+  },
+  {
+	"id": "faith",
+	"name": "Faith",
+	"rarity": "Legendary",
+	"role": "Support",
+	"troopType": "support",
+	"lore": "Deep investigator of sacred lore, helping academy research.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 35,
+	"baseDefense": 33,
+	"baseHealth": 304,
+	"leadership": 127,
+	"passiveBonuses": [
+	  {
+		"stat": "Research Speed",
+		"value": 0.12
+	  },
+	  {
+		"stat": "Iron Production",
+		"value": 0.15
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Enlightenment",
+		"description": "Saves raw research effort with mental focus bonuses.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Enlightenment"
+	  ],
+	  "powerMultiplier": 1.15
+	},
+	"ascension1": {
+	  "shardRequirement": 15,
+	  "attackMultiplier": 1.2,
+	  "defenseMultiplier": 1.2,
+	  "healthMultiplier": 1.2,
+	  "leadershipMultiplier": 1.2,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.35
+	},
+	"ascension2": {
+	  "shardRequirement": 30,
+	  "attackMultiplier": 1.45,
+	  "defenseMultiplier": 1.45,
+	  "healthMultiplier": 1.45,
+	  "leadershipMultiplier": 1.45,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.6
+	},
+	"ascension3": {
+	  "shardRequirement": 60,
+	  "attackMultiplier": 1.75,
+	  "defenseMultiplier": 1.75,
+	  "healthMultiplier": 1.75,
+	  "leadershipMultiplier": 1.75,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.95
+	},
+	"ascension4": {
+	  "shardRequirement": 120,
+	  "attackMultiplier": 2.1,
+	  "defenseMultiplier": 2.1,
+	  "healthMultiplier": 2.1,
+	  "leadershipMultiplier": 2.1,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.35
+	},
+	"ascension5": {
+	  "shardRequirement": 220,
+	  "attackMultiplier": 2.5,
+	  "defenseMultiplier": 2.5,
+	  "healthMultiplier": 2.5,
+	  "leadershipMultiplier": 2.5,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.8
+	}
+  },
+  {
+	"id": "volkan",
+	"name": "Volkan",
+	"rarity": "Legendary",
+	"role": "War",
+	"troopType": "infantry",
+	"lore": "A forge-master swinging a hammer that cracks defenses.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 31,
+	"baseDefense": 34,
+	"baseHealth": 278,
+	"leadership": 110,
+	"passiveBonuses": [
+	  {
+		"stat": "Infantry Attack",
+		"value": 0.16
+	  },
+	  {
+		"stat": "Troop HP",
+		"value": 0.08
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Sledge Smash",
+		"description": "Crushes enemy armor, reducing defense bonuses.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Sledge Smash"
+	  ],
+	  "powerMultiplier": 1.15
+	},
+	"ascension1": {
+	  "shardRequirement": 15,
+	  "attackMultiplier": 1.2,
+	  "defenseMultiplier": 1.2,
+	  "healthMultiplier": 1.2,
+	  "leadershipMultiplier": 1.2,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.35
+	},
+	"ascension2": {
+	  "shardRequirement": 30,
+	  "attackMultiplier": 1.45,
+	  "defenseMultiplier": 1.45,
+	  "healthMultiplier": 1.45,
+	  "leadershipMultiplier": 1.45,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.6
+	},
+	"ascension3": {
+	  "shardRequirement": 60,
+	  "attackMultiplier": 1.75,
+	  "defenseMultiplier": 1.75,
+	  "healthMultiplier": 1.75,
+	  "leadershipMultiplier": 1.75,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.95
+	},
+	"ascension4": {
+	  "shardRequirement": 120,
+	  "attackMultiplier": 2.1,
+	  "defenseMultiplier": 2.1,
+	  "healthMultiplier": 2.1,
+	  "leadershipMultiplier": 2.1,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.35
+	},
+	"ascension5": {
+	  "shardRequirement": 220,
+	  "attackMultiplier": 2.5,
+	  "defenseMultiplier": 2.5,
+	  "healthMultiplier": 2.5,
+	  "leadershipMultiplier": 2.5,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.8
+	}
+  },
+  {
+	"id": "huarung",
+	"name": "Huarung",
+	"rarity": "Legendary",
+	"role": "Marksmen",
+	"troopType": "marksmen",
+	"lore": "A deadly eastern sniper with wind-guiding eyes.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 28,
+	"baseDefense": 29,
+	"baseHealth": 281,
+	"leadership": 124,
+	"passiveBonuses": [
+	  {
+		"stat": "Marksmen Attack",
+		"value": 0.18
+	  },
+	  {
+		"stat": "Marksmen Defense",
+		"value": 0.08
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Grounded Sight",
+		"description": "Focuses stance, boosting damage output of marksmen.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Grounded Sight"
+	  ],
+	  "powerMultiplier": 1.15
+	},
+	"ascension1": {
+	  "shardRequirement": 15,
+	  "attackMultiplier": 1.2,
+	  "defenseMultiplier": 1.2,
+	  "healthMultiplier": 1.2,
+	  "leadershipMultiplier": 1.2,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.35
+	},
+	"ascension2": {
+	  "shardRequirement": 30,
+	  "attackMultiplier": 1.45,
+	  "defenseMultiplier": 1.45,
+	  "healthMultiplier": 1.45,
+	  "leadershipMultiplier": 1.45,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.6
+	},
+	"ascension3": {
+	  "shardRequirement": 60,
+	  "attackMultiplier": 1.75,
+	  "defenseMultiplier": 1.75,
+	  "healthMultiplier": 1.75,
+	  "leadershipMultiplier": 1.75,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.95
+	},
+	"ascension4": {
+	  "shardRequirement": 120,
+	  "attackMultiplier": 2.1,
+	  "defenseMultiplier": 2.1,
+	  "healthMultiplier": 2.1,
+	  "leadershipMultiplier": 2.1,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.35
+	},
+	"ascension5": {
+	  "shardRequirement": 220,
+	  "attackMultiplier": 2.5,
+	  "defenseMultiplier": 2.5,
+	  "healthMultiplier": 2.5,
+	  "leadershipMultiplier": 2.5,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.8
+	}
+  },
+  {
+	"id": "violet",
+	"name": "Violet",
+	"rarity": "Legendary",
+	"role": "Cavalry",
+	"troopType": "cavalry",
+	"lore": "A swift vanguard captain who strikes with violet daggers.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 34,
+	"baseDefense": 35,
+	"baseHealth": 264,
+	"leadership": 123,
+	"passiveBonuses": [
+	  {
+		"stat": "Cavalry Attack",
+		"value": 0.16
+	  },
+	  {
+		"stat": "March Speed",
+		"value": 0.08
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Viper Slash",
+		"description": "Deals quick double impacts across flanking targets.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Viper Slash"
+	  ],
+	  "powerMultiplier": 1.15
+	},
+	"ascension1": {
+	  "shardRequirement": 15,
+	  "attackMultiplier": 1.2,
+	  "defenseMultiplier": 1.2,
+	  "healthMultiplier": 1.2,
+	  "leadershipMultiplier": 1.2,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.35
+	},
+	"ascension2": {
+	  "shardRequirement": 30,
+	  "attackMultiplier": 1.45,
+	  "defenseMultiplier": 1.45,
+	  "healthMultiplier": 1.45,
+	  "leadershipMultiplier": 1.45,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.6
+	},
+	"ascension3": {
+	  "shardRequirement": 60,
+	  "attackMultiplier": 1.75,
+	  "defenseMultiplier": 1.75,
+	  "healthMultiplier": 1.75,
+	  "leadershipMultiplier": 1.75,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.95
+	},
+	"ascension4": {
+	  "shardRequirement": 120,
+	  "attackMultiplier": 2.1,
+	  "defenseMultiplier": 2.1,
+	  "healthMultiplier": 2.1,
+	  "leadershipMultiplier": 2.1,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.35
+	},
+	"ascension5": {
+	  "shardRequirement": 220,
+	  "attackMultiplier": 2.5,
+	  "defenseMultiplier": 2.5,
+	  "healthMultiplier": 2.5,
+	  "leadershipMultiplier": 2.5,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.8
+	}
+  },
+  {
+	"id": "sebastian",
+	"name": "Sebastian",
+	"rarity": "Epic",
+	"role": "Infantry",
+	"troopType": "infantry",
+	"lore": "A disciplined Crownspire specialist trained in elite infantry paradigms.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 21,
+	"baseDefense": 25,
+	"baseHealth": 190,
+	"leadership": 91,
+	"passiveBonuses": [
+	  {
+		"stat": "Infantry Defense",
+		"value": 0.08
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Sebastian's Gambit",
+		"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Sebastian's Gambit"
+	  ],
+	  "powerMultiplier": 1.1
+	},
+	"ascension1": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.15,
+	  "defenseMultiplier": 1.15,
+	  "healthMultiplier": 1.15,
+	  "leadershipMultiplier": 1.15,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.25
+	},
+	"ascension2": {
+	  "shardRequirement": 20,
+	  "attackMultiplier": 1.35,
+	  "defenseMultiplier": 1.35,
+	  "healthMultiplier": 1.35,
+	  "leadershipMultiplier": 1.35,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.45
+	},
+	"ascension3": {
+	  "shardRequirement": 45,
+	  "attackMultiplier": 1.6,
+	  "defenseMultiplier": 1.6,
+	  "healthMultiplier": 1.6,
+	  "leadershipMultiplier": 1.6,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension4": {
+	  "shardRequirement": 90,
+	  "attackMultiplier": 1.9,
+	  "defenseMultiplier": 1.9,
+	  "healthMultiplier": 1.9,
+	  "leadershipMultiplier": 1.9,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.1
+	},
+	"ascension5": {
+	  "shardRequirement": 160,
+	  "attackMultiplier": 2.25,
+	  "defenseMultiplier": 2.25,
+	  "healthMultiplier": 2.25,
+	  "leadershipMultiplier": 2.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.5
+	}
+  },
+  {
+	"id": "josh",
+	"name": "Josh",
+	"rarity": "Epic",
+	"role": "Marksmen",
+	"troopType": "marksmen",
+	"lore": "A disciplined Crownspire specialist trained in elite marksmen paradigms.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 22,
+	"baseDefense": 21,
+	"baseHealth": 207,
+	"leadership": 102,
+	"passiveBonuses": [
+	  {
+		"stat": "Marksmen Attack",
+		"value": 0.08
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Josh's Gambit",
+		"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Josh's Gambit"
+	  ],
+	  "powerMultiplier": 1.1
+	},
+	"ascension1": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.15,
+	  "defenseMultiplier": 1.15,
+	  "healthMultiplier": 1.15,
+	  "leadershipMultiplier": 1.15,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.25
+	},
+	"ascension2": {
+	  "shardRequirement": 20,
+	  "attackMultiplier": 1.35,
+	  "defenseMultiplier": 1.35,
+	  "healthMultiplier": 1.35,
+	  "leadershipMultiplier": 1.35,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.45
+	},
+	"ascension3": {
+	  "shardRequirement": 45,
+	  "attackMultiplier": 1.6,
+	  "defenseMultiplier": 1.6,
+	  "healthMultiplier": 1.6,
+	  "leadershipMultiplier": 1.6,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension4": {
+	  "shardRequirement": 90,
+	  "attackMultiplier": 1.9,
+	  "defenseMultiplier": 1.9,
+	  "healthMultiplier": 1.9,
+	  "leadershipMultiplier": 1.9,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.1
+	},
+	"ascension5": {
+	  "shardRequirement": 160,
+	  "attackMultiplier": 2.25,
+	  "defenseMultiplier": 2.25,
+	  "healthMultiplier": 2.25,
+	  "leadershipMultiplier": 2.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.5
+	}
+  },
+  {
+	"id": "paul",
+	"name": "Paul",
+	"rarity": "Epic",
+	"role": "Support",
+	"troopType": "support",
+	"lore": "A disciplined Crownspire specialist trained in elite support paradigms.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 20,
+	"baseDefense": 25,
+	"baseHealth": 190,
+	"leadership": 86,
+	"passiveBonuses": [
+	  {
+		"stat": "Research Speed",
+		"value": 0.08
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Paul's Gambit",
+		"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Paul's Gambit"
+	  ],
+	  "powerMultiplier": 1.1
+	},
+	"ascension1": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.15,
+	  "defenseMultiplier": 1.15,
+	  "healthMultiplier": 1.15,
+	  "leadershipMultiplier": 1.15,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.25
+	},
+	"ascension2": {
+	  "shardRequirement": 20,
+	  "attackMultiplier": 1.35,
+	  "defenseMultiplier": 1.35,
+	  "healthMultiplier": 1.35,
+	  "leadershipMultiplier": 1.35,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.45
+	},
+	"ascension3": {
+	  "shardRequirement": 45,
+	  "attackMultiplier": 1.6,
+	  "defenseMultiplier": 1.6,
+	  "healthMultiplier": 1.6,
+	  "leadershipMultiplier": 1.6,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension4": {
+	  "shardRequirement": 90,
+	  "attackMultiplier": 1.9,
+	  "defenseMultiplier": 1.9,
+	  "healthMultiplier": 1.9,
+	  "leadershipMultiplier": 1.9,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.1
+	},
+	"ascension5": {
+	  "shardRequirement": 160,
+	  "attackMultiplier": 2.25,
+	  "defenseMultiplier": 2.25,
+	  "healthMultiplier": 2.25,
+	  "leadershipMultiplier": 2.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.5
+	}
+  },
+  {
+	"id": "tony",
+	"name": "Tony",
+	"rarity": "Epic",
+	"role": "Gathering",
+	"troopType": "support",
+	"lore": "A disciplined Crownspire specialist trained in elite gathering paradigms.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 22,
+	"baseDefense": 24,
+	"baseHealth": 217,
+	"leadership": 95,
+	"passiveBonuses": [
+	  {
+		"stat": "Iron Production",
+		"value": 0.08
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Tony's Gambit",
+		"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Tony's Gambit"
+	  ],
+	  "powerMultiplier": 1.1
+	},
+	"ascension1": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.15,
+	  "defenseMultiplier": 1.15,
+	  "healthMultiplier": 1.15,
+	  "leadershipMultiplier": 1.15,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.25
+	},
+	"ascension2": {
+	  "shardRequirement": 20,
+	  "attackMultiplier": 1.35,
+	  "defenseMultiplier": 1.35,
+	  "healthMultiplier": 1.35,
+	  "leadershipMultiplier": 1.35,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.45
+	},
+	"ascension3": {
+	  "shardRequirement": 45,
+	  "attackMultiplier": 1.6,
+	  "defenseMultiplier": 1.6,
+	  "healthMultiplier": 1.6,
+	  "leadershipMultiplier": 1.6,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension4": {
+	  "shardRequirement": 90,
+	  "attackMultiplier": 1.9,
+	  "defenseMultiplier": 1.9,
+	  "healthMultiplier": 1.9,
+	  "leadershipMultiplier": 1.9,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.1
+	},
+	"ascension5": {
+	  "shardRequirement": 160,
+	  "attackMultiplier": 2.25,
+	  "defenseMultiplier": 2.25,
+	  "healthMultiplier": 2.25,
+	  "leadershipMultiplier": 2.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.5
+	}
+  },
+  {
+	"id": "chase",
+	"name": "Chase",
+	"rarity": "Epic",
+	"role": "Cavalry",
+	"troopType": "cavalry",
+	"lore": "A disciplined Crownspire specialist trained in elite cavalry paradigms.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 24,
+	"baseDefense": 25,
+	"baseHealth": 207,
+	"leadership": 85,
+	"passiveBonuses": [
+	  {
+		"stat": "Cavalry Attack",
+		"value": 0.08
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Chase's Gambit",
+		"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Chase's Gambit"
+	  ],
+	  "powerMultiplier": 1.1
+	},
+	"ascension1": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.15,
+	  "defenseMultiplier": 1.15,
+	  "healthMultiplier": 1.15,
+	  "leadershipMultiplier": 1.15,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.25
+	},
+	"ascension2": {
+	  "shardRequirement": 20,
+	  "attackMultiplier": 1.35,
+	  "defenseMultiplier": 1.35,
+	  "healthMultiplier": 1.35,
+	  "leadershipMultiplier": 1.35,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.45
+	},
+	"ascension3": {
+	  "shardRequirement": 45,
+	  "attackMultiplier": 1.6,
+	  "defenseMultiplier": 1.6,
+	  "healthMultiplier": 1.6,
+	  "leadershipMultiplier": 1.6,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension4": {
+	  "shardRequirement": 90,
+	  "attackMultiplier": 1.9,
+	  "defenseMultiplier": 1.9,
+	  "healthMultiplier": 1.9,
+	  "leadershipMultiplier": 1.9,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.1
+	},
+	"ascension5": {
+	  "shardRequirement": 160,
+	  "attackMultiplier": 2.25,
+	  "defenseMultiplier": 2.25,
+	  "healthMultiplier": 2.25,
+	  "leadershipMultiplier": 2.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.5
+	}
+  },
+  {
+	"id": "everest",
+	"name": "Everest",
+	"rarity": "Epic",
+	"role": "Infantry",
+	"troopType": "infantry",
+	"lore": "A disciplined Crownspire specialist trained in elite infantry paradigms.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 23,
+	"baseDefense": 21,
+	"baseHealth": 185,
+	"leadership": 91,
+	"passiveBonuses": [
+	  {
+		"stat": "Infantry HP",
+		"value": 0.08
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Everest's Gambit",
+		"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Everest's Gambit"
+	  ],
+	  "powerMultiplier": 1.1
+	},
+	"ascension1": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.15,
+	  "defenseMultiplier": 1.15,
+	  "healthMultiplier": 1.15,
+	  "leadershipMultiplier": 1.15,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.25
+	},
+	"ascension2": {
+	  "shardRequirement": 20,
+	  "attackMultiplier": 1.35,
+	  "defenseMultiplier": 1.35,
+	  "healthMultiplier": 1.35,
+	  "leadershipMultiplier": 1.35,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.45
+	},
+	"ascension3": {
+	  "shardRequirement": 45,
+	  "attackMultiplier": 1.6,
+	  "defenseMultiplier": 1.6,
+	  "healthMultiplier": 1.6,
+	  "leadershipMultiplier": 1.6,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension4": {
+	  "shardRequirement": 90,
+	  "attackMultiplier": 1.9,
+	  "defenseMultiplier": 1.9,
+	  "healthMultiplier": 1.9,
+	  "leadershipMultiplier": 1.9,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.1
+	},
+	"ascension5": {
+	  "shardRequirement": 160,
+	  "attackMultiplier": 2.25,
+	  "defenseMultiplier": 2.25,
+	  "healthMultiplier": 2.25,
+	  "leadershipMultiplier": 2.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.5
+	}
+  },
+  {
+	"id": "jayden",
+	"name": "Jayden",
+	"rarity": "Epic",
+	"role": "Marksmen",
+	"troopType": "marksmen",
+	"lore": "A disciplined Crownspire specialist trained in elite marksmen paradigms.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 24,
+	"baseDefense": 23,
+	"baseHealth": 200,
+	"leadership": 85,
+	"passiveBonuses": [
+	  {
+		"stat": "Marksmen Defense",
+		"value": 0.08
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Jayden's Gambit",
+		"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Jayden's Gambit"
+	  ],
+	  "powerMultiplier": 1.1
+	},
+	"ascension1": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.15,
+	  "defenseMultiplier": 1.15,
+	  "healthMultiplier": 1.15,
+	  "leadershipMultiplier": 1.15,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.25
+	},
+	"ascension2": {
+	  "shardRequirement": 20,
+	  "attackMultiplier": 1.35,
+	  "defenseMultiplier": 1.35,
+	  "healthMultiplier": 1.35,
+	  "leadershipMultiplier": 1.35,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.45
+	},
+	"ascension3": {
+	  "shardRequirement": 45,
+	  "attackMultiplier": 1.6,
+	  "defenseMultiplier": 1.6,
+	  "healthMultiplier": 1.6,
+	  "leadershipMultiplier": 1.6,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension4": {
+	  "shardRequirement": 90,
+	  "attackMultiplier": 1.9,
+	  "defenseMultiplier": 1.9,
+	  "healthMultiplier": 1.9,
+	  "leadershipMultiplier": 1.9,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.1
+	},
+	"ascension5": {
+	  "shardRequirement": 160,
+	  "attackMultiplier": 2.25,
+	  "defenseMultiplier": 2.25,
+	  "healthMultiplier": 2.25,
+	  "leadershipMultiplier": 2.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.5
+	}
+  },
+  {
+	"id": "karlie",
+	"name": "Karlie",
+	"rarity": "Epic",
+	"role": "Support",
+	"troopType": "support",
+	"lore": "A disciplined Crownspire specialist trained in elite support paradigms.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 24,
+	"baseDefense": 22,
+	"baseHealth": 206,
+	"leadership": 87,
+	"passiveBonuses": [
+	  {
+		"stat": "Construction Speed",
+		"value": 0.08
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Karlie's Gambit",
+		"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Karlie's Gambit"
+	  ],
+	  "powerMultiplier": 1.1
+	},
+	"ascension1": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.15,
+	  "defenseMultiplier": 1.15,
+	  "healthMultiplier": 1.15,
+	  "leadershipMultiplier": 1.15,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.25
+	},
+	"ascension2": {
+	  "shardRequirement": 20,
+	  "attackMultiplier": 1.35,
+	  "defenseMultiplier": 1.35,
+	  "healthMultiplier": 1.35,
+	  "leadershipMultiplier": 1.35,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.45
+	},
+	"ascension3": {
+	  "shardRequirement": 45,
+	  "attackMultiplier": 1.6,
+	  "defenseMultiplier": 1.6,
+	  "healthMultiplier": 1.6,
+	  "leadershipMultiplier": 1.6,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension4": {
+	  "shardRequirement": 90,
+	  "attackMultiplier": 1.9,
+	  "defenseMultiplier": 1.9,
+	  "healthMultiplier": 1.9,
+	  "leadershipMultiplier": 1.9,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.1
+	},
+	"ascension5": {
+	  "shardRequirement": 160,
+	  "attackMultiplier": 2.25,
+	  "defenseMultiplier": 2.25,
+	  "healthMultiplier": 2.25,
+	  "leadershipMultiplier": 2.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.5
+	}
+  },
+  {
+	"id": "makenzi",
+	"name": "Makenzi",
+	"rarity": "Epic",
+	"role": "Gathering",
+	"troopType": "support",
+	"lore": "A disciplined Crownspire specialist trained in elite gathering paradigms.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 21,
+	"baseDefense": 21,
+	"baseHealth": 213,
+	"leadership": 97,
+	"passiveBonuses": [
+	  {
+		"stat": "Wood Production",
+		"value": 0.08
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Makenzi's Gambit",
+		"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Makenzi's Gambit"
+	  ],
+	  "powerMultiplier": 1.1
+	},
+	"ascension1": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.15,
+	  "defenseMultiplier": 1.15,
+	  "healthMultiplier": 1.15,
+	  "leadershipMultiplier": 1.15,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.25
+	},
+	"ascension2": {
+	  "shardRequirement": 20,
+	  "attackMultiplier": 1.35,
+	  "defenseMultiplier": 1.35,
+	  "healthMultiplier": 1.35,
+	  "leadershipMultiplier": 1.35,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.45
+	},
+	"ascension3": {
+	  "shardRequirement": 45,
+	  "attackMultiplier": 1.6,
+	  "defenseMultiplier": 1.6,
+	  "healthMultiplier": 1.6,
+	  "leadershipMultiplier": 1.6,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension4": {
+	  "shardRequirement": 90,
+	  "attackMultiplier": 1.9,
+	  "defenseMultiplier": 1.9,
+	  "healthMultiplier": 1.9,
+	  "leadershipMultiplier": 1.9,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.1
+	},
+	"ascension5": {
+	  "shardRequirement": 160,
+	  "attackMultiplier": 2.25,
+	  "defenseMultiplier": 2.25,
+	  "healthMultiplier": 2.25,
+	  "leadershipMultiplier": 2.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.5
+	}
+  },
+  {
+	"id": "jazzy",
+	"name": "Jazzy",
+	"rarity": "Epic",
+	"role": "Cavalry",
+	"troopType": "cavalry",
+	"lore": "A disciplined Crownspire specialist trained in elite cavalry paradigms.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 23,
+	"baseDefense": 25,
+	"baseHealth": 215,
+	"leadership": 100,
+	"passiveBonuses": [
+	  {
+		"stat": "March Speed",
+		"value": 0.08
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Jazzy's Gambit",
+		"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Jazzy's Gambit"
+	  ],
+	  "powerMultiplier": 1.1
+	},
+	"ascension1": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.15,
+	  "defenseMultiplier": 1.15,
+	  "healthMultiplier": 1.15,
+	  "leadershipMultiplier": 1.15,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.25
+	},
+	"ascension2": {
+	  "shardRequirement": 20,
+	  "attackMultiplier": 1.35,
+	  "defenseMultiplier": 1.35,
+	  "healthMultiplier": 1.35,
+	  "leadershipMultiplier": 1.35,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.45
+	},
+	"ascension3": {
+	  "shardRequirement": 45,
+	  "attackMultiplier": 1.6,
+	  "defenseMultiplier": 1.6,
+	  "healthMultiplier": 1.6,
+	  "leadershipMultiplier": 1.6,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension4": {
+	  "shardRequirement": 90,
+	  "attackMultiplier": 1.9,
+	  "defenseMultiplier": 1.9,
+	  "healthMultiplier": 1.9,
+	  "leadershipMultiplier": 1.9,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.1
+	},
+	"ascension5": {
+	  "shardRequirement": 160,
+	  "attackMultiplier": 2.25,
+	  "defenseMultiplier": 2.25,
+	  "healthMultiplier": 2.25,
+	  "leadershipMultiplier": 2.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.5
+	}
+  },
+  {
+	"id": "jose",
+	"name": "Jose",
+	"rarity": "Epic",
+	"role": "Infantry",
+	"troopType": "infantry",
+	"lore": "A disciplined Crownspire specialist trained in elite infantry paradigms.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 20,
+	"baseDefense": 22,
+	"baseHealth": 204,
+	"leadership": 93,
+	"passiveBonuses": [
+	  {
+		"stat": "Infantry Attack",
+		"value": 0.08
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Jose's Gambit",
+		"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Jose's Gambit"
+	  ],
+	  "powerMultiplier": 1.1
+	},
+	"ascension1": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.15,
+	  "defenseMultiplier": 1.15,
+	  "healthMultiplier": 1.15,
+	  "leadershipMultiplier": 1.15,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.25
+	},
+	"ascension2": {
+	  "shardRequirement": 20,
+	  "attackMultiplier": 1.35,
+	  "defenseMultiplier": 1.35,
+	  "healthMultiplier": 1.35,
+	  "leadershipMultiplier": 1.35,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.45
+	},
+	"ascension3": {
+	  "shardRequirement": 45,
+	  "attackMultiplier": 1.6,
+	  "defenseMultiplier": 1.6,
+	  "healthMultiplier": 1.6,
+	  "leadershipMultiplier": 1.6,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension4": {
+	  "shardRequirement": 90,
+	  "attackMultiplier": 1.9,
+	  "defenseMultiplier": 1.9,
+	  "healthMultiplier": 1.9,
+	  "leadershipMultiplier": 1.9,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.1
+	},
+	"ascension5": {
+	  "shardRequirement": 160,
+	  "attackMultiplier": 2.25,
+	  "defenseMultiplier": 2.25,
+	  "healthMultiplier": 2.25,
+	  "leadershipMultiplier": 2.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.5
+	}
+  },
+  {
+	"id": "lindsey",
+	"name": "Lindsey",
+	"rarity": "Epic",
+	"role": "Marksmen",
+	"troopType": "marksmen",
+	"lore": "A disciplined Crownspire specialist trained in elite marksmen paradigms.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 24,
+	"baseDefense": 25,
+	"baseHealth": 204,
+	"leadership": 93,
+	"passiveBonuses": [
+	  {
+		"stat": "Marksmen HP",
+		"value": 0.08
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Lindsey's Gambit",
+		"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Lindsey's Gambit"
+	  ],
+	  "powerMultiplier": 1.1
+	},
+	"ascension1": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.15,
+	  "defenseMultiplier": 1.15,
+	  "healthMultiplier": 1.15,
+	  "leadershipMultiplier": 1.15,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.25
+	},
+	"ascension2": {
+	  "shardRequirement": 20,
+	  "attackMultiplier": 1.35,
+	  "defenseMultiplier": 1.35,
+	  "healthMultiplier": 1.35,
+	  "leadershipMultiplier": 1.35,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.45
+	},
+	"ascension3": {
+	  "shardRequirement": 45,
+	  "attackMultiplier": 1.6,
+	  "defenseMultiplier": 1.6,
+	  "healthMultiplier": 1.6,
+	  "leadershipMultiplier": 1.6,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension4": {
+	  "shardRequirement": 90,
+	  "attackMultiplier": 1.9,
+	  "defenseMultiplier": 1.9,
+	  "healthMultiplier": 1.9,
+	  "leadershipMultiplier": 1.9,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.1
+	},
+	"ascension5": {
+	  "shardRequirement": 160,
+	  "attackMultiplier": 2.25,
+	  "defenseMultiplier": 2.25,
+	  "healthMultiplier": 2.25,
+	  "leadershipMultiplier": 2.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.5
+	}
+  },
+  {
+	"id": "lisa",
+	"name": "Lisa",
+	"rarity": "Epic",
+	"role": "Support",
+	"troopType": "support",
+	"lore": "A disciplined Crownspire specialist trained in elite support paradigms.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 20,
+	"baseDefense": 22,
+	"baseHealth": 220,
+	"leadership": 85,
+	"passiveBonuses": [
+	  {
+		"stat": "Healing Speed",
+		"value": 0.08
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Lisa's Gambit",
+		"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Lisa's Gambit"
+	  ],
+	  "powerMultiplier": 1.1
+	},
+	"ascension1": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.15,
+	  "defenseMultiplier": 1.15,
+	  "healthMultiplier": 1.15,
+	  "leadershipMultiplier": 1.15,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.25
+	},
+	"ascension2": {
+	  "shardRequirement": 20,
+	  "attackMultiplier": 1.35,
+	  "defenseMultiplier": 1.35,
+	  "healthMultiplier": 1.35,
+	  "leadershipMultiplier": 1.35,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.45
+	},
+	"ascension3": {
+	  "shardRequirement": 45,
+	  "attackMultiplier": 1.6,
+	  "defenseMultiplier": 1.6,
+	  "healthMultiplier": 1.6,
+	  "leadershipMultiplier": 1.6,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension4": {
+	  "shardRequirement": 90,
+	  "attackMultiplier": 1.9,
+	  "defenseMultiplier": 1.9,
+	  "healthMultiplier": 1.9,
+	  "leadershipMultiplier": 1.9,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.1
+	},
+	"ascension5": {
+	  "shardRequirement": 160,
+	  "attackMultiplier": 2.25,
+	  "defenseMultiplier": 2.25,
+	  "healthMultiplier": 2.25,
+	  "leadershipMultiplier": 2.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.5
+	}
+  },
+  {
+	"id": "dana",
+	"name": "Dana",
+	"rarity": "Epic",
+	"role": "Gathering",
+	"troopType": "support",
+	"lore": "A disciplined Crownspire specialist trained in elite gathering paradigms.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 20,
+	"baseDefense": 23,
+	"baseHealth": 216,
+	"leadership": 103,
+	"passiveBonuses": [
+	  {
+		"stat": "Food Production",
+		"value": 0.08
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Dana's Gambit",
+		"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Dana's Gambit"
+	  ],
+	  "powerMultiplier": 1.1
+	},
+	"ascension1": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.15,
+	  "defenseMultiplier": 1.15,
+	  "healthMultiplier": 1.15,
+	  "leadershipMultiplier": 1.15,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.25
+	},
+	"ascension2": {
+	  "shardRequirement": 20,
+	  "attackMultiplier": 1.35,
+	  "defenseMultiplier": 1.35,
+	  "healthMultiplier": 1.35,
+	  "leadershipMultiplier": 1.35,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.45
+	},
+	"ascension3": {
+	  "shardRequirement": 45,
+	  "attackMultiplier": 1.6,
+	  "defenseMultiplier": 1.6,
+	  "healthMultiplier": 1.6,
+	  "leadershipMultiplier": 1.6,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension4": {
+	  "shardRequirement": 90,
+	  "attackMultiplier": 1.9,
+	  "defenseMultiplier": 1.9,
+	  "healthMultiplier": 1.9,
+	  "leadershipMultiplier": 1.9,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.1
+	},
+	"ascension5": {
+	  "shardRequirement": 160,
+	  "attackMultiplier": 2.25,
+	  "defenseMultiplier": 2.25,
+	  "healthMultiplier": 2.25,
+	  "leadershipMultiplier": 2.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.5
+	}
+  },
+  {
+	"id": "jamie",
+	"name": "Jamie",
+	"rarity": "Epic",
+	"role": "Cavalry",
+	"troopType": "cavalry",
+	"lore": "A disciplined Crownspire specialist trained in elite cavalry paradigms.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 24,
+	"baseDefense": 24,
+	"baseHealth": 218,
+	"leadership": 85,
+	"passiveBonuses": [
+	  {
+		"stat": "Cavalry Defense",
+		"value": 0.08
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Jamie's Gambit",
+		"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Jamie's Gambit"
+	  ],
+	  "powerMultiplier": 1.1
+	},
+	"ascension1": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.15,
+	  "defenseMultiplier": 1.15,
+	  "healthMultiplier": 1.15,
+	  "leadershipMultiplier": 1.15,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.25
+	},
+	"ascension2": {
+	  "shardRequirement": 20,
+	  "attackMultiplier": 1.35,
+	  "defenseMultiplier": 1.35,
+	  "healthMultiplier": 1.35,
+	  "leadershipMultiplier": 1.35,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.45
+	},
+	"ascension3": {
+	  "shardRequirement": 45,
+	  "attackMultiplier": 1.6,
+	  "defenseMultiplier": 1.6,
+	  "healthMultiplier": 1.6,
+	  "leadershipMultiplier": 1.6,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension4": {
+	  "shardRequirement": 90,
+	  "attackMultiplier": 1.9,
+	  "defenseMultiplier": 1.9,
+	  "healthMultiplier": 1.9,
+	  "leadershipMultiplier": 1.9,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.1
+	},
+	"ascension5": {
+	  "shardRequirement": 160,
+	  "attackMultiplier": 2.25,
+	  "defenseMultiplier": 2.25,
+	  "healthMultiplier": 2.25,
+	  "leadershipMultiplier": 2.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.5
+	}
+  },
+  {
+	"id": "gizem",
+	"name": "Gizem",
+	"rarity": "Epic",
+	"role": "War",
+	"troopType": "infantry",
+	"lore": "A disciplined Crownspire specialist trained in elite war paradigms.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 25,
+	"baseDefense": 21,
+	"baseHealth": 197,
+	"leadership": 101,
+	"passiveBonuses": [
+	  {
+		"stat": "Troop Attack",
+		"value": 0.08
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Gizem's Gambit",
+		"description": "Deploys localized battlefield adjustments supporting nearby columns.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Gizem's Gambit"
+	  ],
+	  "powerMultiplier": 1.1
+	},
+	"ascension1": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.15,
+	  "defenseMultiplier": 1.15,
+	  "healthMultiplier": 1.15,
+	  "leadershipMultiplier": 1.15,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.25
+	},
+	"ascension2": {
+	  "shardRequirement": 20,
+	  "attackMultiplier": 1.35,
+	  "defenseMultiplier": 1.35,
+	  "healthMultiplier": 1.35,
+	  "leadershipMultiplier": 1.35,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.45
+	},
+	"ascension3": {
+	  "shardRequirement": 45,
+	  "attackMultiplier": 1.6,
+	  "defenseMultiplier": 1.6,
+	  "healthMultiplier": 1.6,
+	  "leadershipMultiplier": 1.6,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension4": {
+	  "shardRequirement": 90,
+	  "attackMultiplier": 1.9,
+	  "defenseMultiplier": 1.9,
+	  "healthMultiplier": 1.9,
+	  "leadershipMultiplier": 1.9,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.1
+	},
+	"ascension5": {
+	  "shardRequirement": 160,
+	  "attackMultiplier": 2.25,
+	  "defenseMultiplier": 2.25,
+	  "healthMultiplier": 2.25,
+	  "leadershipMultiplier": 2.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.5
+	}
+  },
+  {
+	"id": "ivy",
+	"name": "Ivy",
+	"rarity": "Rare",
+	"role": "Gathering",
+	"troopType": "support",
+	"lore": "A resilient native vanguard serving the Crownspire borders.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 14,
+	"baseDefense": 17,
+	"baseHealth": 154,
+	"leadership": 72,
+	"passiveBonuses": [
+	  {
+		"stat": "Gather Speed",
+		"value": 0.04
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Ivy's Spirit",
+		"description": "Grants minor temporary buffs to speed or combat attributes.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Ivy's Spirit"
+	  ],
+	  "powerMultiplier": 1.05
+	},
+	"ascension1": {
+	  "shardRequirement": 5,
+	  "attackMultiplier": 1.1,
+	  "defenseMultiplier": 1.1,
+	  "healthMultiplier": 1.1,
+	  "leadershipMultiplier": 1.1,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.15
+	},
+	"ascension2": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.25,
+	  "defenseMultiplier": 1.25,
+	  "healthMultiplier": 1.25,
+	  "leadershipMultiplier": 1.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.3
+	},
+	"ascension3": {
+	  "shardRequirement": 25,
+	  "attackMultiplier": 1.45,
+	  "defenseMultiplier": 1.45,
+	  "healthMultiplier": 1.45,
+	  "leadershipMultiplier": 1.45,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.5
+	},
+	"ascension4": {
+	  "shardRequirement": 50,
+	  "attackMultiplier": 1.7,
+	  "defenseMultiplier": 1.7,
+	  "healthMultiplier": 1.7,
+	  "leadershipMultiplier": 1.7,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension5": {
+	  "shardRequirement": 100,
+	  "attackMultiplier": 2,
+	  "defenseMultiplier": 2,
+	  "healthMultiplier": 2,
+	  "leadershipMultiplier": 2,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.05
+	}
+  },
+  {
+	"id": "brady",
+	"name": "Brady",
+	"rarity": "Rare",
+	"role": "Infantry",
+	"troopType": "infantry",
+	"lore": "A resilient native vanguard serving the Crownspire borders.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 13,
+	"baseDefense": 14,
+	"baseHealth": 149,
+	"leadership": 79,
+	"passiveBonuses": [
+	  {
+		"stat": "Infantry Defense",
+		"value": 0.04
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Brady's Spirit",
+		"description": "Grants minor temporary buffs to speed or combat attributes.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Brady's Spirit"
+	  ],
+	  "powerMultiplier": 1.05
+	},
+	"ascension1": {
+	  "shardRequirement": 5,
+	  "attackMultiplier": 1.1,
+	  "defenseMultiplier": 1.1,
+	  "healthMultiplier": 1.1,
+	  "leadershipMultiplier": 1.1,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.15
+	},
+	"ascension2": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.25,
+	  "defenseMultiplier": 1.25,
+	  "healthMultiplier": 1.25,
+	  "leadershipMultiplier": 1.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.3
+	},
+	"ascension3": {
+	  "shardRequirement": 25,
+	  "attackMultiplier": 1.45,
+	  "defenseMultiplier": 1.45,
+	  "healthMultiplier": 1.45,
+	  "leadershipMultiplier": 1.45,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.5
+	},
+	"ascension4": {
+	  "shardRequirement": 50,
+	  "attackMultiplier": 1.7,
+	  "defenseMultiplier": 1.7,
+	  "healthMultiplier": 1.7,
+	  "leadershipMultiplier": 1.7,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension5": {
+	  "shardRequirement": 100,
+	  "attackMultiplier": 2,
+	  "defenseMultiplier": 2,
+	  "healthMultiplier": 2,
+	  "leadershipMultiplier": 2,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.05
+	}
+  },
+  {
+	"id": "byank",
+	"name": "Byank",
+	"rarity": "Rare",
+	"role": "Marksmen",
+	"troopType": "marksmen",
+	"lore": "A resilient native vanguard serving the Crownspire borders.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 15,
+	"baseDefense": 17,
+	"baseHealth": 126,
+	"leadership": 71,
+	"passiveBonuses": [
+	  {
+		"stat": "Marksmen Attack",
+		"value": 0.04
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Byank's Spirit",
+		"description": "Grants minor temporary buffs to speed or combat attributes.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Byank's Spirit"
+	  ],
+	  "powerMultiplier": 1.05
+	},
+	"ascension1": {
+	  "shardRequirement": 5,
+	  "attackMultiplier": 1.1,
+	  "defenseMultiplier": 1.1,
+	  "healthMultiplier": 1.1,
+	  "leadershipMultiplier": 1.1,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.15
+	},
+	"ascension2": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.25,
+	  "defenseMultiplier": 1.25,
+	  "healthMultiplier": 1.25,
+	  "leadershipMultiplier": 1.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.3
+	},
+	"ascension3": {
+	  "shardRequirement": 25,
+	  "attackMultiplier": 1.45,
+	  "defenseMultiplier": 1.45,
+	  "healthMultiplier": 1.45,
+	  "leadershipMultiplier": 1.45,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.5
+	},
+	"ascension4": {
+	  "shardRequirement": 50,
+	  "attackMultiplier": 1.7,
+	  "defenseMultiplier": 1.7,
+	  "healthMultiplier": 1.7,
+	  "leadershipMultiplier": 1.7,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension5": {
+	  "shardRequirement": 100,
+	  "attackMultiplier": 2,
+	  "defenseMultiplier": 2,
+	  "healthMultiplier": 2,
+	  "leadershipMultiplier": 2,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.05
+	}
+  },
+  {
+	"id": "catron",
+	"name": "Catron",
+	"rarity": "Rare",
+	"role": "Cavalry",
+	"troopType": "cavalry",
+	"lore": "A resilient native vanguard serving the Crownspire borders.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 14,
+	"baseDefense": 15,
+	"baseHealth": 141,
+	"leadership": 63,
+	"passiveBonuses": [
+	  {
+		"stat": "Cavalry Attack",
+		"value": 0.04
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Catron's Spirit",
+		"description": "Grants minor temporary buffs to speed or combat attributes.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Catron's Spirit"
+	  ],
+	  "powerMultiplier": 1.05
+	},
+	"ascension1": {
+	  "shardRequirement": 5,
+	  "attackMultiplier": 1.1,
+	  "defenseMultiplier": 1.1,
+	  "healthMultiplier": 1.1,
+	  "leadershipMultiplier": 1.1,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.15
+	},
+	"ascension2": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.25,
+	  "defenseMultiplier": 1.25,
+	  "healthMultiplier": 1.25,
+	  "leadershipMultiplier": 1.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.3
+	},
+	"ascension3": {
+	  "shardRequirement": 25,
+	  "attackMultiplier": 1.45,
+	  "defenseMultiplier": 1.45,
+	  "healthMultiplier": 1.45,
+	  "leadershipMultiplier": 1.45,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.5
+	},
+	"ascension4": {
+	  "shardRequirement": 50,
+	  "attackMultiplier": 1.7,
+	  "defenseMultiplier": 1.7,
+	  "healthMultiplier": 1.7,
+	  "leadershipMultiplier": 1.7,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension5": {
+	  "shardRequirement": 100,
+	  "attackMultiplier": 2,
+	  "defenseMultiplier": 2,
+	  "healthMultiplier": 2,
+	  "leadershipMultiplier": 2,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.05
+	}
+  },
+  {
+	"id": "jas",
+	"name": "Jas",
+	"rarity": "Rare",
+	"role": "Support",
+	"troopType": "support",
+	"lore": "A resilient native vanguard serving the Crownspire borders.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 17,
+	"baseDefense": 13,
+	"baseHealth": 130,
+	"leadership": 66,
+	"passiveBonuses": [
+	  {
+		"stat": "Healing Speed",
+		"value": 0.04
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Jas's Spirit",
+		"description": "Grants minor temporary buffs to speed or combat attributes.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Jas's Spirit"
+	  ],
+	  "powerMultiplier": 1.05
+	},
+	"ascension1": {
+	  "shardRequirement": 5,
+	  "attackMultiplier": 1.1,
+	  "defenseMultiplier": 1.1,
+	  "healthMultiplier": 1.1,
+	  "leadershipMultiplier": 1.1,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.15
+	},
+	"ascension2": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.25,
+	  "defenseMultiplier": 1.25,
+	  "healthMultiplier": 1.25,
+	  "leadershipMultiplier": 1.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.3
+	},
+	"ascension3": {
+	  "shardRequirement": 25,
+	  "attackMultiplier": 1.45,
+	  "defenseMultiplier": 1.45,
+	  "healthMultiplier": 1.45,
+	  "leadershipMultiplier": 1.45,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.5
+	},
+	"ascension4": {
+	  "shardRequirement": 50,
+	  "attackMultiplier": 1.7,
+	  "defenseMultiplier": 1.7,
+	  "healthMultiplier": 1.7,
+	  "leadershipMultiplier": 1.7,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension5": {
+	  "shardRequirement": 100,
+	  "attackMultiplier": 2,
+	  "defenseMultiplier": 2,
+	  "healthMultiplier": 2,
+	  "leadershipMultiplier": 2,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.05
+	}
+  },
+  {
+	"id": "jack",
+	"name": "Jack",
+	"rarity": "Rare",
+	"role": "Gathering",
+	"troopType": "support",
+	"lore": "A resilient native vanguard serving the Crownspire borders.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 13,
+	"baseDefense": 14,
+	"baseHealth": 134,
+	"leadership": 66,
+	"passiveBonuses": [
+	  {
+		"stat": "Food Production",
+		"value": 0.04
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Jack's Spirit",
+		"description": "Grants minor temporary buffs to speed or combat attributes.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Jack's Spirit"
+	  ],
+	  "powerMultiplier": 1.05
+	},
+	"ascension1": {
+	  "shardRequirement": 5,
+	  "attackMultiplier": 1.1,
+	  "defenseMultiplier": 1.1,
+	  "healthMultiplier": 1.1,
+	  "leadershipMultiplier": 1.1,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.15
+	},
+	"ascension2": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.25,
+	  "defenseMultiplier": 1.25,
+	  "healthMultiplier": 1.25,
+	  "leadershipMultiplier": 1.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.3
+	},
+	"ascension3": {
+	  "shardRequirement": 25,
+	  "attackMultiplier": 1.45,
+	  "defenseMultiplier": 1.45,
+	  "healthMultiplier": 1.45,
+	  "leadershipMultiplier": 1.45,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.5
+	},
+	"ascension4": {
+	  "shardRequirement": 50,
+	  "attackMultiplier": 1.7,
+	  "defenseMultiplier": 1.7,
+	  "healthMultiplier": 1.7,
+	  "leadershipMultiplier": 1.7,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension5": {
+	  "shardRequirement": 100,
+	  "attackMultiplier": 2,
+	  "defenseMultiplier": 2,
+	  "healthMultiplier": 2,
+	  "leadershipMultiplier": 2,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.05
+	}
+  },
+  {
+	"id": "laura",
+	"name": "Laura",
+	"rarity": "Rare",
+	"role": "Infantry",
+	"troopType": "infantry",
+	"lore": "A resilient native vanguard serving the Crownspire borders.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 15,
+	"baseDefense": 17,
+	"baseHealth": 132,
+	"leadership": 61,
+	"passiveBonuses": [
+	  {
+		"stat": "Infantry HP",
+		"value": 0.04
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Laura's Spirit",
+		"description": "Grants minor temporary buffs to speed or combat attributes.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Laura's Spirit"
+	  ],
+	  "powerMultiplier": 1.05
+	},
+	"ascension1": {
+	  "shardRequirement": 5,
+	  "attackMultiplier": 1.1,
+	  "defenseMultiplier": 1.1,
+	  "healthMultiplier": 1.1,
+	  "leadershipMultiplier": 1.1,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.15
+	},
+	"ascension2": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.25,
+	  "defenseMultiplier": 1.25,
+	  "healthMultiplier": 1.25,
+	  "leadershipMultiplier": 1.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.3
+	},
+	"ascension3": {
+	  "shardRequirement": 25,
+	  "attackMultiplier": 1.45,
+	  "defenseMultiplier": 1.45,
+	  "healthMultiplier": 1.45,
+	  "leadershipMultiplier": 1.45,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.5
+	},
+	"ascension4": {
+	  "shardRequirement": 50,
+	  "attackMultiplier": 1.7,
+	  "defenseMultiplier": 1.7,
+	  "healthMultiplier": 1.7,
+	  "leadershipMultiplier": 1.7,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension5": {
+	  "shardRequirement": 100,
+	  "attackMultiplier": 2,
+	  "defenseMultiplier": 2,
+	  "healthMultiplier": 2,
+	  "leadershipMultiplier": 2,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.05
+	}
+  },
+  {
+	"id": "may",
+	"name": "May",
+	"rarity": "Rare",
+	"role": "Marksmen",
+	"troopType": "marksmen",
+	"lore": "A resilient native vanguard serving the Crownspire borders.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 15,
+	"baseDefense": 14,
+	"baseHealth": 146,
+	"leadership": 79,
+	"passiveBonuses": [
+	  {
+		"stat": "Marksmen HP",
+		"value": 0.04
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "May's Spirit",
+		"description": "Grants minor temporary buffs to speed or combat attributes.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "May's Spirit"
+	  ],
+	  "powerMultiplier": 1.05
+	},
+	"ascension1": {
+	  "shardRequirement": 5,
+	  "attackMultiplier": 1.1,
+	  "defenseMultiplier": 1.1,
+	  "healthMultiplier": 1.1,
+	  "leadershipMultiplier": 1.1,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.15
+	},
+	"ascension2": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.25,
+	  "defenseMultiplier": 1.25,
+	  "healthMultiplier": 1.25,
+	  "leadershipMultiplier": 1.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.3
+	},
+	"ascension3": {
+	  "shardRequirement": 25,
+	  "attackMultiplier": 1.45,
+	  "defenseMultiplier": 1.45,
+	  "healthMultiplier": 1.45,
+	  "leadershipMultiplier": 1.45,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.5
+	},
+	"ascension4": {
+	  "shardRequirement": 50,
+	  "attackMultiplier": 1.7,
+	  "defenseMultiplier": 1.7,
+	  "healthMultiplier": 1.7,
+	  "leadershipMultiplier": 1.7,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension5": {
+	  "shardRequirement": 100,
+	  "attackMultiplier": 2,
+	  "defenseMultiplier": 2,
+	  "healthMultiplier": 2,
+	  "leadershipMultiplier": 2,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.05
+	}
+  },
+  {
+	"id": "pam",
+	"name": "Pam",
+	"rarity": "Rare",
+	"role": "Cavalry",
+	"troopType": "cavalry",
+	"lore": "A resilient native vanguard serving the Crownspire borders.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 13,
+	"baseDefense": 14,
+	"baseHealth": 138,
+	"leadership": 80,
+	"passiveBonuses": [
+	  {
+		"stat": "March Speed",
+		"value": 0.04
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Pam's Spirit",
+		"description": "Grants minor temporary buffs to speed or combat attributes.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Pam's Spirit"
+	  ],
+	  "powerMultiplier": 1.05
+	},
+	"ascension1": {
+	  "shardRequirement": 5,
+	  "attackMultiplier": 1.1,
+	  "defenseMultiplier": 1.1,
+	  "healthMultiplier": 1.1,
+	  "leadershipMultiplier": 1.1,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.15
+	},
+	"ascension2": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.25,
+	  "defenseMultiplier": 1.25,
+	  "healthMultiplier": 1.25,
+	  "leadershipMultiplier": 1.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.3
+	},
+	"ascension3": {
+	  "shardRequirement": 25,
+	  "attackMultiplier": 1.45,
+	  "defenseMultiplier": 1.45,
+	  "healthMultiplier": 1.45,
+	  "leadershipMultiplier": 1.45,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.5
+	},
+	"ascension4": {
+	  "shardRequirement": 50,
+	  "attackMultiplier": 1.7,
+	  "defenseMultiplier": 1.7,
+	  "healthMultiplier": 1.7,
+	  "leadershipMultiplier": 1.7,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension5": {
+	  "shardRequirement": 100,
+	  "attackMultiplier": 2,
+	  "defenseMultiplier": 2,
+	  "healthMultiplier": 2,
+	  "leadershipMultiplier": 2,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.05
+	}
+  },
+  {
+	"id": "rass",
+	"name": "Rass",
+	"rarity": "Rare",
+	"role": "Support",
+	"troopType": "support",
+	"lore": "A resilient native vanguard serving the Crownspire borders.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 15,
+	"baseDefense": 17,
+	"baseHealth": 147,
+	"leadership": 65,
+	"passiveBonuses": [
+	  {
+		"stat": "Construction Speed",
+		"value": 0.04
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Rass's Spirit",
+		"description": "Grants minor temporary buffs to speed or combat attributes.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Rass's Spirit"
+	  ],
+	  "powerMultiplier": 1.05
+	},
+	"ascension1": {
+	  "shardRequirement": 5,
+	  "attackMultiplier": 1.1,
+	  "defenseMultiplier": 1.1,
+	  "healthMultiplier": 1.1,
+	  "leadershipMultiplier": 1.1,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.15
+	},
+	"ascension2": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.25,
+	  "defenseMultiplier": 1.25,
+	  "healthMultiplier": 1.25,
+	  "leadershipMultiplier": 1.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.3
+	},
+	"ascension3": {
+	  "shardRequirement": 25,
+	  "attackMultiplier": 1.45,
+	  "defenseMultiplier": 1.45,
+	  "healthMultiplier": 1.45,
+	  "leadershipMultiplier": 1.45,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.5
+	},
+	"ascension4": {
+	  "shardRequirement": 50,
+	  "attackMultiplier": 1.7,
+	  "defenseMultiplier": 1.7,
+	  "healthMultiplier": 1.7,
+	  "leadershipMultiplier": 1.7,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension5": {
+	  "shardRequirement": 100,
+	  "attackMultiplier": 2,
+	  "defenseMultiplier": 2,
+	  "healthMultiplier": 2,
+	  "leadershipMultiplier": 2,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.05
+	}
+  },
+  {
+	"id": "rubble",
+	"name": "Rubble",
+	"rarity": "Rare",
+	"role": "Gathering",
+	"troopType": "support",
+	"lore": "A resilient native vanguard serving the Crownspire borders.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 15,
+	"baseDefense": 17,
+	"baseHealth": 132,
+	"leadership": 80,
+	"passiveBonuses": [
+	  {
+		"stat": "Stone Production",
+		"value": 0.04
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Rubble's Spirit",
+		"description": "Grants minor temporary buffs to speed or combat attributes.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Rubble's Spirit"
+	  ],
+	  "powerMultiplier": 1.05
+	},
+	"ascension1": {
+	  "shardRequirement": 5,
+	  "attackMultiplier": 1.1,
+	  "defenseMultiplier": 1.1,
+	  "healthMultiplier": 1.1,
+	  "leadershipMultiplier": 1.1,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.15
+	},
+	"ascension2": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.25,
+	  "defenseMultiplier": 1.25,
+	  "healthMultiplier": 1.25,
+	  "leadershipMultiplier": 1.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.3
+	},
+	"ascension3": {
+	  "shardRequirement": 25,
+	  "attackMultiplier": 1.45,
+	  "defenseMultiplier": 1.45,
+	  "healthMultiplier": 1.45,
+	  "leadershipMultiplier": 1.45,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.5
+	},
+	"ascension4": {
+	  "shardRequirement": 50,
+	  "attackMultiplier": 1.7,
+	  "defenseMultiplier": 1.7,
+	  "healthMultiplier": 1.7,
+	  "leadershipMultiplier": 1.7,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension5": {
+	  "shardRequirement": 100,
+	  "attackMultiplier": 2,
+	  "defenseMultiplier": 2,
+	  "healthMultiplier": 2,
+	  "leadershipMultiplier": 2,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.05
+	}
+  },
+  {
+	"id": "tisha",
+	"name": "Tisha",
+	"rarity": "Rare",
+	"role": "Infantry",
+	"troopType": "infantry",
+	"lore": "A resilient native vanguard serving the Crownspire borders.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 14,
+	"baseDefense": 17,
+	"baseHealth": 132,
+	"leadership": 68,
+	"passiveBonuses": [
+	  {
+		"stat": "Infantry Attack",
+		"value": 0.04
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Tisha's Spirit",
+		"description": "Grants minor temporary buffs to speed or combat attributes.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Tisha's Spirit"
+	  ],
+	  "powerMultiplier": 1.05
+	},
+	"ascension1": {
+	  "shardRequirement": 5,
+	  "attackMultiplier": 1.1,
+	  "defenseMultiplier": 1.1,
+	  "healthMultiplier": 1.1,
+	  "leadershipMultiplier": 1.1,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.15
+	},
+	"ascension2": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.25,
+	  "defenseMultiplier": 1.25,
+	  "healthMultiplier": 1.25,
+	  "leadershipMultiplier": 1.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.3
+	},
+	"ascension3": {
+	  "shardRequirement": 25,
+	  "attackMultiplier": 1.45,
+	  "defenseMultiplier": 1.45,
+	  "healthMultiplier": 1.45,
+	  "leadershipMultiplier": 1.45,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.5
+	},
+	"ascension4": {
+	  "shardRequirement": 50,
+	  "attackMultiplier": 1.7,
+	  "defenseMultiplier": 1.7,
+	  "healthMultiplier": 1.7,
+	  "leadershipMultiplier": 1.7,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension5": {
+	  "shardRequirement": 100,
+	  "attackMultiplier": 2,
+	  "defenseMultiplier": 2,
+	  "healthMultiplier": 2,
+	  "leadershipMultiplier": 2,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.05
+	}
+  },
+  {
+	"id": "buzz",
+	"name": "Buzz",
+	"rarity": "Rare",
+	"role": "Marksmen",
+	"troopType": "marksmen",
+	"lore": "A resilient native vanguard serving the Crownspire borders.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 13,
+	"baseDefense": 17,
+	"baseHealth": 140,
+	"leadership": 78,
+	"passiveBonuses": [
+	  {
+		"stat": "Marksmen Defense",
+		"value": 0.04
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Buzz's Spirit",
+		"description": "Grants minor temporary buffs to speed or combat attributes.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Buzz's Spirit"
+	  ],
+	  "powerMultiplier": 1.05
+	},
+	"ascension1": {
+	  "shardRequirement": 5,
+	  "attackMultiplier": 1.1,
+	  "defenseMultiplier": 1.1,
+	  "healthMultiplier": 1.1,
+	  "leadershipMultiplier": 1.1,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.15
+	},
+	"ascension2": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.25,
+	  "defenseMultiplier": 1.25,
+	  "healthMultiplier": 1.25,
+	  "leadershipMultiplier": 1.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.3
+	},
+	"ascension3": {
+	  "shardRequirement": 25,
+	  "attackMultiplier": 1.45,
+	  "defenseMultiplier": 1.45,
+	  "healthMultiplier": 1.45,
+	  "leadershipMultiplier": 1.45,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.5
+	},
+	"ascension4": {
+	  "shardRequirement": 50,
+	  "attackMultiplier": 1.7,
+	  "defenseMultiplier": 1.7,
+	  "healthMultiplier": 1.7,
+	  "leadershipMultiplier": 1.7,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension5": {
+	  "shardRequirement": 100,
+	  "attackMultiplier": 2,
+	  "defenseMultiplier": 2,
+	  "healthMultiplier": 2,
+	  "leadershipMultiplier": 2,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.05
+	}
+  },
+  {
+	"id": "yunus",
+	"name": "Yunus",
+	"rarity": "Rare",
+	"role": "Cavalry",
+	"troopType": "cavalry",
+	"lore": "A resilient native vanguard serving the Crownspire borders.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 13,
+	"baseDefense": 17,
+	"baseHealth": 154,
+	"leadership": 71,
+	"passiveBonuses": [
+	  {
+		"stat": "Cavalry Defense",
+		"value": 0.04
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Yunus's Spirit",
+		"description": "Grants minor temporary buffs to speed or combat attributes.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Yunus's Spirit"
+	  ],
+	  "powerMultiplier": 1.05
+	},
+	"ascension1": {
+	  "shardRequirement": 5,
+	  "attackMultiplier": 1.1,
+	  "defenseMultiplier": 1.1,
+	  "healthMultiplier": 1.1,
+	  "leadershipMultiplier": 1.1,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.15
+	},
+	"ascension2": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.25,
+	  "defenseMultiplier": 1.25,
+	  "healthMultiplier": 1.25,
+	  "leadershipMultiplier": 1.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.3
+	},
+	"ascension3": {
+	  "shardRequirement": 25,
+	  "attackMultiplier": 1.45,
+	  "defenseMultiplier": 1.45,
+	  "healthMultiplier": 1.45,
+	  "leadershipMultiplier": 1.45,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.5
+	},
+	"ascension4": {
+	  "shardRequirement": 50,
+	  "attackMultiplier": 1.7,
+	  "defenseMultiplier": 1.7,
+	  "healthMultiplier": 1.7,
+	  "leadershipMultiplier": 1.7,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension5": {
+	  "shardRequirement": 100,
+	  "attackMultiplier": 2,
+	  "defenseMultiplier": 2,
+	  "healthMultiplier": 2,
+	  "leadershipMultiplier": 2,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.05
+	}
+  },
+  {
+	"id": "anelia",
+	"name": "Anelia",
+	"rarity": "Rare",
+	"role": "Support",
+	"troopType": "support",
+	"lore": "A resilient native vanguard serving the Crownspire borders.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 14,
+	"baseDefense": 15,
+	"baseHealth": 125,
+	"leadership": 70,
+	"passiveBonuses": [
+	  {
+		"stat": "Research Speed",
+		"value": 0.04
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Anelia's Spirit",
+		"description": "Grants minor temporary buffs to speed or combat attributes.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Anelia's Spirit"
+	  ],
+	  "powerMultiplier": 1.05
+	},
+	"ascension1": {
+	  "shardRequirement": 5,
+	  "attackMultiplier": 1.1,
+	  "defenseMultiplier": 1.1,
+	  "healthMultiplier": 1.1,
+	  "leadershipMultiplier": 1.1,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.15
+	},
+	"ascension2": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.25,
+	  "defenseMultiplier": 1.25,
+	  "healthMultiplier": 1.25,
+	  "leadershipMultiplier": 1.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.3
+	},
+	"ascension3": {
+	  "shardRequirement": 25,
+	  "attackMultiplier": 1.45,
+	  "defenseMultiplier": 1.45,
+	  "healthMultiplier": 1.45,
+	  "leadershipMultiplier": 1.45,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.5
+	},
+	"ascension4": {
+	  "shardRequirement": 50,
+	  "attackMultiplier": 1.7,
+	  "defenseMultiplier": 1.7,
+	  "healthMultiplier": 1.7,
+	  "leadershipMultiplier": 1.7,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension5": {
+	  "shardRequirement": 100,
+	  "attackMultiplier": 2,
+	  "defenseMultiplier": 2,
+	  "healthMultiplier": 2,
+	  "leadershipMultiplier": 2,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.05
+	}
+  },
+  {
+	"id": "larfides",
+	"name": "Larfides",
+	"rarity": "Rare",
+	"role": "War",
+	"troopType": "infantry",
+	"lore": "A resilient native vanguard serving the Crownspire borders.",
+	"unlockMethod": "Standard Gacha",
+	"baseAttack": 13,
+	"baseDefense": 17,
+	"baseHealth": 143,
+	"leadership": 63,
+	"passiveBonuses": [
+	  {
+		"stat": "Troop Attack",
+		"value": 0.04
+	  }
+	],
+	"activeSkills": [
+	  {
+		"name": "Larfides's Spirit",
+		"description": "Grants minor temporary buffs to speed or combat attributes.",
+		"requiredAscension": 0
+	  }
+	],
+	"maxLevel": 50,
+	"maxAscension": 5,
+	"ascension0": {
+	  "shardRequirement": 0,
+	  "attackMultiplier": 1,
+	  "defenseMultiplier": 1,
+	  "healthMultiplier": 1,
+	  "leadershipMultiplier": 1,
+	  "unlockedSkills": [
+        "Larfides's Spirit"
+	  ],
+	  "powerMultiplier": 1.05
+	},
+	"ascension1": {
+	  "shardRequirement": 5,
+	  "attackMultiplier": 1.1,
+	  "defenseMultiplier": 1.1,
+	  "healthMultiplier": 1.1,
+	  "leadershipMultiplier": 1.1,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.15
+	},
+	"ascension2": {
+	  "shardRequirement": 10,
+	  "attackMultiplier": 1.25,
+	  "defenseMultiplier": 1.25,
+	  "healthMultiplier": 1.25,
+	  "leadershipMultiplier": 1.25,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.3
+	},
+	"ascension3": {
+	  "shardRequirement": 25,
+	  "attackMultiplier": 1.45,
+	  "defenseMultiplier": 1.45,
+	  "healthMultiplier": 1.45,
+	  "leadershipMultiplier": 1.45,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.5
+	},
+	"ascension4": {
+	  "shardRequirement": 50,
+	  "attackMultiplier": 1.7,
+	  "defenseMultiplier": 1.7,
+	  "healthMultiplier": 1.7,
+	  "leadershipMultiplier": 1.7,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 1.75
+	},
+	"ascension5": {
+	  "shardRequirement": 100,
+	  "attackMultiplier": 2,
+	  "defenseMultiplier": 2,
+	  "healthMultiplier": 2,
+	  "leadershipMultiplier": 2,
+	  "unlockedSkills": [],
+	  "powerMultiplier": 2.05
+	}
+  }
+]

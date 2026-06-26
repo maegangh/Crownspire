@@ -1,0 +1,241 @@
+[
+  {
+    "id": "dragon_pyrogarr_infantry",
+    "name": "Pyrogarr the Crimson Bulwark",
+    "rarity": "Legendary",
+    "role": "Infantry",
+    "attack": 340,
+    "defense": 450,
+    "health": 5500,
+    "abilities": [
+      {
+        "name": "Pyroclastic Aegis",
+        "type": "Active",
+        "description": "Unleashes a wave of molten armor, shielding all front-line infantry. Absorbs damage equivalent to 25% of the dragon's defense for 15 seconds.",
+        "cooldownSec": 300
+      },
+      {
+        "name": "Spitfire Cleave",
+        "type": "Passive",
+        "description": "Infantry basic attacks have a 15% chance to splinter, dealing 50% splash damage to adjacent hostile squads."
+      }
+    ],
+    "starLevels": [
+      { "star": 1, "shardCost": 0, "statGainPct": 0 },
+      { "star": 2, "shardCost": 30, "statGainPct": 15 },
+      { "star": 3, "shardCost": 60, "statGainPct": 35 },
+      { "star": 4, "shardCost": 120, "statGainPct": 60 },
+      { "star": 5, "shardCost": 240, "statGainPct": 100 }
+    ],
+    "levelRequirements": {
+      "unlockCastleLevel": 15,
+      "maxLevelCapPerStar": [20, 40, 60, 80, 100]
+    },
+    "passiveBonuses": {
+      "infantryAttackPct": 18,
+      "infantryDefensePct": 25,
+      "infantryHealthPct": 20,
+      "infantryLethalityPct": 8
+    },
+    "description": "Forged in the deepest lava springs of Emberfall, Pyrogarr's scales are as hard as core obsidian. He guards the vanguard with unyielding molten shields."
+  },
+  {
+    "id": "dragon_sylvana_marksmen",
+    "name": "Sylvana the Galebreeze",
+    "rarity": "Legendary",
+    "role": "Marksmen",
+    "attack": 480,
+    "defense": 220,
+    "health": 4200,
+    "abilities": [
+      {
+        "name": "Cyclone Eye",
+        "type": "Active",
+        "description": "Summons a precise spiral gust that boosts Marksmen attack range by 15% and increases critical strike chance by 20% for 12 seconds.",
+        "cooldownSec": 240
+      },
+      {
+        "name": "Piercing Zephyr",
+        "type": "Passive",
+        "description": "Marksmen normal strikes bypass up to 12% of the opponent's raw armor defense stats."
+      }
+    ],
+    "starLevels": [
+      { "star": 1, "shardCost": 0, "statGainPct": 0 },
+      { "star": 2, "shardCost": 30, "statGainPct": 15 },
+      { "star": 3, "shardCost": 60, "statGainPct": 35 },
+      { "star": 4, "shardCost": 120, "statGainPct": 60 },
+      { "star": 5, "shardCost": 240, "statGainPct": 100 }
+    ],
+    "levelRequirements": {
+      "unlockCastleLevel": 15,
+      "maxLevelCapPerStar": [20, 40, 60, 80, 100]
+    },
+    "passiveBonuses": {
+      "marksmenAttackPct": 28,
+      "marksmenDefensePct": 12,
+      "marksmenHealthPct": 15,
+      "marksmenCritDamagePct": 10
+    },
+    "description": "Sylvana flows through the Wildwood canopy like a whisper, carrying the high arrows of Crownspire rangers directly to their targets' hearts."
+  },
+  {
+    "id": "dragon_boreas_cavalry",
+    "name": "Boreas the Swift-Glissade",
+    "rarity": "Epic",
+    "role": "Cavalry",
+    "attack": 320,
+    "defense": 300,
+    "health": 3500,
+    "abilities": [
+      {
+        "name": "Frostbite Charge",
+        "type": "Active",
+        "description": "Creates an icy trail for cavalry charges, speeding up cavalry marches by 40% and freezing the enemy vanguard for 3 seconds upon contact.",
+        "cooldownSec": 360
+      },
+      {
+        "name": "Shattering Hooves",
+        "type": "Passive",
+        "description": "Gains a 10% damage bonus against frozen, slowed, or otherwise crowd-controlled enemy squads."
+      }
+    ],
+    "starLevels": [
+      { "star": 1, "shardCost": 0, "statGainPct": 0 },
+      { "star": 2, "shardCost": 20, "statGainPct": 12 },
+      { "star": 3, "shardCost": 40, "statGainPct": 28 },
+      { "star": 4, "shardCost": 80, "statGainPct": 50 },
+      { "star": 5, "shardCost": 160, "statGainPct": 85 }
+    ],
+    "levelRequirements": {
+      "unlockCastleLevel": 12,
+      "maxLevelCapPerStar": [15, 30, 45, 60, 80]
+    },
+    "passiveBonuses": {
+      "cavalryAttackPct": 15,
+      "cavalryDefensePct": 15,
+      "cavalrySpeedPct": 25,
+      "flankingDamagePct": 12
+    },
+    "description": "An ice-veined dragon from Frostborne Peak. Boreas channels sub-zero blizzards to clear rapid paths for steel-clad war steeds."
+  },
+  {
+    "id": "dragon_terrageos_gathering",
+    "name": "Terrageos the Lithic Titan",
+    "rarity": "Rare",
+    "role": "Gathering",
+    "attack": 180,
+    "defense": 380,
+    "health": 5000,
+    "abilities": [
+      {
+        "name": "Tectonic Resonance",
+        "type": "Active",
+        "description": "Unlocks magnetic resonance across the continent, instantly scanning and highlighting high-yield tier-8 resource veins for safety.",
+        "cooldownSec": 7200
+      },
+      {
+        "name": "Crystalline Protection",
+        "type": "Passive",
+        "description": "While gathering from nodes, the deployed army is protected by a limestone shell, reducing casualty risk by 20% if ambushed."
+      }
+    ],
+    "starLevels": [
+      { "star": 1, "shardCost": 0, "statGainPct": 0 },
+      { "star": 2, "shardCost": 10, "statGainPct": 10 },
+      { "star": 3, "shardCost": 20, "statGainPct": 22 },
+      { "star": 4, "shardCost": 45, "statGainPct": 40 },
+      { "star": 5, "shardCost": 90, "statGainPct": 70 }
+    ],
+    "levelRequirements": {
+      "unlockCastleLevel": 8,
+      "maxLevelCapPerStar": [10, 25, 40, 55, 70]
+    },
+    "passiveBonuses": {
+      "allGatheringSpeedPct": 20,
+      "troopLoadPct": 30,
+      "fieldDefenseBonusPct": 10
+    },
+    "description": "A stone-scaled colossus whose steady, rhythmic footsteps soothe troubled ground, helping miners dredge up ore caches cleanly."
+  },
+  {
+    "id": "dragon_ignis_rally",
+    "name": "Ignis the Sovereign Overlord",
+    "rarity": "Mythic",
+    "role": "Rally",
+    "attack": 650,
+    "defense": 580,
+    "health": 8500,
+    "abilities": [
+      {
+        "name": "Sovereign Command Aura",
+        "type": "Active",
+        "description": "When hosting an Alliance Rally, increases total troop participation damage by 30% and nullifies mental fear or morale reduction debuffs.",
+        "cooldownSec": 600
+      },
+      {
+        "name": "Imperial Firestorm",
+        "type": "Passive",
+        "description": "Rally attacks sweep across the landscape, melting up to 15% of garrison towers' base fortress defensive wall durability."
+      }
+    ],
+    "starLevels": [
+      { "star": 1, "shardCost": 0, "statGainPct": 0 },
+      { "star": 2, "shardCost": 50, "statGainPct": 20 },
+      { "star": 3, "shardCost": 100, "statGainPct": 45 },
+      { "star": 4, "shardCost": 200, "statGainPct": 75 },
+      { "star": 5, "shardCost": 400, "statGainPct": 120 }
+    ],
+    "levelRequirements": {
+      "unlockCastleLevel": 20,
+      "maxLevelCapPerStar": [30, 50, 70, 90, 110]
+    },
+    "passiveBonuses": {
+      "rallyCapacityIncrease": 100000,
+      "rallyDamageBonusPct": 15,
+      "allTroopAttackPct": 12,
+      "allTroopDefensePct": 12
+    },
+    "description": "The sacred dragon of Aurelia Palace, possessing majestic wings that command unconditional authority. He leads massive allied coalitions to absolute war victory."
+  },
+  {
+    "id": "dragon_shadowfang_hunting",
+    "name": "Shadowfang the Behemoth Stalker",
+    "rarity": "Epic",
+    "role": "Monster Hunting",
+    "attack": 380,
+    "defense": 240,
+    "health": 3900,
+    "abilities": [
+      {
+        "name": "Slayer's Instinct",
+        "type": "Active",
+        "description": "Scans world monsters for structural weakpoints, guaranteeing 100% Critical Strike on the first 3 attack rounds of combat.",
+        "cooldownSec": 180
+      },
+      {
+        "name": "Vitality Leach",
+        "type": "Passive",
+        "description": "Heals the marching army by 5% of all damage dealt exclusively when battling map monster nodes."
+      }
+    ],
+    "starLevels": [
+      { "star": 1, "shardCost": 0, "statGainPct": 0 },
+      { "star": 2, "shardCost": 20, "statGainPct": 12 },
+      { "star": 3, "shardCost": 40, "statGainPct": 28 },
+      { "star": 4, "shardCost": 80, "statGainPct": 50 },
+      { "star": 5, "shardCost": 160, "statGainPct": 85 }
+    ],
+    "levelRequirements": {
+      "unlockCastleLevel": 10,
+      "maxLevelCapPerStar": [15, 30, 45, 60, 80]
+    },
+    "passiveBonuses": {
+      "monsterHuntSpeedPct": 30,
+      "damageAgainstMonstersPct": 25,
+      "marchStaminaReductionPct": 15,
+      "huntExperienceGainPct": 20
+    },
+    "description": "An elusive predator from Shadowvale Syndicate. Striking unseen from deep mist, it specializes in taking down massive behemoths with lethal accuracy."
+  }
+]

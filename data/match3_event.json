@@ -1,0 +1,617 @@
+{
+  "eventName": "Crownspire Magic Match-3 Festival",
+  "rotationCycle": {
+    "cycleName": "Crownspire Sovereign Seasons",
+    "totalWeeks": 4,
+    "currentWeek": 1,
+    "weeks": [
+      {
+        "week": 1,
+        "theme": "Gale Windsteed March",
+        "grandReward": {
+          "id": "reward_march_skin_gale",
+          "name": "Swiftwind Tempest March Skin",
+          "type": "March Skin",
+          "duration": "Permanent",
+          "buffs": {
+            "marchSpeedPct": 10.0,
+            "cavalrySpeedPct": 5.0
+          },
+          "description": "Surrounds your map marches with swirling storm clouds and visual gale gusts."
+        }
+      },
+      {
+        "week": 2,
+        "theme": "Sovereign Gilded Fortress",
+        "grandReward": {
+          "id": "reward_castle_skin_gilded",
+          "name": "Sovereign Gilded Citadel Skin",
+          "type": "Castle Skin",
+          "duration": "Permanent",
+          "buffs": {
+            "allTroopDefensePct": 5.0,
+            "constructionSpeedPct": 5.0
+          },
+          "description": "Transforms your castle skin into a pristine fortress adorned with imperial white-and-gold banners."
+        }
+      },
+      {
+        "week": 3,
+        "theme": "Ancient Titan Monolith",
+        "grandReward": {
+          "id": "reward_statue_buff_titan",
+          "name": "Monolith of the Earth Titan",
+          "type": "Statue Buff",
+          "duration": "7 Days",
+          "buffs": {
+            "infantryHealthPct": 15.0,
+            "gatheringSpeedPct": 10.0
+          },
+          "description": "Activates a towering stone monolith at your palace square, generating massive combat ward buffs."
+        }
+      },
+      {
+        "week": 4,
+        "theme": "Draconic Core Crown",
+        "grandReward": {
+          "id": "reward_premium_sovereign_chest",
+          "name": "Astral Master's Premium Selection Box",
+          "type": "Premium Reward",
+          "duration": "Immediate Use",
+          "items": [
+            {
+              "item": "Universal Mythic Shard Rerolls",
+              "quantity": 50
+            },
+            {
+              "item": "Sovereign Diamonds",
+              "quantity": 5000
+            },
+            {
+              "item": "Mythic Pet Feed Sack",
+              "quantity": 10
+            }
+          ],
+          "description": "A prestigious vault pack awarded only to absolute puzzle champion commanders."
+        }
+      }
+    ]
+  },
+  "timers": {
+    "weeklyEventDurationHours": 168,
+    "levelRefreshCooldownSec": 5,
+    "weeklyResetWeekday": "Monday 00:00 UTC",
+    "energyRegenRateMinutesPerPoint": 15,
+    "maxFestivalEnergy": 50,
+    "levelFailureRetrySeconds": 30
+  },
+  "scoreRequirements": {
+    "levelStarTiers": {
+      "oneStarScore": 1000,
+      "twoStarScore": 2500,
+      "threeStarScore": 5000
+    },
+    "milestoneRewards": [
+      {
+        "requiredScore": 10000,
+        "reward": {
+          "item": "Festival Candy",
+          "quantity": 100
+        }
+      },
+      {
+        "requiredScore": 25000,
+        "reward": {
+          "item": "Epic Skill Tome",
+          "quantity": 2
+        }
+      },
+      {
+        "requiredScore": 50000,
+        "reward": {
+          "item": "Standard Pet Feed Pack",
+          "quantity": 15
+        }
+      },
+      {
+        "requiredScore": 80000,
+        "reward": {
+          "item": "Gold Chest (Large)",
+          "quantity": 5
+        }
+      },
+      {
+        "requiredScore": 120000,
+        "reward": {
+          "item": "Universal Legendary Shard",
+          "quantity": 5
+        }
+      }
+    ]
+  },
+  "levelDifficulty": {
+    "Easy": {
+      "basePointsMultiplier": 1.0,
+      "energyCost": 5
+    },
+    "Medium": {
+      "basePointsMultiplier": 1.5,
+      "energyCost": 8
+    },
+    "Hard": {
+      "basePointsMultiplier": 2.2,
+      "energyCost": 12
+    },
+    "Nightmare": {
+      "basePointsMultiplier": 3.5,
+      "energyCost": 15
+    }
+  },
+  "levels": [
+    {
+      "levelNumber": 1,
+      "id": "m3_lvl_1",
+      "levelDifficulty": "Easy",
+      "boardDimension": "6x6",
+      "pointsRequired": 1200,
+      "maxMoves": 35,
+      "description": "A warm-up board. Clear green nature gems to sprout forest mana.",
+      "firstClearBonus": {
+        "item": "Festival Candy",
+        "quantity": 50
+      },
+      "completedRewards": [
+        {
+          "item": "Wood Crate (Small)",
+          "quantity": 1
+        },
+        {
+          "item": "Food Crate (Small)",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "levelNumber": 2,
+      "id": "m3_lvl_2",
+      "levelDifficulty": "Easy",
+      "boardDimension": "6x6",
+      "pointsRequired": 1500,
+      "maxMoves": 30,
+      "description": "Harvest glowing fire gems to cook delicious feast courses for your guild.",
+      "firstClearBonus": {
+        "item": "Festival Candy",
+        "quantity": 60
+      },
+      "completedRewards": [
+        {
+          "item": "Stone Crate (Small)",
+          "quantity": 1
+        },
+        {
+          "item": "Sovereign Gold",
+          "quantity": 1000
+        }
+      ]
+    },
+    {
+      "levelNumber": 3,
+      "id": "m3_lvl_3",
+      "levelDifficulty": "Easy",
+      "boardDimension": "7x7",
+      "pointsRequired": 1800,
+      "maxMoves": 30,
+      "description": "Match water elements to purge deep swamp corruption.",
+      "firstClearBonus": {
+        "item": "Festival Candy",
+        "quantity": 70
+      },
+      "completedRewards": [
+        {
+          "item": "Iron Ore Pile",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "levelNumber": 4,
+      "id": "m3_lvl_4",
+      "levelDifficulty": "Medium",
+      "boardDimension": "7x7",
+      "pointsRequired": 2400,
+      "maxMoves": 28,
+      "description": "Fell old barriers by chaining 4 elements together.",
+      "firstClearBonus": {
+        "item": "Festival Candy",
+        "quantity": 100
+      },
+      "completedRewards": [
+        {
+          "item": "Gold Chest (Medium)",
+          "quantity": 1
+        },
+        {
+          "item": "Standard Pet Feed Pack",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "levelNumber": 5,
+      "id": "m3_lvl_5",
+      "levelDifficulty": "Medium",
+      "boardDimension": "7x7",
+      "pointsRequired": 3000,
+      "maxMoves": 25,
+      "description": "Clear obsidian blocking nodes to reveal a hidden dragon nest.",
+      "firstClearBonus": {
+        "item": "Festival Candy",
+        "quantity": 120
+      },
+      "completedRewards": [
+        {
+          "item": "Dragon Scale Powder",
+          "quantity": 2
+        },
+        {
+          "item": "Sovereign Gold",
+          "quantity": 2500
+        }
+      ]
+    },
+    {
+      "levelNumber": 6,
+      "id": "m3_lvl_6",
+      "levelDifficulty": "Medium",
+      "boardDimension": "8x8",
+      "pointsRequired": 3600,
+      "maxMoves": 28,
+      "description": "Align storm components to power up sky beacon relays.",
+      "firstClearBonus": {
+        "item": "Festival Candy",
+        "quantity": 140
+      },
+      "completedRewards": [
+        {
+          "item": "Speedup Timer (1h)",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "levelNumber": 7,
+      "id": "m3_lvl_7",
+      "levelDifficulty": "Medium",
+      "boardDimension": "8x8",
+      "pointsRequired": 4000,
+      "maxMoves": 24,
+      "description": "Defuse ancient magical mines using standard match logic.",
+      "firstClearBonus": {
+        "item": "Festival Candy",
+        "quantity": 160
+      },
+      "completedRewards": [
+        {
+          "item": "Beast Fang Ember",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "levelNumber": 8,
+      "id": "m3_lvl_8",
+      "levelDifficulty": "Hard",
+      "boardDimension": "8x8",
+      "pointsRequired": 5500,
+      "maxMoves": 25,
+      "description": "Double crystal barriers emerge. Shatter them with horizontal power surges.",
+      "firstClearBonus": {
+        "item": "Festival Candy",
+        "quantity": 250
+      },
+      "completedRewards": [
+        {
+          "item": "Raw Behemoth Ore Chunk",
+          "quantity": 3
+        },
+        {
+          "item": "Sovereign Gold",
+          "quantity": 5000
+        }
+      ]
+    },
+    {
+      "levelNumber": 9,
+      "id": "m3_lvl_9",
+      "levelDifficulty": "Hard",
+      "boardDimension": "8x8",
+      "pointsRequired": 6200,
+      "maxMoves": 22,
+      "description": "Meteors fall, randomizing board gems on each 5th turn. Think quickly.",
+      "firstClearBonus": {
+        "item": "Festival Candy",
+        "quantity": 300
+      },
+      "completedRewards": [
+        {
+          "item": "Guild Contribution Points",
+          "quantity": 500
+        }
+      ]
+    },
+    {
+      "levelNumber": 10,
+      "id": "m3_lvl_10",
+      "levelDifficulty": "Hard",
+      "boardDimension": "9x9",
+      "pointsRequired": 7500,
+      "maxMoves": 26,
+      "description": "Navigate a swirling grid layout. Form colored T-shapes to survive.",
+      "firstClearBonus": {
+        "item": "Festival Candy",
+        "quantity": 400
+      },
+      "completedRewards": [
+        {
+          "item": "Universal Legendary Shard",
+          "quantity": 1
+        },
+        {
+          "item": "Gold Chest (Large)",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "levelNumber": 11,
+      "id": "m3_lvl_11",
+      "levelDifficulty": "Medium",
+      "boardDimension": "8x8",
+      "pointsRequired": 4500,
+      "maxMoves": 30,
+      "description": "Purify corrupted crystal springs. Speed is key.",
+      "firstClearBonus": {
+        "item": "Festival Candy",
+        "quantity": 180
+      },
+      "completedRewards": [
+        {
+          "item": "Lumber Wood Crate (Medium)",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "levelNumber": 12,
+      "id": "m3_lvl_12",
+      "levelDifficulty": "Medium",
+      "boardDimension": "8x8",
+      "pointsRequired": 5000,
+      "maxMoves": 28,
+      "description": "Clean up mountain ores for the smelting forge.",
+      "firstClearBonus": {
+        "item": "Festival Candy",
+        "quantity": 200
+      },
+      "completedRewards": [
+        {
+          "item": "Iron Ore Pile",
+          "quantity": 4
+        }
+      ]
+    },
+    {
+      "levelNumber": 13,
+      "id": "m3_lvl_13",
+      "levelDifficulty": "Hard",
+      "boardDimension": "8x8",
+      "pointsRequired": 6800,
+      "maxMoves": 24,
+      "description": "Locked chains bind your center board. Free them first.",
+      "firstClearBonus": {
+        "item": "Festival Candy",
+        "quantity": 350
+      },
+      "completedRewards": [
+        {
+          "item": "Pet Star Shard Chest",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "levelNumber": 14,
+      "id": "m3_lvl_14",
+      "levelDifficulty": "Hard",
+      "boardDimension": "9x9",
+      "pointsRequired": 8000,
+      "maxMoves": 25,
+      "description": "Confront the Obsidian Golem puzzle mind. Counter his shielding.",
+      "firstClearBonus": {
+        "item": "Festival Candy",
+        "quantity": 450
+      },
+      "completedRewards": [
+        {
+          "item": "Epic Skill Tome",
+          "quantity": 1
+        },
+        {
+          "item": "Sovereign Gold",
+          "quantity": 7500
+        }
+      ]
+    },
+    {
+      "levelNumber": 15,
+      "id": "m3_lvl_15",
+      "levelDifficulty": "Hard",
+      "boardDimension": "9x9",
+      "pointsRequired": 9000,
+      "maxMoves": 22,
+      "description": "Spitfire tiles combust! Clear them before they consume and incinerate your moves.",
+      "firstClearBonus": {
+        "item": "Festival Candy",
+        "quantity": 500
+      },
+      "completedRewards": [
+        {
+          "item": "Premium Pet Feed Pack",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "levelNumber": 16,
+      "id": "m3_lvl_16",
+      "levelDifficulty": "Nightmare",
+      "boardDimension": "9x9",
+      "pointsRequired": 12000,
+      "maxMoves": 28,
+      "description": "Welcome to the Spire Ascent. Absolute coordination is requested.",
+      "firstClearBonus": {
+        "item": "Festival Candy",
+        "quantity": 800
+      },
+      "completedRewards": [
+        {
+          "item": "Sovereign Diamonds",
+          "quantity": 250
+        },
+        {
+          "item": "Universal Legendary Shard",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "levelNumber": 17,
+      "id": "m3_lvl_17",
+      "levelDifficulty": "Nightmare",
+      "boardDimension": "9x9",
+      "pointsRequired": 14000,
+      "maxMoves": 24,
+      "description": "A chaotic board of fluctuating void portals. Block with stellar gems.",
+      "firstClearBonus": {
+        "item": "Festival Candy",
+        "quantity": 1000
+      },
+      "completedRewards": [
+        {
+          "item": "Tethered Mythic Ore",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "levelNumber": 18,
+      "id": "m3_lvl_18",
+      "levelDifficulty": "Nightmare",
+      "boardDimension": "8x10",
+      "pointsRequired": 16500,
+      "maxMoves": 25,
+      "description": "The frozen glaciers are falling apart. Keep matches in the core layout.",
+      "firstClearBonus": {
+        "item": "Festival Candy",
+        "quantity": 1200
+      },
+      "completedRewards": [
+        {
+          "item": "Gold Chest (Large)",
+          "quantity": 3
+        },
+        {
+          "item": "Elite Crest Shard",
+          "quantity": 5
+        }
+      ]
+    },
+    {
+      "levelNumber": 19,
+      "id": "m3_lvl_19",
+      "levelDifficulty": "Nightmare",
+      "boardDimension": "10x10",
+      "pointsRequired": 20000,
+      "maxMoves": 26,
+      "description": "Unravel the final seals protecting the Sovereign Crown. 30 colored combos needed.",
+      "firstClearBonus": {
+        "item": "Festival Candy",
+        "quantity": 1500
+      },
+      "completedRewards": [
+        {
+          "item": "Universal Legendary Shard",
+          "quantity": 3
+        },
+        {
+          "item": "Upgrade Speedup (24h)",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "levelNumber": 20,
+      "id": "m3_lvl_20",
+      "levelDifficulty": "Nightmare",
+      "boardDimension": "10x10",
+      "pointsRequired": 25000,
+      "maxMoves": 24,
+      "description": "The Dragon Nexus. Defeat the shadow corruption to unlock week award multipliers.",
+      "firstClearBonus": {
+        "item": "Festival Candy",
+        "quantity": 2500
+      },
+      "completedRewards": [
+        {
+          "item": "Sovereign Diamonds",
+          "quantity": 1000
+        },
+        {
+          "item": "Royal Crest Selection Chest",
+          "quantity": 1
+        }
+      ]
+    }
+  ],
+  "packageOffers": [
+    {
+      "id": "m3_pack_novice",
+      "name": "Festival Starter Kit",
+      "priceUSD": 4.99,
+      "contents": {
+        "festivalEnergy": 25,
+        "rainbowManaStone": 1,
+        "gems": 500
+      },
+      "purchaseLimit": 3,
+      "badge": "Best Value"
+    },
+    {
+      "id": "m3_pack_master",
+      "name": "Dragon's Combo Pack",
+      "priceUSD": 19.99,
+      "contents": {
+        "festivalEnergy": 100,
+        "rainbowManaStone": 5,
+        "moveRefreshScroll": 10,
+        "gems": 2500
+      },
+      "purchaseLimit": 2,
+      "badge": "Recommended"
+    },
+    {
+      "id": "m3_pack_sovereign",
+      "name": "Sovereign Crown Champion Vault",
+      "priceUSD": 99.99,
+      "contents": {
+        "festivalEnergy": 500,
+        "rainbowManaStone": 30,
+        "moveRefreshScroll": 50,
+        "gems": 15000,
+        "universalMythicShardRerolls": 25
+      },
+      "purchaseLimit": 1,
+      "badge": "Limited Quantity"
+    }
+  ]
+}

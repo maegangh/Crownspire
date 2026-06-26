@@ -1,0 +1,137 @@
+[gd_scene format=3 uid="uid://5jwirwxopn1y"]
+
+[ext_resource type="Script" uid="uid://bckkjgfpjtmu3" path="res://Scenes/City/resource_bar.gd" id="1_6qs3j"]
+[ext_resource type="Texture2D" uid="uid://ch7rjfelpkk2m" path="res://assets/Buildings/Farm/food2.png" id="2_0haqc"]
+[ext_resource type="Texture2D" uid="uid://3h0dmh3jws84" path="res://assets/Buildings/LumberMill/wood2.png" id="3_if0xt"]
+[ext_resource type="Texture2D" uid="uid://ersiqujj2rkl" path="res://assets/Buildings/Quarry/stone2.png" id="4_2ethi"]
+[ext_resource type="Texture2D" uid="uid://bxqskow8ahlxp" path="res://assets/Buildings/IronMine/iron2.png" id="5_cb2eg"]
+[ext_resource type="Texture2D" uid="uid://jjbmk2okmslm" path="res://assets/Buildings/Diamonds/diamonds1.png" id="6_6eap0"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_17ggg"]
+bg_color = Color(0.05882353, 0.15294118, 0.2901961, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.84313726, 0, 1)
+
+[node name="CanvasLayer" type="CanvasLayer" unique_id=855759196]
+visible = false
+
+[node name="Panel" type="Panel" parent="." unique_id=2074071131]
+visible = false
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 6.0
+offset_top = 2.0
+offset_right = 6.0
+offset_bottom = 56.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_17ggg")
+
+[node name="ResourceBar" type="Control" parent="." unique_id=975610464]
+visible = false
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_6qs3j")
+
+[node name="FoodIcon" type="TextureRect" parent="ResourceBar" unique_id=1176183653]
+visible = false
+layout_mode = 0
+offset_left = 5.9999995
+offset_top = 0.9999995
+offset_right = 1030.0
+offset_bottom = 1025.0
+scale = Vector2(0.06, 0.06)
+texture = ExtResource("2_0haqc")
+
+[node name="FoodLabel" type="Label" parent="ResourceBar" unique_id=2135532753]
+visible = false
+layout_mode = 0
+offset_left = 55.0
+offset_top = 7.0
+offset_right = 124.0
+offset_bottom = 49.0
+theme_override_font_sizes/font_size = 30
+text = "1000"
+
+[node name="WoodIcon" type="TextureRect" parent="ResourceBar" unique_id=1576127742]
+visible = false
+layout_mode = 0
+offset_left = 206.0
+offset_right = 1230.0
+offset_bottom = 1024.0
+scale = Vector2(0.06, 0.06)
+texture = ExtResource("3_if0xt")
+
+[node name="WoodLabel" type="Label" parent="ResourceBar" unique_id=137332685]
+visible = false
+layout_mode = 0
+offset_left = 282.0
+offset_top = 10.0
+offset_right = 351.0
+offset_bottom = 97.0
+theme_override_font_sizes/font_size = 30
+text = "1000
+"
+
+[node name="StoneIcon" type="TextureRect" parent="ResourceBar" unique_id=1067017665]
+visible = false
+layout_mode = 0
+offset_left = 427.0
+offset_right = 1451.0
+offset_bottom = 1024.0
+scale = Vector2(0.06, 0.06)
+texture = ExtResource("4_2ethi")
+
+[node name="StoneLabel" type="Label" parent="ResourceBar" unique_id=739162171]
+visible = false
+layout_mode = 0
+offset_left = 482.0
+offset_top = 6.0
+offset_right = 551.0
+offset_bottom = 48.0
+theme_override_font_sizes/font_size = 30
+text = "1000"
+
+[node name="IronIcon" type="TextureRect" parent="ResourceBar" unique_id=1890251558]
+visible = false
+layout_mode = 0
+offset_left = 642.0
+offset_top = 2.9999995
+offset_right = 1666.0
+offset_bottom = 1027.0
+scale = Vector2(0.06, 0.06)
+texture = ExtResource("5_cb2eg")
+
+[node name="IronLabel" type="Label" parent="ResourceBar" unique_id=1118540398]
+visible = false
+layout_mode = 0
+offset_left = 708.0
+offset_top = 8.0
+offset_right = 777.0
+offset_bottom = 50.0
+theme_override_font_sizes/font_size = 30
+text = "1000"
+
+[node name="GemIcon" type="TextureRect" parent="ResourceBar" unique_id=1173838045]
+visible = false
+layout_mode = 0
+offset_left = 862.0
+offset_top = 3.9999995
+offset_right = 2398.0
+offset_bottom = 1028.0
+scale = Vector2(0.06, 0.06)
+texture = ExtResource("6_6eap0")
+
+[node name="GemLabel" type="Label" parent="ResourceBar" unique_id=1536901512]
+visible = false
+layout_mode = 0
+offset_left = 947.0
+offset_top = 9.0
+offset_right = 987.0
+offset_bottom = 51.0
+theme_override_font_sizes/font_size = 30
+text = "0"

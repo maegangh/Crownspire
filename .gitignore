@@ -1,0 +1,19 @@
+# Godot 4
+.godot/
+.import/
+.export/
+
+# Export presets
+export_presets.cfg
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# IDEs
+.vscode/
+.idea/
+
+*.tmp
+*.import
+.godot/*

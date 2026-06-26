@@ -1,0 +1,150 @@
+{
+  "sceneWidth": 1920,
+  "sceneHeight": 1080,
+  "buildings": [
+	{
+	  "id": "citadel_keep",
+	  "name": "Citadel Keep",
+	  "x": 960,
+	  "y": 320,
+	  "scale": 1.2,
+	  "drawOrder": 10,
+	  "unlockCastleLevel": 1
+	},
+	{
+	  "id": "warehouse",
+	  "name": "Warehouse",
+	  "x": 800,
+	  "y": 420,
+	  "scale": 1.0,
+	  "drawOrder": 8,
+	  "unlockCastleLevel": 2
+	},
+	{
+	  "id": "research_hall",
+	  "name": "Research Hall",
+	  "x": 1120,
+	  "y": 420,
+	  "scale": 1.0,
+	  "drawOrder": 9,
+	  "unlockCastleLevel": 4
+	},
+	{
+	  "id": "embassy",
+	  "name": "Embassy",
+	  "x": 1250,
+	  "y": 380,
+	  "scale": 1.0,
+	  "drawOrder": 7,
+	  "unlockCastleLevel": 6
+	},
+	{
+	  "id": "hall_of_heroes",
+	  "name": "Hall of Heroes",
+	  "x": 670,
+	  "y": 380,
+	  "scale": 1.1,
+	  "drawOrder": 6,
+	  "unlockCastleLevel": 1
+	},
+	{
+	  "id": "trading_post",
+	  "name": "Trading Post",
+	  "x": 960,
+	  "y": 500,
+	  "scale": 0.95,
+	  "drawOrder": 11,
+	  "unlockCastleLevel": 8
+	},
+	{
+	  "id": "farm",
+	  "name": "Farm",
+	  "x": 350,
+	  "y": 680,
+	  "scale": 0.9,
+	  "drawOrder": 4,
+	  "unlockCastleLevel": 1
+	},
+	{
+	  "id": "lumber_mill",
+	  "name": "Lumber Mill",
+	  "x": 200,
+	  "y": 750,
+	  "scale": 0.9,
+	  "drawOrder": 3,
+	  "unlockCastleLevel": 1
+	},
+	{
+	  "id": "quarry",
+	  "name": "Quarry",
+	  "x": 250,
+	  "y": 880,
+	  "scale": 0.9,
+	  "drawOrder": 2,
+	  "unlockCastleLevel": 3
+	},
+	{
+	  "id": "iron_mine",
+	  "name": "Iron Mine",
+	  "x": 400,
+	  "y": 920,
+	  "scale": 0.9,
+	  "drawOrder": 1,
+	  "unlockCastleLevel": 5
+	},
+	{
+	  "id": "hospital",
+	  "name": "Hospital",
+	  "x": 1450,
+	  "y": 680,
+	  "scale": 0.95,
+	  "drawOrder": 12,
+	  "unlockCastleLevel": 2
+	},
+	{
+	  "id": "sanctuary",
+	  "name": "Sanctuary",
+	  "x": 1650,
+	  "y": 750,
+	  "scale": 0.95,
+	  "drawOrder": 13,
+	  "unlockCastleLevel": 5
+	},
+	{
+	  "id": "infantry_barracks",
+	  "name": "Infantry Barracks",
+	  "x": 1380,
+	  "y": 850,
+	  "scale": 1.05,
+	  "drawOrder": 14,
+	  "unlockCastleLevel": 1
+	},
+	{
+	  "id": "marksmen_camp",
+	  "name": "Marksmen Camp",
+	  "x": 1550,
+	  "y": 900,
+	  "scale": 1.05,
+	  "drawOrder": 15,
+	  "unlockCastleLevel": 3
+	},
+	{
+	  "id": "cavalry_stable",
+	  "name": "Cavalry Stable",
+	  "x": 1720,
+	  "y": 850,
+	  "scale": 1.05,
+	  "drawOrder": 16,
+	  "unlockCastleLevel": 5
+	},
+	{
+	  "id": "watchtower",
+	  "name": "Watchtower",
+	  "x": 960,
+	  "y": 820,
+	  "scale": 1.1,
+	  "drawOrder": 20,
+	  "unlockCastleLevel": 1
+	}
+  ]
+}
