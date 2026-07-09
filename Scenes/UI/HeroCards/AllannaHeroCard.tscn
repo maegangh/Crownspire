@@ -6,7 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://r48wn5ymdwqr" path="res://Art/Heroes/Allanna/portrait.png" id="4_hpaak"]
 [ext_resource type="Texture2D" uid="uid://cuf4348yuljx6" path="res://assets/heroes/Icons/Marksman.png" id="5_4kdo5"]
 [ext_resource type="Texture2D" uid="uid://ciwmxytyy0qhe" path="res://ChatGPT Image Jun 24, 2026, 04_51_57 PM.png" id="6_4jelh"]
-[ext_resource type="Texture2D" uid="uid://dss0a86xstijf" path="res://Scenes/UI/star1.png" id="7_cpuwk"]
+[ext_resource type="Texture2D" uid="uid://dss0a86xstijf" path="res://Scenes/UI/big_crystal_gold_star.png" id="7_cpuwk"]
 
 [node name="AllannaHeroCard" type="Button" unique_id=446050875]
 custom_minimum_size = Vector2(200, 300)

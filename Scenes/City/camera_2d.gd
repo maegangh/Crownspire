@@ -1,5 +1,7 @@
 extends Camera2D
 
+@export var ui_manager: Node
+
 var zoom_speed := 0.1
 var min_zoom := 0.5
 var max_zoom := 2.5
@@ -11,6 +13,10 @@ func _ready():
 	zoom = Vector2(1.6, 1.6)
 
 func _unhandled_input(event):
+	if GameState.ui_blocking_input:
+		return
+
+	
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			dragging = event.pressed

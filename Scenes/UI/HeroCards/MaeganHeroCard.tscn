@@ -6,7 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://brswrre7481me" path="res://Art/Heroes/Maegan/portrait.png" id="4_ya36w"]
 [ext_resource type="Texture2D" uid="uid://br2ohs1m4lnt1" path="res://assets/heroes/Icons/Infantry.png" id="5_d0lpl"]
 [ext_resource type="Texture2D" uid="uid://ciwmxytyy0qhe" path="res://ChatGPT Image Jun 24, 2026, 04_51_57 PM.png" id="6_gyh1u"]
-[ext_resource type="Texture2D" uid="uid://dss0a86xstijf" path="res://Scenes/UI/star1.png" id="7_y7iv5"]
+[ext_resource type="Texture2D" uid="uid://dss0a86xstijf" path="res://Scenes/UI/big_crystal_gold_star.png" id="7_y7iv5"]
 
 [node name="MaeganHeroCard" type="Button" unique_id=446050875]
 custom_minimum_size = Vector2(200, 300)

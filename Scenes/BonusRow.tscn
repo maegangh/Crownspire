@@ -1,0 +1,41 @@
+[gd_scene format=3 uid="uid://jls1ffu7aaob"]
+
+[ext_resource type="Script" uid="uid://bumsrt4ba0dip" path="res://Archives/OLDbonus_row-.gd" id="1_fqd2d"]
+
+[node name="BonusRow" type="MarginContainer" unique_id=1299095069]
+offset_right = 28.0
+offset_bottom = 23.0
+script = ExtResource("1_fqd2d")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=1619698942]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="HBoxContainer" unique_id=101505521]
+layout_mode = 2
+
+[node name="StatName" type="Label" parent="HBoxContainer" unique_id=969746797]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.1254902, 0.0627451, 0.1882353, 1)
+theme_override_colors/font_shadow_color = Color(0.1254902, 0.0627451, 0.1882353, 1)
+
+[node name="Spacer" type="Control" parent="HBoxContainer" unique_id=1693264801]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CurrentValue" type="Label" parent="HBoxContainer" unique_id=604902920]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.1254902, 0.0627451, 0.1882353, 1)
+theme_override_colors/font_shadow_color = Color(0.1254902, 0.0627451, 0.1882353, 1)
+
+[node name="Arrow" type="TextureRect" parent="HBoxContainer" unique_id=241674365]
+layout_mode = 2
+
+[node name="NewValue" type="Label" parent="HBoxContainer" unique_id=1709992471]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.1254902, 0.0627451, 0.1882353, 1)
+theme_override_colors/font_shadow_color = Color(0.1254902, 0.0627451, 0.1882353, 1)
+
+[node name="IncreaseValue" type="Label" parent="HBoxContainer" unique_id=32664512]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.1254902, 0.0627451, 0.1882353, 1)
+theme_override_colors/font_shadow_color = Color(0.1254902, 0.0627451, 0.1882353, 1)

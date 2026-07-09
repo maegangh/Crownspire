@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://davdlilyin158"]
+
+[ext_resource type="Script" uid="uid://dlullsj6f7pty" path="res://Scenes/resource_click.gd" id="1_njadd"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2l8cn"]
+
+[node name="ResourceNode" type="Node2D" unique_id=504056031]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1971664219]
+
+[node name="LevelLabel" type="Label" parent="." unique_id=717608827]
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="ClickArea" type="Area2D" parent="." unique_id=426586773]
+script = ExtResource("1_njadd")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ClickArea" unique_id=814151269]
+shape = SubResource("RectangleShape2D_2l8cn")

@@ -1,0 +1,63 @@
+[gd_scene format=3 uid="uid://phvcf03xwbhm"]
+
+[ext_resource type="Script" uid="uid://bt4cilkbqoy06" path="res://Scenes/UI/ItemSlot.gd" id="1_0qyjl"]
+
+[node name="ItemSlot" type="Button" unique_id=1757349485]
+custom_minimum_size = Vector2(100, 100)
+offset_right = 90.0
+offset_bottom = 90.0
+script = ExtResource("1_0qyjl")
+
+[node name="RarityFrame" type="TextureRect" parent="." unique_id=1020518819]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Icon" type="TextureRect" parent="." unique_id=1076321571]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -30.0
+offset_top = -35.0
+offset_right = 30.0
+offset_bottom = 25.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="QuantityLabel" type="Label" parent="." unique_id=1009088149]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -40.0
+offset_top = -23.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "x1"
+
+[node name="NewBadge" type="Label" parent="." unique_id=641881549]
+visible = false
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_bottom = 23.0
+grow_horizontal = 0
+text = "NEW"
+
+[node name="SelectedFrame" type="TextureRect" parent="." unique_id=878580210]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2

@@ -1,20 +1,23 @@
 extends CanvasLayer
 
-var troop_type = "Infantry"
-var selected_amount = 1
-var max_train_amount = 100
+var troop_type: String = "Infantry"
+var selected_amount: int = 1
+var max_train_amount: int = 100
+var selected_tier: int = 1
 
-@onready var title_label = $Panel/TitleLabel
-@onready var count_label = $Panel/CountLabel
-@onready var max_label = $Panel/MaxLabel
-@onready var amount_label = $Panel/AmountLabel
-@onready var amount_slider = $Panel/AmountSlider
-@onready var cost_label = $Panel/CostLabel
-@onready var train_button = $Panel/TrainButton
-@onready var close_button = $Panel/CloseButton
+@onready var title_label: Label = $Panel/TitleLabel
+@onready var count_label: Label = $Panel/CountLabel
+@onready var max_label: Label = $Panel/MaxLabel
+@onready var amount_label: Label = $Panel/AmountLabel
+@onready var amount_slider: HSlider = $Panel/AmountSlider
+@onready var cost_label: Label = $Panel/CostLabel
+@onready var train_button: Button = $Panel/TrainButton
+@onready var close_button: Button = $Panel/CloseButton
 
-func _ready():
+
+func _ready() -> void:
 	hide()
+
 	amount_slider.min_value = 1
 	amount_slider.max_value = max_train_amount
 	amount_slider.step = 1
@@ -24,51 +27,112 @@ func _ready():
 	train_button.pressed.connect(_on_train_pressed)
 	close_button.pressed.connect(_on_close_pressed)
 
-func _process(_delta):
+
+func _process(_delta: float) -> void:
 	if visible:
 		update_panel()
 
-func open_for_troop(type):
+
+func open_for_troop(type: String, tier: int = 1) -> void:
 	GameState.popup_open = true
 	troop_type = type
+	selected_tier = tier
 	selected_amount = 1
 	amount_slider.value = 1
 	update_panel()
 	show()
 
-func update_panel():
-	var food_cost = selected_amount * 10
 
-	title_label.text = "Train " + troop_type
-	count_label.text = troop_type + " Owned: " + str(TroopState.get_troop_count(troop_type))
+func update_panel() -> void:
+	var troop: Dictionary = _get_selected_troop()
+	var display_name: String = str(troop.get("name", troop_type))
+	var clean_type: String = _get_clean_troop_type()
+	var cost: Dictionary = TroopDatabase.get_training_cost(clean_type, selected_tier, selected_amount)
+	var training_time: int = TroopDatabase.get_training_time(clean_type, selected_tier, selected_amount)
+	var power_gain: int = TroopDatabase.get_power_gain(clean_type, selected_tier, selected_amount)
+
+	title_label.text = "Train " + display_name
+	count_label.text = display_name + " Owned: " + str(TroopState.get_troop_count(troop_type))
 	max_label.text = "Max Train: " + str(max_train_amount)
 	amount_label.text = "Amount: " + str(selected_amount)
 
 	if TroopState.is_training_active(troop_type):
 		cost_label.text = "Training... " + str(int(TroopState.get_training_time_left(troop_type))) + "s left"
-	else:
-		cost_label.text = "Cost: " + str(food_cost) + " Food"
+		train_button.disabled = true
+		return
 
-func _on_amount_slider_changed(value):
+	train_button.disabled = false
+
+	var missing_text: String = TroopDatabase.get_missing_cost_text(cost)
+	var cost_text: String = TroopDatabase.format_cost(cost)
+
+	if missing_text != "":
+		cost_label.text = cost_text + "\n" + missing_text
+	else:
+		cost_label.text = cost_text + "\nTime: " + str(training_time) + "s | Power: +" + str(power_gain)
+
+
+func _on_amount_slider_changed(value: float) -> void:
 	selected_amount = int(value)
 	update_panel()
 
-func _on_train_pressed():
-	var food_cost = selected_amount * 10
 
-	if GameState.food < food_cost:
-		cost_label.text = "Missing Food"
+func _on_train_pressed() -> void:
+	var clean_type: String = _get_clean_troop_type()
+	var cost: Dictionary = TroopDatabase.get_training_cost(clean_type, selected_tier, selected_amount)
+
+	if not TroopDatabase.can_afford(cost):
+		cost_label.text = TroopDatabase.format_cost(cost) + "\n" + TroopDatabase.get_missing_cost_text(cost)
 		return
 
-	var started = TroopState.start_training(troop_type, selected_amount)
+	var started: bool = TroopState.start_training(troop_type, selected_amount)
 
 	if not started:
 		cost_label.text = "Already training"
 		return
 
-	GameState.spend_resources(food_cost, 0, 0, 0)
-	update_panel()
+	var spent: bool = TroopDatabase.spend_training_cost(cost)
 
-func _on_close_pressed():
+	if not spent:
+		cost_label.text = TroopDatabase.get_missing_cost_text(cost)
+		return
+
+	if has_node("/root/GameEvents"):
+			update_panel()
+
+
+func _on_close_pressed() -> void:
 	GameState.popup_open = false
 	hide()
+
+
+func _get_selected_troop() -> Dictionary:
+	if has_node("/root/TroopDatabase"):
+		var clean_type: String = _get_clean_troop_type()
+		var troop: Dictionary = TroopDatabase.get_troop(clean_type, selected_tier)
+		if not troop.is_empty():
+			return troop
+
+	return {
+		"name": troop_type,
+		"trainingCost": {
+			"food": 0,
+			"wood": 0,
+			"stone": 0,
+			"iron": 0
+		},
+		"trainingTimeSec": 1,
+		"power": 0
+	}
+
+
+func _get_clean_troop_type() -> String:
+	match troop_type.to_lower():
+		"infantry":
+			return "infantry"
+		"marksmen", "marksman", "archer", "archers":
+			return "marksmen"
+		"cavalry":
+			return "cavalry"
+		_:
+			return troop_type.to_lower()

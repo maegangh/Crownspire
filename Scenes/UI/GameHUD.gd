@@ -39,14 +39,21 @@ func setup_bottom_bar():
 		bottom_bar_texture.texture = bottom_bar_world
 
 func update_resources():
-	food_label.text = str(GameState.food)
-	wood_label.text = str(GameState.wood)
-	stone_label.text = str(GameState.stone)
-	iron_label.text = str(GameState.iron)
-	diamond_label.text = str(GameState.diamonds)
+	food_label.text = format_number(GameState.food)
+	wood_label.text = format_number(GameState.wood)
+	stone_label.text = format_number(GameState.stone)
+	iron_label.text = format_number(GameState.iron)
+	diamond_label.text = format_with_commas(GameState.diamonds)
 
-	power_label.text = "1,614,990"
-	vip_label.text = "VIP 1"
+	power_label.text = format_with_commas(GameState.power)
+	vip_label.text = "VIP %d" % GameState.vip_level
+
+func format_number(value: int) -> String:
+	if value >= 1000000:
+		return "%.1fM" % (value / 1000000.0)
+	elif value >= 1000:
+		return "%.1fK" % (value / 1000.0)
+	return str(value)
 
 func connect_buttons():
 	if portrait_button:
@@ -70,7 +77,7 @@ func _on_portrait_pressed():
 	print("Open Player Profile")
 
 func _on_shop_pressed():
-	print("Open Shop")
+	$UIManager.open_screen("ShopScreen")
 
 func _on_heroes_pressed():
 	print("Open Heroes")
@@ -80,13 +87,13 @@ func _on_wayfinder_pressed():
 	print("Wayfinder coming soon")
 
 func _on_bag_pressed():
-	print("Open Bag")
+	$UIManager.open_screen("BagScreen")
 
 func _on_quest_pressed():
-	print("Open Quest")
+	$UIManager.open_screen("QuestScreen")
 
 func _on_alliance_pressed():
-	print("Open Alliance")
+	$UIManager.open_screen("AllianceScreen")
 
 func _on_world_city_pressed():
 	print("World/City button clicked")
@@ -98,3 +105,15 @@ func _on_world_city_pressed():
 		get_tree().change_scene_to_file.call_deferred("res://Scenes/City/City.tscn")
 	else:
 		get_tree().change_scene_to_file.call_deferred("res://Scenes/WorldMap_Beta.tscn")
+
+func format_with_commas(value: int) -> String:
+	var text := str(value)
+	var result := ""
+
+	while text.length() > 3:
+		result = "," + text.substr(text.length() - 3, 3) + result
+		text = text.substr(0, text.length() - 3)
+
+	return text + result
+	
+	

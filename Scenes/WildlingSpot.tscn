@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cfnx71j3olabs"]
 
 [ext_resource type="Texture2D" uid="uid://wh4338gwgf34" path="res://assets/Wildlings/wildling_wolf.png" id="1_cd5jj"]
-[ext_resource type="Script" uid="uid://5wtdcvt6jlc4" path="res://Scripts/wildling_click.gd" id="1_jw7i4"]
+[ext_resource type="Script" uid="uid://5wtdcvt6jlc4" path="res://scripts/wildling_click.gd" id="1_jw7i4"]
 [ext_resource type="Texture2D" uid="uid://bu1lilw8cq10u" path="res://assets/UI/wildling_cards/wolf_card.png" id="3_bummx"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_jw7i4"]

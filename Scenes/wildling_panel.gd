@@ -9,26 +9,37 @@ extends Control
 
 var selected_wildling: Node2D = null
 
-func _ready():
+func _ready() -> void:
 	visible = false
-	$AttackButton.pressed.connect(_on_attack_pressed)
 
-func open_panel(card_texture: Texture2D, level: int, power: int, wildling_node: Node2D = null, stamina: int = -1):
+	if has_node("CardRoot/AttackButton"):
+		$CardRoot/AttackButton.pressed.connect(_on_attack_pressed)
+	else:
+		push_error("WildlingPanel missing CardRoot/AttackButton")
+		
+func open_panel(card_texture: Texture2D, level: int, power: int, wildling_node: Node2D = null, species: String = "wolf", stamina: int = -1):
+	$CardRoot/Background.texture = card_texture
 	print("OPEN PANEL CALLED")
-
+	print("CARD TEXTURE IS: ", card_texture)
 	selected_wildling = wildling_node
 
 	visible = true
-	position = Vector2(250, 50)
+	
+	z_index = 999
+	position = Vector2(80, 220)
+	size = Vector2(560, 760)
+	$CardRoot/Background.texture = card_texture
+	$CardRoot/Background.visible = true
 
-	$CardImage.texture = card_texture
-	$LevelNumberLabel.text = str(level)
-	$PowerNumberLabel.text = str(power)
+	# $CardImage.texture = card_texture
+	$CardRoot/LevelNumberLabel.text = str(level)
+	$CardRoot/PowerNumberLabel.text = str(power)
+	
 
 	if stamina == -1:
 		stamina = get_stamina_for_level(level)
 
-	$StaminaCostLabel.text = str(stamina)
+	$CardRoot/StaminaCostLabel.text = str(stamina)
 	show_drops(level)
 
 func _on_attack_pressed():
@@ -84,9 +95,10 @@ func _on_attack_pressed():
 
 	target.visible = false
 
-	var area = target.get_node_or_null("Area2D")
+	var area = target.get_node_or_null("ClickArea")
 	if area:
 		area.input_pickable = false
+	
 
 	respawn_wildling_later(target, area)
 
@@ -128,7 +140,7 @@ func get_stamina_for_level(level: int) -> int:
 		return 20
 
 func show_drops(level: int):
-	for child in $PossibleDrops/DropRow.get_children():
+	for child in $CardRoot/PossibleDrops/DropRow.get_children():
 		child.queue_free()
 
 	var drops: Array[Texture2D] = []
@@ -152,11 +164,29 @@ func show_drops(level: int):
 
 		var drop_icon := TextureRect.new()
 		drop_icon.texture = icon
-		drop_icon.custom_minimum_size = Vector2(54, 54)
+		drop_icon.custom_minimum_size = Vector2(60, 60)
+		drop_icon.size = Vector2(140, 140)
 		drop_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		drop_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		drop_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		$PossibleDrops/DropRow.add_child(drop_icon)
+		$CardRoot/PossibleDrops/DropRow.add_child(drop_icon)
 
 func close_panel():
 	visible = false
+
+func _input(event: InputEvent) -> void:
+	if not visible:
+		return
+
+	if event is InputEventMouseButton \
+	and event.button_index == MOUSE_BUTTON_LEFT \
+	and event.pressed:
+
+		var rect := Rect2(global_position, size)
+
+		if not rect.has_point(get_global_mouse_position()):
+			close_panel()
+
+func _gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed:
+		accept_event()

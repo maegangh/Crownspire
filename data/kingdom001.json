@@ -1,0 +1,3836 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-06-30T01:56:41.771Z",
+  "world_rules": {
+    "gates_count": 4,
+    "grand_landmarks_count": 7,
+    "keeps_count": 12,
+    "watch_keeps_count": 8,
+    "alliance_beast_lairs_count": 30,
+    "resource_regions_count": 32
+  },
+  "hq_rules": {
+    "minimum_spacing": 80,
+    "royal_keep_exclusion": 150,
+    "gate_exclusion": 80,
+    "keep_exclusion": 60,
+    "beast_exclusion": 120,
+    "mountain_buildable": false,
+    "forest_buildable": true,
+    "river_buildable": false
+  },
+  "provinces": [
+    {
+      "id": "north",
+      "name": "Glacial Everwood",
+      "theme": "Arctic Pine & Frost Tundra",
+      "description": "A bitter cold, snow-blanketed expanse of pine forests and rugged frozen steppes.",
+      "color": "#38bdf8",
+      "recommended_power": "1,500,000 Power",
+      "primary_landmark": "landmark_hall_of_champions"
+    },
+    {
+      "id": "west",
+      "name": "Ironhold Highlands",
+      "theme": "Volcanic Crags & Basalt Ridges",
+      "description": "An aggressive terrain of volcanic fissures, rich iron deposits, and rocky high passes.",
+      "color": "#fb923c",
+      "recommended_power": "1,800,000 Power",
+      "primary_landmark": "landmark_grand_forge"
+    },
+    {
+      "id": "east",
+      "name": "Golden Sunplains",
+      "theme": "Gilded Steppes & Savannahs",
+      "description": "A vast expanse of golden wheat grasslands, sun-kissed plains, and commercial trade routes.",
+      "color": "#facc15",
+      "recommended_power": "1,200,000 Power",
+      "primary_landmark": "landmark_merchant_guild"
+    },
+    {
+      "id": "south",
+      "name": "Verdant Wilds",
+      "theme": "Tropical Marshes & Jungles",
+      "description": "A dense, wet swamp and thick forest basin teeming with ancient beasts and overgrown ruins.",
+      "color": "#4ade80",
+      "recommended_power": "1,400,000 Power",
+      "primary_landmark": "landmark_thand_ar_earth"
+    },
+    {
+      "id": "heartlands",
+      "name": "The Heartlands",
+      "theme": "Mild Fertile Meadows",
+      "description": "The wealthy ring surrounding the royal center, offering rich farms and strategic keeps.",
+      "color": "#a78bfa",
+      "recommended_power": "3,000,000 Power",
+      "primary_landmark": "landmark_war_academy"
+    },
+    {
+      "id": "crownlands",
+      "name": "Royal Crownlands",
+      "theme": "Imperial Throne Land",
+      "description": "The prestigious core of the kingdom, ruled by the sovereign occupying the Royal Keep.",
+      "color": "#f43f5e",
+      "recommended_power": "5,000,000 Power",
+      "primary_landmark": "landmark_royal_keep"
+    }
+  ],
+  "kingdom": {
+    "id": "kingdom_001",
+    "name": "Crownspire Kingdom 001",
+    "width": 800,
+    "height": 800,
+    "tile_size": 16
+  },
+  "gates": [
+    {
+      "id": "gate_north",
+      "name": "North Gate (Icewall)",
+      "type": "gate",
+      "province": "north",
+      "coords": {
+        "x": 400,
+        "y": 300
+      },
+      "radius": 15,
+      "asset_key": "gate_fortress_sp",
+      "level": null,
+      "tier": null,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": "Chilled stone fortress guarding the northern entrance to the Heartlands. High strategic bottleneck.",
+      "gameplayNotes": null
+    },
+    {
+      "id": "gate_west",
+      "name": "West Gate (Stonebridge)",
+      "type": "gate",
+      "province": "west",
+      "coords": {
+        "x": 300,
+        "y": 400
+      },
+      "radius": 15,
+      "asset_key": "gate_fortress_sp",
+      "level": null,
+      "tier": null,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": "An immense fortified bridge arching over the Granite chasm, guarding the western entrance.",
+      "gameplayNotes": null
+    },
+    {
+      "id": "gate_east",
+      "name": "East Gate (Dawnspire)",
+      "type": "gate",
+      "province": "east",
+      "coords": {
+        "x": 500,
+        "y": 400
+      },
+      "radius": 15,
+      "asset_key": "gate_fortress_sp",
+      "level": null,
+      "tier": null,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": "Gilded gate reflecting the morning sun, defending the eastern approaches from the Sunplains.",
+      "gameplayNotes": null
+    },
+    {
+      "id": "gate_south",
+      "name": "South Gate (Greenmarch)",
+      "type": "gate",
+      "province": "south",
+      "coords": {
+        "x": 400,
+        "y": 500
+      },
+      "radius": 15,
+      "asset_key": "gate_fortress_sp",
+      "level": null,
+      "tier": null,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": "Overgrown vine-woven fortress standing fast against the creatures of the Verdant Wilds.",
+      "gameplayNotes": null
+    }
+  ],
+  "grand_landmarks": [
+    {
+      "id": "landmark_hall_of_champions",
+      "name": "Hall of Champions",
+      "type": "grand_landmark",
+      "province": "north",
+      "coords": {
+        "x": 400,
+        "y": 155
+      },
+      "radius": 35,
+      "asset_key": "grand_landmark_fortress",
+      "level": null,
+      "tier": null,
+      "reward": null,
+      "buffs": [
+        {
+          "type": "troop_attack",
+          "value": 5
+        },
+        {
+          "type": "training_speed",
+          "value": 10
+        }
+      ],
+      "weekly_event": "Tournament of Champions",
+      "buffDescription": "+5% Troop Attack, +10% Training Speed",
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": "Ancient arena where legendary warriors carved their names. Grants martial supremacy to the occupying alliance.",
+      "gameplayNotes": null
+    },
+    {
+      "id": "landmark_grand_forge",
+      "name": "Grand Forge",
+      "type": "grand_landmark",
+      "province": "west",
+      "coords": {
+        "x": 230,
+        "y": 300
+      },
+      "radius": 35,
+      "asset_key": "grand_landmark_fortress",
+      "level": null,
+      "tier": null,
+      "reward": null,
+      "buffs": [
+        {
+          "type": "research_speed",
+          "value": 8
+        },
+        {
+          "type": "siege_defense",
+          "value": 5
+        }
+      ],
+      "weekly_event": "Forge Festival",
+      "buffDescription": "+8% Research Speed, +5% Siege Defense",
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": "Fueled by volcanic fissures, this subterranean workshop pumps out elite armor and siege weaponry.",
+      "gameplayNotes": null
+    },
+    {
+      "id": "landmark_war_academy",
+      "name": "War Academy",
+      "type": "grand_landmark",
+      "province": "west",
+      "coords": {
+        "x": 230,
+        "y": 500
+      },
+      "radius": 35,
+      "asset_key": "grand_landmark_fortress",
+      "level": null,
+      "tier": null,
+      "reward": null,
+      "buffs": [
+        {
+          "type": "march_speed",
+          "value": 5
+        },
+        {
+          "type": "experience_gain",
+          "value": 5
+        }
+      ],
+      "weekly_event": "Tactician Mastery",
+      "buffDescription": "+5% March Speed, +5% Experience Gain",
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": "The premier tactical library and training ground, training generations of strategic minds.",
+      "gameplayNotes": null
+    },
+    {
+      "id": "landmark_template_of_dawn",
+      "name": "Temple of Dawn",
+      "type": "grand_landmark",
+      "province": "east",
+      "coords": {
+        "x": 570,
+        "y": 300
+      },
+      "radius": 35,
+      "asset_key": "grand_landmark_fortress",
+      "level": null,
+      "tier": null,
+      "reward": null,
+      "buffs": [
+        {
+          "type": "healing_speed",
+          "value": 10
+        },
+        {
+          "type": "troop_health",
+          "value": 5
+        }
+      ],
+      "weekly_event": "Solar Blessing",
+      "buffDescription": "+10% Healing Speed, +5% Troop Health",
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": "High-altitude sanctuary capturing the first light. Radiates protective, restorative healing magic.",
+      "gameplayNotes": null
+    },
+    {
+      "id": "landmark_merchant_guild",
+      "name": "Merchant Guild",
+      "type": "grand_landmark",
+      "province": "east",
+      "coords": {
+        "x": 570,
+        "y": 500
+      },
+      "radius": 35,
+      "asset_key": "grand_landmark_fortress",
+      "level": null,
+      "tier": null,
+      "reward": null,
+      "buffs": [
+        {
+          "type": "resource_gathering_speed",
+          "value": 15
+        },
+        {
+          "type": "trade_tax_reduction",
+          "value": 10
+        }
+      ],
+      "weekly_event": "Merchant Caravan",
+      "buffDescription": "+15% Resource Gathering Speed, +10% Trade Tax Reduction",
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": "The central commercial exchange, coordinating regional trade caravans and resource allocation.",
+      "gameplayNotes": null
+    },
+    {
+      "id": "landmark_thand_ar_earth",
+      "name": "Thand Ar Earth",
+      "type": "grand_landmark",
+      "province": "south",
+      "coords": {
+        "x": 400,
+        "y": 645
+      },
+      "radius": 35,
+      "asset_key": "grand_landmark_fortress",
+      "level": null,
+      "tier": null,
+      "reward": null,
+      "buffs": [
+        {
+          "type": "building_speed",
+          "value": 8
+        },
+        {
+          "type": "city_defense",
+          "value": 5
+        }
+      ],
+      "weekly_event": "Earth Warden Alliance",
+      "buffDescription": "+8% Building Speed, +5% City Defense",
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": "A colossal monolith carved directly into the living earth, reinforcing structural integrity and fortifications.",
+      "gameplayNotes": null
+    },
+    {
+      "id": "landmark_royal_keep",
+      "name": "Royal Keep",
+      "type": "grand_landmark",
+      "province": "crownlands",
+      "coords": {
+        "x": 400,
+        "y": 400
+      },
+      "radius": 50,
+      "asset_key": "royal_keep_castle",
+      "level": null,
+      "tier": null,
+      "reward": null,
+      "buffs": [
+        {
+          "type": "all_stats",
+          "value": 15
+        }
+      ],
+      "weekly_event": "Imperial Coronation",
+      "buffDescription": "Kingdom Ruler Designation, +15% All Stats for Alliance Leader",
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": "The ultimate throne of Crownspire Kingdom 001. Occupying this keep secures complete control of the realm.",
+      "gameplayNotes": null
+    }
+  ],
+  "landmarks": [],
+  "royal_keep": {
+    "id": "landmark_royal_keep",
+    "name": "Royal Keep",
+    "type": "grand_landmark",
+    "province": "crownlands",
+    "coords": {
+      "x": 400,
+      "y": 400
+    },
+    "radius": 50,
+    "asset_key": "royal_keep_castle",
+    "level": null,
+    "tier": null,
+    "reward": null,
+    "buffs": [
+      {
+        "type": "all_stats",
+        "value": 15
+      }
+    ],
+    "weekly_event": "Imperial Coronation",
+    "buffDescription": "Kingdom Ruler Designation, +15% All Stats for Alliance Leader",
+    "resourceType": null,
+    "density": null,
+    "polygon": null,
+    "capacity": null,
+    "description": "The ultimate throne of Crownspire Kingdom 001. Occupying this keep secures complete control of the realm.",
+    "gameplayNotes": null
+  },
+  "conquest_keeps": [
+    {
+      "id": "keep_n1",
+      "name": "Conquest Keep (Icefang)",
+      "type": "conquest_keep",
+      "province": "north",
+      "coords": {
+        "x": 290,
+        "y": 220
+      },
+      "radius": 40,
+      "asset_key": "conquest_keep_lvl1",
+      "level": null,
+      "tier": "minor",
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "keep_n2",
+      "name": "Conquest Keep (Frostwatch)",
+      "type": "conquest_keep",
+      "province": "north",
+      "coords": {
+        "x": 400,
+        "y": 90
+      },
+      "radius": 40,
+      "asset_key": "conquest_keep_lvl2",
+      "level": null,
+      "tier": "major",
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "keep_n3",
+      "name": "Conquest Keep (Stormpeak)",
+      "type": "conquest_keep",
+      "province": "north",
+      "coords": {
+        "x": 510,
+        "y": 220
+      },
+      "radius": 40,
+      "asset_key": "conquest_keep_lvl1",
+      "level": null,
+      "tier": "minor",
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "keep_w1",
+      "name": "Conquest Keep (Ironwall)",
+      "type": "conquest_keep",
+      "province": "west",
+      "coords": {
+        "x": 170,
+        "y": 380
+      },
+      "radius": 40,
+      "asset_key": "conquest_keep_lvl1",
+      "level": null,
+      "tier": "minor",
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "keep_w2",
+      "name": "Conquest Keep (Rockguard)",
+      "type": "conquest_keep",
+      "province": "west",
+      "coords": {
+        "x": 90,
+        "y": 400
+      },
+      "radius": 40,
+      "asset_key": "conquest_keep_lvl2",
+      "level": null,
+      "tier": "major",
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "keep_w3",
+      "name": "Conquest Keep (Chasmwatch)",
+      "type": "conquest_keep",
+      "province": "west",
+      "coords": {
+        "x": 170,
+        "y": 420
+      },
+      "radius": 40,
+      "asset_key": "conquest_keep_lvl1",
+      "level": null,
+      "tier": "minor",
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "keep_e1",
+      "name": "Conquest Keep (Sunsward)",
+      "type": "conquest_keep",
+      "province": "east",
+      "coords": {
+        "x": 630,
+        "y": 380
+      },
+      "radius": 40,
+      "asset_key": "conquest_keep_lvl1",
+      "level": null,
+      "tier": "minor",
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "keep_e2",
+      "name": "Conquest Keep (Dawnwatch)",
+      "type": "conquest_keep",
+      "province": "east",
+      "coords": {
+        "x": 710,
+        "y": 400
+      },
+      "radius": 40,
+      "asset_key": "conquest_keep_lvl2",
+      "level": null,
+      "tier": "major",
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "keep_e3",
+      "name": "Conquest Keep (Goldfield)",
+      "type": "conquest_keep",
+      "province": "east",
+      "coords": {
+        "x": 630,
+        "y": 420
+      },
+      "radius": 40,
+      "asset_key": "conquest_keep_lvl1",
+      "level": null,
+      "tier": "minor",
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "keep_s1",
+      "name": "Conquest Keep (Muddyford)",
+      "type": "conquest_keep",
+      "province": "south",
+      "coords": {
+        "x": 290,
+        "y": 580
+      },
+      "radius": 40,
+      "asset_key": "conquest_keep_lvl1",
+      "level": null,
+      "tier": "minor",
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "keep_s2",
+      "name": "Conquest Keep (Wildwatch)",
+      "type": "conquest_keep",
+      "province": "south",
+      "coords": {
+        "x": 400,
+        "y": 710
+      },
+      "radius": 40,
+      "asset_key": "conquest_keep_lvl2",
+      "level": null,
+      "tier": "major",
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "keep_s3",
+      "name": "Conquest Keep (Briarguard)",
+      "type": "conquest_keep",
+      "province": "south",
+      "coords": {
+        "x": 510,
+        "y": 580
+      },
+      "radius": 40,
+      "asset_key": "conquest_keep_lvl1",
+      "level": null,
+      "tier": "minor",
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    }
+  ],
+  "watch_keeps": [
+    {
+      "id": "wk_1",
+      "name": "North Watch Keep",
+      "type": "watch_keep",
+      "province": "north",
+      "coords": {
+        "x": 340,
+        "y": 260
+      },
+      "radius": 20,
+      "asset_key": "watch_keep_tower",
+      "level": null,
+      "tier": "minor",
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "wk_2",
+      "name": "Northeast Watch Keep",
+      "type": "watch_keep",
+      "province": "north",
+      "coords": {
+        "x": 460,
+        "y": 260
+      },
+      "radius": 20,
+      "asset_key": "watch_keep_tower",
+      "level": null,
+      "tier": "minor",
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "wk_3",
+      "name": "West Watch Keep",
+      "type": "watch_keep",
+      "province": "west",
+      "coords": {
+        "x": 260,
+        "y": 340
+      },
+      "radius": 20,
+      "asset_key": "watch_keep_tower",
+      "level": null,
+      "tier": "minor",
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "wk_4",
+      "name": "Northwest Watch Keep",
+      "type": "watch_keep",
+      "province": "west",
+      "coords": {
+        "x": 260,
+        "y": 460
+      },
+      "radius": 20,
+      "asset_key": "watch_keep_tower",
+      "level": null,
+      "tier": "minor",
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "wk_5",
+      "name": "East Watch Keep",
+      "type": "watch_keep",
+      "province": "east",
+      "coords": {
+        "x": 540,
+        "y": 340
+      },
+      "radius": 20,
+      "asset_key": "watch_keep_tower",
+      "level": null,
+      "tier": "minor",
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "wk_6",
+      "name": "Southeast Watch Keep",
+      "type": "watch_keep",
+      "province": "east",
+      "coords": {
+        "x": 540,
+        "y": 460
+      },
+      "radius": 20,
+      "asset_key": "watch_keep_tower",
+      "level": null,
+      "tier": "minor",
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "wk_7",
+      "name": "South Watch Keep",
+      "type": "watch_keep",
+      "province": "south",
+      "coords": {
+        "x": 340,
+        "y": 540
+      },
+      "radius": 20,
+      "asset_key": "watch_keep_tower",
+      "level": null,
+      "tier": "minor",
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "wk_8",
+      "name": "Southwest Watch Keep",
+      "type": "watch_keep",
+      "province": "south",
+      "coords": {
+        "x": 460,
+        "y": 540
+      },
+      "radius": 20,
+      "asset_key": "watch_keep_tower",
+      "level": null,
+      "tier": "minor",
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    }
+  ],
+  "alliance_beasts": [
+    {
+      "id": "beast_n1",
+      "name": "Ice Drake Spawn",
+      "type": "alliance_beast",
+      "province": "north",
+      "coords": {
+        "x": 260,
+        "y": 150
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 30,
+      "tier": null,
+      "reward": "Epic Frost Chest",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_n2",
+      "name": "Frost Giant Spawn",
+      "type": "alliance_beast",
+      "province": "north",
+      "coords": {
+        "x": 330,
+        "y": 110
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 35,
+      "tier": null,
+      "reward": "Legendary Runes",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_n3",
+      "name": "Winter Wolf Patriarch",
+      "type": "alliance_beast",
+      "province": "north",
+      "coords": {
+        "x": 470,
+        "y": 110
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 25,
+      "tier": null,
+      "reward": "Elite Armor Kit",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_n4",
+      "name": "Iceclad Behemoth",
+      "type": "alliance_beast",
+      "province": "north",
+      "coords": {
+        "x": 540,
+        "y": 150
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 40,
+      "tier": null,
+      "reward": "Glacial Forge Blueprint",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_n5",
+      "name": "Boreal Wyrm Spawn",
+      "type": "alliance_beast",
+      "province": "north",
+      "coords": {
+        "x": 400,
+        "y": 210
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 45,
+      "tier": null,
+      "reward": "Rare Beast Essence",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_n6",
+      "name": "Tundra Golem",
+      "type": "alliance_beast",
+      "province": "north",
+      "coords": {
+        "x": 200,
+        "y": 180
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 30,
+      "tier": null,
+      "reward": "Granite Relic",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_n7",
+      "name": "Ice Spider Queen",
+      "type": "alliance_beast",
+      "province": "north",
+      "coords": {
+        "x": 600,
+        "y": 180
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 35,
+      "tier": null,
+      "reward": "Venomous Silk",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_w1",
+      "name": "Ironhorn Golem Spawn",
+      "type": "alliance_beast",
+      "province": "west",
+      "coords": {
+        "x": 150,
+        "y": 260
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 30,
+      "tier": null,
+      "reward": "Mithril Chunk",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_w2",
+      "name": "Mountain Chimera",
+      "type": "alliance_beast",
+      "province": "west",
+      "coords": {
+        "x": 110,
+        "y": 330
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 40,
+      "tier": null,
+      "reward": "Firestorm Emblem",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_w3",
+      "name": "Stone Golem Patriarch",
+      "type": "alliance_beast",
+      "province": "west",
+      "coords": {
+        "x": 110,
+        "y": 470
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 35,
+      "tier": null,
+      "reward": "Earth Rune",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_w4",
+      "name": "Rock Harpy Matriarch",
+      "type": "alliance_beast",
+      "province": "west",
+      "coords": {
+        "x": 150,
+        "y": 540
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 25,
+      "tier": null,
+      "reward": "Windfeather Crest",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_w5",
+      "name": "Deep Tremor Basilisk",
+      "type": "alliance_beast",
+      "province": "west",
+      "coords": {
+        "x": 210,
+        "y": 400
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 45,
+      "tier": null,
+      "reward": "Basilisk Scale",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_w6",
+      "name": "Obsidian Elemental",
+      "type": "alliance_beast",
+      "province": "west",
+      "coords": {
+        "x": 180,
+        "y": 200
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 30,
+      "tier": null,
+      "reward": "Magma Core",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_w7",
+      "name": "Cliff Lurker Spawn",
+      "type": "alliance_beast",
+      "province": "west",
+      "coords": {
+        "x": 180,
+        "y": 600
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 35,
+      "tier": null,
+      "reward": "Shadow Shard",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_e1",
+      "name": "Sunwing Griffin Spawn",
+      "type": "alliance_beast",
+      "province": "east",
+      "coords": {
+        "x": 650,
+        "y": 260
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 30,
+      "tier": null,
+      "reward": "Solar Core",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_e2",
+      "name": "Golden Plains Wyvern",
+      "type": "alliance_beast",
+      "province": "east",
+      "coords": {
+        "x": 690,
+        "y": 330
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 45,
+      "tier": null,
+      "reward": "Sunfire Breath",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_e3",
+      "name": "Scythetail Scorpion",
+      "type": "alliance_beast",
+      "province": "east",
+      "coords": {
+        "x": 690,
+        "y": 470
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 35,
+      "tier": null,
+      "reward": "Chitin Plating",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_e4",
+      "name": "Storm Eagle Alpha",
+      "type": "alliance_beast",
+      "province": "east",
+      "coords": {
+        "x": 650,
+        "y": 540
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 25,
+      "tier": null,
+      "reward": "Sky Emblem",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_e5",
+      "name": "Ancient Centaur Monarch",
+      "type": "alliance_beast",
+      "province": "east",
+      "coords": {
+        "x": 590,
+        "y": 400
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 40,
+      "tier": null,
+      "reward": "Gilded Trophy",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_e6",
+      "name": "Wildfire Panther",
+      "type": "alliance_beast",
+      "province": "east",
+      "coords": {
+        "x": 620,
+        "y": 200
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 30,
+      "tier": null,
+      "reward": "Ashen Claw",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_e7",
+      "name": "Sunken Swamp Hydra",
+      "type": "alliance_beast",
+      "province": "east",
+      "coords": {
+        "x": 620,
+        "y": 600
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 35,
+      "tier": null,
+      "reward": "Hydra Blood",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_s1",
+      "name": "Spore Venom Spitter",
+      "type": "alliance_beast",
+      "province": "south",
+      "coords": {
+        "x": 260,
+        "y": 650
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 25,
+      "tier": null,
+      "reward": "Acid Sac",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_s2",
+      "name": "Thornclaw Bear Spawn",
+      "type": "alliance_beast",
+      "province": "south",
+      "coords": {
+        "x": 330,
+        "y": 690
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 30,
+      "tier": null,
+      "reward": "Forest Relic",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_s3",
+      "name": "Mossy Crag Behemoth",
+      "type": "alliance_beast",
+      "province": "south",
+      "coords": {
+        "x": 470,
+        "y": 690
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 40,
+      "tier": null,
+      "reward": "Heart of Forest",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_s4",
+      "name": "Lushwood Serpent Alpha",
+      "type": "alliance_beast",
+      "province": "south",
+      "coords": {
+        "x": 540,
+        "y": 650
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 35,
+      "tier": null,
+      "reward": "Serpent Fangs",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_s5",
+      "name": "Verdant Forest Dragon",
+      "type": "alliance_beast",
+      "province": "south",
+      "coords": {
+        "x": 400,
+        "y": 590
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 50,
+      "tier": null,
+      "reward": "Ancient Scale",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_s6",
+      "name": "Bog Creeper Spawn",
+      "type": "alliance_beast",
+      "province": "south",
+      "coords": {
+        "x": 200,
+        "y": 620
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 30,
+      "tier": null,
+      "reward": "Spore Catalyst",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_s7",
+      "name": "Terrorweb Arachnid",
+      "type": "alliance_beast",
+      "province": "south",
+      "coords": {
+        "x": 600,
+        "y": 620
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 35,
+      "tier": null,
+      "reward": "Poison Silk",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_c1",
+      "name": "Royal Colossus Guard",
+      "type": "alliance_beast",
+      "province": "crownlands",
+      "coords": {
+        "x": 400,
+        "y": 460
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 60,
+      "tier": null,
+      "reward": "Legendary Royal Armaments",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "beast_c2",
+      "name": "Apex Fire Phoenix",
+      "type": "alliance_beast",
+      "province": "crownlands",
+      "coords": {
+        "x": 400,
+        "y": 340
+      },
+      "radius": 30,
+      "asset_key": "beast_lair_spawn",
+      "level": 60,
+      "tier": null,
+      "reward": "Phoenix Rebirth Crest",
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": null,
+      "density": null,
+      "polygon": null,
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    }
+  ],
+  "resource_regions": [
+    {
+      "id": "res_n1",
+      "name": "Chillwind Lumber Woods",
+      "type": "resource_region",
+      "province": "north",
+      "coords": {
+        "x": 100,
+        "y": 80
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Lumber",
+      "level": null,
+      "tier": 1,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Lumber",
+      "density": "Tier 1 (Low Density)",
+      "polygon": [
+        {
+          "x": 100,
+          "y": 70
+        },
+        {
+          "x": 110,
+          "y": 80
+        },
+        {
+          "x": 100,
+          "y": 90
+        },
+        {
+          "x": 90,
+          "y": 80
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_n2",
+      "name": "Frostbite Quarry Pass",
+      "type": "resource_region",
+      "province": "north",
+      "coords": {
+        "x": 200,
+        "y": 70
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Quarry",
+      "level": null,
+      "tier": 1,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Quarry",
+      "density": "Tier 1 (Low Density)",
+      "polygon": [
+        {
+          "x": 200,
+          "y": 60
+        },
+        {
+          "x": 210,
+          "y": 70
+        },
+        {
+          "x": 200,
+          "y": 80
+        },
+        {
+          "x": 190,
+          "y": 70
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_n3",
+      "name": "Glacial Wheat Patch",
+      "type": "resource_region",
+      "province": "north",
+      "coords": {
+        "x": 600,
+        "y": 80
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Farming",
+      "level": null,
+      "tier": 2,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Farming",
+      "density": "Tier 2 (Medium Density)",
+      "polygon": [
+        {
+          "x": 600,
+          "y": 68
+        },
+        {
+          "x": 612,
+          "y": 80
+        },
+        {
+          "x": 600,
+          "y": 92
+        },
+        {
+          "x": 588,
+          "y": 80
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_n4",
+      "name": "Boreal Ore Shards",
+      "type": "resource_region",
+      "province": "north",
+      "coords": {
+        "x": 700,
+        "y": 90
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Iron",
+      "level": null,
+      "tier": 2,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Iron",
+      "density": "Tier 2 (Medium Density)",
+      "polygon": [
+        {
+          "x": 700,
+          "y": 78
+        },
+        {
+          "x": 712,
+          "y": 90
+        },
+        {
+          "x": 700,
+          "y": 102
+        },
+        {
+          "x": 688,
+          "y": 90
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_w1",
+      "name": "Cragpine Timberland",
+      "type": "resource_region",
+      "province": "west",
+      "coords": {
+        "x": 80,
+        "y": 150
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Lumber",
+      "level": null,
+      "tier": 1,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Lumber",
+      "density": "Tier 1 (Low Density)",
+      "polygon": [
+        {
+          "x": 80,
+          "y": 140
+        },
+        {
+          "x": 90,
+          "y": 150
+        },
+        {
+          "x": 80,
+          "y": 160
+        },
+        {
+          "x": 70,
+          "y": 150
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_w2",
+      "name": "Highpass Quarry Pit",
+      "type": "resource_region",
+      "province": "west",
+      "coords": {
+        "x": 70,
+        "y": 250
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Quarry",
+      "level": null,
+      "tier": 1,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Quarry",
+      "density": "Tier 1 (Low Density)",
+      "polygon": [
+        {
+          "x": 70,
+          "y": 240
+        },
+        {
+          "x": 80,
+          "y": 250
+        },
+        {
+          "x": 70,
+          "y": 260
+        },
+        {
+          "x": 60,
+          "y": 250
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_w3",
+      "name": "Stonewall Crop Basin",
+      "type": "resource_region",
+      "province": "west",
+      "coords": {
+        "x": 80,
+        "y": 580
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Farming",
+      "level": null,
+      "tier": 2,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Farming",
+      "density": "Tier 2 (Medium Density)",
+      "polygon": [
+        {
+          "x": 80,
+          "y": 568
+        },
+        {
+          "x": 92,
+          "y": 580
+        },
+        {
+          "x": 80,
+          "y": 592
+        },
+        {
+          "x": 68,
+          "y": 580
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_w4",
+      "name": "Rustvein Iron Ledge",
+      "type": "resource_region",
+      "province": "west",
+      "coords": {
+        "x": 90,
+        "y": 680
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Iron",
+      "level": null,
+      "tier": 2,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Iron",
+      "density": "Tier 2 (Medium Density)",
+      "polygon": [
+        {
+          "x": 90,
+          "y": 668
+        },
+        {
+          "x": 102,
+          "y": 680
+        },
+        {
+          "x": 90,
+          "y": 692
+        },
+        {
+          "x": 78,
+          "y": 680
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_e1",
+      "name": "Sunswept Fields",
+      "type": "resource_region",
+      "province": "east",
+      "coords": {
+        "x": 720,
+        "y": 150
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Farming",
+      "level": null,
+      "tier": 1,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Farming",
+      "density": "Tier 1 (Low Density)",
+      "polygon": [
+        {
+          "x": 720,
+          "y": 140
+        },
+        {
+          "x": 730,
+          "y": 150
+        },
+        {
+          "x": 720,
+          "y": 160
+        },
+        {
+          "x": 710,
+          "y": 150
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_e2",
+      "name": "Whispering Timber Pines",
+      "type": "resource_region",
+      "province": "east",
+      "coords": {
+        "x": 730,
+        "y": 250
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Lumber",
+      "level": null,
+      "tier": 1,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Lumber",
+      "density": "Tier 1 (Low Density)",
+      "polygon": [
+        {
+          "x": 730,
+          "y": 240
+        },
+        {
+          "x": 740,
+          "y": 250
+        },
+        {
+          "x": 730,
+          "y": 260
+        },
+        {
+          "x": 720,
+          "y": 250
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_e3",
+      "name": "Gilded River Quarry",
+      "type": "resource_region",
+      "province": "east",
+      "coords": {
+        "x": 710,
+        "y": 580
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Quarry",
+      "level": null,
+      "tier": 2,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Quarry",
+      "density": "Tier 2 (Medium Density)",
+      "polygon": [
+        {
+          "x": 710,
+          "y": 568
+        },
+        {
+          "x": 722,
+          "y": 580
+        },
+        {
+          "x": 710,
+          "y": 592
+        },
+        {
+          "x": 698,
+          "y": 580
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_e4",
+      "name": "Basalt Iron Shards",
+      "type": "resource_region",
+      "province": "east",
+      "coords": {
+        "x": 720,
+        "y": 680
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Iron",
+      "level": null,
+      "tier": 2,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Iron",
+      "density": "Tier 2 (Medium Density)",
+      "polygon": [
+        {
+          "x": 720,
+          "y": 668
+        },
+        {
+          "x": 732,
+          "y": 680
+        },
+        {
+          "x": 720,
+          "y": 692
+        },
+        {
+          "x": 708,
+          "y": 680
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_s1",
+      "name": "Bogwood Thicket",
+      "type": "resource_region",
+      "province": "south",
+      "coords": {
+        "x": 100,
+        "y": 720
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Lumber",
+      "level": null,
+      "tier": 1,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Lumber",
+      "density": "Tier 1 (Low Density)",
+      "polygon": [
+        {
+          "x": 100,
+          "y": 710
+        },
+        {
+          "x": 110,
+          "y": 720
+        },
+        {
+          "x": 100,
+          "y": 730
+        },
+        {
+          "x": 90,
+          "y": 720
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_s2",
+      "name": "Siltstone Quarry Edge",
+      "type": "resource_region",
+      "province": "south",
+      "coords": {
+        "x": 200,
+        "y": 730
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Quarry",
+      "level": null,
+      "tier": 1,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Quarry",
+      "density": "Tier 1 (Low Density)",
+      "polygon": [
+        {
+          "x": 200,
+          "y": 720
+        },
+        {
+          "x": 210,
+          "y": 730
+        },
+        {
+          "x": 200,
+          "y": 740
+        },
+        {
+          "x": 190,
+          "y": 730
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_s3",
+      "name": "Muckmire Rice Fields",
+      "type": "resource_region",
+      "province": "south",
+      "coords": {
+        "x": 600,
+        "y": 720
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Farming",
+      "level": null,
+      "tier": 2,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Farming",
+      "density": "Tier 2 (Medium Density)",
+      "polygon": [
+        {
+          "x": 600,
+          "y": 708
+        },
+        {
+          "x": 612,
+          "y": 720
+        },
+        {
+          "x": 600,
+          "y": 732
+        },
+        {
+          "x": 588,
+          "y": 720
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_s4",
+      "name": "Swamp Iron Crust",
+      "type": "resource_region",
+      "province": "south",
+      "coords": {
+        "x": 700,
+        "y": 710
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Iron",
+      "level": null,
+      "tier": 2,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Iron",
+      "density": "Tier 2 (Medium Density)",
+      "polygon": [
+        {
+          "x": 700,
+          "y": 698
+        },
+        {
+          "x": 712,
+          "y": 710
+        },
+        {
+          "x": 700,
+          "y": 722
+        },
+        {
+          "x": 688,
+          "y": 710
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_h1",
+      "name": "Heartland Rich Oakwood",
+      "type": "resource_region",
+      "province": "heartlands",
+      "coords": {
+        "x": 280,
+        "y": 310
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Lumber",
+      "level": null,
+      "tier": 3,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Lumber",
+      "density": "Tier 3 (High Density)",
+      "polygon": [
+        {
+          "x": 280,
+          "y": 288
+        },
+        {
+          "x": 302,
+          "y": 310
+        },
+        {
+          "x": 280,
+          "y": 332
+        },
+        {
+          "x": 258,
+          "y": 310
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_h2",
+      "name": "Grand Quarry Ridge",
+      "type": "resource_region",
+      "province": "heartlands",
+      "coords": {
+        "x": 320,
+        "y": 280
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Quarry",
+      "level": null,
+      "tier": 4,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Quarry",
+      "density": "Tier 4 (High Density)",
+      "polygon": [
+        {
+          "x": 320,
+          "y": 256
+        },
+        {
+          "x": 344,
+          "y": 280
+        },
+        {
+          "x": 320,
+          "y": 304
+        },
+        {
+          "x": 296,
+          "y": 280
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_h3",
+      "name": "Cloverdale Farm Basin",
+      "type": "resource_region",
+      "province": "heartlands",
+      "coords": {
+        "x": 480,
+        "y": 280
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Farming",
+      "level": null,
+      "tier": 3,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Farming",
+      "density": "Tier 3 (High Density)",
+      "polygon": [
+        {
+          "x": 480,
+          "y": 258
+        },
+        {
+          "x": 502,
+          "y": 280
+        },
+        {
+          "x": 480,
+          "y": 302
+        },
+        {
+          "x": 458,
+          "y": 280
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_h4",
+      "name": "Heartland Iron Vein",
+      "type": "resource_region",
+      "province": "heartlands",
+      "coords": {
+        "x": 520,
+        "y": 310
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Iron",
+      "level": null,
+      "tier": 4,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Iron",
+      "density": "Tier 4 (High Density)",
+      "polygon": [
+        {
+          "x": 520,
+          "y": 286
+        },
+        {
+          "x": 544,
+          "y": 310
+        },
+        {
+          "x": 520,
+          "y": 334
+        },
+        {
+          "x": 496,
+          "y": 310
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_h5",
+      "name": "Verdant South Pasture",
+      "type": "resource_region",
+      "province": "heartlands",
+      "coords": {
+        "x": 280,
+        "y": 490
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Farming",
+      "level": null,
+      "tier": 3,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Farming",
+      "density": "Tier 3 (High Density)",
+      "polygon": [
+        {
+          "x": 280,
+          "y": 468
+        },
+        {
+          "x": 302,
+          "y": 490
+        },
+        {
+          "x": 280,
+          "y": 512
+        },
+        {
+          "x": 258,
+          "y": 490
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_h6",
+      "name": "Basalt Stone Mines",
+      "type": "resource_region",
+      "province": "heartlands",
+      "coords": {
+        "x": 310,
+        "y": 520
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Quarry",
+      "level": null,
+      "tier": 4,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Quarry",
+      "density": "Tier 4 (High Density)",
+      "polygon": [
+        {
+          "x": 310,
+          "y": 496
+        },
+        {
+          "x": 334,
+          "y": 520
+        },
+        {
+          "x": 310,
+          "y": 544
+        },
+        {
+          "x": 286,
+          "y": 520
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_h7",
+      "name": "Deep Forest Timberlands",
+      "type": "resource_region",
+      "province": "heartlands",
+      "coords": {
+        "x": 490,
+        "y": 520
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Lumber",
+      "level": null,
+      "tier": 3,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Lumber",
+      "density": "Tier 3 (High Density)",
+      "polygon": [
+        {
+          "x": 490,
+          "y": 498
+        },
+        {
+          "x": 512,
+          "y": 520
+        },
+        {
+          "x": 490,
+          "y": 542
+        },
+        {
+          "x": 468,
+          "y": 520
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_h8",
+      "name": "Redcliff Iron Deposits",
+      "type": "resource_region",
+      "province": "heartlands",
+      "coords": {
+        "x": 520,
+        "y": 490
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Iron",
+      "level": null,
+      "tier": 4,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Iron",
+      "density": "Tier 4 (High Density)",
+      "polygon": [
+        {
+          "x": 520,
+          "y": 466
+        },
+        {
+          "x": 544,
+          "y": 490
+        },
+        {
+          "x": 520,
+          "y": 514
+        },
+        {
+          "x": 496,
+          "y": 490
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_g1",
+      "name": "North Gate Iron Reserves",
+      "type": "resource_region",
+      "province": "heartlands",
+      "coords": {
+        "x": 400,
+        "y": 250
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Iron",
+      "level": null,
+      "tier": 4,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Iron",
+      "density": "Tier 4 (High Density)",
+      "polygon": [
+        {
+          "x": 400,
+          "y": 234
+        },
+        {
+          "x": 416,
+          "y": 250
+        },
+        {
+          "x": 400,
+          "y": 266
+        },
+        {
+          "x": 384,
+          "y": 250
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_g2",
+      "name": "South Gate Quarry Stocks",
+      "type": "resource_region",
+      "province": "heartlands",
+      "coords": {
+        "x": 400,
+        "y": 550
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Quarry",
+      "level": null,
+      "tier": 4,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Quarry",
+      "density": "Tier 4 (High Density)",
+      "polygon": [
+        {
+          "x": 400,
+          "y": 534
+        },
+        {
+          "x": 416,
+          "y": 550
+        },
+        {
+          "x": 400,
+          "y": 566
+        },
+        {
+          "x": 384,
+          "y": 550
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_g3",
+      "name": "West Gate Timber Reserves",
+      "type": "resource_region",
+      "province": "heartlands",
+      "coords": {
+        "x": 250,
+        "y": 400
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Lumber",
+      "level": null,
+      "tier": 4,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Lumber",
+      "density": "Tier 4 (High Density)",
+      "polygon": [
+        {
+          "x": 250,
+          "y": 384
+        },
+        {
+          "x": 266,
+          "y": 400
+        },
+        {
+          "x": 250,
+          "y": 416
+        },
+        {
+          "x": 234,
+          "y": 400
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_g4",
+      "name": "East Gate Wheat Fields",
+      "type": "resource_region",
+      "province": "heartlands",
+      "coords": {
+        "x": 550,
+        "y": 400
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Farming",
+      "level": null,
+      "tier": 4,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Farming",
+      "density": "Tier 4 (High Density)",
+      "polygon": [
+        {
+          "x": 550,
+          "y": 384
+        },
+        {
+          "x": 566,
+          "y": 400
+        },
+        {
+          "x": 550,
+          "y": 416
+        },
+        {
+          "x": 534,
+          "y": 400
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_c1",
+      "name": "Imperial Gilded Quarry",
+      "type": "resource_region",
+      "province": "crownlands",
+      "coords": {
+        "x": 360,
+        "y": 360
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Quarry",
+      "level": null,
+      "tier": 5,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Quarry",
+      "density": "Tier 5 (Abundant)",
+      "polygon": [
+        {
+          "x": 360,
+          "y": 346
+        },
+        {
+          "x": 374,
+          "y": 360
+        },
+        {
+          "x": 360,
+          "y": 374
+        },
+        {
+          "x": 346,
+          "y": 360
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_c2",
+      "name": "Royal Hearth Wheat Fields",
+      "type": "resource_region",
+      "province": "crownlands",
+      "coords": {
+        "x": 440,
+        "y": 360
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Farming",
+      "level": null,
+      "tier": 5,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Farming",
+      "density": "Tier 5 (Abundant)",
+      "polygon": [
+        {
+          "x": 440,
+          "y": 346
+        },
+        {
+          "x": 454,
+          "y": 360
+        },
+        {
+          "x": 440,
+          "y": 374
+        },
+        {
+          "x": 426,
+          "y": 360
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_c3",
+      "name": "Crownspire Obsidian Iron",
+      "type": "resource_region",
+      "province": "crownlands",
+      "coords": {
+        "x": 360,
+        "y": 440
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Iron",
+      "level": null,
+      "tier": 5,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Iron",
+      "density": "Tier 5 (Abundant)",
+      "polygon": [
+        {
+          "x": 360,
+          "y": 426
+        },
+        {
+          "x": 374,
+          "y": 440
+        },
+        {
+          "x": 360,
+          "y": 454
+        },
+        {
+          "x": 346,
+          "y": 440
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    },
+    {
+      "id": "res_c4",
+      "name": "Sovereign Goldenwood Grove",
+      "type": "resource_region",
+      "province": "crownlands",
+      "coords": {
+        "x": 440,
+        "y": 440
+      },
+      "radius": 12,
+      "asset_key": "resource_zone_Lumber",
+      "level": null,
+      "tier": 5,
+      "reward": null,
+      "buffs": null,
+      "weekly_event": null,
+      "buffDescription": null,
+      "resourceType": "Lumber",
+      "density": "Tier 5 (Abundant)",
+      "polygon": [
+        {
+          "x": 440,
+          "y": 426
+        },
+        {
+          "x": 454,
+          "y": 440
+        },
+        {
+          "x": 440,
+          "y": 454
+        },
+        {
+          "x": 426,
+          "y": 440
+        }
+      ],
+      "capacity": null,
+      "description": null,
+      "gameplayNotes": null
+    }
+  ],
+  "buildable_regions": [
+    {
+      "id": "region_north",
+      "name": "Frostwood Clearance",
+      "province": "north",
+      "polygon": [
+        {
+          "x": 200,
+          "y": 160
+        },
+        {
+          "x": 600,
+          "y": 160
+        },
+        {
+          "x": 680,
+          "y": 70
+        },
+        {
+          "x": 120,
+          "y": 70
+        }
+      ],
+      "recommended_capacity": 120,
+      "terrain_score": 82,
+      "buildable": true,
+      "notes": "Flat alpine clearings between pine lines. Rich windbreaks."
+    },
+    {
+      "id": "region_west",
+      "name": "Basalt Valley Plateaus",
+      "province": "west",
+      "polygon": [
+        {
+          "x": 70,
+          "y": 200
+        },
+        {
+          "x": 70,
+          "y": 600
+        },
+        {
+          "x": 160,
+          "y": 540
+        },
+        {
+          "x": 160,
+          "y": 260
+        }
+      ],
+      "recommended_capacity": 90,
+      "terrain_score": 71,
+      "buildable": true,
+      "notes": "Terraced highland plateaus providing defensive choke points."
+    },
+    {
+      "id": "region_east",
+      "name": "Golden Breadbasket",
+      "province": "east",
+      "polygon": [
+        {
+          "x": 640,
+          "y": 260
+        },
+        {
+          "x": 750,
+          "y": 150
+        },
+        {
+          "x": 750,
+          "y": 650
+        },
+        {
+          "x": 640,
+          "y": 600
+        }
+      ],
+      "recommended_capacity": 150,
+      "terrain_score": 95,
+      "buildable": true,
+      "notes": "Perfect open fields ideal for vast alliance bases and active farming."
+    },
+    {
+      "id": "region_south",
+      "name": "Verdant South Basin",
+      "province": "south",
+      "polygon": [
+        {
+          "x": 200,
+          "y": 640
+        },
+        {
+          "x": 600,
+          "y": 640
+        },
+        {
+          "x": 680,
+          "y": 730
+        },
+        {
+          "x": 120,
+          "y": 730
+        }
+      ],
+      "recommended_capacity": 110,
+      "terrain_score": 78,
+      "buildable": true,
+      "notes": "Tropical marshland clearances with high water access."
+    }
+  ],
+  "alliance_hqs": [],
+  "roads": [
+    {
+      "id": "road_0",
+      "name": "Imperial North Highway",
+      "type": "road",
+      "road_type": "Imperial",
+      "points": [
+        {
+          "x": 400,
+          "y": 50
+        },
+        {
+          "x": 400,
+          "y": 155
+        },
+        {
+          "x": 400,
+          "y": 300
+        }
+      ],
+      "asset_key": "road_highway"
+    },
+    {
+      "id": "road_1",
+      "name": "Imperial South Highway",
+      "type": "road",
+      "road_type": "Imperial",
+      "points": [
+        {
+          "x": 400,
+          "y": 750
+        },
+        {
+          "x": 400,
+          "y": 645
+        },
+        {
+          "x": 400,
+          "y": 500
+        }
+      ],
+      "asset_key": "road_highway"
+    },
+    {
+      "id": "road_2",
+      "name": "Imperial West Highway",
+      "type": "road",
+      "road_type": "Imperial",
+      "points": [
+        {
+          "x": 40,
+          "y": 400
+        },
+        {
+          "x": 170,
+          "y": 400
+        },
+        {
+          "x": 300,
+          "y": 400
+        }
+      ],
+      "asset_key": "road_highway"
+    },
+    {
+      "id": "road_3",
+      "name": "Imperial East Highway",
+      "type": "road",
+      "road_type": "Imperial",
+      "points": [
+        {
+          "x": 760,
+          "y": 400
+        },
+        {
+          "x": 630,
+          "y": 400
+        },
+        {
+          "x": 500,
+          "y": 400
+        }
+      ],
+      "asset_key": "road_highway"
+    },
+    {
+      "id": "road_4",
+      "name": "Inner Heartlands Loop",
+      "type": "road",
+      "road_type": "Province",
+      "points": [
+        {
+          "x": 300,
+          "y": 400
+        },
+        {
+          "x": 330,
+          "y": 330
+        },
+        {
+          "x": 400,
+          "y": 300
+        },
+        {
+          "x": 470,
+          "y": 330
+        },
+        {
+          "x": 500,
+          "y": 400
+        },
+        {
+          "x": 470,
+          "y": 470
+        },
+        {
+          "x": 400,
+          "y": 500
+        },
+        {
+          "x": 330,
+          "y": 470
+        },
+        {
+          "x": 300,
+          "y": 400
+        }
+      ],
+      "asset_key": "road_highway"
+    },
+    {
+      "id": "road_5",
+      "name": "Everwood Ring West",
+      "type": "road",
+      "road_type": "Province",
+      "points": [
+        {
+          "x": 120,
+          "y": 80
+        },
+        {
+          "x": 230,
+          "y": 150
+        },
+        {
+          "x": 290,
+          "y": 220
+        },
+        {
+          "x": 400,
+          "y": 300
+        }
+      ],
+      "asset_key": "road_highway"
+    },
+    {
+      "id": "road_6",
+      "name": "Everwood Ring East",
+      "type": "road",
+      "road_type": "Province",
+      "points": [
+        {
+          "x": 680,
+          "y": 80
+        },
+        {
+          "x": 570,
+          "y": 150
+        },
+        {
+          "x": 510,
+          "y": 220
+        },
+        {
+          "x": 400,
+          "y": 300
+        }
+      ],
+      "asset_key": "road_highway"
+    },
+    {
+      "id": "road_7",
+      "name": "Ironhold Ring North",
+      "type": "road",
+      "road_type": "Province",
+      "points": [
+        {
+          "x": 60,
+          "y": 160
+        },
+        {
+          "x": 150,
+          "y": 260
+        },
+        {
+          "x": 230,
+          "y": 300
+        },
+        {
+          "x": 300,
+          "y": 400
+        }
+      ],
+      "asset_key": "road_highway"
+    },
+    {
+      "id": "road_8",
+      "name": "Ironhold Ring South",
+      "type": "road",
+      "road_type": "Province",
+      "points": [
+        {
+          "x": 60,
+          "y": 640
+        },
+        {
+          "x": 150,
+          "y": 540
+        },
+        {
+          "x": 230,
+          "y": 500
+        },
+        {
+          "x": 300,
+          "y": 400
+        }
+      ],
+      "asset_key": "road_highway"
+    },
+    {
+      "id": "road_9",
+      "name": "Sunplains Ring North",
+      "type": "road",
+      "road_type": "Province",
+      "points": [
+        {
+          "x": 740,
+          "y": 160
+        },
+        {
+          "x": 650,
+          "y": 260
+        },
+        {
+          "x": 570,
+          "y": 300
+        },
+        {
+          "x": 500,
+          "y": 400
+        }
+      ],
+      "asset_key": "road_highway"
+    },
+    {
+      "id": "road_10",
+      "name": "Sunplains Ring South",
+      "type": "road",
+      "road_type": "Province",
+      "points": [
+        {
+          "x": 740,
+          "y": 640
+        },
+        {
+          "x": 650,
+          "y": 540
+        },
+        {
+          "x": 570,
+          "y": 500
+        },
+        {
+          "x": 500,
+          "y": 400
+        }
+      ],
+      "asset_key": "road_highway"
+    },
+    {
+      "id": "road_11",
+      "name": "Verdant Wilds Ring West",
+      "type": "road",
+      "road_type": "Province",
+      "points": [
+        {
+          "x": 120,
+          "y": 720
+        },
+        {
+          "x": 230,
+          "y": 650
+        },
+        {
+          "x": 290,
+          "y": 580
+        },
+        {
+          "x": 400,
+          "y": 500
+        }
+      ],
+      "asset_key": "road_highway"
+    },
+    {
+      "id": "road_12",
+      "name": "Verdant Wilds Ring East",
+      "type": "road",
+      "road_type": "Province",
+      "points": [
+        {
+          "x": 680,
+          "y": 720
+        },
+        {
+          "x": 570,
+          "y": 650
+        },
+        {
+          "x": 510,
+          "y": 580
+        },
+        {
+          "x": 400,
+          "y": 500
+        }
+      ],
+      "asset_key": "road_highway"
+    }
+  ],
+  "terrain": {
+    "rivers": [
+      {
+        "id": "river_0",
+        "name": "Glacial Torrent (NW)",
+        "type": "river",
+        "points": [
+          {
+            "x": 300,
+            "y": 300
+          },
+          {
+            "x": 200,
+            "y": 200
+          },
+          {
+            "x": 100,
+            "y": 100
+          },
+          {
+            "x": 0,
+            "y": 0
+          }
+        ],
+        "asset_key": "river_segment"
+      },
+      {
+        "id": "river_1",
+        "name": "Sunspire Creek (NE)",
+        "type": "river",
+        "points": [
+          {
+            "x": 500,
+            "y": 300
+          },
+          {
+            "x": 600,
+            "y": 200
+          },
+          {
+            "x": 700,
+            "y": 100
+          },
+          {
+            "x": 800,
+            "y": 0
+          }
+        ],
+        "asset_key": "river_segment"
+      },
+      {
+        "id": "river_2",
+        "name": "Verdant River (SW)",
+        "type": "river",
+        "points": [
+          {
+            "x": 300,
+            "y": 500
+          },
+          {
+            "x": 200,
+            "y": 600
+          },
+          {
+            "x": 100,
+            "y": 700
+          },
+          {
+            "x": 0,
+            "y": 800
+          }
+        ],
+        "asset_key": "river_segment"
+      },
+      {
+        "id": "river_3",
+        "name": "Goldstream River (SE)",
+        "type": "river",
+        "points": [
+          {
+            "x": 500,
+            "y": 500
+          },
+          {
+            "x": 600,
+            "y": 600
+          },
+          {
+            "x": 700,
+            "y": 700
+          },
+          {
+            "x": 800,
+            "y": 800
+          }
+        ],
+        "asset_key": "river_segment"
+      }
+    ],
+    "forests": [
+      {
+        "id": "forest_whisper_pines_1",
+        "name": "Whisper Pines Cluster 1",
+        "type": "forest",
+        "province": "north",
+        "coords": {
+          "x": 280,
+          "y": 130
+        },
+        "radius": 14,
+        "asset_key": "forest_cluster"
+      },
+      {
+        "id": "forest_whisper_pines_2",
+        "name": "Whisper Pines Cluster 2",
+        "type": "forest",
+        "province": "north",
+        "coords": {
+          "x": 260,
+          "y": 120
+        },
+        "radius": 11,
+        "asset_key": "forest_cluster"
+      },
+      {
+        "id": "forest_whisper_pines_3",
+        "name": "Whisper Pines Cluster 3",
+        "type": "forest",
+        "province": "north",
+        "coords": {
+          "x": 295,
+          "y": 125
+        },
+        "radius": 10,
+        "asset_key": "forest_cluster"
+      },
+      {
+        "id": "forest_emerald_grove_1",
+        "name": "Emerald Grove Cluster 1",
+        "type": "forest",
+        "province": "east",
+        "coords": {
+          "x": 640,
+          "y": 220
+        },
+        "radius": 15,
+        "asset_key": "forest_cluster"
+      },
+      {
+        "id": "forest_emerald_grove_2",
+        "name": "Emerald Grove Cluster 2",
+        "type": "forest",
+        "province": "east",
+        "coords": {
+          "x": 655,
+          "y": 205
+        },
+        "radius": 12,
+        "asset_key": "forest_cluster"
+      },
+      {
+        "id": "forest_mossmire_wood_1",
+        "name": "Mossmire Wood Cluster 1",
+        "type": "forest",
+        "province": "west",
+        "coords": {
+          "x": 280,
+          "y": 610
+        },
+        "radius": 15,
+        "asset_key": "forest_cluster"
+      },
+      {
+        "id": "forest_mossmire_wood_2",
+        "name": "Mossmire Wood Cluster 2",
+        "type": "forest",
+        "province": "west",
+        "coords": {
+          "x": 295,
+          "y": 600
+        },
+        "radius": 11,
+        "asset_key": "forest_cluster"
+      },
+      {
+        "id": "forest_boarhollow_vale_1",
+        "name": "Boarhollow Vale Cluster 1",
+        "type": "forest",
+        "province": "east",
+        "coords": {
+          "x": 520,
+          "y": 610
+        },
+        "radius": 14,
+        "asset_key": "forest_cluster"
+      },
+      {
+        "id": "forest_boarhollow_vale_2",
+        "name": "Boarhollow Vale Cluster 2",
+        "type": "forest",
+        "province": "east",
+        "coords": {
+          "x": 505,
+          "y": 600
+        },
+        "radius": 11,
+        "asset_key": "forest_cluster"
+      }
+    ],
+    "mountain_ridges": [
+      {
+        "id": "mountain_north_1",
+        "name": "North Peak 1",
+        "type": "mountain",
+        "province": "north",
+        "coords": {
+          "x": 400,
+          "y": 30
+        },
+        "width": 40,
+        "height": 30,
+        "asset_key": "mountain_peak"
+      },
+      {
+        "id": "mountain_north_2",
+        "name": "North Peak 2",
+        "type": "mountain",
+        "province": "north",
+        "coords": {
+          "x": 380,
+          "y": 40
+        },
+        "width": 30,
+        "height": 22,
+        "asset_key": "mountain_peak"
+      },
+      {
+        "id": "mountain_north_3",
+        "name": "North Peak 3",
+        "type": "mountain",
+        "province": "north",
+        "coords": {
+          "x": 420,
+          "y": 38
+        },
+        "width": 32,
+        "height": 25,
+        "asset_key": "mountain_peak"
+      },
+      {
+        "id": "mountain_nw_1",
+        "name": "NW Ridge 1",
+        "type": "mountain",
+        "province": "north",
+        "coords": {
+          "x": 180,
+          "y": 220
+        },
+        "width": 30,
+        "height": 25,
+        "asset_key": "mountain_peak"
+      },
+      {
+        "id": "mountain_nw_2",
+        "name": "NW Ridge 2",
+        "type": "mountain",
+        "province": "north",
+        "coords": {
+          "x": 165,
+          "y": 230
+        },
+        "width": 25,
+        "height": 20,
+        "asset_key": "mountain_peak"
+      },
+      {
+        "id": "mountain_west_1",
+        "name": "West Peak 1",
+        "type": "mountain",
+        "province": "west",
+        "coords": {
+          "x": 50,
+          "y": 380
+        },
+        "width": 35,
+        "height": 28,
+        "asset_key": "mountain_peak"
+      },
+      {
+        "id": "mountain_west_2",
+        "name": "West Peak 2",
+        "type": "mountain",
+        "province": "west",
+        "coords": {
+          "x": 40,
+          "y": 410
+        },
+        "width": 32,
+        "height": 26,
+        "asset_key": "mountain_peak"
+      },
+      {
+        "id": "mountain_west_3",
+        "name": "West Peak 3",
+        "type": "mountain",
+        "province": "west",
+        "coords": {
+          "x": 55,
+          "y": 430
+        },
+        "width": 30,
+        "height": 24,
+        "asset_key": "mountain_peak"
+      },
+      {
+        "id": "mountain_south_1",
+        "name": "South Peak 1",
+        "type": "mountain",
+        "province": "south",
+        "coords": {
+          "x": 400,
+          "y": 740
+        },
+        "width": 40,
+        "height": 32,
+        "asset_key": "mountain_peak"
+      },
+      {
+        "id": "mountain_south_2",
+        "name": "South Peak 2",
+        "type": "mountain",
+        "province": "south",
+        "coords": {
+          "x": 380,
+          "y": 730
+        },
+        "width": 30,
+        "height": 24,
+        "asset_key": "mountain_peak"
+      },
+      {
+        "id": "mountain_south_3",
+        "name": "South Peak 3",
+        "type": "mountain",
+        "province": "south",
+        "coords": {
+          "x": 418,
+          "y": 735
+        },
+        "width": 32,
+        "height": 26,
+        "asset_key": "mountain_peak"
+      },
+      {
+        "id": "mountain_east_1",
+        "name": "East Peak 1",
+        "type": "mountain",
+        "province": "east",
+        "coords": {
+          "x": 750,
+          "y": 380
+        },
+        "width": 35,
+        "height": 28,
+        "asset_key": "mountain_peak"
+      },
+      {
+        "id": "mountain_east_2",
+        "name": "East Peak 2",
+        "type": "mountain",
+        "province": "east",
+        "coords": {
+          "x": 760,
+          "y": 410
+        },
+        "width": 30,
+        "height": 24,
+        "asset_key": "mountain_peak"
+      }
+    ],
+    "ponds": [],
+    "fog_edges": [
+      {
+        "id": "fog_top",
+        "name": "Northern Fog Edge",
+        "type": "fog_edge",
+        "coords": {
+          "x": 400,
+          "y": 25
+        },
+        "width": 800,
+        "height": 50,
+        "asset_key": "fog_edge"
+      },
+      {
+        "id": "fog_bottom",
+        "name": "Southern Fog Edge",
+        "type": "fog_edge",
+        "coords": {
+          "x": 400,
+          "y": 775
+        },
+        "width": 800,
+        "height": 50,
+        "asset_key": "fog_edge"
+      },
+      {
+        "id": "fog_left",
+        "name": "Western Fog Edge",
+        "type": "fog_edge",
+        "coords": {
+          "x": 25,
+          "y": 400
+        },
+        "width": 50,
+        "height": 800,
+        "asset_key": "fog_edge"
+      },
+      {
+        "id": "fog_right",
+        "name": "Eastern Fog Edge",
+        "type": "fog_edge",
+        "coords": {
+          "x": 775,
+          "y": 400
+        },
+        "width": 50,
+        "height": 800,
+        "asset_key": "fog_edge"
+      }
+    ]
+  }
+}

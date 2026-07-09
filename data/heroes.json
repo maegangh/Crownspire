@@ -2,6 +2,9 @@
   {
 	"id": "maegan",
 	"name": "Maegan",
+	"level": 1,
+	"starLevel": 5,
+	"starProgress": 0,
 	"portrait": "res://Art/Heroes/Maegan/fullbody.png",
 	"troopType": "infantry",
 	"lore": "The supreme marshal of Crownspire, wielding an aura of unyielding command.",
@@ -98,6 +101,10 @@
   {
 	"id": "lorelai",
 	"name": "Lorelai",
+	"level": 1,
+	"ascension": 0,
+	"starLevel": 6,
+	"maxLevel": 120,
 	"rarity": "Mythic",
 	"role": "Support",
 	"troopType": "support",
@@ -858,6 +865,10 @@
   {
 	"id": "allanna",
 	"name": "Allanna",
+	"level": 1,
+	"ascension": 0,
+	"starLevel": 6,
+	"maxLevel": 120,
 	"rarity": "Legendary",
 	"role": "Support",
 	"troopType": "support",

@@ -1,0 +1,201 @@
+[gd_scene format=3 uid="uid://cx62g7x8d3"]
+
+[ext_resource type="Texture2D" uid="uid://cd6fytebe8iah" path="res://data/kingdommap1.png" id="1_utpux"]
+[ext_resource type="Script" uid="uid://dwqlch0dbf8r" path="res://Scenes/World/WorldAutoSpawner.gd" id="1_xgwgn"]
+[ext_resource type="PackedScene" uid="uid://davdlilyin158" path="res://Scenes/ResourceNode.tscn" id="2_xgwgn"]
+[ext_resource type="PackedScene" uid="uid://k7r1i3070s58" path="res://Scenes/WildlingNode.tscn" id="3_6ptn3"]
+[ext_resource type="Texture2D" uid="uid://cqd8ec1wx2qiv" path="res://images/Resources/food.png" id="4_cuw03"]
+[ext_resource type="Texture2D" uid="uid://g65g4aop2xkk" path="res://images/Resources/wood.png" id="5_aodh5"]
+[ext_resource type="Texture2D" uid="uid://bhj3hiwkrhlf3" path="res://images/Resources/stone.png" id="6_x63qt"]
+[ext_resource type="Texture2D" uid="uid://38g66yx5rc7n" path="res://images/Resources/iron.png" id="7_hkio1"]
+[ext_resource type="Texture2D" uid="uid://dlumu58vn66oe" path="res://images/Resources/crystal.png" id="8_gf5ag"]
+[ext_resource type="Texture2D" uid="uid://wh4338gwgf34" path="res://assets/Wildlings/wildling_wolf.png" id="9_g547m"]
+[ext_resource type="Texture2D" uid="uid://beifcv430cat7" path="res://assets/Wildlings/wildling_bear.png" id="10_qgij0"]
+[ext_resource type="Texture2D" uid="uid://be4o0ehb1t7f0" path="res://assets/Wildlings/wildling_spider.png" id="11_jfqr5"]
+[ext_resource type="Texture2D" uid="uid://ceijq2fh3hsn5" path="res://assets/Wildlings/wildling_boar.png" id="12_o3h75"]
+[ext_resource type="Texture2D" uid="uid://dgoawno6tcx7f" path="res://assets/Wildlings/wildling_troll.png" id="13_qrnde"]
+[ext_resource type="Texture2D" uid="uid://cqu1pyuxbfyn6" path="res://assets/Wildlings/wildling_dragon.png" id="14_va38e"]
+[ext_resource type="Texture2D" uid="uid://bu1lilw8cq10u" path="res://assets/UI/wildling_cards/wolf_card.png" id="15_g547m"]
+[ext_resource type="Script" uid="uid://sqmcnstpnort" path="res://scripts/MapCamera.gd" id="16_6ptn3"]
+[ext_resource type="Texture2D" uid="uid://cnextpfvf0wsa" path="res://assets/UI/wildling_cards/bear_card.png" id="16_qgij0"]
+[ext_resource type="Texture2D" uid="uid://ctwaupkx6abn3" path="res://assets/UI/wildling_cards/spider_card.png" id="17_jfqr5"]
+[ext_resource type="PackedScene" uid="uid://bh08artiwt8rc" path="res://Scenes/WildlingPanel.tscn" id="17_uo8to"]
+[ext_resource type="Texture2D" uid="uid://bc3btqnta45r2" path="res://assets/UI/wildling_cards/boar_card.png" id="18_o3h75"]
+[ext_resource type="Texture2D" uid="uid://6cn657gfcdjk" path="res://assets/UI/wildling_cards/troll_card.png" id="19_qrnde"]
+[ext_resource type="Texture2D" uid="uid://ybaw7tbmepw" path="res://assets/UI/wildling_cards/dragon_card.png" id="20_va38e"]
+[ext_resource type="Texture2D" uid="uid://dqyuxasjir660" path="res://assets/Blueprints/Kingdom001_Blueprint.png" id="22_qgij0"]
+
+[node name="WorldRoot" type="Node2D" unique_id=1337326986]
+script = ExtResource("1_xgwgn")
+resource_node_scene = ExtResource("2_xgwgn")
+wildling_node_scene = ExtResource("3_6ptn3")
+food_texture = ExtResource("4_cuw03")
+wood_texture = ExtResource("5_aodh5")
+stone_texture = ExtResource("6_x63qt")
+iron_texture = ExtResource("7_hkio1")
+crystal_texture = ExtResource("8_gf5ag")
+wolf_texture = ExtResource("9_g547m")
+bear_texture = ExtResource("10_qgij0")
+spider_texture = ExtResource("11_jfqr5")
+boar_texture = ExtResource("12_o3h75")
+troll_texture = ExtResource("13_qrnde")
+dragon_texture = ExtResource("14_va38e")
+wolf_card = ExtResource("15_g547m")
+bear_card = ExtResource("16_qgij0")
+spider_card = ExtResource("17_jfqr5")
+boar_card = ExtResource("18_o3h75")
+troll_card = ExtResource("19_qrnde")
+dragon_card = ExtResource("20_va38e")
+
+[node name="Terrain" type="Node2D" parent="." unique_id=284000241]
+
+[node name="Rivers" type="Node2D" parent="Terrain" unique_id=1387047370]
+
+[node name="Forests" type="Node2D" parent="Terrain" unique_id=5275953]
+
+[node name="Mountains" type="Node2D" parent="Terrain" unique_id=1639789205]
+
+[node name="Plains" type="Node2D" parent="Terrain" unique_id=1577407995]
+
+[node name="FogEdges" type="Node2D" parent="Terrain" unique_id=278221260]
+
+[node name="Sprite2D" type="Sprite2D" parent="Terrain" unique_id=466218541]
+position = Vector2(2048, 2048)
+texture = ExtResource("1_utpux")
+
+[node name="BluePrintOverlay" type="Sprite2D" parent="Terrain" unique_id=321140025]
+visible = false
+position = Vector2(2048, 2048)
+texture = ExtResource("22_qgij0")
+
+[node name="ProvinceAreas" type="Node2D" parent="." unique_id=2011529239]
+
+[node name="Whisperwood" type="Area2D" parent="ProvinceAreas" unique_id=1389017111]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="ProvinceAreas/Whisperwood" unique_id=1360909959]
+
+[node name="Polygon2D" type="Polygon2D" parent="ProvinceAreas/Whisperwood" unique_id=2085187359]
+modulate = Color(0.043137256, 0.4, 0.13725491, 1)
+position = Vector2(0, 2)
+
+[node name="Oakridge" type="Area2D" parent="ProvinceAreas" unique_id=364609532]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="ProvinceAreas/Oakridge" unique_id=318978774]
+
+[node name="Polygon2D" type="Polygon2D" parent="ProvinceAreas/Oakridge" unique_id=1762279986]
+modulate = Color(0.003921569, 0.19607843, 0.1254902, 1)
+
+[node name="Ironpine" type="Area2D" parent="ProvinceAreas" unique_id=1693438319]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="ProvinceAreas/Ironpine" unique_id=747722132]
+
+[node name="Polygon2D" type="Polygon2D" parent="ProvinceAreas/Ironpine" unique_id=1844510462]
+modulate = Color(0.4392157, 0.5019608, 0.5647059, 1)
+
+[node name="Stonewatch" type="Area2D" parent="ProvinceAreas" unique_id=1482173527]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="ProvinceAreas/Stonewatch" unique_id=1780515238]
+
+[node name="Polygon2D" type="Polygon2D" parent="ProvinceAreas/Stonewatch" unique_id=783125157]
+modulate = Color(0.5019608, 0.5019608, 0.5019608, 1)
+
+[node name="Goldenfields" type="Area2D" parent="ProvinceAreas" unique_id=463708040]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="ProvinceAreas/Goldenfields" unique_id=1265227976]
+
+[node name="Polygon2D" type="Polygon2D" parent="ProvinceAreas/Goldenfields" unique_id=368665328]
+modulate = Color(1, 1, 0, 1)
+
+[node name="Sunmeadow" type="Area2D" parent="ProvinceAreas" unique_id=1897164019]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="ProvinceAreas/Sunmeadow" unique_id=484908051]
+
+[node name="Polygon2D" type="Polygon2D" parent="ProvinceAreas/Sunmeadow" unique_id=423373893]
+modulate = Color(0.5647059, 0.93333334, 0.5647059, 1)
+
+[node name="Crystalmere" type="Area2D" parent="ProvinceAreas" unique_id=269668636]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="ProvinceAreas/Crystalmere" unique_id=450467777]
+
+[node name="Polygon2D" type="Polygon2D" parent="ProvinceAreas/Crystalmere" unique_id=6983408]
+modulate = Color(0.25490198, 0.4117647, 0.88235295, 1)
+
+[node name="Shatterpeak" type="Area2D" parent="ProvinceAreas" unique_id=1365141116]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="ProvinceAreas/Shatterpeak" unique_id=797089802]
+
+[node name="Polygon2D" type="Polygon2D" parent="ProvinceAreas/Shatterpeak" unique_id=56240618]
+modulate = Color(0.4117647, 0.29411766, 0, 1)
+
+[node name="WildlingSpawns" type="Node2D" parent="." unique_id=356533683]
+position = Vector2(0, 1)
+
+[node name="ResourceSpawns" type="Node2D" parent="." unique_id=1843093794]
+
+[node name="Marches" type="Node2D" parent="." unique_id=756472754]
+position = Vector2(0, 1)
+
+[node name="Effects" type="Node2D" parent="." unique_id=1369862779]
+
+[node name="Labels" type="Node2D" parent="." unique_id=1554521627]
+visible = false
+
+[node name="Roads" type="Node2D" parent="." unique_id=1669010104]
+
+[node name="Gates" type="Node2D" parent="." unique_id=1879571393]
+
+[node name="RoyalKeep" type="Node2D" parent="." unique_id=2013856668]
+
+[node name="GrandLandmarks" type="Node2D" parent="." unique_id=713628001]
+
+[node name="ConquestKeeps" type="Node2D" parent="." unique_id=1275484370]
+
+[node name="WatchKeeps" type="Node2D" parent="." unique_id=1765123531]
+
+[node name="AllianceBeasts" type="Node2D" parent="." unique_id=377392560]
+
+[node name="AllianceHQs" type="Node2D" parent="." unique_id=428605516]
+
+[node name="BuildableRegions" type="Node2D" parent="." unique_id=307848270]
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=693043096]
+position = Vector2(2048, 2048)
+zoom = Vector2(0.35, 0.35)
+script = ExtResource("16_6ptn3")
+
+[node name="HUD" type="CanvasLayer" parent="." unique_id=688910611]
+
+[node name="ControlPanel" type="PanelContainer" parent="HUD" unique_id=324715832]
+visible = false
+custom_minimum_size = Vector2(230, 260)
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 250.0
+offset_bottom = 280.0
+size_flags_horizontal = 0
+size_flags_vertical = 0
+
+[node name="Labels" type="Node2D" parent="HUD" unique_id=924927819]
+
+[node name="WildlingPanel" parent="HUD" unique_id=488162736 instance=ExtResource("17_uo8to")]
+
+[node name="WildlingRegions" type="Node2D" parent="." unique_id=196643114]
+
+[node name="ResourceRegions" type="Node2D" parent="." unique_id=1630696874]
+
+[node name="FoodSpawn01" type="Marker2D" parent="ResourceRegions" unique_id=138522603]
+position = Vector2(0, 2)
+
+[node name="FoodSpawn02" type="Marker2D" parent="ResourceRegions" unique_id=1095548958]
+
+[node name="Marker2D2" type="Marker2D" parent="ResourceRegions" unique_id=374764203]
+
+[node name="Marker2D3" type="Marker2D" parent="ResourceRegions" unique_id=168903906]
+
+[node name="Marker2D4" type="Marker2D" parent="ResourceRegions" unique_id=2147357820]
+
+[node name="Marker2D5" type="Marker2D" parent="ResourceRegions" unique_id=1704685224]
+
+[node name="Marker2D6" type="Marker2D" parent="ResourceRegions" unique_id=313765847]
+
+[node name="PlayerCastleMarker" type="Marker2D" parent="." unique_id=161156866]

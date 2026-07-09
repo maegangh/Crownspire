@@ -1,0 +1,227 @@
+extends Control
+
+const ITEM_SLOT_SCENE := preload("res://Scenes/UI/ItemSlot.tscn")
+
+@onready var panel: Panel = $Panel
+@onready var title_label: Label = $Panel/Header/Title
+@onready var close_button: Button = $Panel/Header/CloseButton
+
+@onready var all_button: Button = $Panel/Tabs/AllButton
+@onready var resources_button: Button = $Panel/Tabs/ResourcesButton
+@onready var speedups_button: Button = $Panel/Tabs/SpeedupsButton
+@onready var boosts_button: Button = $Panel/Tabs/BoostsButton
+@onready var chests_button: Button = $Panel/Tabs/ChestsButton
+@onready var hero_button: Button = $Panel/Tabs/HeroButton
+@onready var event_button: Button = $Panel/Tabs/EventButton
+
+@onready var grid_container: GridContainer = $Panel/ItemGrid/GridContainer
+
+@onready var detail_icon: TextureRect = $Panel/ItemPopup/Icon
+@onready var detail_name: Label = $Panel/ItemPopup/NameLabel
+@onready var detail_description: Label = $Panel/ItemPopup/DescriptionLabel
+@onready var detail_quantity: Label = $Panel/ItemPopup/QuantityLabel
+@onready var use_button: Button = $Panel/ItemPopup/UseButton
+@onready var item_popup: Panel = $Panel/ItemPopup
+
+@onready var ui_manager = $"../../UIManager"
+
+var current_filter: String = "all"
+var selected_item_id: String = ""
+
+
+func _ready() -> void:
+	visible = false
+
+	title_label.text = "Bag"
+	close_button.text = "X"
+
+	all_button.text = "All"
+	resources_button.text = "Resources"
+	speedups_button.text = "Speedups"
+	boosts_button.text = "Boosts"
+	chests_button.text = "Chests"
+	hero_button.text = "Heroes & Gear"
+	event_button.text = "Events"
+	use_button.text = "Use"
+
+	close_button.pressed.connect(hide_bag)
+	all_button.pressed.connect(func(): show_category("all"))
+	resources_button.pressed.connect(func(): show_category("resource"))
+	speedups_button.pressed.connect(func(): show_category("speedup"))
+	boosts_button.pressed.connect(func(): show_category("boost"))
+	chests_button.pressed.connect(func(): show_category("chest"))
+	hero_button.pressed.connect(func(): show_category("hero"))
+	event_button.pressed.connect(func(): show_category("event"))
+
+	use_button.pressed.connect(_on_use_pressed)
+
+	_clear_details()
+
+
+func on_open() -> void:
+	refresh_items()
+
+
+func hide_bag() -> void:
+	ui_manager.close_current_screen()
+
+
+func show_category(category: String) -> void:
+	current_filter = category
+	selected_item_id = ""
+	_clear_details()
+	refresh_items()
+
+
+func refresh_items() -> void:
+	
+
+	for child in grid_container.get_children():
+		child.queue_free()
+
+	if BagState.items.is_empty():
+		_clear_details()
+		return
+
+	for item_id in BagState.items.keys():
+		if not _passes_filter(item_id):
+			continue
+
+		var amount: int = int(BagState.items[item_id])
+		_add_item_slot(item_id, amount)
+
+
+func _passes_filter(item_id: String) -> bool:
+	if current_filter == "all":
+		return true
+
+	var item: Dictionary = ItemDatabase.get_item(item_id)
+	return str(item.get("category", "misc")) == current_filter
+
+
+func _add_item_slot(item_id: String, amount: int) -> void:
+	
+
+	var slot = ITEM_SLOT_SCENE.instantiate()
+	grid_container.add_child(slot)
+
+	var icon_texture: Texture2D = null
+	var icon_path := ItemDatabase.get_item_icon_path(item_id)
+
+	if icon_path != "" and ResourceLoader.exists(icon_path):
+		icon_texture = load(icon_path)
+
+	slot.setup(item_id, amount, icon_texture)
+
+	if slot.has_signal("item_selected"):
+		slot.item_selected.connect(_on_item_selected)
+
+
+func _on_item_selected(item_id: String) -> void:
+	selected_item_id = item_id
+	_show_details(item_id)
+
+
+func _show_details(item_id: String) -> void:
+	var item: Dictionary = ItemDatabase.get_item(item_id)
+	var amount: int = BagState.get_item_count(item_id)
+
+	item_popup.visible = true
+
+	detail_name.text = str(item.get("name", item_id))
+	detail_description.text = str(item.get("description", ""))
+	detail_quantity.text = "Owned: " + str(amount)
+
+	var icon_path := str(item.get("icon", ""))
+	if icon_path != "" and ResourceLoader.exists(icon_path):
+		detail_icon.texture = load(icon_path)
+	else:
+		detail_icon.texture = null
+
+	use_button.disabled = not bool(item.get("usable", false))
+
+func _clear_details() -> void:
+	item_popup.visible = false
+	detail_icon.texture = null
+	detail_name.text = ""
+	detail_description.text = ""
+	detail_quantity.text = ""
+	use_button.disabled = true
+
+
+func _on_use_pressed() -> void:
+	if selected_item_id == "":
+		return
+
+	_use_item(selected_item_id)
+
+
+func _use_item(item_id: String) -> void:
+	var item: Dictionary = ItemDatabase.get_item(item_id)
+	var category := str(item.get("category", ""))
+
+	var used_successfully := false
+
+	match category:
+		"resource":
+			used_successfully = _use_resource_item(item_id)
+		"hero":
+			used_successfully = _use_hero_item(item_id)
+		"speedup", "boost", "chest":
+			used_successfully = BagState.remove_item(item_id, 1)
+		_:
+			print("Use item coming soon:", item_id)
+			return
+
+	refresh_items()
+
+	if BagState.get_item_count(item_id) > 0:
+		_show_details(item_id)
+	else:
+		selected_item_id = ""
+		_clear_details()
+
+
+func _use_resource_item(item_id: String) -> bool:
+	var item: Dictionary = ItemDatabase.get_item(item_id)
+	var subcategory := str(item.get("subcategory", ""))
+
+	match item_id:
+		"resource_food_100k":
+			GameState.add_food(100000)
+		"resource_wood_100k":
+			GameState.add_wood(100000)
+		"resource_stone_50k":
+			GameState.add_stone(50000)
+		"resource_iron_25k":
+			GameState.add_iron(25000)
+		"resource_diamond_1000":
+			GameState.diamonds += 1000
+			GameState.save_resources()
+		_:
+			print("Resource item not hooked up yet:", item_id, subcategory)
+			return false
+
+	return BagState.remove_item(item_id, 1)
+
+
+func _use_hero_item(item_id: String) -> bool:
+	if not item_id.begins_with("hero_shard_"):
+		print("Hero item not hooked up yet:", item_id)
+		return false
+
+	var hero_id := item_id.replace("hero_shard_", "")
+	HeroState.add_hero_shards(hero_id, 1)
+
+	return BagState.remove_item(item_id, 1)
+	
+func _input(event: InputEvent) -> void:
+	if not visible:
+		return
+
+	if event is InputEventMouseButton and event.pressed:
+		if item_popup.visible:
+			var popup_rect := item_popup.get_global_rect()
+			if not popup_rect.has_point(event.global_position):
+				_clear_details()
+					

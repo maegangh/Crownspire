@@ -1,67 +1,88 @@
 [gd_scene format=3 uid="uid://bh08artiwt8rc"]
 
 [ext_resource type="Script" uid="uid://ds8opbj67egrc" path="res://Scenes/wildling_panel.gd" id="1_gg1im"]
+[ext_resource type="Texture2D" uid="uid://ch7rjfelpkk2m" path="res://assets/Buildings/Farm/food2.png" id="2_8r6hb"]
 [ext_resource type="Texture2D" uid="uid://bu1lilw8cq10u" path="res://assets/UI/wildling_cards/wolf_card.png" id="2_sg275"]
+[ext_resource type="Texture2D" uid="uid://3h0dmh3jws84" path="res://assets/Buildings/LumberMill/wood2.png" id="3_nhl7e"]
+[ext_resource type="Texture2D" uid="uid://ersiqujj2rkl" path="res://assets/Buildings/Quarry/stone2.png" id="4_fj653"]
+[ext_resource type="Texture2D" uid="uid://bxqskow8ahlxp" path="res://assets/Buildings/IronMine/iron2.png" id="5_mt4ex"]
+[ext_resource type="Texture2D" uid="uid://jjbmk2okmslm" path="res://assets/Buildings/Diamonds/diamonds1.png" id="6_djtfr"]
+[ext_resource type="Texture2D" uid="uid://bsq2jm2l8w8xs" path="res://assets/PossibleDrops/hero_xp_icon.png" id="7_nhl7e"]
 
 [node name="WildlingPanel" type="Control" unique_id=488162736]
+self_modulate = Color(1, 1, 1, 0)
 layout_mode = 3
 anchors_preset = 0
 script = ExtResource("1_gg1im")
+wheat_icon = ExtResource("2_8r6hb")
+wood_icon = ExtResource("3_nhl7e")
+stone_icon = ExtResource("4_fj653")
+iron_icon = ExtResource("5_mt4ex")
+diamond_icon = ExtResource("6_djtfr")
+hero_xp_icon = ExtResource("7_nhl7e")
 
-[node name="CardImage" type="TextureRect" parent="." unique_id=1661483004]
+[node name="CardRoot" type="Control" parent="." unique_id=1246934895]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Background" type="TextureRect" parent="CardRoot" unique_id=857115076]
 layout_mode = 0
-offset_left = 206.0
-offset_top = 30.000004
-offset_right = 246.0
-offset_bottom = 70.0
-scale = Vector2(10, 10)
+offset_right = 420.0
+offset_bottom = 620.0
 mouse_filter = 2
 texture = ExtResource("2_sg275")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="LevelNumberLabel" type="Label" parent="." unique_id=856755673]
+[node name="LevelNumberLabel" type="Label" parent="CardRoot" unique_id=856755673]
 layout_mode = 0
-offset_left = 418.0
-offset_top = 254.0
-offset_right = 458.0
-offset_bottom = 277.0
-theme_override_font_sizes/font_size = 10
+offset_left = 222.0
+offset_top = 343.0
+offset_right = 262.0
+offset_bottom = 378.0
+theme_override_font_sizes/font_size = 25
 text = "1"
 
-[node name="PowerNumberLabel" type="Label" parent="." unique_id=1181657003]
+[node name="PowerNumberLabel" type="Label" parent="CardRoot" unique_id=1181657003]
 layout_mode = 0
-offset_left = 200.0
-offset_top = 181.0
-offset_right = 240.0
-offset_bottom = 204.0
+offset_left = 290.0
+offset_top = 478.0
+offset_right = 341.0
+offset_bottom = 504.0
+theme_override_font_sizes/font_size = 18
+text = "123"
 
-[node name="StaminaCostLabel" type="Label" parent="." unique_id=1498008493]
+[node name="StaminaCostLabel" type="Label" parent="CardRoot" unique_id=1498008493]
 layout_mode = 0
-offset_left = 400.0
-offset_top = 384.0
-offset_right = 440.0
-offset_bottom = 407.0
-theme_override_font_sizes/font_size = 11
+offset_left = 205.0
+offset_top = 551.0
+offset_right = 228.0
+offset_bottom = 579.0
+theme_override_font_sizes/font_size = 20
 text = "10"
 
-[node name="PossibleDrops" type="ScrollContainer" parent="." unique_id=102674322]
+[node name="PossibleDrops" type="ScrollContainer" parent="CardRoot" unique_id=102674322]
 layout_mode = 0
-offset_left = 295.0
-offset_top = 289.0
-offset_right = 515.0
-offset_bottom = 329.0
+offset_left = 47.0
+offset_top = 401.0
+offset_right = 379.0
+offset_bottom = 482.0
 mouse_filter = 2
+scroll_horizontal_custom_step = 287.07
+scroll_vertical_custom_step = 351.086
 vertical_scroll_mode = 0
 
-[node name="DropRow" type="HBoxContainer" parent="PossibleDrops" unique_id=858715301]
+[node name="DropRow" type="HBoxContainer" parent="CardRoot/PossibleDrops" unique_id=858715301]
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_constants/separation = 2
 
-[node name="AttackButton" type="Button" parent="." unique_id=366289450]
+[node name="AttackButton" type="Button" parent="CardRoot" unique_id=366289450]
 modulate = Color(1, 1, 1, 0)
 layout_mode = 0
-offset_left = 326.0
-offset_top = 363.0
-offset_right = 490.0
-offset_bottom = 394.0
+offset_left = 104.0
+offset_top = 410.0
+offset_right = 244.0
+offset_bottom = 439.0

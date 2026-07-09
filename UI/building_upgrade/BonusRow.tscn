@@ -1,0 +1,78 @@
+[gd_scene format=3 uid="uid://cb3df8rxba72k"]
+
+[ext_resource type="Script" uid="uid://cvr4mst7mnprf" path="res://scripts/BonusRow.gd" id="1_5yebg"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_row"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0.96, 0.97, 0.98, 0.45)
+border_width_left = 3
+border_color = Color(0.13, 0.26, 0.46, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="BonusRow" type="PanelContainer" unique_id=1776353072]
+offset_right = 500.0
+offset_bottom = 44.0
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_row")
+script = ExtResource("1_5yebg")
+
+[node name="HBox" type="HBoxContainer" parent="." unique_id=1716339428]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="StatIcon" type="TextureRect" parent="HBox" unique_id=476242305]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+size_flags_vertical = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StatNameLabel" type="Label" parent="HBox" unique_id=498225707]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.13, 0.15, 0.18, 1)
+theme_override_font_sizes/font_size = 14
+text = "Kingdom Power Might"
+vertical_alignment = 1
+
+[node name="CurrentValueLabel" type="Label" parent="HBox" unique_id=1729180019]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.45, 0.5, 1)
+theme_override_font_sizes/font_size = 14
+text = "124,500"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="ArrowLabel" type="Label" parent="HBox" unique_id=2071887918]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.6, 0.9, 1)
+theme_override_font_sizes/font_size = 14
+text = "➜"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="NextValueLabel" type="Label" parent="HBox" unique_id=685970071]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.13, 0.26, 0.46, 1)
+theme_override_font_sizes/font_size = 14
+text = "129,000"
+vertical_alignment = 1
+
+[node name="IncreaseLabel" type="Label" parent="HBox" unique_id=1757357623]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.18, 0.8, 0.44, 1)
+theme_override_font_sizes/font_size = 13
+text = "(+4,500)"
+vertical_alignment = 1

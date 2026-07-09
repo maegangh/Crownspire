@@ -1,0 +1,302 @@
+[gd_scene format=3 uid="uid://d03occm0exrgp"]
+
+[ext_resource type="Script" uid="uid://b3crexxxmx5va" path="res://Scenes/UI/upgrade_window.gd" id="1_2uy3x"]
+[ext_resource type="Texture2D" uid="uid://10srebdujqs2" path="res://assets/Upgrade/Button/3.png" id="2_6c7yl"]
+[ext_resource type="PackedScene" uid="uid://jls1ffu7aaob" path="res://Scenes/BonusRow.tscn" id="2_wtl0f"]
+[ext_resource type="PackedScene" uid="uid://c8xijc8iihhu7" path="res://Scenes/RequirementRow.tscn" id="3_r2iy6"]
+[ext_resource type="Texture2D" uid="uid://yennqv5ur6e0" path="res://assets/Upgrade/Button/2.png" id="3_wtl0f"]
+[ext_resource type="Texture2D" uid="uid://ca144asym26lb" path="res://assets/Upgrade/Button/Firefly.png" id="4_0ski1"]
+[ext_resource type="Texture2D" uid="uid://cb0ggdruvc4j0" path="res://assets/Upgrade/Button/1.png" id="6_2uy3x"]
+[ext_resource type="Texture2D" uid="uid://beibyygjic6i0" path="res://assets/Buildings/Castle/main_castle.png" id="6_bcs04"]
+[ext_resource type="Texture2D" uid="uid://cawdjtc1h0dbq" path="res://assets/Upgrade/Button/Blue Crystal Design1.png" id="9_2uy3x"]
+
+[node name="UpgradeWindow" type="Control" unique_id=1179122013]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+script = ExtResource("1_2uy3x")
+bonus_row_scene = ExtResource("2_wtl0f")
+requirement_row_scene = ExtResource("3_r2iy6")
+
+[node name="DarkOverlay" type="ColorRect" parent="." unique_id=2016061511]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -3.0
+offset_bottom = -3.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.47058824)
+
+[node name="WindowFrame" type="TextureRect" parent="." unique_id=514192066]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -381.0
+offset_top = -650.0
+offset_right = 387.0
+offset_bottom = 726.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.93, 0.93)
+mouse_filter = 2
+texture = ExtResource("4_0ski1")
+stretch_mode = 5
+
+[node name="BuildingDisplay" type="Control" parent="." unique_id=1583730220]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 66.0
+offset_top = 75.0
+offset_right = -112.00006
+offset_bottom = -940.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BuildingImage" type="TextureRect" parent="BuildingDisplay" unique_id=2130585892]
+layout_mode = 0
+offset_left = 122.0
+offset_top = 32.0
+offset_right = 1146.0
+offset_bottom = 865.0
+scale = Vector2(0.28, 0.28)
+texture = ExtResource("6_bcs04")
+
+[node name="TitleBar" type="TextureRect" parent="BuildingDisplay" unique_id=1588964276]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 0
+offset_left = -40.0
+offset_top = 274.0
+offset_right = 4088.0
+offset_bottom = 1212.4617
+scale = Vector2(0.13, 0.13)
+mouse_filter = 2
+texture = ExtResource("6_2uy3x")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TitleTextBox" type="VBoxContainer" parent="BuildingDisplay/TitleBar" unique_id=316263205]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="BuildingName" type="Label" parent="BuildingDisplay/TitleBar/TitleTextBox" unique_id=1680965128]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.1254902, 0.0627451, 0.1882353, 1)
+theme_override_colors/font_shadow_color = Color(0.1254902, 0.0627451, 0.1882353, 1)
+theme_override_font_sizes/font_size = 28
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LevelRow" type="HBoxContainer" parent="BuildingDisplay/TitleBar/TitleTextBox" unique_id=2032625403]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="CurrentLevelLabel" type="Label" parent="BuildingDisplay/TitleBar/TitleTextBox/LevelRow" unique_id=72918838]
+modulate = Color(0.1254902, 0.0627451, 0.1882353, 1)
+self_modulate = Color(0.1254902, 0.0627451, 0.1882353, 1)
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.20152658, 0.20152658, 0.20152658, 1)
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 1
+
+[node name="ArrowTextureRect" type="TextureRect" parent="BuildingDisplay/TitleBar/TitleTextBox/LevelRow" unique_id=1780036300]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture = ExtResource("9_2uy3x")
+expand_mode = 3
+stretch_mode = 5
+
+[node name="NextLevelLabel" type="Label" parent="BuildingDisplay/TitleBar/TitleTextBox/LevelRow" unique_id=943444742]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.071256675, 0.5279115, 0.9772982, 1)
+theme_override_colors/font_shadow_color = Color(0.07058824, 0.5294118, 0.9764706, 1)
+theme_override_font_sizes/font_size = 18
+
+[node name="UpgradeBonusPanel" type="Control" parent="." unique_id=1438416064]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 39.0
+offset_top = 514.0
+offset_right = -100.0
+offset_bottom = -553.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BonusContainer" type="VBoxContainer" parent="UpgradeBonusPanel" unique_id=1130218413]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = -10.0
+offset_right = -6.0
+offset_bottom = -22.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BonusRow" parent="UpgradeBonusPanel/BonusContainer" unique_id=1304123569 instance=ExtResource("2_wtl0f")]
+layout_mode = 2
+
+[node name="RequirementsPanel" type="Control" parent="." unique_id=847502726]
+self_modulate = Color(18.892157, 18.892157, 18.892157, 0)
+clip_contents = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 51.0
+offset_top = 786.0
+offset_right = -105.0
+offset_bottom = -164.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="RequirementsContainer" type="VBoxContainer" parent="RequirementsPanel" unique_id=1511237275]
+custom_minimum_size = Vector2(635, 335)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -6.0
+offset_top = 7.0
+offset_right = 70.0
+offset_bottom = 12.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.88, 0.88)
+theme_override_constants/separation = 4
+
+[node name="RequirementRow" parent="RequirementsPanel/RequirementsContainer" unique_id=1783996553 instance=ExtResource("3_r2iy6")]
+self_modulate = Color(1, 1, 1, 0)
+layout_mode = 2
+size_flags_stretch_ratio = 0.0
+
+[node name="FinishButton" type="Button" parent="." unique_id=879183123]
+self_modulate = Color(1, 1, 1, 0)
+layout_mode = 0
+offset_left = 78.0
+offset_top = 1117.0
+offset_right = 328.0
+offset_bottom = 1242.0
+scale = Vector2(0.95, 0.95)
+
+[node name="ButtonImage" type="TextureRect" parent="FinishButton" unique_id=419464920]
+layout_mode = 0
+offset_left = 4.0
+offset_right = 254.0
+offset_bottom = 125.0
+texture = ExtResource("2_6c7yl")
+expand_mode = 1
+
+[node name="ButtonLabel" type="Label" parent="FinishButton" unique_id=951724823]
+layout_mode = 0
+offset_left = 52.0
+offset_top = 37.0
+offset_right = 211.0
+offset_bottom = 79.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 30
+text = "Finish Now"
+autowrap_trim_flags = 64
+
+[node name="UpgradeButton" type="Button" parent="." unique_id=770244587]
+self_modulate = Color(1, 1, 1, 0)
+layout_mode = 0
+offset_left = 347.0
+offset_top = 1117.0
+offset_right = 597.0
+offset_bottom = 1242.0
+scale = Vector2(0.95, 0.95)
+
+[node name="ButtonImage" type="TextureRect" parent="UpgradeButton" unique_id=643130185]
+layout_mode = 0
+offset_left = -1.0
+offset_top = 3.0
+offset_right = 249.0
+offset_bottom = 128.0
+texture = ExtResource("3_wtl0f")
+expand_mode = 1
+
+[node name="ButtonLabel" type="Label" parent="UpgradeButton" unique_id=532238783]
+layout_mode = 0
+offset_left = 65.0
+offset_top = 43.0
+offset_right = 189.0
+offset_bottom = 85.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 30
+text = "Upgrade"
+
+[node name="CloseButton" type="Button" parent="." unique_id=1417223453]
+layout_mode = 0
+offset_left = 544.0
+offset_top = 66.0
+offset_right = 571.0
+offset_bottom = 116.0
+theme_override_font_sizes/font_size = 30
+text = "X"
+
+[node name="ButtonImage" type="TextureRect" parent="CloseButton" unique_id=1878401902]
+layout_mode = 0
+offset_left = 6.0
+offset_right = 46.0
+offset_bottom = 40.0
+
+[node name="ButtonIcon" type="Label" parent="CloseButton" unique_id=1309384577]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="UpgradeBonusTitle" type="Label" parent="." unique_id=571444133]
+layout_mode = 0
+offset_left = 233.0
+offset_top = 465.0
+offset_right = 493.0
+offset_bottom = 514.0
+theme_override_colors/font_color = Color(0.1254902, 0.0627451, 0.1882353, 1)
+theme_override_colors/font_shadow_color = Color(0.1254902, 0.0627451, 0.1882353, 1)
+theme_override_font_sizes/font_size = 30
+text = "Upgrade Bonus"
+
+[node name="RequirementsTitle" type="Label" parent="." unique_id=1947155064]
+layout_mode = 0
+offset_left = 226.0
+offset_top = 734.0
+offset_right = 464.0
+offset_bottom = 783.0
+theme_override_colors/font_color = Color(0.1254902, 0.0627451, 0.1882353, 1)
+theme_override_colors/font_shadow_color = Color(0.1254902, 0.0627451, 0.1882353, 1)
+theme_override_font_sizes/font_size = 30
+text = "Requirements"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=787907460]

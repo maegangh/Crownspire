@@ -18,7 +18,7 @@
 [ext_resource type="Texture2D" uid="uid://6qxt3ygsd3tf" path="res://assets/Buildings/Warehouse/Warehouse.png" id="17_cbwl0"]
 [ext_resource type="Texture2D" uid="uid://chdt2hsvh3ja6" path="res://assets/Buildings/Watchtower/WatchTower.png" id="18_77fxs"]
 [ext_resource type="Texture2D" uid="uid://b570nhd7mi8au" path="res://assets/Buildings/PetDen/PetDen.png" id="19_17ggg"]
-[ext_resource type="Script" uid="uid://dova0c74f8122" path="res://Scripts/Managers/ResourceManager.gd" id="19_o46t0"]
+[ext_resource type="Script" uid="uid://dova0c74f8122" path="res://scripts/Managers/ResourceManager.gd" id="19_o46t0"]
 [ext_resource type="Texture2D" uid="uid://1s3ciqalou5r" path="res://assets/Buildings/Tavern/Tavern.png" id="20_osohf"]
 [ext_resource type="Texture2D" uid="uid://bft2uoonihjv4" path="res://assets/Buildings/DragonRoost/DragonRoost.png" id="21_5yx2q"]
 [ext_resource type="Script" uid="uid://b36c315glu3kq" path="res://Scenes/City/castle.gd" id="21_vso4u"]
@@ -266,6 +266,7 @@ texture = ExtResource("8_gypx1")
 position = Vector2(-65.569, 636.3817)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Buildings/Hospital/UpgradeArea" unique_id=1767348773]
+visible = false
 position = Vector2(664.569, -173.78629)
 shape = SubResource("RectangleShape2D_osohf")
 

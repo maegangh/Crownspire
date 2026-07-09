@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://b7nckj2xgx4es"]
 
 [ext_resource type="Script" uid="uid://b820vmumg2o7r" path="res://upgrade_castle_button.gd" id="1_3smhh"]
-[ext_resource type="Script" uid="uid://dova0c74f8122" path="res://Scripts/Managers/ResourceManager.gd" id="2_c60hs"]
+[ext_resource type="Script" uid="uid://dova0c74f8122" path="res://scripts/Managers/ResourceManager.gd" id="2_c60hs"]
 
 [node name="Control" type="Control" unique_id=368868041]
 layout_mode = 3

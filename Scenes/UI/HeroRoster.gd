@@ -28,12 +28,29 @@ const HERO_IDS := [
 	"rubble",
 ]
 
-@onready var hero_grid: GridContainer = $ScrollContainer/HeroGrid
-@onready var hero_details_panel: Control = $HeroDetails
+@onready var hero_grid: GridContainer = get_node_or_null("ScrollContainer/HeroGrid")
+@onready var hero_details_panel: Control = get_node_or_null("HeroDetails")
+@onready var back_button: TextureButton = get_node_or_null("BackButton")
 
 func _ready() -> void:
+	if hero_grid == null:
+		push_error("HeroRoster ERROR: Missing node ScrollContainer/HeroGrid")
+		return
+
+	if hero_details_panel == null:
+		push_error("HeroRoster ERROR: Missing node HeroDetails")
+		return
+
+	if back_button == null:
+		push_error("HeroRoster ERROR: Missing node BackButton")
+		return
+
 	hero_details_panel.visible = false
 	_populate_roster()
+
+	if not back_button.pressed.is_connected(_on_back_pressed):
+		back_button.pressed.connect(_on_back_pressed)
+
 
 func _populate_roster() -> void:
 	for child in hero_grid.get_children():
@@ -44,8 +61,9 @@ func _populate_roster() -> void:
 		var hero_id: String = HERO_IDS[i]
 
 		var packed_scene: PackedScene = load(scene_path)
+
 		if packed_scene == null:
-			push_warning("Missing hero card scene: " + scene_path)
+			push_warning("HeroRoster WARNING: Missing hero card scene: " + scene_path)
 			continue
 
 		var card = packed_scene.instantiate()
@@ -57,15 +75,30 @@ func _populate_roster() -> void:
 			card._hero_id = hero_id
 
 		if card.has_signal("hero_selected"):
-			card.hero_selected.connect(_on_hero_selected)
+			if not card.hero_selected.is_connected(_on_hero_selected):
+				card.hero_selected.connect(_on_hero_selected)
+
 
 func _on_hero_selected(hero_id: String) -> void:
 	print("Hero selected: ", hero_id)
 
+	if not Engine.has_singleton("DataManager") and not typeof(DataManager) == TYPE_OBJECT:
+		push_error("HeroRoster ERROR: DataManager not found.")
+		return
+
 	var hero_data: Dictionary = DataManager.get_hero(hero_id)
+
 	if hero_data.is_empty():
-		print("ERROR: Hero not found: ", hero_id)
+		push_error("HeroRoster ERROR: Hero not found: " + hero_id)
 		return
 
 	hero_details_panel.visible = true
-	hero_details_panel.show_hero(hero_data)
+
+	if hero_details_panel.has_method("show_hero"):
+		hero_details_panel.show_hero(hero_data)
+	else:
+		push_error("HeroRoster ERROR: HeroDetails does not have show_hero(hero_data).")
+
+
+func _on_back_pressed() -> void:
+	get_tree().change_scene_to_file("res://Scenes/City/City.tscn")

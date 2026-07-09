@@ -1,0 +1,177 @@
+[gd_scene format=3 uid="uid://dp64j82y37t2p"]
+
+[ext_resource type="Script" path="res://WorldRoot.gd" id="1_wroot"]
+[ext_resource type="Script" path="res://KingdomManager.gd" id="2_kmanager"]
+[ext_resource type="Script" path="res://KingdomSpawnRegion.gd" id="3_region"]
+[ext_resource type="Script" path="res://ResourceSpawnManager.gd" id="4_rspawn"]
+[ext_resource type="PackedScene" uid="uid://b8v6k73o29t4q" path="res://ResourceNode.tscn" id="5_rscene"]
+[ext_resource type="Script" path="res://WildlingSpawnManager.gd" id="6_wspawn"]
+[ext_resource type="PackedScene" uid="uid://dp64j82y37t2o" path="res://WildlingNode.tscn" id="7_wscene"]
+[ext_resource type="Script" path="res://MarchManager.gd" id="8_mmanager"]
+[ext_resource type="PackedScene" uid="uid://cx40shh1372o2" path="res://MarchIcon.tscn" id="9_mscene"]
+[ext_resource type="Script" path="res://MapCamera2D.gd" id="10_camera"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_zone"]
+size = Vector2(1200, 800)
+
+[node name="WorldRoot" type="Node2D" node_paths=PackedStringArray("kingdom_manager", "camera", "detail_panel", "panel_title", "panel_description", "panel_action_button")]
+script = ExtResource("1_wroot")
+kingdom_manager = NodePath("KingdomManager")
+camera = NodePath("Camera2D")
+detail_panel = NodePath("HUD/Control/DetailPanel")
+panel_title = NodePath("HUD/Control/DetailPanel/Margin/VBox/TitleLabel")
+panel_description = NodePath("HUD/Control/DetailPanel/Margin/VBox/DescLabel")
+panel_action_button = NodePath("HUD/Control/DetailPanel/Margin/VBox/ActionButton")
+
+[node name="KingdomManager" type="Node2D" parent="." node_paths=PackedStringArray("resource_spawner", "wildling_spawner", "march_manager", "resource_regions_root", "wildling_regions_root")]
+script = ExtResource("2_kmanager")
+resource_spawner = NodePath("ResourceSpawnManager")
+wildling_spawner = NodePath("WildlingSpawnManager")
+march_manager = NodePath("MarchManager")
+resource_regions_root = NodePath("../Terrain/ResourceRegions")
+wildling_regions_root = NodePath("../Terrain/WildlingRegions")
+
+[node name="ResourceSpawnManager" type="Node2D" parent="KingdomManager"]
+script = ExtResource("4_rspawn")
+resource_node_scene = ExtResource("5_rscene")
+
+[node name="WildlingSpawnManager" type="Node2D" parent="KingdomManager"]
+script = ExtResource("6_wspawn")
+wildling_node_scene = ExtResource("7_wscene")
+
+[node name="MarchManager" type="Node2D" parent="KingdomManager"]
+script = ExtResource("8_mmanager")
+march_icon_scene = ExtResource("9_mscene")
+
+[node name="Terrain" type="Node2D" parent="."]
+
+[node name="ResourceRegions" type="Node2D" parent="Terrain"]
+
+[node name="ResourceRegionEast" type="Area2D" parent="Terrain/ResourceRegions"]
+position = Vector2(1000, 200)
+script = ExtResource("3_region")
+region_type = "Resource"
+allowed_spawn_types = Array[String](["food", "wood", "stone", "iron", "crystal"])
+min_level = 1
+max_level = 7
+spawn_weight = 1.0
+max_active_spawns = 20
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/ResourceRegions/ResourceRegionEast"]
+shape = SubResource("RectangleShape2D_zone")
+
+[node name="ResourceRegionWest" type="Area2D" parent="Terrain/ResourceRegions"]
+position = Vector2(-1000, -400)
+script = ExtResource("3_region")
+region_type = "Resource"
+allowed_spawn_types = Array[String](["food", "wood", "stone"])
+min_level = 1
+max_level = 4
+spawn_weight = 0.8
+max_active_spawns = 15
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/ResourceRegions/ResourceRegionWest"]
+shape = SubResource("RectangleShape2D_zone")
+
+[node name="WildlingRegions" type="Node2D" parent="Terrain"]
+
+[node name="WildlingRegionNorth" type="Area2D" parent="Terrain/WildlingRegions"]
+position = Vector2(200, -800)
+script = ExtResource("3_region")
+region_type = "Wildling"
+allowed_spawn_types = Array[String]([])
+min_level = 10
+max_level = 25
+spawn_weight = 1.0
+max_active_spawns = 18
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/WildlingRegions/WildlingRegionNorth"]
+shape = SubResource("RectangleShape2D_zone")
+
+[node name="WildlingRegionSouth" type="Area2D" parent="Terrain/WildlingRegions"]
+position = Vector2(-200, 1000)
+script = ExtResource("3_region")
+region_type = "Wildling"
+allowed_spawn_types = Array[String]([])
+min_level = 1
+max_level = 12
+spawn_weight = 0.9
+max_active_spawns = 12
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/WildlingRegions/WildlingRegionSouth"]
+shape = SubResource("RectangleShape2D_zone")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+script = ExtResource("10_camera")
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="Control" type="Control" parent="HUD"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="InstructionLabel" type="Label" parent="HUD/Control"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 450.0
+offset_bottom = 120.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 14
+text = "👑 Crownspire MMO - Kingdom World Map Beta
+• Drag / Middle Mouse to pan the view
+• Scroll Wheel / Touch Pinch to zoom in & out
+• Click on Resource Nodes or Wildlings to interact
+• Dispatched armies will march, gather/attack, and return"
+
+[node name="DetailPanel" type="PanelContainer" parent="HUD/Control"]
+visible = false
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -175.0
+offset_top = -180.0
+offset_right = 175.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="Margin" type="MarginContainer" parent="HUD/Control/DetailPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="HUD/Control/DetailPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TitleLabel" type="Label" parent="HUD/Control/DetailPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Target Information"
+horizontal_alignment = 1
+
+[node name="DescLabel" type="Label" parent="HUD/Control/DetailPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Detailed sector metrics."
+horizontal_alignment = 1
+
+[node name="ActionButton" type="Button" parent="HUD/Control/DetailPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "DISPATCH MARCH"

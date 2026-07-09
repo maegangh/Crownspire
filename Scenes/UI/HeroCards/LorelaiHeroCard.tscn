@@ -6,7 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://dhawjb4j762jw" path="res://Art/Heroes/Lorelai/portrait.png" id="4_tuk5y"]
 [ext_resource type="Texture2D" uid="uid://cuf4348yuljx6" path="res://assets/heroes/Icons/Marksman.png" id="5_dke1q"]
 [ext_resource type="Texture2D" uid="uid://ciwmxytyy0qhe" path="res://ChatGPT Image Jun 24, 2026, 04_51_57 PM.png" id="6_gnr23"]
-[ext_resource type="Texture2D" uid="uid://dss0a86xstijf" path="res://Scenes/UI/star1.png" id="7_vn7al"]
+[ext_resource type="Texture2D" uid="uid://dss0a86xstijf" path="res://Scenes/UI/big_crystal_gold_star.png" id="7_vn7al"]
 
 [node name="LorelaiHeroCard" type="Button" unique_id=446050875]
 custom_minimum_size = Vector2(200, 300)

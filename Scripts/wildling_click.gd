@@ -3,34 +3,31 @@ extends Area2D
 @export var card_texture: Texture2D
 @export var level: int = 1
 @export var power: int = 100
+@export var species: String = "wolf"
 
-func _ready():
+var wildling_node: Node2D
+
+func _ready() -> void:
 	input_pickable = true
 	monitoring = true
-	print("Wildling Area2D ready: ", name)
+	wildling_node = get_parent()
 
-func _input_event(_viewport, event, _shape_idx):
+func _input_event(_viewport, event, _shape_idx) -> void:
+	if event is InputEventScreenTouch and event.pressed:
+		_open_wildling_panel()
+
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		print("WILDLING CLICKED")
+		_open_wildling_panel()
 
-		var panel = get_tree().current_scene.get_node_or_null("CanvasLayer/WildlingPanel")
-		if panel == null:
-			print("ERROR: WildlingPanel not found")
-			return
+func _open_wildling_panel() -> void:
+	var panel = get_tree().current_scene.get_node_or_null("HUD/WildlingPanel")
 
-		if card_texture == null:
-			print("ERROR: Card texture is empty")
-			return
+	if panel == null:
+		print("ERROR: HUD/WildlingPanel not found")
+		return
 
-		panel.open_panel(card_texture, level, power, get_parent())
-		
-func respawn():
-	visible = false
-	$CollisionShape2D.disabled = true
+	if not panel.has_method("open_panel"):
+		print("ERROR: WildlingPanel missing open_panel()")
+		return
 
-	await get_tree().create_timer(10.0).timeout
-
-	visible = true
-	$CollisionShape2D.disabled = false
-
-	print(name + " respawned")
+	panel.open_panel(card_texture, level, power, wildling_node, species)

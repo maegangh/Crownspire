@@ -4,17 +4,18 @@
 [ext_resource type="Texture2D" uid="uid://bm2tff4ud7170" path="res://assets/heroes/Icons/360_F_626662441_RfY4UVlXAtjILxxoNbO2ikdcFQNE3Bi4.jpg" id="1_lph01"]
 [ext_resource type="Texture2D" uid="uid://ddjf8vxs6na20" path="res://Art/Heroes/Maegan/fullbody.png" id="1_v8im1"]
 [ext_resource type="Texture2D" uid="uid://c75ix4ed7rum6" path="res://assets/Buttons/backarrow.png" id="2_5oagk"]
-[ext_resource type="Texture2D" uid="uid://dss0a86xstijf" path="res://Scenes/UI/star1.png" id="2_t6m5i"]
+[ext_resource type="Texture2D" uid="uid://dss0a86xstijf" path="res://Scenes/UI/big_crystal_gold_star.png" id="2_t6m5i"]
 [ext_resource type="Texture2D" uid="uid://dnstfdxlc7m8s" path="res://assets/Buttons/infantry.png" id="3_5oagk"]
-[ext_resource type="Texture2D" uid="uid://b7b5xaejkeys5" path="res://assets/Buttons/levelup.png" id="3_10k2a"]
-[ext_resource type="Texture2D" uid="uid://e20wmnqvmr1h" path="res://assets/Buttons/ascend.png" id="4_lph01"]
 [ext_resource type="Texture2D" uid="uid://cb3iuf0ivlbb2" path="res://images/HeroCard/mythic43.png" id="4_neop0"]
 [ext_resource type="Texture2D" uid="uid://b5qxa110cjyir" path="res://assets/Buttons/stats.png" id="5_cugc4"]
 [ext_resource type="Texture2D" uid="uid://cuc6wswfkiqop" path="res://assets/Buttons/skills.png" id="6_wnk2u"]
 [ext_resource type="Texture2D" uid="uid://cm68cm65c8td0" path="res://assets/Buttons/gear.png" id="7_neop0"]
 [ext_resource type="Texture2D" uid="uid://drvc5wnl55y26" path="res://assets/Buttons/troopskills.png" id="8_5oagk"]
+[ext_resource type="Texture2D" uid="uid://bsb87r1mdont3" path="res://assets/Buttons/levelup1.png" id="8_7b2bv"]
+[ext_resource type="Texture2D" uid="uid://boho1wkrsii5w" path="res://assets/Buttons/ascend2.png" id="9_fevxf"]
 [ext_resource type="Texture2D" uid="uid://bqxuyrakptn6f" path="res://assets/Buttons/arrow.png" id="13_5oagk"]
 [ext_resource type="Texture2D" uid="uid://q3k6l1i45yko" path="res://assets/Buttons/rightarrow.png" id="14_7b2bv"]
+[ext_resource type="PackedScene" uid="uid://diw3htjqpvufm" path="res://Scenes/UI/HeroAscendPage.tscn" id="16_fevxf"]
 
 [sub_resource type="FontVariation" id="FontVariation_7b2bv"]
 
@@ -34,6 +35,8 @@ mouse_filter = 2
 texture = ExtResource("1_lph01")
 
 [node name="BackButton" type="Button" parent="." unique_id=982515504]
+light_mask = 512
+visibility_layer = 512
 layout_mode = 0
 offset_left = 5.0
 offset_top = 15.0
@@ -41,6 +44,15 @@ offset_right = 1037.0
 offset_bottom = 1047.0
 scale = Vector2(0.11, 0.11)
 icon = ExtResource("2_5oagk")
+flat = true
+autowrap_trim_flags = 0
+
+[node name="AscensionLabel" type="Label" parent="." unique_id=1424406725]
+visible = false
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "+0"
 
 [node name="HeroNameLabel" type="Label" parent="." unique_id=1755062879]
 layout_mode = 0
@@ -86,9 +98,9 @@ stretch_mode = 4
 [node name="LargePortrait" type="TextureRect" parent="." unique_id=1524873469]
 layout_mode = 0
 offset_left = 96.0
-offset_top = 137.0
+offset_top = 95.0
 offset_right = 842.6667
-offset_bottom = 1325.0
+offset_bottom = 1283.0
 scale = Vector2(0.75, 0.75)
 mouse_filter = 2
 texture = ExtResource("1_v8im1")
@@ -148,9 +160,9 @@ texture = ExtResource("2_t6m5i")
 
 [node name="LevelLabel" type="Label" parent="." unique_id=90123413]
 layout_mode = 0
-offset_left = 301.0
+offset_left = 330.0
 offset_top = 1052.0
-offset_right = 367.0
+offset_right = 396.0
 offset_bottom = 1094.0
 theme_override_font_sizes/font_size = 25
 text = "Lv. 1"
@@ -159,19 +171,19 @@ text = "Lv. 1"
 layout_mode = 1
 offset_left = 91.0
 offset_top = 1096.0
-offset_right = 351.0
-offset_bottom = 1168.0
-texture_normal = ExtResource("3_10k2a")
+offset_right = 372.0
+offset_bottom = 1166.0
+texture_normal = ExtResource("8_7b2bv")
 ignore_texture_size = true
 stretch_mode = 0
 
 [node name="AscendButton" type="TextureButton" parent="." unique_id=1798767160]
 layout_mode = 1
 offset_left = 383.0
-offset_top = 1100.0
-offset_right = 643.0
-offset_bottom = 1172.0
-texture_normal = ExtResource("4_lph01")
+offset_top = 1096.0
+offset_right = 664.0
+offset_bottom = 1166.0
+texture_normal = ExtResource("9_fevxf")
 ignore_texture_size = true
 stretch_mode = 0
 
@@ -219,37 +231,79 @@ texture_normal = ExtResource("8_5oagk")
 ignore_texture_size = true
 stretch_mode = 0
 
-[node name="StatsPage" type="Control" parent="." unique_id=1434930845]
+[node name="Pages" type="Control" parent="." unique_id=2090285602]
 anchors_preset = 0
-offset_left = 21.0
-offset_top = 1215.0
-offset_right = 185.0
-offset_bottom = 1272.0
+offset_left = 721.0
+offset_top = 971.00006
+offset_right = 721.0
+offset_bottom = 1434.0
 mouse_filter = 2
 
-[node name="SkillsPage" type="Control" parent="." unique_id=1288829734]
+[node name="OverviewPage" type="Control" parent="Pages" unique_id=1408203387]
 anchors_preset = 0
-offset_left = 201.0
-offset_top = 1217.0
-offset_right = 361.0
-offset_bottom = 1266.0
+offset_left = -721.0
+offset_top = -971.00006
+offset_right = -681.0
+offset_bottom = -931.00006
 mouse_filter = 2
 
-[node name="GearPage" type="Control" parent="." unique_id=1048587191]
+[node name="Overview" type="Label" parent="Pages/OverviewPage" unique_id=1046581245]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="StatsPage" type="Control" parent="Pages" unique_id=1434930845]
 anchors_preset = 0
-offset_left = 376.0
-offset_top = 1213.0
-offset_right = 539.0
-offset_bottom = 1274.0
+offset_left = -700.0
+offset_top = 243.99994
+offset_right = -536.0
+offset_bottom = 300.99994
 mouse_filter = 2
 
-[node name="TroopSkillPage" type="Control" parent="." unique_id=2004466226]
+[node name="Stats" type="Label" parent="Pages/StatsPage" unique_id=279226436]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="SkillsPage" type="Control" parent="Pages" unique_id=1288829734]
 anchors_preset = 0
-offset_left = 547.0
-offset_top = 1210.0
-offset_right = 717.0
-offset_bottom = 1264.0
+offset_left = -520.0
+offset_top = 245.99994
+offset_right = -360.0
+offset_bottom = 294.99994
 mouse_filter = 2
+
+[node name="Skills" type="Label" parent="Pages/SkillsPage" unique_id=1447471466]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="GearPage" type="Control" parent="Pages" unique_id=1048587191]
+anchors_preset = 0
+offset_left = -345.0
+offset_top = 241.99994
+offset_right = -182.0
+offset_bottom = 302.99994
+mouse_filter = 2
+
+[node name="Gear" type="Label" parent="Pages/GearPage" unique_id=2068016202]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="TroopSkillPage" type="Control" parent="Pages" unique_id=2004466226]
+anchors_preset = 0
+offset_left = -174.0
+offset_top = 238.99994
+offset_right = -4.0
+offset_bottom = 292.99994
+mouse_filter = 2
+
+[node name="TroopSkills" type="Label" parent="Pages/TroopSkillPage" unique_id=651080671]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Troop Skills"
 
 [node name="LeftHeroArrow" type="TextureButton" parent="." unique_id=992120744]
 z_index = 20
@@ -273,3 +327,15 @@ rotation = -0.015861103
 texture_normal = ExtResource("14_7b2bv")
 ignore_texture_size = true
 stretch_mode = 0
+
+[node name="HeroAscendPage" parent="." unique_id=1342890029 instance=ExtResource("16_fevxf")]
+visible = false
+layout_mode = 0
+
+[node name="HeroXPLabel" type="Label" parent="." unique_id=185216960]
+layout_mode = 0
+offset_left = 579.0
+offset_top = 15.0
+offset_right = 691.0
+offset_bottom = 38.0
+text = "Hero XP: 1,250"

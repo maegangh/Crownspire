@@ -1,0 +1,389 @@
+[gd_scene format=3 uid="uid://cx5df8rxba74k"]
+
+[ext_resource type="Script" uid="uid://b0mlp61117qq3" path="res://scripts/BuildingUpgradeWindow.gd" id="1_upg_gd"]
+[ext_resource type="Texture2D" uid="uid://c75ix4ed7rum6" path="res://assets/Buttons/backarrow.png" id="2_close_tex"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_window"]
+bg_color = Color(0.95, 0.95, 0.96, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.85, 0.68, 0.25, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.25)
+shadow_size = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_art_bg"]
+bg_color = Color(0.08, 0.1, 0.13, 1)
+border_width_bottom = 2
+border_color = Color(0.85, 0.68, 0.25, 0.8)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel_outline"]
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+bg_color = Color(1, 1, 1, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.85, 0.87, 0.9, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_finish"]
+content_margin_left = 20.0
+content_margin_top = 10.0
+content_margin_right = 20.0
+content_margin_bottom = 10.0
+bg_color = Color(0.8, 0.15, 0.15, 1)
+border_width_bottom = 3
+border_color = Color(0.5, 0.08, 0.08, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0.8, 0.15, 0.15, 0.15)
+shadow_size = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_finish_hover"]
+content_margin_left = 20.0
+content_margin_top = 10.0
+content_margin_right = 20.0
+content_margin_bottom = 10.0
+bg_color = Color(0.9, 0.2, 0.2, 1)
+border_width_bottom = 3
+border_color = Color(0.6, 0.1, 0.1, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_upgrade"]
+content_margin_left = 24.0
+content_margin_top = 10.0
+content_margin_right = 24.0
+content_margin_bottom = 10.0
+bg_color = Color(0.13, 0.26, 0.46, 1)
+border_width_bottom = 3
+border_color = Color(0.08, 0.18, 0.32, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0.13, 0.26, 0.46, 0.2)
+shadow_size = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_upgrade_hover"]
+content_margin_left = 24.0
+content_margin_top = 10.0
+content_margin_right = 24.0
+content_margin_bottom = 10.0
+bg_color = Color(0.18, 0.35, 0.6, 1)
+border_width_bottom = 3
+border_color = Color(0.1, 0.23, 0.42, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_disabled"]
+content_margin_left = 24.0
+content_margin_top = 10.0
+content_margin_right = 24.0
+content_margin_bottom = 10.0
+bg_color = Color(0.7, 0.73, 0.76, 1)
+border_width_bottom = 3
+border_color = Color(0.55, 0.58, 0.61, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_celebration"]
+bg_color = Color(0.08, 0.1, 0.13, 0.95)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.85, 0.68, 0.25, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_gold"]
+content_margin_left = 20.0
+content_margin_top = 8.0
+content_margin_right = 20.0
+content_margin_bottom = 8.0
+bg_color = Color(0.85, 0.68, 0.25, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_gold_hover"]
+content_margin_left = 20.0
+content_margin_top = 8.0
+content_margin_right = 20.0
+content_margin_bottom = 8.0
+bg_color = Color(0.95, 0.78, 0.35, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="BuildingUpgradeWindow" type="Control" unique_id=238428911]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_upg_gd")
+
+[node name="BackgroundDim" type="ColorRect" parent="." unique_id=1506995422]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.65)
+
+[node name="PopupContainer" type="PanelContainer" parent="." unique_id=1500801425]
+custom_minimum_size = Vector2(580, 800)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -290.0
+offset_top = -400.0
+offset_right = 290.0
+offset_bottom = 400.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(290, 400)
+theme_override_styles/panel = SubResource("StyleBoxFlat_window")
+
+[node name="Layout" type="VBoxContainer" parent="PopupContainer" unique_id=1661655667]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="ArtworkPanel" type="PanelContainer" parent="PopupContainer/Layout" unique_id=123957820]
+custom_minimum_size = Vector2(0, 200)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_art_bg")
+
+[node name="BuildingImage" type="TextureRect" parent="PopupContainer/Layout/ArtworkPanel" unique_id=77959130]
+unique_name_in_owner = true
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="DecorationVeins" type="ColorRect" parent="PopupContainer/Layout/ArtworkPanel" unique_id=2134106898]
+visible = false
+layout_mode = 2
+color = Color(0.54, 0.24, 0.95, 0.15)
+
+[node name="CloseButton" type="TextureButton" parent="PopupContainer/Layout/ArtworkPanel" unique_id=2063477668]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 0
+texture_normal = ExtResource("2_close_tex")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Margin" type="MarginContainer" parent="PopupContainer/Layout" unique_id=1058172881]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="MainContent" type="VBoxContainer" parent="PopupContainer/Layout/Margin" unique_id=803619722]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="HeaderBlock" type="VBoxContainer" parent="PopupContainer/Layout/Margin/MainContent" unique_id=858317176]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="BuildingNameLabel" type="Label" parent="PopupContainer/Layout/Margin/MainContent/HeaderBlock" unique_id=1141818197]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.13, 0.26, 0.46, 1)
+theme_override_font_sizes/font_size = 22
+text = "CITADEL OF EMERALD SPIRES"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="UpgradeBonusPanel" type="PanelContainer" parent="PopupContainer/Layout/Margin/MainContent" unique_id=1169510160]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel_outline")
+
+[node name="Content" type="VBoxContainer" parent="PopupContainer/Layout/Margin/MainContent/UpgradeBonusPanel" unique_id=372866616]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="PopupContainer/Layout/Margin/MainContent/UpgradeBonusPanel/Content" unique_id=1843609784]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.68, 0.25, 1)
+theme_override_font_sizes/font_size = 14
+text = "UPGRADE BONUSES"
+
+[node name="BonusContainer" type="VBoxContainer" parent="PopupContainer/Layout/Margin/MainContent/UpgradeBonusPanel/Content" unique_id=751642252]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="RequirementsPanel" type="PanelContainer" parent="PopupContainer/Layout/Margin/MainContent" unique_id=427578716]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel_outline")
+
+[node name="Content" type="VBoxContainer" parent="PopupContainer/Layout/Margin/MainContent/RequirementsPanel" unique_id=533404009]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="PopupContainer/Layout/Margin/MainContent/RequirementsPanel/Content" unique_id=720695077]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.68, 0.25, 1)
+theme_override_font_sizes/font_size = 14
+text = "REQUIREMENTS"
+
+[node name="Scroll" type="ScrollContainer" parent="PopupContainer/Layout/Margin/MainContent/RequirementsPanel/Content" unique_id=1242717041]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="RequirementsContainer" type="VBoxContainer" parent="PopupContainer/Layout/Margin/MainContent/RequirementsPanel/Content/Scroll" unique_id=1767216289]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="FooterButtons" type="HBoxContainer" parent="PopupContainer/Layout/Margin/MainContent" unique_id=855066436]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="FinishButton" type="Button" parent="PopupContainer/Layout/Margin/MainContent/FooterButtons" unique_id=680571092]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_finish")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_finish_hover")
+text = "Finish Now (120 💎)"
+
+[node name="UpgradeButton" type="Button" parent="PopupContainer/Layout/Margin/MainContent/FooterButtons" unique_id=1222263146]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_upgrade")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_upgrade_hover")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
+text = "Upgrade"
+
+[node name="CelebrationPanel" type="PanelContainer" parent="PopupContainer" unique_id=758126561]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_celebration")
+
+[node name="Margin" type="MarginContainer" parent="PopupContainer/CelebrationPanel" unique_id=2110152338]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 40
+
+[node name="Content" type="VBoxContainer" parent="PopupContainer/CelebrationPanel/Margin" unique_id=1084569006]
+layout_mode = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="GoldenGlow" type="Label" parent="PopupContainer/CelebrationPanel/Margin/Content" unique_id=2072966385]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.68, 0.25, 1)
+theme_override_font_sizes/font_size = 32
+text = "👑"
+horizontal_alignment = 1
+
+[node name="CelebrationTitle" type="Label" parent="PopupContainer/CelebrationPanel/Margin/Content" unique_id=1928721382]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.68, 0.25, 1)
+theme_override_font_sizes/font_size = 24
+text = "STRUCTURE UPGRADED"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CelebrationDesc" type="Label" parent="PopupContainer/CelebrationPanel/Margin/Content" unique_id=1492495298]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.88, 0.92, 1)
+theme_override_font_sizes/font_size = 14
+text = "Your Citadel of Emerald Spires has successfully been built to the next level."
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="CelebrationCloseBtn" type="Button" parent="PopupContainer/CelebrationPanel/Margin/Content" unique_id=2038715593]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.08, 0.1, 0.13, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_gold")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_gold_hover")
+text = "Claim & Continue"
+
+[node name="PopupContainer_Layout_Margin_MainContent_HeaderBlock_LevelRow#LevelRow" type="HBoxContainer" parent="." unique_id=1856906623]
+layout_mode = 0
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="CurrentLevelLabel" type="Label" parent="." unique_id=1533144132]
+unique_name_in_owner = true
+layout_mode = 0
+theme_override_colors/font_color = Color(0.4, 0.45, 0.5, 1)
+theme_override_font_sizes/font_size = 15
+text = "Lv.29"
+
+[node name="LevelArrow" type="Label" parent="." unique_id=713730025]
+unique_name_in_owner = true
+layout_mode = 0
+theme_override_colors/font_color = Color(0.85, 0.68, 0.25, 1)
+theme_override_font_sizes/font_size = 15
+text = "➜"
+
+[node name="NextLevelLabel" type="Label" parent="." unique_id=1044041990]
+unique_name_in_owner = true
+layout_mode = 0
+theme_override_colors/font_color = Color(0.13, 0.26, 0.46, 1)
+theme_override_font_sizes/font_size = 15
+text = "Lv.30"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=979471466]

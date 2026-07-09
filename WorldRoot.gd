@@ -1,0 +1,60 @@
+extends Camera2D
+
+@export var map_size: Vector2 = Vector2(4096, 4096)
+@export var zoom_min: float = 0.35
+@export var zoom_max: float = 2.5
+@export var zoom_step: float = 0.12
+
+var dragging: bool = false
+
+func _ready() -> void:
+	position = map_size / 2.0
+	zoom = Vector2(0.75, 0.75)
+
+	limit_left = 0
+	limit_top = 0
+	limit_right = int(map_size.x)
+	limit_bottom = int(map_size.y)
+	limit_smoothed = false
+
+	make_current()
+	_clamp_camera()
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT or event.button_index == MOUSE_BUTTON_MIDDLE:
+			dragging = event.pressed
+
+		elif event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
+			_apply_zoom(zoom_step)
+
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
+			_apply_zoom(-zoom_step)
+
+	elif event is InputEventMouseMotion and dragging:
+		position -= event.relative / zoom.x
+		_clamp_camera()
+
+func _apply_zoom(amount: float) -> void:
+	var new_zoom: float = clampf(zoom.x + amount, zoom_min, zoom_max)
+	zoom = Vector2(new_zoom, new_zoom)
+	_clamp_camera()
+
+func _clamp_camera() -> void:
+	var viewport_size: Vector2 = get_viewport_rect().size
+	var half_view: Vector2 = (viewport_size * 0.5) / zoom.x
+
+	var min_x: float = half_view.x
+	var max_x: float = map_size.x - half_view.x
+	var min_y: float = half_view.y
+	var max_y: float = map_size.y - half_view.y
+
+	if min_x > max_x:
+		position.x = map_size.x / 2.0
+	else:
+		position.x = clampf(position.x, min_x, max_x)
+
+	if min_y > max_y:
+		position.y = map_size.y / 2.0
+	else:
+		position.y = clampf(position.y, min_y, max_y)

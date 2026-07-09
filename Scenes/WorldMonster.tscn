@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cwpcfybx3323n"]
 
-[ext_resource type="Script" uid="uid://cbye6ocbbgosh" path="res://Scripts/WorldMonster.gd" id="1_d5wdu"]
+[ext_resource type="Script" uid="uid://cbye6ocbbgosh" path="res://scripts/WorldMonster.gd" id="1_d5wdu"]
 [ext_resource type="Texture2D" uid="uid://cqbkytyxv0sw0" path="res://assets/monsters/Level_1_Crystalfang_Beast.png" id="2_vom82"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_vom82"]

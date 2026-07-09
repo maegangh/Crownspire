@@ -1,0 +1,97 @@
+[gd_scene format=3 uid="uid://c8xijc8iihhu7"]
+
+[ext_resource type="Script" uid="uid://bftnub24622e6" path="res://Scenes/UI/requirement_row.gd" id="1_0qnad"]
+[ext_resource type="Texture2D" uid="uid://ca8iqsmi6iojy" path="res://assets/Upgrade/Button/4.png" id="2_cc28r"]
+[ext_resource type="Texture2D" uid="uid://bi1lmen7pjl56" path="res://assets/Upgrade/Button/6.png" id="3_f1j5p"]
+[ext_resource type="Texture2D" uid="uid://cudnpc2blsphn" path="res://assets/Upgrade/Status/Completed.png" id="4_cc28r"]
+[ext_resource type="Texture2D" uid="uid://bmc1yf5u3nbe6" path="res://assets/Upgrade/Button/5.png" id="5_f1j5p"]
+
+[node name="RequirementRow" type="MarginContainer" unique_id=1783996553]
+custom_minimum_size = Vector2(640, 55)
+offset_right = 640.0
+offset_bottom = 55.0
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 4
+script = ExtResource("1_0qnad")
+purple_button_texture = ExtResource("2_cc28r")
+green_button_texture = ExtResource("3_f1j5p")
+check_texture = ExtResource("4_cc28r")
+
+[node name="Row" type="HBoxContainer" parent="." unique_id=1060562708]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Row" unique_id=876051022]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+expand_mode = 3
+stretch_mode = 5
+
+[node name="RequirementName" type="Label" parent="Row" unique_id=679912528]
+custom_minimum_size = Vector2(210, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.1254902, 0.0627451, 0.1882353, 1)
+theme_override_colors/font_shadow_color = Color(0.1254902, 0.0627451, 0.1882353, 1)
+theme_override_font_sizes/font_size = 25
+text = "Embassy"
+
+[node name="Spacer1" type="Control" parent="Row" unique_id=1250854164]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AmountBox" type="HBoxContainer" parent="Row" unique_id=851048780]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="CurrentAmount" type="Label" parent="Row/AmountBox" unique_id=825092903]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.1254902, 0.0627451, 0.1882353, 1)
+theme_override_colors/font_shadow_color = Color(0.1254902, 0.0627451, 0.1882353, 1)
+theme_override_font_sizes/font_size = 25
+text = "Lv. 28"
+
+[node name="Slash" type="Label" parent="Row/AmountBox" unique_id=892880929]
+custom_minimum_size = Vector2(15, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.1254902, 0.0627451, 0.1882353, 1)
+theme_override_colors/font_shadow_color = Color(0.1254902, 0.0627451, 0.1882353, 1)
+theme_override_font_sizes/font_size = 25
+text = "/"
+
+[node name="RequiredAmount" type="Label" parent="Row/AmountBox" unique_id=1954418637]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.1254902, 0.0627451, 0.1882353, 1)
+theme_override_colors/font_shadow_color = Color(0.1254902, 0.0627451, 0.1882353, 1)
+theme_override_font_sizes/font_size = 25
+text = "Lv. 29"
+
+[node name="Spacer2" type="Control" parent="Row" unique_id=395220886]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="StatusIcon" type="TextureRect" parent="Row" unique_id=1648887237]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+expand_mode = 3
+stretch_mode = 5
+
+[node name="ActionButton" type="TextureButton" parent="Row" unique_id=101149572]
+custom_minimum_size = Vector2(90, 40)
+layout_mode = 2
+texture_normal = ExtResource("3_f1j5p")
+texture_disabled = ExtResource("5_f1j5p")
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="ButtonLabel" type="Label" parent="Row/ActionButton" unique_id=1503201095]
+layout_mode = 0
+offset_left = 30.0
+offset_top = 7.0
+offset_right = 70.0
+offset_bottom = 42.0
+theme_override_font_sizes/font_size = 20
+text = "Go"

@@ -1,0 +1,65 @@
+[gd_scene format=3 uid="uid://c4lfe1cq21x34"]
+
+[node name="BaseWindow" type="Control" unique_id=1160304433]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Panel" type="Panel" parent="." unique_id=692706203]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 120.0
+offset_right = 680.0
+offset_bottom = 1100.0
+
+[node name="Background" type="TextureRect" parent="Panel" unique_id=363079190]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Header" type="Panel" parent="Panel" unique_id=2034439015]
+layout_mode = 0
+offset_right = 640.0
+offset_bottom = 90.0
+
+[node name="Title" type="Label" parent="Panel/Header" unique_id=514873932]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -31.5
+offset_right = 31.5
+offset_bottom = 23.0
+grow_horizontal = 2
+text = "Window"
+
+[node name="CloseButton" type="Button" parent="Panel/Header" unique_id=1133994119]
+layout_mode = 0
+offset_right = 8.0
+offset_bottom = 8.0
+text = "X"
+
+[node name="Content" type="MarginContainer" parent="Panel" unique_id=2142417478]
+layout_mode = 0
+offset_top = 90.0
+offset_right = 640.0
+offset_bottom = 910.0
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="Footer" type="Control" parent="Panel" unique_id=755543794]
+visible = false
+anchors_preset = 0
+offset_top = 910.0
+offset_right = 640.0
+offset_bottom = 980.0

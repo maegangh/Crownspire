@@ -25,6 +25,10 @@ var marksmen_camp_level = 1
 var cavalry_stable_level = 1
 var popup_open: bool = false
 var diamonds = 0
+var power = 1614990
+var vip_level = 1
+
+var ui_blocking_input: bool = false
 
 func _ready():
 	load_resources()
@@ -60,6 +64,8 @@ func save_resources():
 	save.set_value("resources", "stone", stone)
 	save.set_value("resources", "iron", iron)
 	save.set_value("resources", "diamonds", diamonds)
+	save.set_value("resources", "power", power)
+	save.set_value("resources", "vip_level", vip_level)
 	save.save("user://resources.cfg")
 
 func load_resources():
@@ -69,4 +75,6 @@ func load_resources():
 		wood = save.get_value("resources", "wood", 1000)
 		stone = save.get_value("resources", "stone", 1000)
 		iron = save.get_value("resources", "iron", 1000)
+		power = save.get_value("resources", "power", 1614990)
+		vip_level = save.get_value("resources", "vip_level", 1)
 		diamonds = save.get_value("resources", "diamonds", 0)

@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://26144s8ejr02" path="res://Scenes/UI/HeroRoster.gd" id="1_hero_roster"]
 [ext_resource type="Texture2D" uid="uid://cqxhg5o58ihxa" path="res://Scenes/UI/ChatGPT Image Jun 24, 2026, 06_34_10 PM.png" id="2_hps11"]
+[ext_resource type="Texture2D" uid="uid://c75ix4ed7rum6" path="res://assets/Buttons/backarrow.png" id="4_ji56e"]
 [ext_resource type="PackedScene" uid="uid://cxthq4bwuwj4f" path="res://Scenes/HeroDetails.tscn" id="4_y45q5"]
 
 [node name="HeroRoster" type="Control" unique_id=1755422229]
@@ -27,6 +28,15 @@ mouse_filter = 2
 texture = ExtResource("2_hps11")
 expand_mode = 1
 stretch_mode = 5
+
+[node name="BackButton" type="TextureButton" parent="." unique_id=2086778647]
+layout_mode = 0
+offset_left = 11.000001
+offset_top = 21.0
+offset_right = 1043.0
+offset_bottom = 1053.0
+scale = Vector2(0.09, 0.09)
+texture_normal = ExtResource("4_ji56e")
 
 [node name="TitleLabel" type="Label" parent="." unique_id=1822216396]
 layout_mode = 0

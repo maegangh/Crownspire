@@ -1,25 +1,26 @@
 [gd_scene format=3 uid="uid://k7r1i3070s58"]
 
-[ext_resource type="Script" uid="uid://5l7w4tdfbf3h" path="res://Scenes/wildling_node.gd" id="1_6b1nd"]
 [ext_resource type="Texture2D" uid="uid://wh4338gwgf34" path="res://assets/Wildlings/wildling_wolf.png" id="2_rfpjo"]
+[ext_resource type="Script" uid="uid://5wtdcvt6jlc4" path="res://scripts/wildling_click.gd" id="3_rfpjo"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_4fnjx"]
 size = Vector2(133, 125)
 
 [node name="WildlingNode" type="Node2D" unique_id=1477077363]
-script = ExtResource("1_6b1nd")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=694019951]
 position = Vector2(640, 307)
 scale = Vector2(0.1, 0.1)
 texture = ExtResource("2_rfpjo")
 
-[node name="LevelBadge" type="Label" parent="." unique_id=807397532]
+[node name="LevelLabel" type="Label" parent="." unique_id=807397532]
 offset_right = 40.0
 offset_bottom = 23.0
 
 [node name="ClickArea" type="Area2D" parent="." unique_id=365707251]
+script = ExtResource("3_rfpjo")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ClickArea" unique_id=501213844]
+visible = false
 position = Vector2(635, 310)
 shape = SubResource("RectangleShape2D_4fnjx")

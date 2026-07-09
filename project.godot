@@ -11,9 +11,10 @@ config_version=5
 [application]
 
 config/name="Crownspire"
-run/main_scene="uid://77p42eque6ex"
+run/main_scene="uid://cx62g7x8d3"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
+config/main_scene="uid://77p42eque6ex"
 
 [autoload]
 
@@ -21,12 +22,17 @@ GameState="*uid://bx7qwk4h4du07"
 TroopState="*uid://j4vqc3ybjlj7"
 HeroState="*uid://dtdfqtx3cfn2m"
 CampaignState="*uid://df4ecotu2v30u"
-QuestState="*uid://dqy4y4waqs7kh"
+QuestState="*uid://3yuhno48uhyx"
 ResearchState="*uid://rt7h2cgb656t"
 CampaignManager1="*uid://dbpy2m2mjhsgt"
 DataManager="*uid://cqs7opgpocfv7"
 InventoryState="*uid://ccm434wq7yfhf"
 MarchState="*uid://dode3xwoljw4e"
+BagState="*uid://bomv0lqviqnrv"
+ItemDatabase="*uid://o053iu3nf15a"
+TroopDatabase="*uid://c7har7inlmxag"
+GameEvents="*uid://bnud8tmp66a7o"
+UIManager="*uid://dwj0bsgdfw377"
 
 [display]
 
@@ -42,3 +48,5 @@ window/handheld/orientation=1
 [rendering]
 
 rendering_device/driver.windows="d3d12"
+renderer/rendering_method="mobile"
+textures/vram_compression/import_etc2_astc=true

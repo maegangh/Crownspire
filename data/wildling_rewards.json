@@ -1,0 +1,8 @@
+{
+  "wolf": ["food", "wood", "hero_xp"],
+  "bear": ["food", "wood", "stone", "hero_xp"],
+  "spider": ["stone", "iron", "hero_xp"],
+  "boar": ["food", "stone", "iron"],
+  "troll": ["stone", "iron", "hero_xp", "diamond"],
+  "dragon": ["hero_xp", "diamond"]
+}
