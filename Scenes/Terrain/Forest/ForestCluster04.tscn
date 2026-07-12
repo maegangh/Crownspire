@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://di1yhxpboimis"]
+
+[ext_resource type="Texture2D" uid="uid://bin4riieeeak0" path="res://assets/Terrain/forest5.png" id="1_x3bim"]
+
+[node name="ForestCluster04" type="Node2D" unique_id=250043630]
+
+[node name="Sprite2D4" type="Sprite2D" parent="." unique_id=113782900]
+texture = ExtResource("1_x3bim")
