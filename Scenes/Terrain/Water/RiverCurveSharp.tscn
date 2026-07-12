@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://c5c6e4n24kpcx"]
+
+[ext_resource type="Texture2D" uid="uid://ckw1fh2me1g1t" path="res://assets/World/rivers/RiverCurveSharp.png" id="1_t7p53"]
+
+[node name="RiverCurveSharp" type="Node2D" unique_id=480731273]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=287482058]
+texture = ExtResource("1_t7p53")

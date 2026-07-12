@@ -1,3 +1,8 @@
 [gd_scene format=3 uid="uid://ch206th4o5b6f"]
 
-[node name="Riverfork" type="Node2D" unique_id=182602905]
+[ext_resource type="Texture2D" uid="uid://1xerbft4a40q" path="res://assets/World/rivers/RiverFork.png" id="1_l3u6l"]
+
+[node name="RiverFork" type="Node2D" unique_id=966254839]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1834103938]
+texture = ExtResource("1_l3u6l")

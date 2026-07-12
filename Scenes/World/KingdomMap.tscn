@@ -22,15 +22,24 @@
 [ext_resource type="Texture2D" uid="uid://bc3btqnta45r2" path="res://assets/UI/wildling_cards/boar_card.png" id="18_o3h75"]
 [ext_resource type="Texture2D" uid="uid://6cn657gfcdjk" path="res://assets/UI/wildling_cards/troll_card.png" id="19_qrnde"]
 [ext_resource type="Texture2D" uid="uid://ybaw7tbmepw" path="res://assets/UI/wildling_cards/dragon_card.png" id="20_va38e"]
-[ext_resource type="Texture2D" uid="uid://cc3iqduj25vyr" path="res://assets/Grass/Firefly_Gemini Flash_Create a perfectly seamless fantasy grass texture.__Use the reference image only for  562156.png" id="21_mf0hh"]
+[ext_resource type="Texture2D" uid="uid://cc3iqduj25vyr" path="res://assets/World/Grass/Firefly_Gemini Flash_Create a perfectly seamless fantasy grass texture.__Use the reference image only for  562156.png" id="21_mf0hh"]
 [ext_resource type="Texture2D" uid="uid://6ed4ndhnwdkh" path="res://Scenes/World/Gemini_Generated_Image_kpfsrqkpfsrqkpfs (1).png" id="21_qgij0"]
+[ext_resource type="PackedScene" uid="uid://byt3d6e45byfr" path="res://Scenes/Terrain/Water/LakeLarge.tscn" id="22_3blt5"]
 [ext_resource type="PackedScene" uid="uid://d04o2tm5ttvh6" path="res://Scenes/Terrain/Forest/ForestCluster01.tscn" id="22_mf0hh"]
 [ext_resource type="Texture2D" uid="uid://dqyuxasjir660" path="res://assets/Blueprints/Kingdom001_Blueprint.png" id="22_qgij0"]
+[ext_resource type="PackedScene" uid="uid://cteenrcy8ve2r" path="res://Scenes/Terrain/Water/LakeSmall.tscn" id="23_0e2eh"]
 [ext_resource type="PackedScene" uid="uid://bb1vav4t6g3vp" path="res://Scenes/Terrain/Forest/ForestCluster02.tscn" id="23_33m2i"]
+[ext_resource type="PackedScene" uid="uid://d4fnvlvqk4mo2" path="res://Scenes/Terrain/Water/RiverCurveGentle.tscn" id="24_6v443"]
 [ext_resource type="PackedScene" uid="uid://cjx4bg38ypuvo" path="res://Scenes/Terrain/Forest/ForestCluster03.tscn" id="24_kxr5t"]
 [ext_resource type="PackedScene" uid="uid://di1yhxpboimis" path="res://Scenes/Terrain/Forest/ForestCluster04.tscn" id="25_3f8bg"]
+[ext_resource type="PackedScene" uid="uid://c5c6e4n24kpcx" path="res://Scenes/Terrain/Water/RiverCurveSharp.tscn" id="25_wgnwa"]
+[ext_resource type="PackedScene" uid="uid://clgljugioffta" path="res://Scenes/Terrain/Water/RiverEnd.tscn" id="26_dwkxd"]
 [ext_resource type="Texture2D" uid="uid://beibyygjic6i0" path="res://assets/Buildings/Castle/main_castle.png" id="26_o3h75"]
 [ext_resource type="PackedScene" uid="uid://cgyclonj0jux6" path="res://Scenes/Terrain/Forest/ForestCluster05.tscn" id="26_sqqrn"]
+[ext_resource type="PackedScene" uid="uid://ch206th4o5b6f" path="res://Scenes/Terrain/Water/RiverFork.tscn" id="27_6bhlb"]
+[ext_resource type="PackedScene" uid="uid://cnwvdu0v0gaxu" path="res://Scenes/Terrain/Water/RiverSource.tscn" id="28_vlx4j"]
+[ext_resource type="PackedScene" uid="uid://dsfrs8rei4wvm" path="res://Scenes/Terrain/Water/RiverStraight.tscn" id="29_0brvm"]
+[ext_resource type="PackedScene" uid="uid://c2sit0mjad3wj" path="res://Scenes/Terrain/Water/Waterfall.tscn" id="30_0qxpu"]
 
 [node name="WorldRoot" type="Node2D" unique_id=1337326986]
 script = ExtResource("1_xgwgn")
@@ -72,6 +81,30 @@ expand_mode = 1
 stretch_mode = 1
 
 [node name="Rivers" type="Node2D" parent="Terrain" unique_id=1387047370]
+
+[node name="LakeLarge" parent="Terrain/Rivers" unique_id=661977311 instance=ExtResource("22_3blt5")]
+position = Vector2(1119, 2850)
+
+[node name="LakeSmall" parent="Terrain/Rivers" unique_id=668761859 instance=ExtResource("23_0e2eh")]
+
+[node name="RiverCurveGentle" parent="Terrain/Rivers" unique_id=310785667 instance=ExtResource("24_6v443")]
+
+[node name="RiverCurveSharp" parent="Terrain/Rivers" unique_id=480731273 instance=ExtResource("25_wgnwa")]
+position = Vector2(5194, 1457)
+
+[node name="RiverEnd" parent="Terrain/Rivers" unique_id=1113238545 instance=ExtResource("26_dwkxd")]
+position = Vector2(7221, 2998)
+
+[node name="RiverFork" parent="Terrain/Rivers" unique_id=966254839 instance=ExtResource("27_6bhlb")]
+
+[node name="RiverSource" parent="Terrain/Rivers" unique_id=349428206 instance=ExtResource("28_vlx4j")]
+position = Vector2(5680, 5849)
+
+[node name="RiverStraight" parent="Terrain/Rivers" unique_id=451715169 instance=ExtResource("29_0brvm")]
+position = Vector2(1647, 5321)
+
+[node name="Waterfall" parent="Terrain/Rivers" unique_id=261537274 instance=ExtResource("30_0qxpu")]
+position = Vector2(3336, 2660)
 
 [node name="Forests" type="Node2D" parent="Terrain" unique_id=5275953]
 
@@ -244,8 +277,10 @@ position = Vector2(0, 2)
 [node name="Marker2D4" type="Marker2D" parent="ResourceRegions" unique_id=2147357820]
 
 [node name="Marker2D5" type="Marker2D" parent="ResourceRegions" unique_id=1704685224]
+position = Vector2(42, 42)
 
 [node name="Marker2D6" type="Marker2D" parent="ResourceRegions" unique_id=313765847]
+position = Vector2(465, 1161)
 
 [node name="PlayerCastleMarker" type="Marker2D" parent="." unique_id=161156866]
 z_index = 20

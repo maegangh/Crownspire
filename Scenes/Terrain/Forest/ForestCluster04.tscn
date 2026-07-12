@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://di1yhxpboimis"]
 
-[ext_resource type="Texture2D" uid="uid://bin4riieeeak0" path="res://assets/Terrain/forest5.png" id="1_x3bim"]
+[ext_resource type="Texture2D" uid="uid://bin4riieeeak0" path="res://assets/World/forests/forest5.png" id="1_x3bim"]
 
 [node name="ForestCluster04" type="Node2D" unique_id=250043630]
 

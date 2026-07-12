@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://cteenrcy8ve2r"]
+
+[ext_resource type="Texture2D" uid="uid://dfjwkgjnkt7kt" path="res://assets/World/rivers/LakeSmall.png" id="1_iuikd"]
+
+[node name="LakeSmall" type="Node2D" unique_id=668761859]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1088590837]
+texture = ExtResource("1_iuikd")

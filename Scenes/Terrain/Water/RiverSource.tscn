@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://cnwvdu0v0gaxu"]
+
+[ext_resource type="Texture2D" uid="uid://dc8e7d5glx746" path="res://assets/World/rivers/RiverSource.png" id="1_vpj81"]
+
+[node name="RiverSource" type="Node2D" unique_id=349428206]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=736212999]
+texture = ExtResource("1_vpj81")

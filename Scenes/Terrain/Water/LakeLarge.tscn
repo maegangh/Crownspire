@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://byt3d6e45byfr"]
+
+[ext_resource type="Texture2D" uid="uid://bgrd148yds5rr" path="res://assets/World/rivers/LakeLarge.png" id="1_uq37f"]
+
+[node name="LakeLarge" type="Node2D" unique_id=661977311]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1706755063]
+texture = ExtResource("1_uq37f")

@@ -1,3 +1,8 @@
 [gd_scene format=3 uid="uid://c2sit0mjad3wj"]
 
-[node name="Waterfall" type="Node2D" unique_id=1608097744]
+[ext_resource type="Texture2D" uid="uid://bpv22qoa4wtet" path="res://assets/World/rivers/Waterfall.png" id="1_ytce5"]
+
+[node name="Waterfall" type="Node2D" unique_id=261537274]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=686438922]
+texture = ExtResource("1_ytce5")
