@@ -1,0 +1,694 @@
+[gd_scene format=3 uid="uid://dp6t75sc6c3ul"]
+
+[ext_resource type="Script" uid="uid://bpnlo8kl6ciuh" path="res://scripts/AcademyResearchWindow.gd" id="1_gd_win"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_main"]
+bg_color = Color(0.027451, 0.0431373, 0.0745098, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.14902, 0.180392, 0.258824, 1)
+corner_radius_top_left = 24
+corner_radius_top_right = 24
+corner_radius_bottom_right = 24
+corner_radius_bottom_left = 24
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
+bg_color = Color(0.0431373, 0.0627451, 0.109804, 1)
+border_width_bottom = 1
+border_color = Color(0.14902, 0.180392, 0.258824, 0.6)
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_res_bar"]
+bg_color = Color(0.0156863, 0.0235294, 0.0431373, 0.8)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.14902, 0.180392, 0.258824, 0.4)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sidebar"]
+bg_color = Color(0.0196078, 0.0313726, 0.054902, 1)
+border_width_left = 1
+border_color = Color(0.14902, 0.180392, 0.258824, 0.6)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+bg_color = Color(0.0431373, 0.0627451, 0.109804, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.14902, 0.180392, 0.258824, 0.8)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_bg"]
+bg_color = Color(0.0156863, 0.0235294, 0.0431373, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.14902, 0.180392, 0.258824, 0.5)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_fg"]
+bg_color = Color(0.1, 0.6, 0.9, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_gold"]
+bg_color = Color(0.960784, 0.623529, 0.0431373, 1)
+border_width_bottom = 3
+border_color = Color(0.705882, 0.447059, 0.0156863, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_gold_disabled"]
+bg_color = Color(0.3, 0.25, 0.15, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[node name="AcademyResearchWindow" type="Control" unique_id=1387793396]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_gd_win")
+
+[node name="DarkOverlay" type="ColorRect" parent="." unique_id=95868691]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0196078, 0.0313726, 0.054902, 0.952941)
+
+[node name="MainPanel" type="PanelContainer" parent="." unique_id=704480652]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -340.0
+offset_top = -610.0
+offset_right = 340.0
+offset_bottom = 610.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_main")
+
+[node name="VBox" type="VBoxContainer" parent="MainPanel" unique_id=123451482]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Header" type="PanelContainer" parent="MainPanel/VBox" unique_id=1416844324]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_header")
+
+[node name="Margin" type="MarginContainer" parent="MainPanel/VBox/Header" unique_id=1864761698]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 12
+
+[node name="HBox" type="HBoxContainer" parent="MainPanel/VBox/Header/Margin" unique_id=1136198163]
+layout_mode = 2
+
+[node name="TitleContainer" type="VBoxContainer" parent="MainPanel/VBox/Header/Margin/HBox" unique_id=135045496]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TitleRow" type="HBoxContainer" parent="MainPanel/VBox/Header/Margin/HBox/TitleContainer" unique_id=1656295894]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="AcademyIcon" type="Label" parent="MainPanel/VBox/Header/Margin/HBox/TitleContainer/TitleRow" unique_id=1935073914]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "🔬"
+
+[node name="Title" type="Label" parent="MainPanel/VBox/Header/Margin/HBox/TitleContainer/TitleRow" unique_id=225923212]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "ACADEMY RESEARCH"
+
+[node name="AcademyLevelBadge" type="Label" parent="MainPanel/VBox/Header/Margin/HBox/TitleContainer/TitleRow" unique_id=1423425052]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.623529, 0.0431373, 1)
+theme_override_font_sizes/font_size = 11
+text = "Sovereign Lvl 15"
+
+[node name="Subtitle" type="Label" parent="MainPanel/VBox/Header/Margin/HBox/TitleContainer" unique_id=675707872]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.55, 0.65, 1)
+theme_override_font_sizes/font_size = 10
+text = "Unlock administrative, resource production, and military breakthroughs."
+
+[node name="BtnClose" type="Button" parent="MainPanel/VBox/Header/Margin/HBox" unique_id=1541431824]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 14
+text = "✕"
+
+[node name="ResourceBar" type="PanelContainer" parent="MainPanel/VBox" unique_id=1657109164]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_res_bar")
+
+[node name="Margin" type="MarginContainer" parent="MainPanel/VBox/ResourceBar" unique_id=2072246528]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 6
+
+[node name="HBox" type="HBoxContainer" parent="MainPanel/VBox/ResourceBar/Margin" unique_id=39608605]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="FoodDisplay" type="HBoxContainer" parent="MainPanel/VBox/ResourceBar/Margin/HBox" unique_id=1640610551]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Icon" type="Label" parent="MainPanel/VBox/ResourceBar/Margin/HBox/FoodDisplay" unique_id=1081461231]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "🌾"
+
+[node name="FoodLabel" type="Label" parent="MainPanel/VBox/ResourceBar/Margin/HBox/FoodDisplay" unique_id=392793408]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1)
+theme_override_font_sizes/font_size = 11
+text = "0"
+
+[node name="WoodDisplay" type="HBoxContainer" parent="MainPanel/VBox/ResourceBar/Margin/HBox" unique_id=1120341578]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Icon" type="Label" parent="MainPanel/VBox/ResourceBar/Margin/HBox/WoodDisplay" unique_id=917986156]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "🪵"
+
+[node name="WoodLabel" type="Label" parent="MainPanel/VBox/ResourceBar/Margin/HBox/WoodDisplay" unique_id=507644840]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1)
+theme_override_font_sizes/font_size = 11
+text = "0"
+
+[node name="StoneDisplay" type="HBoxContainer" parent="MainPanel/VBox/ResourceBar/Margin/HBox" unique_id=1661362461]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Icon" type="Label" parent="MainPanel/VBox/ResourceBar/Margin/HBox/StoneDisplay" unique_id=1449450699]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "🪨"
+
+[node name="StoneLabel" type="Label" parent="MainPanel/VBox/ResourceBar/Margin/HBox/StoneDisplay" unique_id=1778443159]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1)
+theme_override_font_sizes/font_size = 11
+text = "0"
+
+[node name="IronDisplay" type="HBoxContainer" parent="MainPanel/VBox/ResourceBar/Margin/HBox" unique_id=1590477616]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Icon" type="Label" parent="MainPanel/VBox/ResourceBar/Margin/HBox/IronDisplay" unique_id=2063499974]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "🛡️"
+
+[node name="IronLabel" type="Label" parent="MainPanel/VBox/ResourceBar/Margin/HBox/IronDisplay" unique_id=970332394]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1)
+theme_override_font_sizes/font_size = 11
+text = "0"
+
+[node name="ValorDisplay" type="HBoxContainer" parent="MainPanel/VBox/ResourceBar/Margin/HBox" unique_id=1477182136]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Icon" type="Label" parent="MainPanel/VBox/ResourceBar/Margin/HBox/ValorDisplay" unique_id=1094041463]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "⚡"
+
+[node name="ValorLabel" type="Label" parent="MainPanel/VBox/ResourceBar/Margin/HBox/ValorDisplay" unique_id=98585954]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.7, 1, 1)
+theme_override_font_sizes/font_size = 11
+text = "0"
+
+[node name="CategoryTabs" type="HBoxContainer" parent="MainPanel/VBox" unique_id=1128854829]
+layout_mode = 2
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="BtnEconomy" type="Button" parent="MainPanel/VBox/CategoryTabs" unique_id=685504744]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
+text = "🌾 ECONOMY"
+
+[node name="BtnMilitary" type="Button" parent="MainPanel/VBox/CategoryTabs" unique_id=1401456833]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
+text = "⚔️ MILITARY"
+
+[node name="BtnDevelopment" type="Button" parent="MainPanel/VBox/CategoryTabs" unique_id=1020872826]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
+text = "🏗️ DEV"
+
+[node name="BtnAlliance" type="Button" parent="MainPanel/VBox/CategoryTabs" unique_id=179667710]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
+text = "🛡️ ALLIANCE"
+
+[node name="BtnHero" type="Button" parent="MainPanel/VBox/CategoryTabs" unique_id=851823353]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
+text = "👑 HERO"
+
+[node name="ZoomControls" type="HBoxContainer" parent="MainPanel/VBox" unique_id=30226708]
+layout_mode = 2
+alignment = 2
+
+[node name="BtnZoomOut" type="Button" parent="MainPanel/VBox/ZoomControls" unique_id=1876062840]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(30, 24)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 10
+text = "Zoom -"
+
+[node name="BtnZoomReset" type="Button" parent="MainPanel/VBox/ZoomControls" unique_id=2091778419]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(30, 24)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 10
+text = "100%"
+
+[node name="BtnZoomIn" type="Button" parent="MainPanel/VBox/ZoomControls" unique_id=1715365862]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(30, 24)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 10
+text = "Zoom +"
+
+[node name="ContentArea" type="HSplitContainer" parent="MainPanel/VBox" unique_id=1379856775]
+layout_mode = 2
+size_flags_vertical = 3
+split_offsets = PackedInt32Array(320)
+split_offset = 320
+
+[node name="ResearchTreePanel" type="PanelContainer" parent="MainPanel/VBox/ContentArea" unique_id=565536473]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ResearchScrollContainer" type="ScrollContainer" parent="MainPanel/VBox/ContentArea/ResearchTreePanel" unique_id=1820116710]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ZoomWrapper" type="Control" parent="MainPanel/VBox/ContentArea/ResearchTreePanel/ResearchScrollContainer" unique_id=92072859]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(1200, 600)
+layout_mode = 2
+
+[node name="ConnectionLayer" type="Control" parent="MainPanel/VBox/ContentArea/ResearchTreePanel/ResearchScrollContainer/ZoomWrapper" unique_id=1794595280]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="NodesContainer" type="Control" parent="MainPanel/VBox/ContentArea/ResearchTreePanel/ResearchScrollContainer/ZoomWrapper" unique_id=616887815]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="DetailsPanel" type="PanelContainer" parent="MainPanel/VBox/ContentArea" unique_id=69942599]
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_sidebar")
+
+[node name="Margin" type="MarginContainer" parent="MainPanel/VBox/ContentArea/DetailsPanel" unique_id=1074556920]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin" unique_id=1151461882]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ActiveLabsBox" type="VBoxContainer" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox" unique_id=1612444255]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="LabsHeader" type="Label" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/ActiveLabsBox" unique_id=277183101]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.65, 0.75, 1)
+theme_override_font_sizes/font_size = 11
+text = "🔬 RESEARCH CHRONO LABS"
+
+[node name="ActiveProjectEmptyLabel" type="Label" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/ActiveLabsBox" unique_id=858268952]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.45, 0.5, 1)
+theme_override_font_sizes/font_size = 10
+text = "Idle scholar assembly. No research active."
+horizontal_alignment = 1
+
+[node name="ActiveProjectBox" type="PanelContainer" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/ActiveLabsBox" unique_id=183230988]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="Margin" type="MarginContainer" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/ActiveLabsBox/ActiveProjectBox" unique_id=470643365]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/ActiveLabsBox/ActiveProjectBox/Margin" unique_id=500294839]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="HBox" type="HBoxContainer" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/ActiveLabsBox/ActiveProjectBox/Margin/VBox" unique_id=43495677]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/ActiveLabsBox/ActiveProjectBox/Margin/VBox/HBox" unique_id=1282752181]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ActiveProjectTitle" type="Label" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/ActiveLabsBox/ActiveProjectBox/Margin/VBox/HBox/VBox" unique_id=253117996]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 11
+text = "Sovereign Taxation"
+
+[node name="ActiveProjectDesc" type="Label" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/ActiveLabsBox/ActiveProjectBox/Margin/VBox/HBox/VBox" unique_id=1252983702]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
+theme_override_font_sizes/font_size = 9
+text = "Level breakthrough"
+
+[node name="ActiveProjectTimer" type="Label" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/ActiveLabsBox/ActiveProjectBox/Margin/VBox/HBox" unique_id=1145527342]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.623529, 0.0431373, 1)
+theme_override_font_sizes/font_size = 11
+text = "00h 00m"
+
+[node name="ActiveProgressBar" type="ProgressBar" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/ActiveLabsBox/ActiveProjectBox/Margin/VBox" unique_id=506214955]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_progress_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_progress_fg")
+show_percentage = false
+
+[node name="HBoxButtons" type="HBoxContainer" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/ActiveLabsBox/ActiveProjectBox/Margin/VBox" unique_id=205416478]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="BtnInstantValor" type="Button" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/ActiveLabsBox/ActiveProjectBox/Margin/VBox/HBoxButtons" unique_id=2025937748]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 9
+text = "INSTANT"
+
+[node name="BtnCancelActive" type="Button" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/ActiveLabsBox/ActiveProjectBox/Margin/VBox/HBoxButtons" unique_id=558694110]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 9
+text = "CANCEL"
+
+[node name="SpeedupContainer" type="GridContainer" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/ActiveLabsBox/ActiveProjectBox/Margin/VBox" unique_id=966004258]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/h_separation = 4
+theme_override_constants/v_separation = 4
+columns = 2
+
+[node name="QueueLabel" type="Label" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/ActiveLabsBox" unique_id=848753656]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
+theme_override_font_sizes/font_size = 9
+text = "Waiting in queue (0/4)"
+
+[node name="QueueList" type="VBoxContainer" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/ActiveLabsBox" unique_id=1399149017]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="EmptyInspectLabel" type="Label" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox" unique_id=97304461]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.4, 0.45, 0.5, 1)
+theme_override_font_sizes/font_size = 11
+text = "Select any technology node on the map to inspect specifications."
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="InspectPanel" type="VBoxContainer" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox" unique_id=137755645]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="CardPanel" type="PanelContainer" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel" unique_id=404376914]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="Margin" type="MarginContainer" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel/CardPanel" unique_id=1111545178]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 10
+
+[node name="VBox" type="VBoxContainer" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel/CardPanel/Margin" unique_id=1568505542]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="CardHeader" type="HBoxContainer" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel/CardPanel/Margin/VBox" unique_id=205098160]
+layout_mode = 2
+
+[node name="CardTitle" type="Label" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel/CardPanel/Margin/VBox/CardHeader" unique_id=2120664946]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "Technology Title"
+
+[node name="CardDescription" type="Label" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel/CardPanel/Margin/VBox" unique_id=2071498204]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.65, 0.75, 1)
+theme_override_font_sizes/font_size = 10
+text = "\"Description goes here\""
+autowrap_mode = 2
+
+[node name="ModifiersHeader" type="Label" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel" unique_id=1670564267]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.65, 0.75, 1)
+theme_override_font_sizes/font_size = 11
+text = "📜 INCREMENTAL BONUSES"
+
+[node name="BonusesBox" type="VBoxContainer" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel" unique_id=111222342]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="ActiveBonusLabel" type="Label" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel/BonusesBox" unique_id=1697442336]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.1, 0.8, 0.4, 1)
+theme_override_font_sizes/font_size = 10
+text = "Active Level"
+
+[node name="NextBonusLabel" type="Label" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel/BonusesBox" unique_id=1601221212]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.623529, 0.0431373, 1)
+theme_override_font_sizes/font_size = 10
+text = "Next level"
+
+[node name="PrereqsHeader" type="Label" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel" unique_id=1377559853]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.65, 0.75, 1)
+theme_override_font_sizes/font_size = 11
+text = "⛓️ PREREQUISITES UNLOCKS"
+
+[node name="ReqsBox" type="VBoxContainer" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel" unique_id=1678694910]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="CostsHeader" type="Label" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel" unique_id=1235605360]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.65, 0.75, 1)
+theme_override_font_sizes/font_size = 11
+text = "🌾 BREAKTHROUGH INVESTMENT"
+
+[node name="GridCosts" type="GridContainer" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel" unique_id=1034915951]
+layout_mode = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 6
+columns = 2
+
+[node name="FoodRow" type="HBoxContainer" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel/GridCosts" unique_id=1683185047]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel/GridCosts/FoodRow" unique_id=1549088656]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "🌾 Food:"
+
+[node name="CostFoodLabel" type="Label" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel/GridCosts/FoodRow" unique_id=446666485]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "0"
+
+[node name="WoodRow" type="HBoxContainer" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel/GridCosts" unique_id=1979035865]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel/GridCosts/WoodRow" unique_id=610776797]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "🪵 Wood:"
+
+[node name="CostWoodLabel" type="Label" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel/GridCosts/WoodRow" unique_id=531321314]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "0"
+
+[node name="StoneRow" type="HBoxContainer" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel/GridCosts" unique_id=1360812151]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel/GridCosts/StoneRow" unique_id=474707482]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "🪨 Stone:"
+
+[node name="CostStoneLabel" type="Label" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel/GridCosts/StoneRow" unique_id=167804903]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "0"
+
+[node name="IronRow" type="HBoxContainer" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel/GridCosts" unique_id=636457125]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel/GridCosts/IronRow" unique_id=171192118]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "🛡️ Iron:"
+
+[node name="CostIronLabel" type="Label" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel/GridCosts/IronRow" unique_id=666877216]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "0"
+
+[node name="ValorRow" type="HBoxContainer" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel/GridCosts" unique_id=1975515144]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel/GridCosts/ValorRow" unique_id=937636102]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "⚡ Valor:"
+
+[node name="CostValorLabel" type="Label" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel/GridCosts/ValorRow" unique_id=63695247]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "0"
+
+[node name="ResearchTimeLabel" type="Label" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel" unique_id=1281639925]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 10
+text = "Duration: 00s"
+
+[node name="BtnStartResearch" type="Button" parent="MainPanel/VBox/ContentArea/DetailsPanel/Margin/VBox/InspectPanel" unique_id=1112135541]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.0196078, 0.0313726, 0.054902, 1)
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_gold")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_gold_disabled")
+text = "START RESEARCH breakthrough"
