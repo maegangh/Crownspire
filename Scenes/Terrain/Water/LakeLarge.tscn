@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://byt3d6e45byfr"]
 
-[ext_resource type="Texture2D" uid="uid://bgrd148yds5rr" path="res://assets/World/rivers/LakeLarge.png" id="1_uq37f"]
+[ext_resource type="Texture2D" uid="uid://b0wgyj2806mg5" path="res://assets/World/rivers/LakeLarge1.png" id="1_uq37f"]
 
 [node name="LakeLarge" type="Node2D" unique_id=661977311]
 

@@ -1,11 +1,5 @@
 extends PanelContainer
 
-@onready var icon: TextureRect = find_child("Icon", true, false)
-@onready var stat_name_label: Label = find_child("StatName", true, false)
-@onready var current_value_label: Label = find_child("CurrentValue", true, false)
-@onready var new_value_label: Label = find_child("NewValue", true, false)
-@onready var increase_value_label: Label = find_child("IncreaseValue", true, false)
-
 func setup(
 	stat_title: String,
 	icon_path: String,
@@ -13,6 +7,12 @@ func setup(
 	next_text: String,
 	increase_text: String
 ) -> void:
+	var icon: TextureRect = find_child("Icon", true, false)
+	var stat_name_label: Label = find_child("StatNameLabel", true, false)
+	var current_value_label: Label = find_child("CurrentValue", true, false)
+	var new_value_label: Label = find_child("NewValue", true, false)
+	var increase_value_label: Label = find_child("IncreaseValue", true, false)
+
 	if stat_name_label:
 		stat_name_label.text = stat_title
 

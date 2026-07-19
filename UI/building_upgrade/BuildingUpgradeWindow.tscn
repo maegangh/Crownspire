@@ -204,7 +204,7 @@ color = Color(0.54, 0.24, 0.95, 0.15)
 unique_name_in_owner = true
 custom_minimum_size = Vector2(36, 36)
 layout_mode = 2
-size_flags_horizontal = 8
+size_flags_horizontal = 0
 size_flags_vertical = 0
 texture_normal = ExtResource("2_close_tex")
 ignore_texture_size = true
@@ -247,7 +247,7 @@ theme_override_constants/separation = 10
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.68, 0.25, 1)
 theme_override_font_sizes/font_size = 14
-text = "UPGRADE BONUSES"
+text = "UPGRADE BENEFITS"
 
 [node name="BonusContainer" type="VBoxContainer" parent="PopupContainer/Layout/Margin/MainContent/UpgradeBonusPanel/Content" unique_id=751642252]
 unique_name_in_owner = true

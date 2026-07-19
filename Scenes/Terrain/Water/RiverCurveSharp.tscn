@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://c5c6e4n24kpcx"]
 
-[ext_resource type="Texture2D" uid="uid://ckw1fh2me1g1t" path="res://assets/World/rivers/RiverCurveSharp.png" id="1_t7p53"]
+[ext_resource type="Texture2D" uid="uid://ji5da0meh23n" path="res://assets/World/rivers/RiverCurveSharp1.png" id="1_t7p53"]
 
 [node name="RiverCurveSharp" type="Node2D" unique_id=480731273]
 

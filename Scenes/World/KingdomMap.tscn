@@ -24,22 +24,10 @@
 [ext_resource type="Texture2D" uid="uid://ybaw7tbmepw" path="res://assets/UI/wildling_cards/dragon_card.png" id="20_va38e"]
 [ext_resource type="Texture2D" uid="uid://cc3iqduj25vyr" path="res://assets/World/Grass/Firefly_Gemini Flash_Create a perfectly seamless fantasy grass texture.__Use the reference image only for  562156.png" id="21_mf0hh"]
 [ext_resource type="Texture2D" uid="uid://6ed4ndhnwdkh" path="res://Scenes/World/Gemini_Generated_Image_kpfsrqkpfsrqkpfs (1).png" id="21_qgij0"]
-[ext_resource type="PackedScene" uid="uid://byt3d6e45byfr" path="res://Scenes/Terrain/Water/LakeLarge.tscn" id="22_3blt5"]
-[ext_resource type="PackedScene" uid="uid://d04o2tm5ttvh6" path="res://Scenes/Terrain/Forest/ForestCluster01.tscn" id="22_mf0hh"]
 [ext_resource type="Texture2D" uid="uid://dqyuxasjir660" path="res://assets/Blueprints/Kingdom001_Blueprint.png" id="22_qgij0"]
-[ext_resource type="PackedScene" uid="uid://cteenrcy8ve2r" path="res://Scenes/Terrain/Water/LakeSmall.tscn" id="23_0e2eh"]
-[ext_resource type="PackedScene" uid="uid://bb1vav4t6g3vp" path="res://Scenes/Terrain/Forest/ForestCluster02.tscn" id="23_33m2i"]
-[ext_resource type="PackedScene" uid="uid://d4fnvlvqk4mo2" path="res://Scenes/Terrain/Water/RiverCurveGentle.tscn" id="24_6v443"]
-[ext_resource type="PackedScene" uid="uid://cjx4bg38ypuvo" path="res://Scenes/Terrain/Forest/ForestCluster03.tscn" id="24_kxr5t"]
-[ext_resource type="PackedScene" uid="uid://di1yhxpboimis" path="res://Scenes/Terrain/Forest/ForestCluster04.tscn" id="25_3f8bg"]
-[ext_resource type="PackedScene" uid="uid://c5c6e4n24kpcx" path="res://Scenes/Terrain/Water/RiverCurveSharp.tscn" id="25_wgnwa"]
-[ext_resource type="PackedScene" uid="uid://clgljugioffta" path="res://Scenes/Terrain/Water/RiverEnd.tscn" id="26_dwkxd"]
 [ext_resource type="Texture2D" uid="uid://beibyygjic6i0" path="res://assets/Buildings/Castle/main_castle.png" id="26_o3h75"]
-[ext_resource type="PackedScene" uid="uid://cgyclonj0jux6" path="res://Scenes/Terrain/Forest/ForestCluster05.tscn" id="26_sqqrn"]
-[ext_resource type="PackedScene" uid="uid://ch206th4o5b6f" path="res://Scenes/Terrain/Water/RiverFork.tscn" id="27_6bhlb"]
-[ext_resource type="PackedScene" uid="uid://cnwvdu0v0gaxu" path="res://Scenes/Terrain/Water/RiverSource.tscn" id="28_vlx4j"]
-[ext_resource type="PackedScene" uid="uid://dsfrs8rei4wvm" path="res://Scenes/Terrain/Water/RiverStraight.tscn" id="29_0brvm"]
-[ext_resource type="PackedScene" uid="uid://c2sit0mjad3wj" path="res://Scenes/Terrain/Water/Waterfall.tscn" id="30_0qxpu"]
+[ext_resource type="Script" uid="uid://baasqhcvm30sv" path="res://Scenes/World/WorldGenerator.gd" id="27_qrnde"]
+[ext_resource type="PackedScene" uid="uid://dospbliics87u" path="res://Scenes/UI/GameHUD.tscn" id="28_va38e"]
 
 [node name="WorldRoot" type="Node2D" unique_id=1337326986]
 script = ExtResource("1_xgwgn")
@@ -71,8 +59,10 @@ texture_repeat = 2
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_right = 8192.0
-offset_bottom = 8192.0
+offset_left = 28.0
+offset_top = 15.0
+offset_right = 8220.0
+offset_bottom = 8207.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -80,57 +70,17 @@ texture = ExtResource("21_mf0hh")
 expand_mode = 1
 stretch_mode = 1
 
-[node name="Rivers" type="Node2D" parent="Terrain" unique_id=1387047370]
-
-[node name="LakeLarge" parent="Terrain/Rivers" unique_id=661977311 instance=ExtResource("22_3blt5")]
-position = Vector2(1119, 2850)
-
-[node name="LakeSmall" parent="Terrain/Rivers" unique_id=668761859 instance=ExtResource("23_0e2eh")]
-
-[node name="RiverCurveGentle" parent="Terrain/Rivers" unique_id=310785667 instance=ExtResource("24_6v443")]
-
-[node name="RiverCurveSharp" parent="Terrain/Rivers" unique_id=480731273 instance=ExtResource("25_wgnwa")]
-position = Vector2(5194, 1457)
-
-[node name="RiverEnd" parent="Terrain/Rivers" unique_id=1113238545 instance=ExtResource("26_dwkxd")]
-position = Vector2(7221, 2998)
-
-[node name="RiverFork" parent="Terrain/Rivers" unique_id=966254839 instance=ExtResource("27_6bhlb")]
-
-[node name="RiverSource" parent="Terrain/Rivers" unique_id=349428206 instance=ExtResource("28_vlx4j")]
-position = Vector2(5680, 5849)
-
-[node name="RiverStraight" parent="Terrain/Rivers" unique_id=451715169 instance=ExtResource("29_0brvm")]
-position = Vector2(1647, 5321)
-
-[node name="Waterfall" parent="Terrain/Rivers" unique_id=261537274 instance=ExtResource("30_0qxpu")]
-position = Vector2(3336, 2660)
+[node name="Lakes" type="Node2D" parent="Terrain" unique_id=1387047370]
 
 [node name="Forests" type="Node2D" parent="Terrain" unique_id=5275953]
-
-[node name="ForestCluster01" parent="Terrain/Forests" unique_id=558001584 instance=ExtResource("22_mf0hh")]
-position = Vector2(4096, 4096)
-scale = Vector2(0.1, 0.1)
-
-[node name="ForestCluster02" parent="Terrain/Forests" unique_id=823152760 instance=ExtResource("23_33m2i")]
-position = Vector2(4500, 3800)
-scale = Vector2(0.1, 0.1)
-
-[node name="ForestCluster03" parent="Terrain/Forests" unique_id=540548226 instance=ExtResource("24_kxr5t")]
-position = Vector2(3400, 4700)
-scale = Vector2(0.1, 0.1)
-
-[node name="ForestCluster04" parent="Terrain/Forests" unique_id=250043630 instance=ExtResource("25_3f8bg")]
-position = Vector2(4700, 4600)
-scale = Vector2(0.1, 0.1)
-
-[node name="ForestCluster05" parent="Terrain/Forests" unique_id=1203484911 instance=ExtResource("26_sqqrn")]
-position = Vector2(4100, 4966)
-scale = Vector2(0.1, 0.1)
-
-[node name="Mountains" type="Node2D" parent="Terrain" unique_id=1639789205]
+z_index = 10
 
 [node name="Plains" type="Node2D" parent="Terrain" unique_id=1577407995]
+
+[node name="Mountains" type="Node2D" parent="Terrain" unique_id=1639789205]
+z_index = 5
+position = Vector2(0.00048828125, 0.00048828125)
+scale = Vector2(0.99999994, 0.99999994)
 
 [node name="FogEdges" type="Node2D" parent="Terrain" unique_id=278221260]
 
@@ -143,6 +93,8 @@ texture = ExtResource("21_qgij0")
 visible = false
 position = Vector2(2048, 2048)
 texture = ExtResource("22_qgij0")
+
+[node name="Rocks" type="Node2D" parent="Terrain" unique_id=107898338]
 
 [node name="ProvinceAreas" type="Node2D" parent="." unique_id=2011529239]
 
@@ -236,14 +188,13 @@ visible = false
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=693043096]
 position = Vector2(4096, 4096)
-zoom = Vector2(0.35, 0.35)
+zoom = Vector2(1.5, 1.5)
 script = ExtResource("16_6ptn3")
-map_size = Vector2(8192, 8192)
 
 [node name="HUD" type="CanvasLayer" parent="." unique_id=688910611]
+layer = 100
 
 [node name="ControlPanel" type="PanelContainer" parent="HUD" unique_id=324715832]
-visible = false
 modulate = Color(1, 1, 1, 0)
 self_modulate = Color(1, 1, 1, 0)
 custom_minimum_size = Vector2(230, 260)
@@ -257,7 +208,6 @@ size_flags_vertical = 0
 [node name="Labels" type="Node2D" parent="HUD" unique_id=924927819]
 
 [node name="WildlingPanel" parent="HUD" unique_id=488162736 instance=ExtResource("17_uo8to")]
-visible = false
 
 [node name="WildlingRegions" type="Node2D" parent="." unique_id=196643114]
 z_index = 30
@@ -275,6 +225,7 @@ position = Vector2(0, 2)
 [node name="Marker2D3" type="Marker2D" parent="ResourceRegions" unique_id=168903906]
 
 [node name="Marker2D4" type="Marker2D" parent="ResourceRegions" unique_id=2147357820]
+position = Vector2(519, 606)
 
 [node name="Marker2D5" type="Marker2D" parent="ResourceRegions" unique_id=1704685224]
 position = Vector2(42, 42)
@@ -289,3 +240,9 @@ position = Vector2(4096, 4096)
 [node name="PlayerCastleSprite" type="Sprite2D" parent="PlayerCastleMarker" unique_id=1118928616]
 scale = Vector2(0.15, 0.15)
 texture = ExtResource("26_o3h75")
+
+[node name="WorldGenerator" type="Node2D" parent="." unique_id=2061838342]
+script = ExtResource("27_qrnde")
+
+[node name="GameHUD" parent="." unique_id=1833121157 instance=ExtResource("28_va38e")]
+layer = 100

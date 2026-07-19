@@ -3,7 +3,7 @@ extends Control
 const BONUS_ROW_SCENE = preload("res://UI/building_upgrade/BonusRow.tscn")
 const REQUIREMENT_ROW_SCENE = preload("res://UI/building_upgrade/RequirementRow.tscn")
 
-@export var building_id: String = "citadel"
+@export var building_id: String = "castle"
 
 @onready var animation_player: AnimationPlayer = get_node_or_null("AnimationPlayer")
 @onready var background_dim: ColorRect = $BackgroundDim
@@ -40,7 +40,7 @@ var _local_resources := {
 	"royal_crystals": 2500
 }
 
-var _local_buildings_cache: Array = []
+var _local_buildings_cache: Dictionary = {}
 var _ui_manager: Node = null
 
 
@@ -66,12 +66,69 @@ func _ready() -> void:
 		ui.currency_changed.connect(_on_currency_changed)
 
 
-func open_for_building(new_building_id: String) -> void:
-	building_id = new_building_id
-	GameState.popup_open = true
-	load_building_data()
-	show()
+func open_for_building(building_reference: Variant) -> void:
+	var requested_id := ""
+	
 
+	if building_reference is String or building_reference is StringName:
+		requested_id = str(building_reference)
+
+	elif building_reference is Node:
+		var node := building_reference as Node
+		var node_building_id = node.get("building_id")
+
+		if node_building_id != null and not str(node_building_id).is_empty():
+			requested_id = str(node_building_id)
+		else:
+			requested_id = node.name.to_snake_case()
+
+	requested_id = _normalize_building_id(requested_id)
+
+	if requested_id.is_empty():
+		push_error("[Crownspire UpgradeWindow] Could not determine building ID.")
+		return
+
+	building_id = requested_id
+	GameState.popup_open = true
+
+	load_building_data()
+
+	if building_data.is_empty():
+		GameState.popup_open = false
+		return
+
+	visible = true
+	move_to_front()
+
+func _normalize_building_id(raw_id: String) -> String:
+	var normalized := raw_id.strip_edges().to_lower().replace(" ", "_")
+
+	var aliases := {
+		"citadel": "castle",
+		"crystal_citadel": "castle",
+		"citadel_of_emerald_spires": "castle",
+
+		"lumbermill": "lumber_mill",
+		"lumber_yard": "lumber_mill",
+		"lumberyard": "lumber_mill",
+
+		"stone_quarry": "quarry",
+
+		"ironmine": "iron_mine",
+
+		"research_center": "academy",
+		"research_building": "academy",
+
+		"medical_tent": "hospital",
+		"infirmary": "hospital",
+
+		"trade_post": "trading_post",
+
+
+	}
+
+	return str(aliases.get(normalized, normalized))
+	
 
 func _get_ui_manager() -> Node:
 	if _ui_manager == null:
@@ -88,34 +145,32 @@ func _on_currency_changed(_currency_id: String, _new_amount: float) -> void:
 
 
 func load_building_data() -> void:
-	var ui = _get_ui_manager()
-
-	if ui and ui.has_method("get_building"):
-		building_data = ui.call("get_building", building_id)
-	else:
-		building_data = _get_local_building(building_id)
+	building_data = _get_local_building(building_id)
 
 	if building_data.is_empty():
-		push_error("[Crownspire UpgradeWindow] Building data not found for ID: " + building_id)
+		push_error(
+			"[Crownspire UpgradeWindow] Building data not found for ID: "
+			+ building_id
+		)
 		return
 
-	if building_name_label:
-		building_name_label.text = building_data.get("name", "Royal Structure").to_upper()
+	building_name_label.text = str(
+		building_data.get("name", "Royal Structure")
+	).to_upper()
 
 	var lvl := int(building_data.get("level", 1))
-	var max_lvl := int(building_data.get("max_level", 30))
+	var max_lvl := int(building_data.get("max_level", 40))
 
-	if current_level_label:
-		current_level_label.text = "Lv. %d" % lvl
+	current_level_label.text = "Lv. %d" % lvl
 
-	if next_level_label:
-		if lvl >= max_lvl:
-			next_level_label.text = "MAX"
-		else:
-			next_level_label.text = "Lv. %d" % (lvl + 1)
+	if lvl >= max_lvl:
+		next_level_label.text = "MAX"
+	else:
+		next_level_label.text = "Lv. %d" % (lvl + 1)
 
 	if building_image:
 		var art_path := "res://assets/buildings/%s.png" % building_id
+
 		if ResourceLoader.exists(art_path):
 			building_image.texture = load(art_path)
 
@@ -137,8 +192,6 @@ func _populate_bonuses(lvl: int, max_lvl: int) -> void:
 
 	var power_gain := int(building_data.get("power_per_level", 100) * (1.0 + lvl * 0.1))
 
-	if header_power_gain_label:
-		header_power_gain_label.text = "+" + _format_with_commas(power_gain) + " Kingdom Power"
 
 	var power_bonus = BONUS_ROW_SCENE.instantiate()
 	bonus_container.add_child(power_bonus)
@@ -180,8 +233,14 @@ func _populate_bonuses(lvl: int, max_lvl: int) -> void:
 			stat_name = "Reinforcement Capacity"
 		"trading_post":
 			stat_name = "Trading Bonus"
-		"barracks":
-			stat_name = "Training Capacity"
+		"infantry_barracks":
+			stat_name = "Infantry Training Capacity"
+
+		"cavalry_stable":
+			stat_name = "Cavalry Training Capacity"
+
+		"marksmen_camp":
+			stat_name = "Marksmen Training Capacity"
 
 	var current_spec_bonus = building_data.get("current_bonus", "")
 	var next_spec_bonus = building_data.get("next_bonus", "")
@@ -231,12 +290,12 @@ func _populate_requirements(lvl: int, max_lvl: int) -> void:
 		return
 
 	var reqs = building_data.get("resources_required", {})
-	var multiplier := 1.0 + lvl * 0.15
 
-	var req_food := int(reqs.get("food", 0) * multiplier)
-	var req_wood := int(reqs.get("wood", 0) * multiplier)
-	var req_stone := int(reqs.get("stone", 0) * multiplier)
-	var req_iron := int(reqs.get("iron", 0) * multiplier)
+	var req_food := int(reqs.get("food", 0))
+	var req_wood := int(reqs.get("wood", 0))
+	var req_stone := int(reqs.get("stone", 0))
+	var req_iron := int(reqs.get("iron", 0))
+
 
 	missing_resources_crystal_cost = 0
 
@@ -300,11 +359,11 @@ func refresh_requirements_and_buttons() -> void:
 
 	var all_met := true
 	var reqs = building_data.get("resources_required", {})
-	var multiplier := 1.0 + lvl * 0.15
 
 	for res_key in reqs.keys():
-		var cost := int(reqs[res_key] * multiplier)
-		if _get_player_resource(res_key) < cost:
+		var required_amount := int(reqs[res_key])
+
+		if _get_player_resource(res_key) < required_amount:
 			all_met = false
 			break
 
@@ -317,7 +376,6 @@ func refresh_requirements_and_buttons() -> void:
 		else:
 			var base_speed_cost := int(float(building_data.get("upgrade_time_seconds", 300)) / 60.0)
 			finish_button.text = "Finish Now (%d 💎)" % max(5, base_speed_cost)
-
 
 func _get_player_resource(res_id: String) -> int:
 	var ui = _get_ui_manager()
@@ -365,21 +423,27 @@ func _on_close_button_pressed() -> void:
 
 
 func _on_upgrade_button_pressed() -> void:
-	var result := {}
-	var ui = _get_ui_manager()
-
-	if ui and ui.has_method("upgrade_building"):
-		result = ui.call("upgrade_building", building_id)
-	else:
-		result = _local_upgrade_building(building_id)
+	var result := _local_upgrade_building(building_id)
 
 	if result.get("success", false):
+		var new_level := int(result.get("new_level", 1))
+
 		_show_celebration_overlay(
 			"STRUCTURE UPGRADED",
-			"%s has reached Level %d." % [building_data.get("name", "Building"), int(building_data.get("level", 1)) + 1]
+			"%s has reached Level %d." % [
+				building_data.get("name", "Building"),
+				new_level
+			]
 		)
+
 		load_building_data()
+		_notify_city_buildings()
 	else:
+		push_warning(
+			"[Crownspire UpgradeWindow] Upgrade failed: "
+			+ str(result.get("error", "Unknown error"))
+		)
+
 		if animation_player and animation_player.has_animation("error_shake"):
 			animation_player.play("error_shake")
 
@@ -388,10 +452,18 @@ func _on_finish_button_pressed() -> void:
 	var cost := missing_resources_crystal_cost
 
 	if cost <= 0:
-		cost = max(5, int(float(building_data.get("upgrade_time_seconds", 300)) / 60.0))
+		cost = max(
+			5,
+			int(
+				float(building_data.get("upgrade_time_seconds", 300))
+				/ 60.0
+			)
+		)
 
-	var ui = _get_ui_manager()
-	var current_crystals := int(_local_resources.get("royal_crystals", 0))
+	var ui := _get_ui_manager()
+	var current_crystals := int(
+		_local_resources.get("royal_crystals", 0)
+	)
 
 	if ui:
 		var value = ui.get("royal_crystals")
@@ -403,23 +475,45 @@ func _on_finish_button_pressed() -> void:
 			animation_player.play("error_shake")
 		return
 
-	if ui:
+	if ui and ui.get("royal_crystals") != null:
 		ui.set("royal_crystals", current_crystals - cost)
 	else:
 		_local_resources["royal_crystals"] = current_crystals - cost
 
-	var result := {}
-	if ui and ui.has_method("upgrade_building"):
-		result = ui.call("upgrade_building", building_id)
-	else:
-		result = _local_upgrade_building(building_id)
+	var result := _local_upgrade_building(building_id)
 
 	if result.get("success", false):
 		_show_celebration_overlay(
 			"IMMEDIATE UPGRADE COMPLETE",
-			"%s has immediately upgraded." % building_data.get("name", "Building")
+			"%s has reached Level %d." % [
+				building_data.get("name", "Building"),
+				int(result.get("new_level", 1))
+			]
 		)
+
 		load_building_data()
+		_notify_city_buildings()
+	else:
+		# Refund crystals when the building upgrade itself fails.
+		if ui and ui.get("royal_crystals") != null:
+			ui.set("royal_crystals", current_crystals)
+		else:
+			_local_resources["royal_crystals"] = current_crystals
+
+		push_warning(
+			"[Crownspire UpgradeWindow] Immediate upgrade failed: "
+			+ str(result.get("error", "Unknown error"))
+		)
+
+		if animation_player and animation_player.has_animation("error_shake"):
+			animation_player.play("error_shake")
+
+
+func _notify_city_buildings() -> void:
+	get_tree().call_group(
+		"city_buildings",
+		"refresh_level_display"
+	)
 
 
 func _show_celebration_overlay(title: String, desc: String) -> void:
@@ -466,62 +560,170 @@ func _get_local_building(b_id: String) -> Dictionary:
 	if _local_buildings_cache.is_empty():
 		var path := "res://data/buildings.json"
 
-		if FileAccess.file_exists(path):
-			var file := FileAccess.open(path, FileAccess.READ)
-			if file:
-				var json := JSON.new()
-				if json.parse(file.get_as_text()) == OK:
-					var data = json.get_data()
-					if data is Array:
-						_local_buildings_cache = data
+		if not FileAccess.file_exists(path):
+			push_error(
+				"[Crownspire UpgradeWindow] Missing buildings.json at: "
+				+ path
+			)
+			return {}
 
-		if _local_buildings_cache.is_empty():
-			_local_buildings_cache = [
-				{
-					"id": "citadel",
-					"name": "Crystal Citadel",
-					"level": 1,
-					"max_level": 30,
-					"base_power": 10000,
-					"power_per_level": 2500,
-					"resources_required": {
-						"food": 50000,
-						"wood": 60000,
-						"stone": 30000,
-						"iron": 10000
-					},
-					"upgrade_time_seconds": 300,
-					"current_bonus": "",
-					"next_bonus": ""
-				}
-			]
+		var file := FileAccess.open(path, FileAccess.READ)
 
-	for b in _local_buildings_cache:
-		if b is Dictionary and b.get("id", "") == b_id:
-			return b
+		if file == null:
+			push_error(
+				"[Crownspire UpgradeWindow] Could not open buildings.json."
+			)
+			return {}
 
-	return {}
+		var parsed = JSON.parse_string(file.get_as_text())
 
+		if parsed is not Dictionary:
+			push_error(
+				"[Crownspire UpgradeWindow] buildings.json must use a Dictionary root."
+			)
+			return {}
+
+		_local_buildings_cache = parsed
+
+	if not _local_buildings_cache.has(b_id):
+		push_error(
+			"[Crownspire UpgradeWindow] Unknown building ID: " + b_id
+		)
+		return {}
+
+	var template: Dictionary = _local_buildings_cache[b_id]
+	var levels: Dictionary = template.get("levels", {})
+
+	if levels.is_empty():
+		push_error(
+			"[Crownspire UpgradeWindow] No levels found for: " + b_id
+		)
+		return {}
+
+	var current_level := _load_saved_building_level(
+		b_id,
+		str(template.get("name", b_id))
+	)
+
+	var max_level := 1
+
+	for level_key in levels.keys():
+		max_level = max(max_level, int(str(level_key)))
+
+	current_level = clampi(current_level, 1, max_level)
+
+	var current_data: Dictionary = levels.get(str(current_level), {})
+	var next_level: int = min(current_level + 1, max_level)
+	var next_data: Dictionary = levels.get(str(next_level), current_data)
+
+	return {
+		"id": b_id,
+		"name": str(template.get("name", b_id.capitalize())),
+		"level": current_level,
+		"max_level": max_level,
+
+		"base_power": int(current_data.get("powerGained", 0)),
+		"power_per_level": int(next_data.get("powerGained", 0)),
+
+		"resources_required": next_data.get("costs", {}),
+		"upgrade_time_seconds": int(
+			next_data.get("buildTimeSec", 0)
+		),
+
+		"current_bonus": str(
+			current_data.get("buildingEffect", "")
+		),
+		"next_bonus": str(
+			next_data.get("buildingEffect", "")
+		),
+
+		"prerequisites": next_data.get("prerequisites", []),
+		"description": str(next_data.get("description", ""))
+	}
+
+func _load_saved_building_level(
+	b_id: String,
+	display_name: String
+) -> int:
+	var save := ConfigFile.new()
+
+	if save.load("user://buildings.cfg") != OK:
+		return 1
+
+	if save.has_section_key(b_id, "level"):
+		return int(save.get_value(b_id, "level", 1))
+
+	if save.has_section_key(display_name, "level"):
+		return int(save.get_value(display_name, "level", 1))
+
+	return 1
 
 func _local_upgrade_building(b_id: String) -> Dictionary:
 	var b := _get_local_building(b_id)
 
 	if b.is_empty():
-		return {"success": false, "error": "Building not found"}
+		return {
+			"success": false,
+			"error": "Building not found"
+		}
 
 	var lvl := int(b.get("level", 1))
-	var max_lvl := int(b.get("max_level", 30))
+	var max_lvl := int(b.get("max_level", 40))
 
 	if lvl >= max_lvl:
-		return {"success": false, "error": "Max level reached"}
+		return {
+			"success": false,
+			"error": "Max level reached"
+		}
 
-	var reqs = b.get("resources_required", {})
-	var multiplier := 1.0 + lvl * 0.15
+	var reqs: Dictionary = b.get("resources_required", {})
 
 	for res_key in reqs.keys():
-		var cost := int(reqs[res_key] * multiplier)
-		_local_resources[res_key] = max(0, int(_local_resources.get(res_key, 0)) - cost)
+		var resource_id := str(res_key)
+		var required_amount := int(reqs[res_key])
+		var current_amount := _get_player_resource(resource_id)
 
-	b["level"] = lvl + 1
-	refresh_requirements_and_buttons()
-	return {"success": true}
+		if current_amount < required_amount:
+			return {
+				"success": false,
+				"error": "Not enough %s" % resource_id.capitalize()
+			}
+
+	var ui := _get_ui_manager()
+
+	for res_key in reqs.keys():
+		var resource_id := str(res_key)
+		var required_amount := int(reqs[res_key])
+		var current_amount := _get_player_resource(resource_id)
+		var remaining_amount := current_amount - required_amount
+
+		if ui and ui.get(resource_id) != null:
+			ui.set(resource_id, remaining_amount)
+		else:
+			_local_resources[resource_id] = remaining_amount
+
+	var new_level := lvl + 1
+	var save := ConfigFile.new()
+	var save_path := "user://buildings.cfg"
+
+	# Keep every other building already stored in the same file.
+	var load_error := save.load(save_path)
+	if load_error != OK and load_error != ERR_FILE_NOT_FOUND:
+		return {
+			"success": false,
+			"error": "Could not open building save file"
+		}
+
+	save.set_value(b_id, "level", new_level)
+
+	var save_error := save.save(save_path)
+	if save_error != OK:
+		return {
+			"success": false,
+			"error": "Could not save building level"
+		}
+
+	return {
+		"success": true,
+		"new_level": new_level
+	}

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://clgljugioffta"]
 
-[ext_resource type="Texture2D" uid="uid://dettbaldhomeq" path="res://assets/World/rivers/RiverEnd.png" id="1_lk5d1"]
+[ext_resource type="Texture2D" uid="uid://dry3socpirwfs" path="res://assets/World/rivers/RiverEnd1.png" id="1_lk5d1"]
 
 [node name="RiverEnd" type="Node2D" unique_id=1113238545]
 

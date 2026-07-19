@@ -1,13 +1,13 @@
-[gd_scene format=3 uid="uid://dud2bvy0f0ing"]
+[gd_scene format=3 uid="uid://2rmix2jy1qxc"]
 
-[ext_resource type="Script" path="res://scripts/RequirementRow.gd" id="1_req_gd"]
+[ext_resource type="Script" uid="uid://cy4fg5llwkk3" path="res://scripts/RequirementRow.gd" id="1_req_gd"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_req_panel"]
-content_margin_left = 14
-content_margin_top = 10
-content_margin_right = 14
-content_margin_bottom = 10
-bg_color = Color(1.0, 1.0, 1.0, 1.0)
+content_margin_left = 14.0
+content_margin_top = 10.0
+content_margin_right = 14.0
+content_margin_bottom = 10.0
+bg_color = Color(1, 1, 1, 1)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
@@ -22,53 +22,53 @@ shadow_size = 4
 shadow_offset = Vector2(0, 2)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_normal"]
-content_margin_left = 14
-content_margin_top = 5
-content_margin_right = 14
-content_margin_bottom = 5
-bg_color = Color(0.13, 0.26, 0.46, 1.0)
+content_margin_left = 14.0
+content_margin_top = 5.0
+content_margin_right = 14.0
+content_margin_bottom = 5.0
+bg_color = Color(0.13, 0.26, 0.46, 1)
 border_width_bottom = 2
-border_color = Color(0.08, 0.18, 0.32, 1.0)
+border_color = Color(0.08, 0.18, 0.32, 1)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_hover"]
-content_margin_left = 14
-content_margin_top = 5
-content_margin_right = 14
-content_margin_bottom = 5
-bg_color = Color(0.18, 0.35, 0.6, 1.0)
+content_margin_left = 14.0
+content_margin_top = 5.0
+content_margin_right = 14.0
+content_margin_bottom = 5.0
+bg_color = Color(0.18, 0.35, 0.6, 1)
 border_width_bottom = 2
-border_color = Color(0.1, 0.23, 0.42, 1.0)
+border_color = Color(0.1, 0.23, 0.42, 1)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
-[node name="RequirementRow" type="PanelContainer"]
+[node name="RequirementRow" type="PanelContainer" unique_id=316861330]
 offset_right = 520.0
 offset_bottom = 44.0
 size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_req_panel")
 script = ExtResource("1_req_gd")
 
-[node name="HBox" type="HBoxContainer" parent="."]
+[node name="HBox" type="HBoxContainer" parent="." unique_id=472926836]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="StatusLabel" type="Label" parent="HBox"]
+[node name="StatusLabel" type="Label" parent="HBox" unique_id=1068949486]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(20, 0)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.18, 0.8, 0.44, 1.0)
+theme_override_colors/font_color = Color(0.18, 0.8, 0.44, 1)
 theme_override_font_sizes/font_size = 15
 text = "✔"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ReqIcon" type="TextureRect" parent="HBox"]
+[node name="ReqIcon" type="TextureRect" parent="HBox" unique_id=1567110831]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(24, 24)
 layout_mode = 2
@@ -76,55 +76,55 @@ size_flags_vertical = 4
 expand_mode = 1
 stretch_mode = 5
 
-[node name="ReqNameLabel" type="Label" parent="HBox"]
+[node name="ReqNameLabel" type="Label" parent="HBox" unique_id=1241700161]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.15, 0.18, 0.22, 1.0)
+theme_override_colors/font_color = Color(0.15, 0.18, 0.22, 1)
 theme_override_font_sizes/font_size = 14
 text = "Cured Timber Wood"
 vertical_alignment = 1
 
-[node name="AmountContainer" type="HBoxContainer" parent="HBox"]
+[node name="AmountContainer" type="HBoxContainer" parent="HBox" unique_id=543833476]
 layout_mode = 2
 theme_override_constants/separation = 4
 alignment = 2
 
-[node name="CurrentAmountLabel" type="Label" parent="HBox/AmountContainer"]
+[node name="CurrentAmountLabel" type="Label" parent="HBox/AmountContainer" unique_id=1613491267]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.2, 0.5, 0.8, 1.0)
+theme_override_colors/font_color = Color(0.2, 0.5, 0.8, 1)
 theme_override_font_sizes/font_size = 13
 text = "42.5K"
 horizontal_alignment = 2
 vertical_alignment = 1
 
-[node name="SlashLabel" type="Label" parent="HBox/AmountContainer"]
+[node name="SlashLabel" type="Label" parent="HBox/AmountContainer" unique_id=322911098]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.65, 0.7, 1.0)
+theme_override_colors/font_color = Color(0.6, 0.65, 0.7, 1)
 theme_override_font_sizes/font_size = 13
 text = "/"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="RequiredAmountLabel" type="Label" parent="HBox/AmountContainer"]
+[node name="RequiredAmountLabel" type="Label" parent="HBox/AmountContainer" unique_id=813001411]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.15, 0.18, 0.22, 1.0)
+theme_override_colors/font_color = Color(0.15, 0.18, 0.22, 1)
 theme_override_font_sizes/font_size = 13
 text = "50.0K"
 vertical_alignment = 1
 
-[node name="MissingAmountLabel" type="Label" parent="HBox"]
+[node name="MissingAmountLabel" type="Label" parent="HBox" unique_id=1581127374]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.93, 0.27, 0.27, 1.0)
+theme_override_colors/font_color = Color(0.93, 0.27, 0.27, 1)
 theme_override_font_sizes/font_size = 12
 text = "Need 7.5K More"
 vertical_alignment = 1
 
-[node name="ActionButton" type="Button" parent="HBox"]
+[node name="ActionButton" type="Button" parent="HBox" unique_id=120706808]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(70, 24)
 layout_mode = 2

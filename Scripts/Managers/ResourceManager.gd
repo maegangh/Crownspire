@@ -6,6 +6,7 @@ extends Node
 @export var collect_amount: int = 100
 @export var opens_troop_training: bool = false
 @export var troop_type: String = ""
+@export var building_id: String = ""
 
 var press_position := Vector2.ZERO
 var upgrading := false
@@ -76,7 +77,7 @@ func _on_upgrade_area_input_event(_viewport, event, _shape_idx):
 			get_tree().current_scene.get_node("TroopTrainingPanel").open_for_troop(troop_type)
 			return
 
-		get_tree().current_scene.get_node("UpgradePanel").open_for_building(self)
+		open_upgrade_window()
 
 func start_upgrade_timer():
 	upgrading = true
@@ -122,3 +123,24 @@ func load_building_level():
 		building_level = save.get_value(building_name, "level", 1)
 		upgrading = save.get_value(building_name, "upgrading", false)
 		upgrade_finish_time = save.get_value(building_name, "upgrade_finish_time", 0)
+
+func open_upgrade_window() -> void:
+	if building_id.is_empty():
+		push_error("ResourceManager: building_id is empty on " + name)
+		return
+
+	var window := get_tree().current_scene.find_child(
+		"BuildingUpgradeWindow",
+		true,
+		false
+	)
+
+	if window == null:
+		push_error("ResourceManager: BuildingUpgradeWindow not found.")
+		return
+
+	if not window.has_method("open_for_building"):
+		push_error("ResourceManager: Upgrade window is missing open_for_building().")
+		return
+
+	window.open_for_building(building_id)

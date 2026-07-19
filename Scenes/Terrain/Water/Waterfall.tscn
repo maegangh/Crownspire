@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://c2sit0mjad3wj"]
 
-[ext_resource type="Texture2D" uid="uid://bpv22qoa4wtet" path="res://assets/World/rivers/Waterfall.png" id="1_ytce5"]
+[ext_resource type="Texture2D" uid="uid://brlfgfikic3yf" path="res://assets/World/rivers/Waterfall2.png" id="1_ytce5"]
 
 [node name="Waterfall" type="Node2D" unique_id=261537274]
 

@@ -1,87 +1,157 @@
 extends Node2D
 
-@export var building_id: String = "citadel"
-@export var building_level: int = 1
-@export var building_name: String = "Crystal Citadel"
+@export var building_id: String = "castle"
+@export var level_label_path: NodePath
+@export var click_area_path: NodePath
 
-var upgrading := false
-var upgrade_finish_time := 0
+var _level_label: Label = null
+var _click_area: Area2D = null
+
 
 func _ready() -> void:
-	load_building_level()
-	check_upgrade_finished()
-	update_level_label()
+	add_to_group("city_buildings")
 
-	if has_node("UpgradeArea"):
-		$UpgradeArea.input_pickable = true
-		$UpgradeArea.input_event.connect(_on_upgrade_area_input_event)
+	_level_label = _find_level_label()
+	_click_area = _find_click_area()
 
-	if has_node("Area2D"):
-		$Area2D.input_pickable = true
-		$Area2D.input_event.connect(_on_upgrade_area_input_event)
+	if _click_area == null:
+		push_warning(
+			"[Castle] No Area2D click area was found. "
+			+ "Set click_area_path in the Inspector."
+		)
+	elif not _click_area.input_event.is_connected(
+		_on_click_area_input_event
+	):
+		_click_area.input_event.connect(
+			_on_click_area_input_event
+		)
 
-func _process(_delta: float) -> void:
-	check_upgrade_finished()
+	refresh_level_display()
 
-func _on_upgrade_area_input_event(_viewport, event, _shape_idx) -> void:
-	print("Castle clicked")
 
+func _on_click_area_input_event(
+	_viewport: Node,
+	event: InputEvent,
+	_shape_idx: int
+) -> void:
+	if event is InputEventMouseButton:
+		var mouse_event := event as InputEventMouseButton
+
+		if (
+			mouse_event.button_index == MOUSE_BUTTON_LEFT
+			and mouse_event.pressed
+		):
+			_open_upgrade_window()
+
+	elif event is InputEventScreenTouch:
+		var touch_event := event as InputEventScreenTouch
+
+		if touch_event.pressed:
+			_open_upgrade_window()
+
+
+func _open_upgrade_window() -> void:
 	if GameState.popup_open:
 		return
 
-	if event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-			open_building_upgrade_window()
+	var upgrade_window := get_node_or_null(
+		"/root/BuildingUpgradeWindow"
+	)
 
-func open_building_upgrade_window() -> void:
-	var window = get_tree().current_scene.find_child("BuildingUpgradeWindow", true, false)
+	if upgrade_window == null:
+		upgrade_window = get_tree().root.find_child(
+			"BuildingUpgradeWindow",
+			true,
+			false
+		)
 
-	if window:
-		window.open_for_building(building_id)
-	else:
-		push_warning("BuildingUpgradeWindow not found. Make sure it is inside GameHUD.")
-		
-func start_upgrade_timer() -> void:
-	upgrading = true
-	var seconds_needed = building_level * 10
-	upgrade_finish_time = Time.get_unix_time_from_system() + seconds_needed
-	save_building_level()
-
-func check_upgrade_finished() -> void:
-	if not upgrading:
+	if upgrade_window == null:
+		push_error(
+			"[Castle] BuildingUpgradeWindow was not found."
+		)
 		return
 
-	var now = Time.get_unix_time_from_system()
+	if not upgrade_window.has_method("open_for_building"):
+		push_error(
+			"[Castle] BuildingUpgradeWindow has no "
+			+ "open_for_building() method."
+		)
+		return
 
-	if now >= upgrade_finish_time:
-		upgrading = false
-		upgrade_finish_time = 0
-		building_level += 1
-		update_level_label()
-		save_building_level()
+	upgrade_window.call("open_for_building", building_id)
 
-func get_upgrade_time_left() -> int:
-	if not upgrading:
-		return 0
 
-	var now = Time.get_unix_time_from_system()
-	return max(0, upgrade_finish_time - now)
+func refresh_level_display() -> void:
+	if _level_label == null or not is_instance_valid(_level_label):
+		_level_label = _find_level_label()
 
-func update_level_label() -> void:
-	if has_node("LevelLabel"):
-		$LevelLabel.text = str(building_level)
+	if _level_label == null:
+		push_warning(
+			"[Castle] No level Label was found. Set "
+			+ "level_label_path in the Inspector."
+		)
+		return
 
-func save_building_level() -> void:
-	var save = ConfigFile.new()
-	save.load("user://buildings.cfg")
-	save.set_value(building_name, "level", building_level)
-	save.set_value(building_name, "upgrading", upgrading)
-	save.set_value(building_name, "upgrade_finish_time", upgrade_finish_time)
-	save.save("user://buildings.cfg")
+	_level_label.text = str(_load_saved_level())
 
-func load_building_level() -> void:
-	var save = ConfigFile.new()
-	if save.load("user://buildings.cfg") == OK:
-		building_level = save.get_value(building_name, "level", 1)
-		upgrading = save.get_value(building_name, "upgrading", false)
-		upgrade_finish_time = save.get_value(building_name, "upgrade_finish_time", 0)
+
+func _load_saved_level() -> int:
+	var save := ConfigFile.new()
+	var load_error := save.load("user://buildings.cfg")
+
+	if load_error != OK:
+		return 1
+
+	return int(
+		save.get_value(
+			building_id,
+			"level",
+			1
+		)
+	)
+
+
+func _find_level_label() -> Label:
+	if not level_label_path.is_empty():
+		var selected_node := get_node_or_null(level_label_path)
+
+		if selected_node is Label:
+			return selected_node as Label
+
+	var possible_names := [
+		"LevelLabel",
+		"BuildingLevelLabel",
+		"LevelNumber",
+		"Level"
+	]
+
+	for label_name in possible_names:
+		var found := find_child(label_name, true, false)
+
+		if found is Label:
+			return found as Label
+
+	return null
+
+
+func _find_click_area() -> Area2D:
+	if not click_area_path.is_empty():
+		var selected_node := get_node_or_null(click_area_path)
+
+		if selected_node is Area2D:
+			return selected_node as Area2D
+
+	var found := find_child(
+		"Area2D",
+		true,
+		false
+	)
+
+	if found is Area2D:
+		return found as Area2D
+
+	for child in find_children("*", "Area2D", true, false):
+		if child is Area2D:
+			return child as Area2D
+
+	return null

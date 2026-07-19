@@ -35,8 +35,12 @@ func _process(_delta):
 func setup_bottom_bar():
 	if is_world_screen:
 		bottom_bar_texture.texture = bottom_bar_home
+		world_city_button.text = "CITY"
 	else:
 		bottom_bar_texture.texture = bottom_bar_world
+		world_city_button.text = "MAP"
+		
+		
 
 func update_resources():
 	food_label.text = format_number(GameState.food)
@@ -104,7 +108,7 @@ func _on_world_city_pressed():
 	if is_world_screen:
 		get_tree().change_scene_to_file.call_deferred("res://Scenes/City/City.tscn")
 	else:
-		get_tree().change_scene_to_file.call_deferred("res://Scenes/WorldMap_Beta.tscn")
+		get_tree().change_scene_to_file.call_deferred("res://Scenes/World/KingdomMap.tscn")
 
 func format_with_commas(value: int) -> String:
 	var text := str(value)

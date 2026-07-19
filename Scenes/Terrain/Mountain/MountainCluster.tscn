@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://ck5fr1y5ogs68"]
+
+[ext_resource type="Texture2D" uid="uid://ci67o16yow6us" path="res://assets/World/mountains/mountaincluster.png" id="1_dt1cq"]
+
+[node name="MountainCluster" type="Node2D" unique_id=1317527295]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1882469051]
+z_index = 10
+texture = ExtResource("1_dt1cq")

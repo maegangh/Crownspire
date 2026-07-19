@@ -40,7 +40,6 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.13, 0.15, 0.18, 1)
 theme_override_font_sizes/font_size = 14
-text = "Kingdom Power Might"
 vertical_alignment = 1
 
 [node name="CurrentValueLabel" type="Label" parent="HBox" unique_id=1729180019]

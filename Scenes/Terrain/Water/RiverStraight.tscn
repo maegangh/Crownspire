@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dsfrs8rei4wvm"]
 
-[ext_resource type="Texture2D" uid="uid://bods05dirxcwv" path="res://assets/World/rivers/RiverStraight.png" id="1_npb14"]
+[ext_resource type="Texture2D" uid="uid://brqr4mq6uxhsa" path="res://assets/World/rivers/RiverStraight1.png" id="1_npb14"]
 
 [node name="RiverStraight" type="Node2D" unique_id=451715169]
 

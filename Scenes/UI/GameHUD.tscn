@@ -11,6 +11,7 @@
 
 [node name="GameHUD" type="CanvasLayer" unique_id=1833121157]
 script = ExtResource("1_8yvrw")
+is_world_screen = true
 bottom_bar_home = ExtResource("2_663bt")
 bottom_bar_world = ExtResource("2_8yvrw")
 
@@ -489,3 +490,4 @@ offset_bottom = 23.0
 text = "Tooltip Popup"
 
 [node name="BuildingUpgradeWindow" parent="." unique_id=949679645 instance=ExtResource("8_0quiv")]
+building_id = "castle"

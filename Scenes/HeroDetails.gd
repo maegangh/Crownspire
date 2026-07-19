@@ -84,7 +84,7 @@ func _ready() -> void:
 		_ascend_page.visible = false
 
 	_show_tab(Tab.OVERVIEW)
-	_display_hero_at_index(0)
+	visible = false
 
 
 func _configure_input_handling() -> void:
@@ -321,7 +321,37 @@ func _show_tab(tab: Tab) -> void:
 			if _troop_skill_page:
 				_troop_skill_page.visible = true
 
+func show_hero_by_id(hero_id: String) -> void:
+	if hero_id.is_empty():
+		push_error("HeroDetails: Cannot display an empty hero ID.")
+		return
 
+	var wanted_id := hero_id.strip_edges().to_lower()
+
+	for index in range(_hero_roster.size()):
+		var roster_entry = _hero_roster[index]
+
+		if roster_entry is not Dictionary:
+			continue
+
+		var entry_id := str(roster_entry.get("id", "")).strip_edges().to_lower()
+
+		if entry_id == wanted_id:
+			_hero_index = index
+			_show_tab(Tab.OVERVIEW)
+			_display_hero_at_index(index)
+			visible = true
+
+			print(
+				"HeroDetails displaying ID: ",
+				entry_id,
+				" | Index: ",
+				index
+			)
+			return
+
+	push_error("HeroDetails: Hero ID not found in roster: " + hero_id)
+	
 func _display_hero_at_index(index: int) -> void:
 	if index < 0 or index >= _hero_roster.size():
 		return

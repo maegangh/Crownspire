@@ -82,22 +82,15 @@ func _populate_roster() -> void:
 func _on_hero_selected(hero_id: String) -> void:
 	print("Hero selected: ", hero_id)
 
-	if not Engine.has_singleton("DataManager") and not typeof(DataManager) == TYPE_OBJECT:
-		push_error("HeroRoster ERROR: DataManager not found.")
+	if hero_id.is_empty():
+		push_error("HeroRoster ERROR: Received an empty hero ID.")
 		return
 
-	var hero_data: Dictionary = DataManager.get_hero(hero_id)
-
-	if hero_data.is_empty():
-		push_error("HeroRoster ERROR: Hero not found: " + hero_id)
-		return
-
-	hero_details_panel.visible = true
-
-	if hero_details_panel.has_method("show_hero"):
-		hero_details_panel.show_hero(hero_data)
+	# Send the selected ID directly to HeroDetails.
+	if hero_details_panel.has_method("show_hero_by_id"):
+		hero_details_panel.show_hero_by_id(hero_id)
 	else:
-		push_error("HeroRoster ERROR: HeroDetails does not have show_hero(hero_data).")
+		push_error("HeroRoster ERROR: HeroDetails is missing show_hero_by_id().")
 
 
 func _on_back_pressed() -> void:

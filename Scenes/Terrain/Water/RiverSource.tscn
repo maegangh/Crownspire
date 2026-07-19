@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cnwvdu0v0gaxu"]
 
-[ext_resource type="Texture2D" uid="uid://dc8e7d5glx746" path="res://assets/World/rivers/RiverSource.png" id="1_vpj81"]
+[ext_resource type="Texture2D" uid="uid://c82bgnpbktrhy" path="res://assets/World/rivers/RiverSource2.png" id="1_vpj81"]
 
 [node name="RiverSource" type="Node2D" unique_id=349428206]
 

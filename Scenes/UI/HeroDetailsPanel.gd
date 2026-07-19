@@ -35,7 +35,11 @@ var _large_portrait: TextureRect
 
 
 func _ready() -> void:
-	if has_node("LargePortrait"):
+	_bind_panel_layout()
+	visible = false
+
+	if close_button and not close_button.pressed.is_connected(_on_close_pressed):
+		close_button.pressed.connect(_on_close_pressed)
 		return
 
 	_bind_panel_layout()
@@ -45,15 +49,28 @@ func _ready() -> void:
 
 
 func _bind_panel_layout() -> void:
-	portrait = get_node_or_null("Portrait") as TextureRect
-	hero_name = get_node_or_null("HeroName") as Label
-	role_label = get_node_or_null("RoleLabel") as Label
-	rarity_label = get_node_or_null("RarityLabel") as Label
+	portrait = get_node_or_null("LargePortrait") as TextureRect
+	hero_name = get_node_or_null("HeroNameLabel") as Label
+	role_label = get_node_or_null("HeroTitleLabel") as Label
+	rarity_label = get_node_or_null("AscensionLabel") as Label
 	level_label = get_node_or_null("LevelLabel") as Label
 	power_label = get_node_or_null("PowerLabel") as Label
-	skills_list = get_node_or_null("SkillsList") as VBoxContainer
-	close_button = get_node_or_null("CloseButton") as Button
+	close_button = get_node_or_null("BackButton") as Button
 
+	skills_list = get_node_or_null("Pages/SkillsPage/Skills") as VBoxContainer
+
+func show_hero_by_id(hero_id: String) -> void:
+	var hero_data := _get_hero_template_by_id(hero_id)
+
+	if hero_data.is_empty():
+		push_error("HeroDetailsPanel: Hero not found: " + hero_id)
+		return
+
+	# Preserve the exact ID clicked.
+	hero_data = hero_data.duplicate(true)
+	hero_data["id"] = hero_id
+
+	show_hero(hero_data)
 
 func show_hero(hero_data: Dictionary) -> void:
 	var hero_id := str(hero_data.get("id", ""))
@@ -61,14 +78,18 @@ func show_hero(hero_data: Dictionary) -> void:
 
 	if hero_name:
 		hero_name.text = str(view_data.get("name", "Unknown"))
+
 	if role_label:
-		role_label.text = "Role: %s" % str(view_data.get("role", "Unknown"))
+		role_label.text = str(view_data.get("role", "Unknown"))
+
 	if rarity_label:
-		rarity_label.text = "Rarity: %s" % str(view_data.get("rarity", "Unknown"))
+		rarity_label.text = str(view_data.get("rarity", "Unknown"))
+
 	if level_label:
 		var level := int(view_data.get("level", 1))
 		var ascension := int(view_data.get("ascension", 0))
 		level_label.text = "Level: %d  +%d" % [level, ascension]
+
 	if power_label:
 		power_label.text = "Power: %s" % str(_calculate_power(view_data))
 
@@ -100,17 +121,41 @@ func _get_hero_template_by_id(hero_id: String) -> Dictionary:
 	if hero_id.is_empty():
 		return {}
 
-	if DataManager.has_method("get_hero"):
-		var from_manager: Dictionary = DataManager.get_hero(hero_id)
-		if not from_manager.is_empty():
-			return from_manager
+	var wanted_id := hero_id.strip_edges().to_lower()
 
-	for template in _load_hero_templates():
-		if str(template.get("id", "")) == hero_id:
-			return template
+	for path in HEROES_JSON_PATHS:
+		if not FileAccess.file_exists(path):
+			continue
 
+		var file := FileAccess.open(path, FileAccess.READ)
+		if file == null:
+			continue
+
+		var parsed = JSON.parse_string(file.get_as_text())
+
+		if parsed is not Array:
+			continue
+
+		for hero_entry in parsed:
+			if hero_entry is not Dictionary:
+				continue
+
+			var entry_id := str(hero_entry.get("id", "")).strip_edges().to_lower()
+
+			if entry_id == wanted_id:
+				var matched_hero: Dictionary = hero_entry.duplicate(true)
+
+				print(
+					"HeroDetails matched ID: ",
+					matched_hero.get("id", ""),
+					" | Name: ",
+					matched_hero.get("name", "")
+				)
+
+				return matched_hero
+
+	push_error("HeroDetailsPanel: No hero matched ID: " + hero_id)
 	return {}
-
 
 func _load_hero_templates() -> Array:
 	var source = DataManager.get_all_heroes() if DataManager.has_method("get_all_heroes") else []

@@ -1,15 +1,16 @@
 extends Camera2D
 
-@export var map_size: Vector2 = Vector2(4096, 4096)
+@export var map_size: Vector2 = Vector2(8192, 8192)
 @export var zoom_min: float = 0.35
 @export var zoom_max: float = 2.5
 @export var zoom_step: float = 0.12
 
 var dragging: bool = false
 
+@onready var player_castle: Node2D = $"../PlayerCastleMarker"
+
 func _ready() -> void:
-	position = map_size / 2.0
-	zoom = Vector2(0.75, 0.75)
+	map_size = Vector2(8192, 8192)
 
 	limit_left = 0
 	limit_top = 0
@@ -17,8 +18,20 @@ func _ready() -> void:
 	limit_bottom = int(map_size.y)
 	limit_smoothed = false
 
+	zoom = Vector2(1.5, 1.5)
 	make_current()
+
+	# Wait until the castle and world have finished loading.
+	await get_tree().process_frame
+	await get_tree().process_frame
+
+	global_position = player_castle.global_position
 	_clamp_camera()
+
+	print("Castle position: ", player_castle.global_position)
+	print("Camera position: ", global_position)
+	
+	
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
@@ -30,7 +43,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			_apply_zoom(-zoom_step)
 
 	elif event is InputEventMouseMotion and dragging:
-		position -= event.relative / zoom.x
+		global_position -= event.relative / zoom.x
 		_clamp_camera()
 
 func _apply_zoom(amount: float) -> void:
@@ -48,11 +61,11 @@ func _clamp_camera() -> void:
 	var max_y: float = map_size.y - half_view.y
 
 	if min_x > max_x:
-		position.x = map_size.x / 2.0
+		global_position.x = map_size.x / 2.0
 	else:
-		position.x = clampf(position.x, min_x, max_x)
+		global_position.x = clampf(global_position.x, min_x, max_x)
 
 	if min_y > max_y:
-		position.y = map_size.y / 2.0
+		global_position.y = map_size.y / 2.0
 	else:
-		position.y = clampf(position.y, min_y, max_y)
+		global_position.y = clampf(global_position.y, min_y, max_y)

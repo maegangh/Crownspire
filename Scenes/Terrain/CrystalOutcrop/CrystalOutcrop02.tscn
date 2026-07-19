@@ -1,0 +1,5 @@
+[gd_scene format=3 uid="uid://c1n4xuygytome"]
+
+[node name="CrystalOutcrop02" type="Node2D" unique_id=810619180]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=2147439139]
