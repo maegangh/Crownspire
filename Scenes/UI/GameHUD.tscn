@@ -153,7 +153,6 @@ offset_left = 625.0
 offset_top = 108.0
 offset_right = 698.0
 offset_bottom = 152.0
-mouse_filter = 2
 
 [node name="BottomBarTexture" type="TextureRect" parent="Control" unique_id=355547201]
 layout_mode = 1
@@ -232,10 +231,6 @@ mouse_filter = 2
 
 [node name="BagScreen" parent="ScreenRoot" unique_id=876701432 instance=ExtResource("5_nbojb")]
 layout_mode = 1
-offset_left = 2.0
-offset_top = -6.0
-offset_right = 2.0
-offset_bottom = -6.0
 
 [node name="PopupBackground" type="ColorRect" parent="ScreenRoot" unique_id=2063645878]
 visible = false
@@ -490,4 +485,4 @@ offset_bottom = 23.0
 text = "Tooltip Popup"
 
 [node name="BuildingUpgradeWindow" parent="." unique_id=949679645 instance=ExtResource("8_0quiv")]
-building_id = "castle"
+visible = false

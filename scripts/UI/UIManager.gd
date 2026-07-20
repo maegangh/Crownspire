@@ -16,8 +16,14 @@ var royal_crystals: int = 2500
 # Building data cache
 var _buildings_cache: Array = []
 
+# HUD screen navigation (GameHUD ScreenRoot sibling)
+var _screen_root: Control = null
+var _popup_background: ColorRect = null
+var _current_screen: Control = null
+
 func _ready() -> void:
 	_load_buildings_data()
+	call_deferred("_init_screen_navigation")
 
 # Dynamic loader for buildings database
 func _load_buildings_data() -> void:
@@ -132,3 +138,73 @@ func show_success(message: String) -> void:
 
 func show_error(message: String) -> void:
 	print("[Crownspire UIManager - ERROR] %s" % message)
+
+# --- HUD Screen Navigation (GameHUD ScreenRoot) ---
+
+func _init_screen_navigation() -> void:
+	var hud := get_parent()
+	if hud == null:
+		return
+
+	_screen_root = hud.get_node_or_null("ScreenRoot") as Control
+	if _screen_root == null:
+		return
+
+	_popup_background = _screen_root.get_node_or_null("PopupBackground") as ColorRect
+	_hide_all_screens()
+
+
+func _hide_all_screens() -> void:
+	if _screen_root == null:
+		return
+
+	for child in _screen_root.get_children():
+		if child == _popup_background:
+			continue
+		if child is Control:
+			_set_screen_active(child as Control, false)
+
+
+func _set_screen_active(screen: Control, active: bool) -> void:
+	screen.visible = active
+	screen.mouse_filter = Control.MOUSE_FILTER_STOP if active else Control.MOUSE_FILTER_IGNORE
+
+
+func _set_popup_background_active(active: bool) -> void:
+	if _popup_background == null:
+		return
+
+	_popup_background.visible = active
+	_popup_background.mouse_filter = Control.MOUSE_FILTER_STOP if active else Control.MOUSE_FILTER_IGNORE
+
+
+func open_screen(screen_name: String) -> void:
+	if _screen_root == null:
+		_init_screen_navigation()
+	if _screen_root == null:
+		push_warning("[Crownspire UIManager] ScreenRoot not found; cannot open '%s'." % screen_name)
+		return
+
+	var screen := _screen_root.get_node_or_null(screen_name) as Control
+	if screen == null:
+		push_warning("[Crownspire UIManager] Screen not found: %s" % screen_name)
+		return
+
+	if _current_screen != null and _current_screen != screen:
+		_set_screen_active(_current_screen, false)
+
+	_current_screen = screen
+	_set_screen_active(_current_screen, true)
+	_set_popup_background_active(true)
+
+	if _current_screen.has_method("on_open"):
+		_current_screen.on_open()
+
+
+func close_current_screen() -> void:
+	if _current_screen == null:
+		return
+
+	_set_screen_active(_current_screen, false)
+	_current_screen = null
+	_set_popup_background_active(false)

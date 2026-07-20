@@ -120,4 +120,3 @@ func format_with_commas(value: int) -> String:
 
 	return text + result
 	
-	
