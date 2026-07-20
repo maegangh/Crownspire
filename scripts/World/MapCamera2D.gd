@@ -3,7 +3,6 @@
 # Godot 4.6 / GDScript 2.0 Responsive Touch Drag, Pinch-to-Zoom & PC Testing Scroll
 # ==============================================================================
 
-class_name MapCamera2D
 extends Camera2D
 
 @export_category("Zoom Parameters")

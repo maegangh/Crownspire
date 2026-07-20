@@ -3,7 +3,6 @@
 # Godot 4.6 / GDScript 2.0 Deterministic resource spawn coordinator with object pooling
 # ==============================================================================
 
-class_name ResourceSpawnManager
 extends Node2D
 
 signal resource_node_clicked(node: ResourceNode)

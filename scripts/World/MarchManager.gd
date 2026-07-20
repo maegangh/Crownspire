@@ -3,7 +3,6 @@
 # Godot 4.6 / GDScript 2.0 Real-time campaign/march outbound & inbound logistics
 # ==============================================================================
 
-class_name MarchManager
 extends Node2D
 
 # Signal sent when a march completes gathering or battle action

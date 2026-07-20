@@ -3,7 +3,6 @@
 # Godot 4.6 / GDScript 2.0 Spatial Density and Level scaling near Central Royal Keep
 # ==============================================================================
 
-class_name WildlingSpawnManager
 extends Node2D
 
 signal wildling_node_clicked(node: WildlingNode)
