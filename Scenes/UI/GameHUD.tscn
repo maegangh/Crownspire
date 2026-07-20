@@ -7,7 +7,7 @@
 [ext_resource type="Script" uid="uid://bivi5t74hwfx3" path="res://scripts/UI/UIManager.gd" id="4_7a7ko"]
 [ext_resource type="PackedScene" uid="uid://d1cuopqbf8q1h" path="res://Scenes/UI/BagScreen.tscn" id="5_nbojb"]
 [ext_resource type="Script" uid="uid://brh2wuhf3uofu" path="res://scripts/UI/QuestScreen.gd" id="6_dqvwb"]
-[ext_resource type="PackedScene" uid="uid://mp0werxddrlg" path="res://UI/building_upgrade/BuildingUpgradeWindow (2).tscn" id="8_0quiv"]
+[ext_resource type="PackedScene" uid="uid://bcj1wm45rrorc" path="res://UI/building_upgrade/BuildingUpgradeWindow (2).tscn" id="8_0quiv"]
 
 [node name="GameHUD" type="CanvasLayer" unique_id=1833121157]
 script = ExtResource("1_8yvrw")
