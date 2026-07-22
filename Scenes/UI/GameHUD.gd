@@ -26,8 +26,19 @@ extends CanvasLayer
 
 func _ready():
 	setup_bottom_bar()
+	_configure_bottom_nav()
 	update_resources()
 	connect_buttons()
+	call_deferred("_validate_bottom_nav_hitboxes")
+	call_deferred("_run_hud_navigation_smoke_test_if_headless")
+
+
+func _run_hud_navigation_smoke_test_if_headless() -> void:
+	if DisplayServer.get_name() != "headless":
+		return
+	var manager: Node = get_node_or_null("UIManager")
+	if manager != null and manager.has_method("run_navigation_smoke_test"):
+		manager.run_navigation_smoke_test()
 
 func _process(_delta):
 	update_resources()
@@ -35,12 +46,85 @@ func _process(_delta):
 func setup_bottom_bar():
 	if is_world_screen:
 		bottom_bar_texture.texture = bottom_bar_home
-		world_city_button.text = "CITY"
 	else:
 		bottom_bar_texture.texture = bottom_bar_world
-		world_city_button.text = "MAP"
-		
-		
+
+
+## Invisible equal-width hit targets over the bottom bar art.
+## Resets any broken editor scale/anchors so Alliance no longer maps to Map/City.
+func _configure_bottom_nav() -> void:
+	var buttons_box: HBoxContainer = $Control/BottomBarTexture/BottomButtons
+
+	bottom_bar_texture.mouse_filter = Control.MOUSE_FILTER_STOP
+	buttons_box.scale = Vector2.ONE
+	buttons_box.modulate = Color(1, 1, 1, 0)
+	buttons_box.set_anchors_preset(Control.PRESET_FULL_RECT)
+	buttons_box.offset_left = 28.0
+	buttons_box.offset_top = 42.0
+	buttons_box.offset_right = -28.0
+	buttons_box.offset_bottom = -10.0
+	buttons_box.add_theme_constant_override("separation", 2)
+	buttons_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	buttons_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var nav_buttons: Array[Button] = [
+		heroes_button,
+		wayfinder_button,
+		bag_button,
+		quest_button,
+		alliance_button,
+		world_city_button,
+	]
+
+	for button: Button in nav_buttons:
+		if button == null:
+			continue
+		button.text = ""
+		button.flat = true
+		button.focus_mode = Control.FOCUS_NONE
+		button.mouse_filter = Control.MOUSE_FILTER_STOP
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		button.size_flags_stretch_ratio = 1.0
+
+
+func _validate_bottom_nav_hitboxes() -> void:
+	var nav_buttons: Array[Button] = [
+		heroes_button,
+		wayfinder_button,
+		bag_button,
+		quest_button,
+		alliance_button,
+		world_city_button,
+	]
+
+	var rects: Array[Rect2] = []
+	for button: Button in nav_buttons:
+		if button == null:
+			push_error("[GameHUD] Missing bottom nav button.")
+			return
+		rects.append(button.get_global_rect())
+
+	for i: int in range(rects.size()):
+		if rects[i].size.x < 8.0 or rects[i].size.y < 8.0:
+			push_error("[GameHUD] Bottom nav hitbox too small: %s" % nav_buttons[i].name)
+		for j: int in range(i + 1, rects.size()):
+			if rects[i].intersects(rects[j]):
+				push_error("[GameHUD] Bottom nav overlap: %s vs %s" % [
+					nav_buttons[i].name,
+					nav_buttons[j].name,
+				])
+
+	# Left-to-right order must match visual art slots.
+	for i: int in range(rects.size() - 1):
+		if rects[i].position.x >= rects[i + 1].position.x:
+			push_error("[GameHUD] Bottom nav order broken between %s and %s" % [
+				nav_buttons[i].name,
+				nav_buttons[i + 1].name,
+			])
+
+	print("[GameHUD] Bottom nav OK: Heroes→Wayfinder→Bag→Quest→Alliance→WorldCity (no overlaps).")
+
 
 func update_resources():
 	food_label.text = format_number(GameState.food)

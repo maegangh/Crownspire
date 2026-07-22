@@ -33,6 +33,7 @@ ItemDatabase="*uid://o053iu3nf15a"
 TroopDatabase="*uid://c7har7inlmxag"
 GameEvents="*uid://bnud8tmp66a7o"
 UIManager="*uid://dwj0bsgdfw377"
+AllianceState="*res://Scripts/AllianceState.gd"
 
 [display]
 

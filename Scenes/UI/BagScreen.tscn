@@ -11,6 +11,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 script = ExtResource("1_2cr07")
 
 [node name="Panel" type="Panel" parent="." unique_id=279383611]
@@ -57,9 +58,17 @@ theme_override_font_sizes/font_size = 30
 text = "Bag"
 
 [node name="CloseButton" type="Button" parent="Panel/Header" unique_id=795418174]
-layout_mode = 0
-offset_right = 15.0
-offset_bottom = 15.0
+custom_minimum_size = Vector2(64, 48)
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -72.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = 56.0
+grow_horizontal = 0
+text = "X"
 
 [node name="Tabs" type="HBoxContainer" parent="Panel" unique_id=592301826]
 layout_mode = 0

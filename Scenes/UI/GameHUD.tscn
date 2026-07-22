@@ -7,6 +7,8 @@
 [ext_resource type="Script" uid="uid://bivi5t74hwfx3" path="res://scripts/UI/UIManager.gd" id="4_7a7ko"]
 [ext_resource type="PackedScene" uid="uid://d1cuopqbf8q1h" path="res://Scenes/UI/BagScreen.tscn" id="5_nbojb"]
 [ext_resource type="Script" uid="uid://brh2wuhf3uofu" path="res://scripts/UI/QuestScreen.gd" id="6_dqvwb"]
+[ext_resource type="Script" path="res://scripts/UI/AllianceScreen.gd" id="7_alliance"]
+[ext_resource type="Script" path="res://scripts/UI/ShopScreen.gd" id="7_shop"]
 [ext_resource type="PackedScene" uid="uid://bcj1wm45rrorc" path="res://UI/building_upgrade/BuildingUpgradeWindow (2).tscn" id="8_0quiv"]
 
 [node name="GameHUD" type="CanvasLayer" unique_id=1833121157]
@@ -19,6 +21,7 @@ bottom_bar_world = ExtResource("2_8yvrw")
 script = ExtResource("4_7a7ko")
 
 [node name="Control" type="Control" parent="." unique_id=1062250038]
+z_index = 100
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -165,62 +168,83 @@ offset_top = -179.0
 offset_bottom = 5.0
 grow_horizontal = 2
 grow_vertical = 0
-mouse_filter = 2
+mouse_filter = 0
 texture = ExtResource("2_8yvrw")
 expand_mode = 1
 stretch_mode = 5
 metadata/_edit_use_anchors_ = true
 
 [node name="BottomButtons" type="HBoxContainer" parent="Control/BottomBarTexture" unique_id=272526963]
-modulate = Color(0, 0, 0, 0)
+modulate = Color(1, 1, 1, 0)
 layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.010243278
-anchor_top = 1.0949721
-anchor_right = 0.9390608
-anchor_bottom = 1.0970855
-offset_left = 24.0
-offset_top = -25.0
-offset_right = -601.45514
-offset_bottom = -15.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 28.0
+offset_top = 42.0
+offset_right = -28.0
+offset_bottom = -10.0
 grow_horizontal = 2
-grow_vertical = 0
-scale = Vector2(7.213506, -12.565689)
-theme_override_constants/separation = 1
+grow_vertical = 2
+theme_override_constants/separation = 2
 alignment = 1
-metadata/_edit_use_anchors_ = true
 
 [node name="HeroesButton" type="Button" parent="Control/BottomBarTexture/BottomButtons" unique_id=1678010487]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.53
+size_flags_vertical = 3
+size_flags_stretch_ratio = 1.0
+flat = true
+focus_mode = 0
+mouse_filter = 0
 
 [node name="WayfinderButton" type="Button" parent="Control/BottomBarTexture/BottomButtons" unique_id=771244005]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.5
+size_flags_vertical = 3
+size_flags_stretch_ratio = 1.0
+flat = true
+focus_mode = 0
+mouse_filter = 0
 
 [node name="BagButton" type="Button" parent="Control/BottomBarTexture/BottomButtons" unique_id=2103624579]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.53
+size_flags_vertical = 3
+size_flags_stretch_ratio = 1.0
+flat = true
+focus_mode = 0
+mouse_filter = 0
 
 [node name="QuestButton" type="Button" parent="Control/BottomBarTexture/BottomButtons" unique_id=1462513827]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.55
+size_flags_vertical = 3
+size_flags_stretch_ratio = 1.0
+flat = true
+focus_mode = 0
+mouse_filter = 0
 
 [node name="AllianceButton" type="Button" parent="Control/BottomBarTexture/BottomButtons" unique_id=1907953245]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.5
+size_flags_vertical = 3
+size_flags_stretch_ratio = 1.0
+flat = true
+focus_mode = 0
+mouse_filter = 0
 
 [node name="WorldCityButton" type="Button" parent="Control/BottomBarTexture/BottomButtons" unique_id=926194786]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.5
+size_flags_vertical = 3
+size_flags_stretch_ratio = 1.0
+flat = true
+focus_mode = 0
+mouse_filter = 0
 
 [node name="ScreenRoot" type="Control" parent="." unique_id=1380928209]
+z_index = 0
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -229,19 +253,20 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="BagScreen" parent="ScreenRoot" unique_id=876701432 instance=ExtResource("5_nbojb")]
-layout_mode = 1
-
 [node name="PopupBackground" type="ColorRect" parent="ScreenRoot" unique_id=2063645878]
 visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_bottom = -190.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0, 0, 0, 0)
+color = Color(0, 0, 0, 0.45)
+
+[node name="BagScreen" parent="ScreenRoot" unique_id=876701432 instance=ExtResource("5_nbojb")]
+layout_mode = 1
 
 [node name="ShopScreen" type="Control" parent="ScreenRoot" unique_id=1466696446]
 visible = false
@@ -251,17 +276,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="Panel" type="Panel" parent="ScreenRoot/ShopScreen" unique_id=1009182091]
-layout_mode = 0
-offset_right = 500.0
-offset_bottom = 700.0
-
-[node name="Label" type="Label" parent="ScreenRoot/ShopScreen/Panel" unique_id=346382024]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 23.0
-text = "Shop Screen"
+script = ExtResource("7_shop")
 
 [node name="AllianceScreen" type="Control" parent="ScreenRoot" unique_id=1667708560]
 visible = false
@@ -271,17 +286,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="Panel" type="Panel" parent="ScreenRoot/AllianceScreen" unique_id=972853581]
-layout_mode = 0
-offset_right = 500.0
-offset_bottom = 700.0
-
-[node name="Label" type="Label" parent="ScreenRoot/AllianceScreen/Panel" unique_id=836182485]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 23.0
-text = "Alliance Screen"
+script = ExtResource("7_alliance")
 
 [node name="QuestScreen" type="Control" parent="ScreenRoot" unique_id=538321268]
 visible = false

@@ -10,7 +10,7 @@ var reward_popup: PanelContainer
 
 func _ready() -> void:
 	visible = false
-	mouse_filter = Control.MOUSE_FILTER_STOP
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_build_ui()
 
 	if has_node("/root/QuestState"):
@@ -20,12 +20,18 @@ func _ready() -> void:
 
 func on_open() -> void:
 	visible = true
+	mouse_filter = Control.MOUSE_FILTER_STOP
 
 	if has_node("/root/QuestState"):
 		QuestState.on_quest_screen_opened()
 		# QuestState.refresh_auto_progress()
 
 	_refresh()
+
+
+func on_close() -> void:
+	visible = false
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
 func _build_ui() -> void:
@@ -36,6 +42,7 @@ func _build_ui() -> void:
 	dim.name = "DimBackground"
 	dim.color = Color(0, 0, 0, 0.45)
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.offset_bottom = -190.0
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(dim)
 

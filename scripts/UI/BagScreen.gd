@@ -31,9 +31,11 @@ var selected_item_id: String = ""
 
 func _ready() -> void:
 	visible = false
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	title_label.text = "Bag"
 	close_button.text = "X"
+	close_button.custom_minimum_size = Vector2(64, 48)
 
 	all_button.text = "All"
 	resources_button.text = "Resources"
@@ -43,6 +45,11 @@ func _ready() -> void:
 	hero_button.text = "Heroes & Gear"
 	event_button.text = "Events"
 	use_button.text = "Use"
+
+	if panel:
+		panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	if item_popup:
+		item_popup.mouse_filter = Control.MOUSE_FILTER_STOP
 
 	close_button.pressed.connect(hide_bag)
 	all_button.pressed.connect(func(): show_category("all"))
@@ -59,11 +66,25 @@ func _ready() -> void:
 
 
 func on_open() -> void:
+	visible = true
+	mouse_filter = Control.MOUSE_FILTER_STOP
+	# Keep bag content above the shared PopupBackground blocker.
+	move_to_front()
 	refresh_items()
 
 
+func on_close() -> void:
+	visible = false
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	selected_item_id = ""
+	_clear_details()
+
+
 func hide_bag() -> void:
-	ui_manager.close_current_screen()
+	if ui_manager != null and ui_manager.has_method("close_current_screen"):
+		ui_manager.close_current_screen()
+	else:
+		on_close()
 
 
 func show_category(category: String) -> void:
@@ -216,12 +237,11 @@ func _use_hero_item(item_id: String) -> bool:
 	return BagState.remove_item(item_id, 1)
 	
 func _input(event: InputEvent) -> void:
-	if not visible:
+	if not visible or not item_popup.visible:
 		return
 
 	if event is InputEventMouseButton and event.pressed:
-		if item_popup.visible:
-			var popup_rect := item_popup.get_global_rect()
-			if not popup_rect.has_point(event.global_position):
-				_clear_details()
-					
+		var popup_rect := item_popup.get_global_rect()
+		if not popup_rect.has_point(event.global_position):
+			# Don't steal clicks meant for tabs/close/nav — only dismiss detail popup.
+			_clear_details()
