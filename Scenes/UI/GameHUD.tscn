@@ -9,6 +9,7 @@
 [ext_resource type="Script" uid="uid://brh2wuhf3uofu" path="res://scripts/UI/QuestScreen.gd" id="6_dqvwb"]
 [ext_resource type="Script" path="res://scripts/UI/AllianceScreen.gd" id="7_alliance"]
 [ext_resource type="Script" path="res://scripts/UI/ShopScreen.gd" id="7_shop"]
+[ext_resource type="Script" path="res://scripts/UI/MarchSetupScreen.gd" id="7_march"]
 [ext_resource type="PackedScene" uid="uid://bcj1wm45rrorc" path="res://UI/building_upgrade/BuildingUpgradeWindow (2).tscn" id="8_0quiv"]
 
 [node name="GameHUD" type="CanvasLayer" unique_id=1833121157]
@@ -287,6 +288,17 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("7_alliance")
+
+[node name="MarchSetupScreen" type="Control" parent="ScreenRoot"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("7_march")
 
 [node name="QuestScreen" type="Control" parent="ScreenRoot" unique_id=538321268]
 visible = false

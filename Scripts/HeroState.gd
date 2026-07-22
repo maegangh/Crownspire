@@ -176,3 +176,26 @@ func ascend_hero(hero_id: String) -> bool:
 
 	print(hero_id, " star progress: ", star_progress, "/5 | stars: ", star_level)
 	return true
+
+
+func is_hero_on_march(hero_id: String) -> bool:
+	var index: int = get_hero_index(hero_id)
+	if index == -1:
+		return false
+	return bool(recruited_heroes[index].get("on_march", false))
+
+
+func set_hero_on_march(hero_id: String, on_march: bool) -> void:
+	var index: int = get_hero_index(hero_id)
+	if index == -1:
+		return
+	recruited_heroes[index]["on_march"] = on_march
+	save_hero_progress(hero_id, recruited_heroes[index])
+
+
+func get_available_heroes() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for hero: Dictionary in recruited_heroes:
+		if not bool(hero.get("on_march", false)):
+			result.append(hero.duplicate(true))
+	return result

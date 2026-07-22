@@ -185,6 +185,32 @@ func get_troop_count(troop_type: String) -> int:
 	return 0
 
 
+## Available for new marches (counts already exclude deployed troops).
+func get_available_count(troop_type: String) -> int:
+	return get_troop_count(troop_type)
+
+
+## Remove troops from the idle pool when a march deploys.
+func deploy_troops(infantry_count: int, marksmen_count: int, cavalry_count: int) -> bool:
+	if infantry < infantry_count or marksmen < marksmen_count or cavalry < cavalry_count:
+		return false
+	infantry -= infantry_count
+	marksmen -= marksmen_count
+	cavalry -= cavalry_count
+	save_troops()
+	training_updated.emit()
+	return true
+
+
+## Return surviving troops after a march arrives home.
+func return_troops(infantry_count: int, marksmen_count: int, cavalry_count: int) -> void:
+	infantry += max(0, infantry_count)
+	marksmen += max(0, marksmen_count)
+	cavalry += max(0, cavalry_count)
+	save_troops()
+	training_updated.emit()
+
+
 func get_training_time_left(troop_type: String) -> float:
 	var now: int = int(Time.get_unix_time_from_system())
 

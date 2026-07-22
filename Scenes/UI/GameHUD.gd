@@ -31,14 +31,72 @@ func _ready():
 	connect_buttons()
 	call_deferred("_validate_bottom_nav_hitboxes")
 	call_deferred("_run_hud_navigation_smoke_test_if_headless")
+	if has_node("/root/MarchState"):
+		if not MarchState.march_battle_resolved.is_connected(_on_wildling_march_battle):
+			MarchState.march_battle_resolved.connect(_on_wildling_march_battle)
+		if is_world_screen and MarchState.has_method("resync_map_visuals"):
+			call_deferred("_resync_marches")
+
+
+func _resync_marches() -> void:
+	if has_node("/root/MarchState") and MarchState.has_method("resync_map_visuals"):
+		MarchState.resync_map_visuals()
+
+
+func _on_wildling_march_battle(_march_id: String, result: Dictionary) -> void:
+	var victory: bool = bool(result.get("victory", false))
+	var losses: Dictionary = result.get("losses", {})
+	var rewards: Dictionary = result.get("rewards", {})
+	var lines: PackedStringArray = PackedStringArray()
+	lines.append("Victory!" if victory else "Defeat")
+	lines.append(str(result.get("summary", "")))
+	lines.append(
+		"Losses — Inf %d  Mar %d  Cav %d" % [
+			int(losses.get("infantry", 0)),
+			int(losses.get("marksmen", 0)),
+			int(losses.get("cavalry", 0)),
+		]
+	)
+	if not rewards.is_empty():
+		lines.append("Rewards: %s" % str(rewards))
+
+	var host: Node = $Control if has_node("Control") else self
+	var dialog := AcceptDialog.new()
+	dialog.title = "Battle Result"
+	dialog.dialog_text = "\n".join(lines)
+	dialog.ok_button_text = "OK"
+	host.add_child(dialog)
+	dialog.popup_centered(Vector2i(480, 320))
+	dialog.confirmed.connect(func() -> void: dialog.queue_free())
+	dialog.canceled.connect(func() -> void: dialog.queue_free())
 
 
 func _run_hud_navigation_smoke_test_if_headless() -> void:
 	if DisplayServer.get_name() != "headless":
 		return
+
 	var manager: Node = get_node_or_null("UIManager")
 	if manager != null and manager.has_method("run_navigation_smoke_test"):
 		manager.run_navigation_smoke_test()
+
+	# Alliance smoke tests write saves — only when explicitly enabled, and always isolated.
+	if OS.get_environment("CROWNSPIR_ALLIANCE_SMOKE") == "1":
+		if has_node("/root/AllianceState") and AllianceState.has_method("run_sprint_1b_smoke_test"):
+			AllianceState.run_sprint_1b_smoke_test()
+		if has_node("/root/AllianceState") and AllianceState.has_method("run_sprint_1c_smoke_test"):
+			AllianceState.run_sprint_1c_smoke_test()
+		if has_node("/root/AllianceState") and AllianceState.has_method("run_persistence_smoke_test"):
+			AllianceState.run_persistence_smoke_test()
+		if has_node("/root/AllianceState") and AllianceState.has_method("run_research_smoke_test"):
+			AllianceState.run_research_smoke_test()
+	else:
+		print("[GameHUD] Skipping Alliance smoke tests (set CROWNSPIR_ALLIANCE_SMOKE=1 for isolated runs).")
+
+	if OS.get_environment("CROWNSPIR_MARCH_SMOKE") == "1":
+		if has_node("/root/MarchState") and MarchState.has_method("run_wildling_march_smoke_test"):
+			MarchState.run_wildling_march_smoke_test()
+	else:
+		print("[GameHUD] Skipping March smoke tests (set CROWNSPIR_MARCH_SMOKE=1 for isolated runs).")
 
 func _process(_delta):
 	update_resources()
