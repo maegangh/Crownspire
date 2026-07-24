@@ -942,48 +942,28 @@ func _on_ascend_hero_button_pressed():
 	ascend_current_hero()
 
 func _on_recruit_hero_button_pressed():
-	if HeroState.hero_tickets <= 0:
-		print("No hero tickets!")
+	if not has_node("/root/HeroState"):
+		print("HeroState unavailable!")
 		return
 
-	var hero_list = DataManager.get_all_heroes()
-
-	if hero_list.is_empty():
-		print("No heroes loaded!")
+	# Legacy button: shard draw only (no auto-own). Pool must be configured.
+	var result: Dictionary = HeroState.draw_recruitment("royal", false)
+	if not result.get("ok", false):
+		print(str(result.get("error", "Recruit failed")))
+		update_labels()
 		return
 
-	var random_index = randi() % hero_list.size()
-	var hero_template = hero_list[random_index]
-	var hero_id = hero_template["id"]
-
-	for hero in HeroState.recruited_heroes:
-		if hero.get("id", "") == hero_id:
-			if !HeroState.hero_shards.has(hero_id):
-				HeroState.hero_shards[hero_id] = 0
-
-			HeroState.hero_shards[hero_id] += get_duplicate_shard_amount(hero_template)
-			HeroState.hero_tickets -= 1
-
-			print("Duplicate hero! Shards added for " + hero_template["name"])
-
-			update_labels()
-			save_game()
-			return
-
-	var recruited_hero = {
-		"id": hero_template["id"],
-		"name": hero_template["name"],
-		"level": 1,
-		"xp": 0,
-		"ascension": 0
-	}
-
-	HeroState.recruited_heroes.append(recruited_hero)
-	HeroState.current_hero_index = HeroState.recruited_heroes.size() - 1
-	HeroState.hero_tickets -= 1
-
-	print("Recruited: " + hero_template["name"])
-
+	print(
+		"Shards +"
+		+ str(result.get("shard_amount", 0))
+		+ " for "
+		+ str(result.get("name", ""))
+		+ " ("
+		+ str(result.get("shards_total", 0))
+		+ "/"
+		+ str(result.get("shards_required", 10))
+		+ ")"
+	)
 	update_labels()
 	save_game()
 

@@ -142,7 +142,7 @@ func _get_ui_manager() -> Node:
 
 func _on_currency_changed(_currency_id: String, _new_amount: float) -> void:
 	refresh_requirements_and_buttons()
-
+							 
 
 func load_building_data() -> void:
 	building_data = _get_local_building(building_id)

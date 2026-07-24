@@ -16,6 +16,8 @@ extends CanvasLayer
 
 @onready var portrait_button: TextureButton = $Control/PlayerPortraitButton
 @onready var shop_button: TextureButton = $Control/ShopButton
+@onready var mail_button: TextureButton = $Control/MailButton
+@onready var mail_unread_badge: Label = $Control/MailButton/UnreadBadge
 
 @onready var heroes_button: Button = $Control/BottomBarTexture/BottomButtons/HeroesButton
 @onready var wayfinder_button: Button = $Control/BottomBarTexture/BottomButtons/WayfinderButton
@@ -29,6 +31,7 @@ func _ready():
 	_configure_bottom_nav()
 	update_resources()
 	connect_buttons()
+	_refresh_mail_badge()
 	call_deferred("_validate_bottom_nav_hitboxes")
 	call_deferred("_run_hud_navigation_smoke_test_if_headless")
 	if has_node("/root/MarchState"):
@@ -36,6 +39,8 @@ func _ready():
 			MarchState.march_battle_resolved.connect(_on_wildling_march_battle)
 		if is_world_screen and MarchState.has_method("resync_map_visuals"):
 			call_deferred("_resync_marches")
+	if has_node("/root/MailManager") and not MailManager.mail_changed.is_connected(_on_mail_changed):
+		MailManager.mail_changed.connect(_on_mail_changed)
 
 
 func _resync_marches() -> void:
@@ -43,33 +48,27 @@ func _resync_marches() -> void:
 		MarchState.resync_map_visuals()
 
 
-func _on_wildling_march_battle(_march_id: String, result: Dictionary) -> void:
-	var victory: bool = bool(result.get("victory", false))
-	var losses: Dictionary = result.get("losses", {})
-	var rewards: Dictionary = result.get("rewards", {})
-	var lines: PackedStringArray = PackedStringArray()
-	lines.append("Victory!" if victory else "Defeat")
-	lines.append(str(result.get("summary", "")))
-	lines.append(
-		"Losses — Inf %d  Mar %d  Cav %d" % [
-			int(losses.get("infantry", 0)),
-			int(losses.get("marksmen", 0)),
-			int(losses.get("cavalry", 0)),
-		]
-	)
-	if not rewards.is_empty():
-		lines.append("Rewards: %s" % str(rewards))
+## Battle results go to Mail — no interrupting AcceptDialog.
+func _on_wildling_march_battle(_march_id: String, _result: Dictionary) -> void:
+	_refresh_mail_badge()
 
-	var host: Node = $Control if has_node("Control") else self
-	var dialog := AcceptDialog.new()
-	dialog.title = "Battle Result"
-	dialog.dialog_text = "\n".join(lines)
-	dialog.ok_button_text = "OK"
-	host.add_child(dialog)
-	dialog.popup_centered(Vector2i(480, 320))
-	dialog.confirmed.connect(func() -> void: dialog.queue_free())
-	dialog.canceled.connect(func() -> void: dialog.queue_free())
 
+func _on_mail_changed() -> void:
+	_refresh_mail_badge()
+
+
+func _refresh_mail_badge() -> void:
+	if mail_unread_badge == null:
+		return
+	var count: int = 0
+	if has_node("/root/MailManager"):
+		count = MailManager.get_unread_count()
+	if count <= 0:
+		mail_unread_badge.text = ""
+	elif count > 9:
+		mail_unread_badge.text = "●9+"
+	else:
+		mail_unread_badge.text = "●%d" % count
 
 func _run_hud_navigation_smoke_test_if_headless() -> void:
 	if DisplayServer.get_name() != "headless":
@@ -97,6 +96,12 @@ func _run_hud_navigation_smoke_test_if_headless() -> void:
 			MarchState.run_wildling_march_smoke_test()
 	else:
 		print("[GameHUD] Skipping March smoke tests (set CROWNSPIR_MARCH_SMOKE=1 for isolated runs).")
+
+	if OS.get_environment("CROWNSPIR_HERO_SMOKE") == "1":
+		if has_node("/root/HeroState") and HeroState.has_method("run_hero_roster_smoke_test"):
+			HeroState.run_hero_roster_smoke_test()
+	else:
+		print("[GameHUD] Skipping Hero smoke tests (set CROWNSPIR_HERO_SMOKE=1 for isolated runs).")
 
 func _process(_delta):
 	update_resources()
@@ -206,6 +211,8 @@ func connect_buttons():
 		portrait_button.pressed.connect(_on_portrait_pressed)
 	if shop_button:
 		shop_button.pressed.connect(_on_shop_pressed)
+	if mail_button:
+		mail_button.pressed.connect(_on_mail_pressed)
 	if heroes_button:
 		heroes_button.pressed.connect(_on_heroes_pressed)
 	if wayfinder_button:
@@ -224,6 +231,9 @@ func _on_portrait_pressed():
 
 func _on_shop_pressed():
 	$UIManager.open_screen("ShopScreen")
+
+func _on_mail_pressed():
+	$UIManager.open_screen("MailScreen")
 
 func _on_heroes_pressed():
 	print("Open Heroes")

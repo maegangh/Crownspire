@@ -3520,6 +3520,8 @@
 	"rarity": "Rare",
 	"role": "Support",
 	"troopType": "support",
+	"portrait": "res://Art/Heroes/Jas/portrait.png",
+	"fullbody": "res://Art/Heroes/Jas/fullbody.png",
 	"lore": "A resilient native vanguard serving the Crownspire borders.",
 	"unlockMethod": "Standard Gacha",
 	"baseAttack": 17,

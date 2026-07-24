@@ -41,6 +41,7 @@
 [ext_resource type="PackedScene" uid="uid://ctk6wysgpgpy0" path="res://Scenes/TroopTrainingPanel.tscn" id="39_77fxs"]
 [ext_resource type="PackedScene" uid="uid://cwv4qoci1ev5k" path="res://Scenes/HeroRosterPanel.tscn" id="40_17ggg"]
 [ext_resource type="PackedScene" uid="uid://dospbliics87u" path="res://Scenes/UI/GameHUD.tscn" id="41_osohf"]
+[ext_resource type="PackedScene" uid="uid://d1pohlr283vp7" path="res://Scenes/UI/TavernWindow.tscn" id="42_tavern"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_cbwl0"]
 size = Vector2(170, 167.80911)
@@ -1120,6 +1121,8 @@ text = "0"
 
 [node name="HeroRosterPanel" parent="." unique_id=1091484568 instance=ExtResource("40_17ggg")]
 visible = false
+
+[node name="TavernWindow" parent="." instance=ExtResource("42_tavern")]
 
 [node name="GameHUD" parent="." unique_id=1833121157 instance=ExtResource("41_osohf")]
 is_world_screen = false

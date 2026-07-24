@@ -77,7 +77,45 @@ func _on_upgrade_area_input_event(_viewport, event, _shape_idx):
 			get_tree().current_scene.get_node("TroopTrainingPanel").open_for_troop(troop_type)
 			return
 
+		if building_id == "tavern" or building_name == "Tavern":
+			_open_tavern_recruit()
+			return
+
 		open_upgrade_window()
+
+	elif event is InputEventScreenTouch:
+		if event.pressed:
+			press_position = event.position
+			return
+		if press_position.distance_to(event.position) > 15:
+			return
+		if opens_troop_training:
+			get_tree().current_scene.get_node("TroopTrainingPanel").open_for_troop(troop_type)
+			return
+		if building_id == "tavern" or building_name == "Tavern":
+			_open_tavern_recruit()
+			return
+		open_upgrade_window()
+
+
+func _open_tavern_recruit() -> void:
+	var tavern: Node = get_tree().current_scene.get_node_or_null("TavernWindow")
+	if tavern == null:
+		tavern = get_tree().root.find_child("TavernWindow", true, false)
+	if tavern == null:
+		# Lazy-create if City scene has not instanced it yet.
+		var packed: PackedScene = load("res://Scenes/UI/TavernWindow.tscn") as PackedScene
+		if packed == null:
+			push_error("ResourceManager: TavernWindow.tscn missing.")
+			return
+		tavern = packed.instantiate()
+		tavern.name = "TavernWindow"
+		get_tree().current_scene.add_child(tavern)
+
+	if tavern.has_method("open_tavern"):
+		tavern.call("open_tavern")
+	else:
+		push_error("ResourceManager: TavernWindow missing open_tavern().")
 
 func start_upgrade_timer():
 	upgrading = true

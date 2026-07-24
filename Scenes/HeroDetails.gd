@@ -67,10 +67,8 @@ var _ascend_button: TextureButton
 func _ready() -> void:
 	_configure_input_handling()
 	_bind_full_details_layout()
+	_layout_detail_pages()
 	_load_hero_roster()
-
-	# TEMP TESTING ONLY. Remove later.
-	HeroState.add_hero_shards("maegan", 5000)
 
 	_build_tab_page_content()
 	_configure_tab_page_input()
@@ -83,7 +81,7 @@ func _ready() -> void:
 	if _ascend_page:
 		_ascend_page.visible = false
 
-	_show_tab(Tab.OVERVIEW)
+	_show_tab(Tab.STATS)
 	visible = false
 
 
@@ -137,7 +135,10 @@ func _configure_tab_page_input() -> void:
 		page.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		page.z_index = 0
 		for child in page.get_children():
-			_set_mouse_filter_ignore(child)
+			if child is ScrollContainer:
+				(child as Control).mouse_filter = Control.MOUSE_FILTER_STOP
+			else:
+				_set_mouse_filter_ignore(child)
 
 
 func _set_mouse_filter_ignore(node: Node) -> void:
@@ -180,6 +181,33 @@ func _bind_full_details_layout() -> void:
 	_skills_page = get_node_or_null("Pages/SkillsPage") as Control
 	_gear_page = get_node_or_null("Pages/GearPage") as Control
 	_troop_skill_page = get_node_or_null("Pages/TroopSkillsPage") as Control
+	if _troop_skill_page == null:
+		# Legacy scene name before TroopSkillsPage rename.
+		_troop_skill_page = get_node_or_null("Pages/TroopSkillPage") as Control
+
+
+func _layout_detail_pages() -> void:
+	var pages: Control = get_node_or_null("Pages") as Control
+	if pages == null:
+		return
+	pages.z_index = 12
+	pages.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pages.position = Vector2(24, 600)
+	pages.size = Vector2(672, 355)
+
+	for page: Control in [_overview_page, _stats_page, _skills_page, _gear_page, _troop_skill_page]:
+		if page == null:
+			continue
+		page.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		page.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		if page.get_node_or_null("PageBackdrop") == null:
+			var backdrop := ColorRect.new()
+			backdrop.name = "PageBackdrop"
+			backdrop.color = Color(0.05, 0.08, 0.14, 0.92)
+			backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
+			backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			page.add_child(backdrop)
+			page.move_child(backdrop, 0)
 
 
 func _connect_full_details_signals() -> void:
@@ -224,8 +252,12 @@ func _ensure_page_list(page: Control, list_name: String) -> VBoxContainer:
 	var scroll: ScrollContainer = ScrollContainer.new()
 	scroll.name = "%sScroll" % list_name
 	scroll.set_anchors_preset(Control.PRESET_FULL_RECT)
+	scroll.offset_left = 12
+	scroll.offset_top = 12
+	scroll.offset_right = -12
+	scroll.offset_bottom = -12
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	scroll.mouse_filter = Control.MOUSE_FILTER_STOP
 	page.add_child(scroll)
 
 	var list: VBoxContainer = VBoxContainer.new()
@@ -255,19 +287,40 @@ func _load_hero_roster() -> void:
 
 
 func _on_left_hero_arrow_pressed() -> void:
-	if _hero_roster.is_empty():
-		return
-
-	_hero_index = (_hero_index - 1 + _hero_roster.size()) % _hero_roster.size()
-	_display_hero_at_index(_hero_index)
+	_cycle_owned_hero(-1)
 
 
 func _on_right_hero_arrow_pressed() -> void:
-	if _hero_roster.is_empty():
+	_cycle_owned_hero(1)
+
+
+func _owned_hero_ids() -> Array[String]:
+	var ids: Array[String] = []
+	if not has_node("/root/HeroState"):
+		return ids
+	for hero: Dictionary in HeroState.get_owned_heroes():
+		var hid: String = str(hero.get("id", ""))
+		if hid != "":
+			ids.append(hid)
+	return ids
+
+
+func _cycle_owned_hero(direction: int) -> void:
+	var owned_ids: Array[String] = _owned_hero_ids()
+	if owned_ids.is_empty():
 		return
 
-	_hero_index = (_hero_index + 1) % _hero_roster.size()
-	_display_hero_at_index(_hero_index)
+	var current_id: String = ""
+	if _hero_index >= 0 and _hero_index < _hero_roster.size():
+		current_id = str(_hero_roster[_hero_index].get("id", ""))
+
+	var owned_index: int = owned_ids.find(current_id)
+	if owned_index == -1:
+		owned_index = 0
+	else:
+		owned_index = (owned_index + direction + owned_ids.size()) % owned_ids.size()
+
+	show_hero_by_id(owned_ids[owned_index])
 
 
 func _on_overview_tab_pressed() -> void:
@@ -321,9 +374,31 @@ func _show_tab(tab: Tab) -> void:
 			if _troop_skill_page:
 				_troop_skill_page.visible = true
 
+	_update_tab_button_states()
+
+
+func _update_tab_button_states() -> void:
+	_set_tab_button_active(_overview_button, _current_tab == Tab.OVERVIEW)
+	_set_tab_button_active(_stats_button, _current_tab == Tab.STATS)
+	_set_tab_button_active(_skills_button, _current_tab == Tab.SKILLS)
+	_set_tab_button_active(_gear_button, _current_tab == Tab.GEAR)
+	_set_tab_button_active(_troop_skills_button, _current_tab == Tab.TROOP_SKILLS)
+
+
+func _set_tab_button_active(button: TextureButton, active: bool) -> void:
+	if button == null:
+		return
+	button.modulate = Color(1.15, 1.05, 0.75, 1.0) if active else Color(1, 1, 1, 1)
+	button.disabled = false
+
+
 func show_hero_by_id(hero_id: String) -> void:
 	if hero_id.is_empty():
 		push_error("HeroDetails: Cannot display an empty hero ID.")
+		return
+
+	if has_node("/root/HeroState") and not HeroState.is_hero_owned(hero_id):
+		push_warning("HeroDetails: refusing unrecruited hero '%s'." % hero_id)
 		return
 
 	var wanted_id := hero_id.strip_edges().to_lower()
@@ -338,20 +413,14 @@ func show_hero_by_id(hero_id: String) -> void:
 
 		if entry_id == wanted_id:
 			_hero_index = index
-			_show_tab(Tab.OVERVIEW)
+			_show_tab(Tab.STATS)
 			_display_hero_at_index(index)
 			visible = true
-
-			print(
-				"HeroDetails displaying ID: ",
-				entry_id,
-				" | Index: ",
-				index
-			)
 			return
 
-	push_error("HeroDetails: Hero ID not found in roster: " + hero_id)
-	
+	push_error("HeroDetails: Hero ID not found in definitions: " + hero_id)
+
+
 func _display_hero_at_index(index: int) -> void:
 	if index < 0 or index >= _hero_roster.size():
 		return
@@ -360,12 +429,19 @@ func _display_hero_at_index(index: int) -> void:
 
 	var roster_entry: Dictionary = _hero_roster[index]
 	var hero_id: String = str(roster_entry.get("id", ""))
+
+	if has_node("/root/HeroState") and not HeroState.is_hero_owned(hero_id):
+		push_warning("HeroDetails: cannot display unrecruited hero '%s'." % hero_id)
+		visible = false
+		return
+
 	var hero_data: Dictionary = build_hero_view_data(hero_id, roster_entry)
 
 	if hero_data.is_empty():
 		return
 
-	var progress: Dictionary = HeroState.get_or_create_hero(hero_id)
+	# Read-only progress — never recruits.
+	var progress: Dictionary = HeroState.get_hero_progress(hero_id)
 	hero_data["level"] = int(progress.get("level", 1))
 	hero_data["starLevel"] = int(progress.get("starLevel", 5))
 	hero_data["starProgress"] = int(progress.get("starProgress", 0))
@@ -470,13 +546,19 @@ func _populate_stats_page(hero_data: Dictionary) -> void:
 	if _stats_list == null:
 		return
 
+	var fields: Dictionary = _get_hero_json_fields(str(hero_data.get("id", "")), hero_data)
 	var stats: Dictionary = _calculate_stats(hero_data)
+	var level: int = int(hero_data.get("level", 1))
 
+	_add_info_label(_stats_list, "Level: %d" % level)
+	_add_info_label(_stats_list, "Power: %s" % _format_number(int(stats.get("power", 0))))
+	_add_info_label(_stats_list, "Rarity: %s" % str(fields.get("rarity", "Unknown")))
+	_add_info_label(_stats_list, "Class / Role: %s" % str(fields.get("role", "Unknown")))
+	_add_info_label(_stats_list, "Troop Type: %s" % str(fields.get("troopType", "none")))
 	_add_info_label(_stats_list, "Attack: %d" % int(stats.get("attack", 0)))
 	_add_info_label(_stats_list, "Defense: %d" % int(stats.get("defense", 0)))
 	_add_info_label(_stats_list, "Health: %d" % int(stats.get("health", 0)))
 	_add_info_label(_stats_list, "Leadership: %d" % int(stats.get("leadership", 0)))
-	_add_info_label(_stats_list, "Power: %s" % _format_number(int(stats.get("power", 0))))
 
 
 func _populate_skills_page(hero_id: String) -> void:
@@ -485,29 +567,77 @@ func _populate_skills_page(hero_id: String) -> void:
 	if _skills_page_list == null:
 		return
 
-	var skills: Array = _get_skills_for_hero(hero_id)
+	var skills: Array = _collect_display_skills(hero_id)
 
 	if skills.is_empty():
 		_add_info_label(_skills_page_list, "No skills listed.")
 		return
 
-	for skill in skills:
-		var skill_name: String = str(skill.get("skillName", "Unknown Skill"))
-		var skill_type: String = str(skill.get("skillType", ""))
+	for skill_v: Variant in skills:
+		if typeof(skill_v) != TYPE_DICTIONARY:
+			continue
+		var skill: Dictionary = skill_v
+		var skill_name: String = str(skill.get("skillName", skill.get("name", "Unknown Skill")))
+		var skill_type: String = str(skill.get("skillType", "Skill"))
 		var description: String = str(skill.get("description", ""))
+		var level_text: String = str(skill.get("level_text", "Lv. 1"))
+		var effect: String = str(skill.get("effect", ""))
 
-		_add_info_label(_skills_page_list, "%s (%s)" % [skill_name, skill_type], true)
-		_add_info_label(_skills_page_list, description, true)
+		_add_info_label(_skills_page_list, "%s  ·  %s" % [skill_name, skill_type], true)
+		_add_info_label(_skills_page_list, level_text)
+		if not description.is_empty():
+			_add_info_label(_skills_page_list, description, true)
+		if not effect.is_empty():
+			_add_info_label(_skills_page_list, "Effect: %s" % effect, true)
+		_add_info_label(_skills_page_list, " ")
 
 
-func _populate_gear_page(hero_id: String) -> void:
+func _collect_display_skills(hero_id: String) -> Array:
+	var results: Array = []
+	var from_table: Array = _get_skills_for_hero(hero_id)
+	for skill_v: Variant in from_table:
+		if typeof(skill_v) != TYPE_DICTIONARY:
+			continue
+		var skill: Dictionary = (skill_v as Dictionary).duplicate(true)
+		var unlock: int = int(skill.get("unlockAscension", 0))
+		skill["level_text"] = "Unlock Ascension %d" % unlock if unlock > 0 else "Lv. 1"
+		var scaling: Dictionary = skill.get("powerScaling", {})
+		if not scaling.is_empty():
+			skill["effect"] = "%s +%s%s (base)" % [
+				str(scaling.get("stat", "Bonus")),
+				str(scaling.get("baseValue", "")),
+				str(scaling.get("unit", "")),
+			]
+		results.append(skill)
+
+	if not results.is_empty():
+		return results
+
+	# Fallback: canonical activeSkills from heroes.json (read-only).
+	var template: Dictionary = _get_hero_template_by_id(hero_id)
+	var actives: Array = template.get("activeSkills", [])
+	for skill_v: Variant in actives:
+		if typeof(skill_v) != TYPE_DICTIONARY:
+			continue
+		var active: Dictionary = skill_v
+		results.append({
+			"skillName": str(active.get("name", "Skill")),
+			"skillType": "Active",
+			"description": str(active.get("description", "")),
+			"level_text": "Ascension %d" % int(active.get("requiredAscension", 0)),
+			"effect": "",
+		})
+	return results
+
+
+func _populate_gear_page(_hero_id: String) -> void:
 	_clear_list(_gear_list)
 
 	if _gear_list == null:
 		return
 
-	_add_info_label(_gear_list, "Gear slots are not loaded yet.")
-	_add_info_label(_gear_list, "Hero ID: %s" % hero_id)
+	_add_info_label(_gear_list, "HERO GEAR")
+	_add_info_label(_gear_list, "Coming Soon")
 
 
 func _populate_troop_skills_page(hero_data: Dictionary, hero_id: String) -> void:
@@ -516,20 +646,43 @@ func _populate_troop_skills_page(hero_data: Dictionary, hero_id: String) -> void
 	if _troop_skills_list == null:
 		return
 
+	var troop_type: String = str(hero_data.get("troopType", "")).strip_edges()
+	_add_info_label(_troop_skills_list, "Hero Troop Affinity: %s" % (troop_type if troop_type != "" else "none"))
+	_add_info_label(_troop_skills_list, " ")
+
 	var passives: Array = hero_data.get("passiveBonuses", [])
+	if passives.is_empty():
+		var template: Dictionary = _get_hero_template_by_id(hero_id)
+		passives = template.get("passiveBonuses", [])
 
 	if passives.is_empty():
-		_add_info_label(_troop_skills_list, "No troop passive bonuses listed.")
-	else:
-		for bonus in passives:
-			if bonus is Dictionary:
-				_add_info_label(
-					_troop_skills_list,
-					"%s: +%.0f%%" % [
-						str(bonus.get("stat", "Bonus")),
-						float(bonus.get("value", 0.0)) * 100.0,
-					]
-				)
+		_add_info_label(_troop_skills_list, "No troop / march bonuses listed.")
+		return
+
+	for bonus_v: Variant in passives:
+		if typeof(bonus_v) != TYPE_DICTIONARY:
+			continue
+		var bonus: Dictionary = bonus_v
+		var stat_name: String = str(bonus.get("stat", "Bonus"))
+		var applies_to: String = _troop_bonus_applies_to(stat_name)
+		var pct: float = float(bonus.get("value", 0.0)) * 100.0
+		_add_info_label(_troop_skills_list, stat_name, true)
+		_add_info_label(_troop_skills_list, "Applies to: %s" % applies_to)
+		_add_info_label(_troop_skills_list, "Bonus: +%.0f%%" % pct)
+		_add_info_label(_troop_skills_list, " ")
+
+
+func _troop_bonus_applies_to(stat_name: String) -> String:
+	var lower: String = stat_name.to_lower()
+	if "infantry" in lower:
+		return "Infantry"
+	if "marksmen" in lower or "marksman" in lower:
+		return "Marksmen"
+	if "cavalry" in lower:
+		return "Cavalry"
+	if "troop" in lower or "medic" in lower or "healing" in lower:
+		return "All Troops"
+	return "All Troops / March"
 
 
 func _calculate_stats(hero_data: Dictionary) -> Dictionary:
@@ -814,8 +967,12 @@ func _on_ascend_pressed() -> void:
 	var roster_entry: Dictionary = _hero_roster[_hero_index]
 	var hero_id: String = str(roster_entry.get("id", ""))
 
+	if has_node("/root/HeroState") and not HeroState.is_hero_owned(hero_id):
+		print("ERROR: Cannot ascend unrecruited hero.")
+		return
+
 	var hero_data: Dictionary = build_hero_view_data(hero_id, roster_entry)
-	var progress: Dictionary = HeroState.get_or_create_hero(hero_id)
+	var progress: Dictionary = HeroState.get_hero_progress(hero_id)
 
 	hero_data["level"] = int(progress.get("level", 1))
 	hero_data["starLevel"] = int(progress.get("starLevel", 5))

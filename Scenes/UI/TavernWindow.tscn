@@ -1,3 +1,8 @@
 [gd_scene format=3 uid="uid://d1pohlr283vp7"]
 
-[node name="TavernWindow" type="CanvasLayer" unique_id=66345142]
+[ext_resource type="Script" path="res://scripts/UI/TavernRecruitScreen.gd" id="1_tavern"]
+
+[node name="TavernWindow" type="CanvasLayer"]
+layer = 120
+visible = false
+script = ExtResource("1_tavern")

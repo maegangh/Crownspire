@@ -14,6 +14,8 @@ const MAX_HEROES_PER_MARCH: int = 3
 const MARCH_SPEED_PX_PER_SEC: float = 220.0
 const BASE_MARCH_CAPACITY: int = 5000
 const CAPACITY_PER_CASTLE_LEVEL: int = 1000
+## image_68a78d6f sheet faces down-right (SE) in its unrotated frame (~45° in Godot Y-down).
+const MARCH_ART_NATIVE_ANGLE: float = PI * 0.25
 
 const STATUS_MARCHING: String = "MARCHING_TO_TARGET"
 const STATUS_IN_COMBAT: String = "IN_COMBAT"
@@ -127,6 +129,19 @@ func get_castle_world_position() -> Vector2:
 	return Vector2.ZERO
 
 
+## World aim point for a Wildling (sprite/collision center, not offset root).
+func get_wildling_aim_position(wildling: Node2D) -> Vector2:
+	if wildling == null or not is_instance_valid(wildling):
+		return Vector2.ZERO
+	var sprite: Sprite2D = wildling.get_node_or_null("Sprite2D") as Sprite2D
+	if sprite != null:
+		return sprite.global_position
+	var click_shape: CollisionShape2D = wildling.get_node_or_null("ClickArea/CollisionShape2D") as CollisionShape2D
+	if click_shape != null:
+		return click_shape.global_position
+	return wildling.global_position
+
+
 func validate_wildling_dispatch(
 	target: Dictionary,
 	troops: Dictionary,
@@ -190,10 +205,21 @@ func dispatch_wildling_march(
 		return check
 
 	var start_pos: Vector2 = get_castle_world_position()
-	var target_pos: Vector2 = Vector2(
-		float(target.get("position", {}).get("x", 0)),
-		float(target.get("position", {}).get("y", 0))
-	)
+	# Re-lock destination from the live selected Wildling — never nearest/stale guess.
+	var live_wildling: Node2D = _resolve_wildling_node(target)
+	var target_pos: Vector2 = get_wildling_aim_position(live_wildling)
+	if target_pos == Vector2.ZERO:
+		target_pos = Vector2(
+			float(target.get("position", {}).get("x", 0)),
+			float(target.get("position", {}).get("y", 0))
+		)
+	# Persist refreshed world aim into the march target payload.
+	target = target.duplicate(true)
+	target["position"] = {"x": target_pos.x, "y": target_pos.y}
+	if live_wildling != null:
+		target["instance_id"] = live_wildling.get_instance_id()
+		target["node_path"] = str(live_wildling.get_path())
+
 	var travel_sec: int = estimate_travel_seconds(start_pos, target_pos)
 	var now: int = int(Time.get_unix_time_from_system())
 	var troop_payload: Dictionary = {
@@ -237,6 +263,7 @@ func dispatch_wildling_march(
 		"battle_resolved": false,
 		"battle_result": {},
 		"rewards_granted": false,
+		"mail_report_created": false,
 	}
 	active_marches.append(march)
 	save_marches()
@@ -254,7 +281,8 @@ func get_active_marches() -> Array[Dictionary]:
 func _tick_marches() -> void:
 	if active_marches.is_empty():
 		return
-	var now: int = int(Time.get_unix_time_from_system())
+	var now_f: float = Time.get_unix_time_from_system()
+	var now: int = int(now_f)
 	var changed: bool = false
 	var finished_ids: Array[String] = []
 
@@ -263,13 +291,13 @@ func _tick_marches() -> void:
 		var status: String = str(march.get("status", ""))
 		match status:
 			STATUS_MARCHING:
-				_update_visual_progress(march, now)
+				_update_visual_progress(march, now_f)
 				if now >= int(march.get("arrival_timestamp", 0)):
 					_resolve_battle(march)
 					active_marches[i] = march
 					changed = true
 			STATUS_RETURNING:
-				_update_visual_progress(march, now)
+				_update_visual_progress(march, now_f)
 				if now >= int(march.get("return_arrival_timestamp", 0)):
 					_complete_return(march)
 					finished_ids.append(str(march.get("march_id", "")))
@@ -327,8 +355,22 @@ func _resolve_battle(march: Dictionary) -> void:
 			if has_node("/root/GameEvents"):
 				GameEvents.emit_wildling_defeated(1)
 
+	_create_battle_mail_report(march, result)
 	march_battle_resolved.emit(str(march.get("march_id", "")), result)
 	_begin_return(march)
+
+
+## Persist exactly one Mail battle report per resolved march (no reward re-grant).
+func _create_battle_mail_report(march: Dictionary, result: Dictionary) -> void:
+	if bool(march.get("mail_report_created", false)):
+		return
+	if not has_node("/root/MailManager"):
+		return
+	if not MailManager.has_method("add_wildling_battle_report"):
+		return
+	var created: bool = bool(MailManager.add_wildling_battle_report(march, result))
+	if created or MailManager.has_report_for_march(str(march.get("march_id", ""))):
+		march["mail_report_created"] = true
 
 
 func resolve_wildling_combat(
@@ -518,7 +560,7 @@ func _sync_visuals() -> void:
 		var status: String = str(march.get("status", ""))
 		if status in [STATUS_MARCHING, STATUS_RETURNING, STATUS_IN_COMBAT]:
 			_ensure_visual(march)
-			_update_visual_progress(march, int(Time.get_unix_time_from_system()))
+			_update_visual_progress(march, Time.get_unix_time_from_system())
 
 
 func _get_marches_root() -> Node2D:
@@ -544,14 +586,50 @@ func _ensure_visual(march: Dictionary) -> void:
 	if _march_icon_scene != null:
 		icon = _march_icon_scene.instantiate() as Node2D
 	else:
-		icon = Node2D.new()
-		var poly := Polygon2D.new()
-		poly.color = Color(0.85, 0.65, 0.15, 1)
-		poly.polygon = PackedVector2Array([Vector2(-15, -10), Vector2(20, 0), Vector2(-15, 10), Vector2(-8, 0)])
-		icon.add_child(poly)
+		# Fallback: build the intended animated march sprite (never the old arrow).
+		icon = _make_animated_march_icon()
 	icon.name = march_id
 	root.add_child(icon)
+	_play_march_walk(icon)
 	_visuals[march_id] = icon
+
+
+func _make_animated_march_icon() -> Node2D:
+	var icon := Node2D.new()
+	var anim := AnimatedSprite2D.new()
+	anim.name = "AnimatedSprite2D"
+	anim.scale = Vector2(0.45, 0.45)
+	var sheet_path := "res://assets/MarchSkins/image_68a78d6f-removebg-preview.png"
+	if ResourceLoader.exists(sheet_path):
+		var sheet: Texture2D = load(sheet_path) as Texture2D
+		var frames := SpriteFrames.new()
+		frames.add_animation("walk")
+		frames.set_animation_speed("walk", 10.0)
+		frames.set_animation_loop("walk", true)
+		for region: Rect2 in [
+			Rect2(2, 0, 248, 235),
+			Rect2(253, 0, 248, 235),
+			Rect2(504, 0, 248, 235),
+			Rect2(755, 0, 248, 235),
+		]:
+			var atlas := AtlasTexture.new()
+			atlas.atlas = sheet
+			atlas.region = region
+			frames.add_frame("walk", atlas)
+		anim.sprite_frames = frames
+		anim.animation = &"walk"
+	icon.add_child(anim)
+	return icon
+
+
+func _play_march_walk(icon: Node2D) -> void:
+	if icon == null:
+		return
+	var anim: AnimatedSprite2D = icon.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	if anim == null:
+		anim = icon as AnimatedSprite2D
+	if anim != null and anim.sprite_frames != null:
+		anim.play("walk")
 
 
 func _destroy_visual(march_id: String) -> void:
@@ -563,7 +641,7 @@ func _destroy_visual(march_id: String) -> void:
 		node.queue_free()
 
 
-func _update_visual_progress(march: Dictionary, now: int) -> void:
+func _update_visual_progress(march: Dictionary, now: float) -> void:
 	var march_id: String = str(march.get("march_id", ""))
 	if not _visuals.has(march_id):
 		_ensure_visual(march)
@@ -585,25 +663,39 @@ func _update_visual_progress(march: Dictionary, now: int) -> void:
 	var status: String = str(march.get("status", ""))
 	var from_pos: Vector2
 	var to_pos: Vector2
-	var t0: int
-	var t1: int
+	var t0: float
+	var t1: float
 	if status == STATUS_RETURNING:
 		from_pos = target_pos
 		to_pos = start_pos
-		t0 = int(march.get("departure_timestamp", now))
-		t1 = int(march.get("return_arrival_timestamp", now + 1))
+		t0 = float(march.get("departure_timestamp", now))
+		t1 = float(march.get("return_arrival_timestamp", now + 1))
 	else:
 		from_pos = start_pos
 		to_pos = target_pos
-		t0 = int(march.get("departure_timestamp", now))
-		t1 = int(march.get("arrival_timestamp", now + 1))
+		t0 = float(march.get("departure_timestamp", now))
+		t1 = float(march.get("arrival_timestamp", now + 1))
 
-	var duration: float = max(1.0, float(t1 - t0))
-	var alpha: float = clampf(float(now - t0) / duration, 0.0, 1.0)
+	var duration: float = max(1.0, t1 - t0)
+	var alpha: float = clampf((now - t0) / duration, 0.0, 1.0)
 	icon.global_position = from_pos.lerp(to_pos, alpha)
-	var dir: Vector2 = (to_pos - from_pos)
-	if dir.length() > 0.1:
-		icon.rotation = dir.angle()
+	_orient_march_icon(icon, to_pos - from_pos)
+	_play_march_walk(icon)
+
+
+## Align SE-facing march art with travel direction (outbound and return).
+func _orient_march_icon(icon: Node2D, dir: Vector2) -> void:
+	if icon == null or dir.length() <= 0.1:
+		return
+	# Keep root unrotated; rotate the animated sprite relative to native SE facing.
+	icon.rotation = 0.0
+	var anim: AnimatedSprite2D = icon.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	var facing: CanvasItem = anim if anim != null else icon
+	if facing is Node2D:
+		(facing as Node2D).rotation = dir.angle() - MARCH_ART_NATIVE_ANGLE
+	if anim != null:
+		anim.flip_h = false
+		anim.flip_v = false
 
 
 # --- Save / load ---
@@ -661,13 +753,14 @@ func _catch_up_offline() -> void:
 func build_wildling_target(wildling: Node2D, species: String, level: int, power: int) -> Dictionary:
 	if wildling == null or not is_instance_valid(wildling):
 		return {}
+	var aim: Vector2 = get_wildling_aim_position(wildling)
 	return {
 		"instance_id": wildling.get_instance_id(),
 		"node_path": str(wildling.get_path()),
 		"species": species,
 		"level": level,
 		"power": power,
-		"position": {"x": wildling.global_position.x, "y": wildling.global_position.y},
+		"position": {"x": aim.x, "y": aim.y},
 	}
 
 
@@ -717,6 +810,12 @@ func run_wildling_march_smoke_test() -> bool:
 	if world != null:
 		world.add_child(dummy)
 		dummy.global_position = Vector2(4500, 4200)
+	# Simulate production WildlingNode sprite offset so aim != root.
+	var offset_sprite := Sprite2D.new()
+	offset_sprite.name = "Sprite2D"
+	offset_sprite.position = Vector2(640, 307)
+	dummy.add_child(offset_sprite)
+
 	var target: Dictionary = build_wildling_target(dummy, "wolf", 3, 50)
 	if target.is_empty():
 		target = {
@@ -727,6 +826,15 @@ func run_wildling_march_smoke_test() -> bool:
 			"power": 50,
 			"position": {"x": 4500.0, "y": 4200.0},
 		}
+	else:
+		var aim: Vector2 = get_wildling_aim_position(dummy)
+		var stored := Vector2(float(target.get("position", {}).get("x", 0)), float(target.get("position", {}).get("y", 0)))
+		if stored.distance_to(aim) > 0.5:
+			push_error("[MarchState] smoke: target position must use Wildling aim point")
+			ok = false
+		if stored.distance_to(dummy.global_position) < 1.0:
+			push_error("[MarchState] smoke: target incorrectly used root position instead of sprite aim")
+			ok = false
 
 	# Validation: zero troops blocked.
 	var zero: Dictionary = validate_wildling_dispatch(target, {"infantry": 0, "marksmen": 0, "cavalry": 0}, [])
@@ -785,6 +893,64 @@ func run_wildling_march_smoke_test() -> bool:
 		push_error("[MarchState] smoke: valid dispatch failed: %s" % str(dispatched.get("error", "")))
 		ok = false
 	else:
+		# Visual must be the animated march asset, not the old Polygon2D arrow.
+		if not active_marches.is_empty():
+			var mid: String = str(active_marches[0].get("march_id", ""))
+			if _visuals.has(mid):
+				var icon: Node2D = _visuals[mid]
+				if icon.get_node_or_null("Body") is Polygon2D:
+					push_error("[MarchState] smoke: arrow placeholder Body still present")
+					ok = false
+				if icon.get_node_or_null("AnimatedSprite2D") == null and not (icon is AnimatedSprite2D):
+					push_error("[MarchState] smoke: animated march sprite missing")
+					ok = false
+				# Orientation: SE art + offset must face travel direction (not raw atan2).
+				var start := Vector2(
+					float(active_marches[0].get("start_position", {}).get("x", 0)),
+					float(active_marches[0].get("start_position", {}).get("y", 0))
+				)
+				var dest_orient := Vector2(
+					float(active_marches[0].get("target_position", {}).get("x", 0)),
+					float(active_marches[0].get("target_position", {}).get("y", 0))
+				)
+				_orient_march_icon(icon, dest_orient - start)
+				var anim_chk: AnimatedSprite2D = icon.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+				if anim_chk != null:
+					var expected_rot: float = (dest_orient - start).angle() - MARCH_ART_NATIVE_ANGLE
+					if abs(angle_difference(anim_chk.rotation, expected_rot)) > 0.05:
+						push_error("[MarchState] smoke: march sprite facing offset incorrect")
+						ok = false
+					# Return direction must reverse visual facing.
+					_orient_march_icon(icon, start - dest_orient)
+					var expected_ret: float = (start - dest_orient).angle() - MARCH_ART_NATIVE_ANGLE
+					if abs(angle_difference(anim_chk.rotation, expected_ret)) > 0.05:
+						push_error("[MarchState] smoke: return facing offset incorrect")
+						ok = false
+			var dest := Vector2(
+				float(active_marches[0].get("target_position", {}).get("x", 0)),
+				float(active_marches[0].get("target_position", {}).get("y", 0))
+			)
+			if dest.distance_to(get_wildling_aim_position(dummy)) > 0.5:
+				push_error("[MarchState] smoke: dispatched destination != selected Wildling aim")
+				ok = false
+		# Battle report mail: one report, no AcceptDialog path required.
+		if has_node("/root/MailManager") and not active_marches.is_empty():
+			MailManager.begin_smoke_isolation()
+			var mcopy: Dictionary = active_marches[0].duplicate(true)
+			var fake_result: Dictionary = {
+				"victory": true,
+				"summary": "Victory!",
+				"surviving_troops": {"infantry": 9, "marksmen": 5, "cavalry": 0},
+				"losses": {"infantry": 1, "marksmen": 0, "cavalry": 0},
+				"rewards": {"food": 350},
+				"march_power": int(mcopy.get("march_power", 0)),
+			}
+			_create_battle_mail_report(mcopy, fake_result)
+			_create_battle_mail_report(mcopy, fake_result) # duplicate must no-op
+			if MailManager.get_battle_report_count() != 1:
+				push_error("[MarchState] smoke: expected exactly one battle mail report")
+				ok = false
+			MailManager.end_smoke_isolation()
 		# Clean up without touching real save path (still in smoke isolation).
 		for march: Dictionary in active_marches.duplicate(true):
 			_complete_return(march)

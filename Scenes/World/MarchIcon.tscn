@@ -1,15 +1,47 @@
 [gd_scene format=3 uid="uid://cx40shh1372o2"]
 
-[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_light"]
-blend_mode = 0
+[ext_resource type="Texture2D" uid="uid://cl8e1e2ap6quk" path="res://assets/MarchSkins/image_68a78d6f-removebg-preview.png" id="1_march_sheet"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f0"]
+atlas = ExtResource("1_march_sheet")
+region = Rect2(2, 0, 248, 235)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f1"]
+atlas = ExtResource("1_march_sheet")
+region = Rect2(253, 0, 248, 235)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f2"]
+atlas = ExtResource("1_march_sheet")
+region = Rect2(504, 0, 248, 235)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f3"]
+atlas = ExtResource("1_march_sheet")
+region = Rect2(755, 0, 248, 235)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_walk"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f3")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 10.0
+}]
 
 [node name="MarchIcon" type="Node2D"]
 
-[node name="Body" type="Polygon2D" parent="."]
-material = SubResource("CanvasItemMaterial_light")
-color = Color(0.854902, 0.647059, 0.12549, 1)
-polygon = PackedVector2Array(-15, -10, 20, 0, -15, 10, -8, 0)
-
-[node name="Banner" type="Polygon2D" parent="."]
-color = Color(0.92549, 0.231373, 0.231373, 1)
-polygon = PackedVector2Array(-8, -4, -18, -4, -14, -8, -8, -8)
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+scale = Vector2(0.45, 0.45)
+sprite_frames = SubResource("SpriteFrames_walk")
+animation = &"walk"
+autoplay = "walk"

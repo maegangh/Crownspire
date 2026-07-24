@@ -2,17 +2,16 @@
 
 [ext_resource type="Script" uid="uid://ds8opbj67egrc" path="res://Scenes/wildling_panel.gd" id="1_gg1im"]
 [ext_resource type="Texture2D" uid="uid://ch7rjfelpkk2m" path="res://assets/Buildings/Farm/food2.png" id="2_8r6hb"]
-[ext_resource type="Texture2D" uid="uid://bu1lilw8cq10u" path="res://assets/UI/wildling_cards/wolf_card.png" id="2_sg275"]
 [ext_resource type="Texture2D" uid="uid://3h0dmh3jws84" path="res://assets/Buildings/LumberMill/wood2.png" id="3_nhl7e"]
 [ext_resource type="Texture2D" uid="uid://ersiqujj2rkl" path="res://assets/Buildings/Quarry/stone2.png" id="4_fj653"]
 [ext_resource type="Texture2D" uid="uid://bxqskow8ahlxp" path="res://assets/Buildings/IronMine/iron2.png" id="5_mt4ex"]
 [ext_resource type="Texture2D" uid="uid://jjbmk2okmslm" path="res://assets/Buildings/Diamonds/diamonds1.png" id="6_djtfr"]
 [ext_resource type="Texture2D" uid="uid://bsq2jm2l8w8xs" path="res://assets/PossibleDrops/hero_xp_icon.png" id="7_nhl7e"]
 
-[node name="WildlingPanel" type="Control" unique_id=488162736]
-self_modulate = Color(1, 1, 1, 0)
+[node name="WildlingPanel" type="Control"]
 layout_mode = 3
 anchors_preset = 0
+mouse_filter = 2
 script = ExtResource("1_gg1im")
 wheat_icon = ExtResource("2_8r6hb")
 wood_icon = ExtResource("3_nhl7e")
@@ -21,68 +20,107 @@ iron_icon = ExtResource("5_mt4ex")
 diamond_icon = ExtResource("6_djtfr")
 hero_xp_icon = ExtResource("7_nhl7e")
 
-[node name="CardRoot" type="Control" parent="." unique_id=1246934895]
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
-
-[node name="Background" type="TextureRect" parent="CardRoot" unique_id=857115076]
+[node name="CardRoot" type="PanelContainer" parent="."]
 layout_mode = 0
 offset_right = 420.0
-offset_bottom = 620.0
+offset_bottom = 680.0
+mouse_filter = 0
+
+[node name="CardMargin" type="MarginContainer" parent="CardRoot"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 14
+
+[node name="CardColumn" type="VBoxContainer" parent="CardRoot/CardMargin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="HeaderRow" type="HBoxContainer" parent="CardRoot/CardMargin/CardColumn"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HeaderSpacer" type="Control" parent="CardRoot/CardMargin/CardColumn/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CloseButton" type="Button" parent="CardRoot/CardMargin/CardColumn/HeaderRow"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "X"
+
+[node name="Background" type="TextureRect" parent="CardRoot/CardMargin/CardColumn"]
+custom_minimum_size = Vector2(0, 260)
+layout_mode = 2
+size_flags_horizontal = 3
 mouse_filter = 2
-texture = ExtResource("2_sg275")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="LevelNumberLabel" type="Label" parent="CardRoot" unique_id=856755673]
-layout_mode = 0
-offset_left = 222.0
-offset_top = 343.0
-offset_right = 262.0
-offset_bottom = 378.0
-theme_override_font_sizes/font_size = 25
-text = "1"
+[node name="NameLabel" type="Label" parent="CardRoot/CardMargin/CardColumn"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Wildling"
+horizontal_alignment = 1
 
-[node name="PowerNumberLabel" type="Label" parent="CardRoot" unique_id=1181657003]
-layout_mode = 0
-offset_left = 290.0
-offset_top = 478.0
-offset_right = 341.0
-offset_bottom = 504.0
+[node name="LevelLabel" type="Label" parent="CardRoot/CardMargin/CardColumn"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Lv. 1"
+horizontal_alignment = 1
+
+[node name="DropsHeader" type="Label" parent="CardRoot/CardMargin/CardColumn"]
+layout_mode = 2
 theme_override_font_sizes/font_size = 18
-text = "123"
+text = "Possible Drops"
+horizontal_alignment = 1
 
-[node name="StaminaCostLabel" type="Label" parent="CardRoot" unique_id=1498008493]
-layout_mode = 0
-offset_left = 205.0
-offset_top = 551.0
-offset_right = 228.0
-offset_bottom = 579.0
+[node name="PossibleDrops" type="HBoxContainer" parent="CardRoot/CardMargin/CardColumn"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+theme_override_constants/separation = 8
+
+[node name="PowerHeader" type="Label" parent="CardRoot/CardMargin/CardColumn"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Recommended Power"
+horizontal_alignment = 1
+
+[node name="PowerNumberLabel" type="Label" parent="CardRoot/CardMargin/CardColumn"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "100"
+horizontal_alignment = 1
+
+[node name="StaminaRow" type="HBoxContainer" parent="CardRoot/CardMargin/CardColumn"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 8
+
+[node name="StaminaCaption" type="Label" parent="CardRoot/CardMargin/CardColumn/StaminaRow"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Energy"
+
+[node name="StaminaCostLabel" type="Label" parent="CardRoot/CardMargin/CardColumn/StaminaRow"]
+layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "10"
 
-[node name="PossibleDrops" type="ScrollContainer" parent="CardRoot" unique_id=102674322]
-layout_mode = 0
-offset_left = 47.0
-offset_top = 401.0
-offset_right = 379.0
-offset_bottom = 482.0
-mouse_filter = 2
-scroll_horizontal_custom_step = 287.07
-scroll_vertical_custom_step = 351.086
-vertical_scroll_mode = 0
-
-[node name="DropRow" type="HBoxContainer" parent="CardRoot/PossibleDrops" unique_id=858715301]
+[node name="AttackButton" type="Button" parent="CardRoot/CardMargin/CardColumn"]
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
-theme_override_constants/separation = 2
+theme_override_font_sizes/font_size = 24
+text = "ATTACK"
 
-[node name="AttackButton" type="Button" parent="CardRoot" unique_id=366289450]
-modulate = Color(1, 1, 1, 0)
-layout_mode = 0
-offset_left = 90.0
-offset_top = 545.0
-offset_right = 330.0
-offset_bottom = 615.0
+[node name="AttackErrorLabel" type="Label" parent="CardRoot/CardMargin/CardColumn"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.35, 0.3, 1)
+theme_override_font_sizes/font_size = 16
+autowrap_mode = 3
+horizontal_alignment = 1

@@ -299,6 +299,16 @@ func run_navigation_smoke_test() -> bool:
 		push_error("[UIManager] Smoke test failed: Shop close")
 		ok = false
 
+	open_screen("MailScreen")
+	if get_current_screen_name() != "MailScreen" or not _is_only_screen_visible("MailScreen"):
+		push_error("[UIManager] Smoke test failed: Mail open")
+		ok = false
+
+	close_current_screen()
+	if is_screen_open() or _popup_background.visible:
+		push_error("[UIManager] Smoke test failed: Mail close")
+		ok = false
+
 	open_screen("AllianceScreen")
 	close_current_screen()
 	if is_screen_open():

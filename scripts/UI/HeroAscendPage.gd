@@ -44,7 +44,7 @@ func _refresh_from_state() -> void:
 	if hero_id.is_empty():
 		return
 
-	var progress: Dictionary = HeroState.get_or_create_hero(hero_id)
+	var progress: Dictionary = HeroState.get_hero_progress(hero_id)
 
 	hero_data["level"] = int(progress.get("level", 1))
 	hero_data["starLevel"] = int(progress.get("starLevel", 5))
