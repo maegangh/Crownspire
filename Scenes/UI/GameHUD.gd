@@ -33,6 +33,7 @@ func _ready():
 	connect_buttons()
 	_refresh_mail_badge()
 	call_deferred("_validate_bottom_nav_hitboxes")
+	call_deferred("_validate_mail_hitbox")
 	call_deferred("_run_hud_navigation_smoke_test_if_headless")
 	if has_node("/root/MarchState"):
 		if not MarchState.march_battle_resolved.is_connected(_on_wildling_march_battle):
@@ -187,6 +188,30 @@ func _validate_bottom_nav_hitboxes() -> void:
 			])
 
 	print("[GameHUD] Bottom nav OK: Heroes→Wayfinder→Bag→Quest→Alliance→WorldCity (no overlaps).")
+
+
+## Mail sits below the top resource strip on the right — must not cover Diamonds/VIP/Shop.
+func _validate_mail_hitbox() -> void:
+	if mail_button == null or not is_instance_valid(mail_button):
+		push_error("[GameHUD] Mail button missing.")
+		return
+	var mail_rect: Rect2 = mail_button.get_global_rect()
+	if mail_rect.size.x < 40.0 or mail_rect.size.y < 40.0:
+		push_error("[GameHUD] Mail hitbox too small: %s" % str(mail_rect))
+		return
+
+	if shop_button != null and is_instance_valid(shop_button):
+		var shop_rect: Rect2 = shop_button.get_global_rect()
+		if mail_rect.intersects(shop_rect):
+			push_error("[GameHUD] Mail overlaps Shop hitbox.")
+			return
+
+	# Diamonds / VIP live in the upper resource strip (roughly y < 160 on 1280 portrait).
+	if mail_rect.position.y < 160.0:
+		push_error("[GameHUD] Mail sits too high — may cover Diamonds/VIP (y=%.1f)." % mail_rect.position.y)
+		return
+
+	print("[GameHUD] Mail hitbox OK: %s (below resource strip, no Shop overlap)." % str(mail_rect))
 
 
 func update_resources():

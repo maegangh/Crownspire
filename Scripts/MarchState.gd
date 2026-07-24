@@ -14,8 +14,8 @@ const MAX_HEROES_PER_MARCH: int = 3
 const MARCH_SPEED_PX_PER_SEC: float = 220.0
 const BASE_MARCH_CAPACITY: int = 5000
 const CAPACITY_PER_CASTLE_LEVEL: int = 1000
-## image_68a78d6f sheet faces down-right (SE) in its unrotated frame (~45° in Godot Y-down).
-const MARCH_ART_NATIVE_ANGLE: float = PI * 0.25
+## image_68a78d6f sheet faces RIGHT (+X) in its unrotated frame (¾ view, head on the right).
+## Do not use a SE π/4 bake — that inverts outbound when travel is opposite native.
 
 const STATUS_MARCHING: String = "MARCHING_TO_TARGET"
 const STATUS_IN_COMBAT: String = "IN_COMBAT"
@@ -683,19 +683,20 @@ func _update_visual_progress(march: Dictionary, now: float) -> void:
 	_play_march_walk(icon)
 
 
-## Align SE-facing march art with travel direction (outbound and return).
+## Face travel direction without upside-down spinning.
+## Art is right-facing: flip_h for leftward travel, pitch only within ±90°.
 func _orient_march_icon(icon: Node2D, dir: Vector2) -> void:
 	if icon == null or dir.length() <= 0.1:
 		return
-	# Keep root unrotated; rotate the animated sprite relative to native SE facing.
 	icon.rotation = 0.0
 	var anim: AnimatedSprite2D = icon.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
-	var facing: CanvasItem = anim if anim != null else icon
-	if facing is Node2D:
-		(facing as Node2D).rotation = dir.angle() - MARCH_ART_NATIVE_ANGLE
-	if anim != null:
-		anim.flip_h = false
-		anim.flip_v = false
+	if anim == null:
+		icon.rotation = dir.angle()
+		return
+	anim.flip_v = false
+	# Same convention outbound and return: always face (to - from).
+	anim.flip_h = dir.x < 0.0
+	anim.rotation = atan2(dir.y, abs(dir.x))
 
 
 # --- Save / load ---
@@ -904,7 +905,7 @@ func run_wildling_march_smoke_test() -> bool:
 				if icon.get_node_or_null("AnimatedSprite2D") == null and not (icon is AnimatedSprite2D):
 					push_error("[MarchState] smoke: animated march sprite missing")
 					ok = false
-				# Orientation: SE art + offset must face travel direction (not raw atan2).
+				# Orientation: right-facing art + upright flip (no SE bake / no upside-down).
 				var start := Vector2(
 					float(active_marches[0].get("start_position", {}).get("x", 0)),
 					float(active_marches[0].get("start_position", {}).get("y", 0))
@@ -913,18 +914,35 @@ func run_wildling_march_smoke_test() -> bool:
 					float(active_marches[0].get("target_position", {}).get("x", 0)),
 					float(active_marches[0].get("target_position", {}).get("y", 0))
 				)
-				_orient_march_icon(icon, dest_orient - start)
+				var out_dir: Vector2 = dest_orient - start
+				_orient_march_icon(icon, out_dir)
 				var anim_chk: AnimatedSprite2D = icon.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
 				if anim_chk != null:
-					var expected_rot: float = (dest_orient - start).angle() - MARCH_ART_NATIVE_ANGLE
-					if abs(angle_difference(anim_chk.rotation, expected_rot)) > 0.05:
-						push_error("[MarchState] smoke: march sprite facing offset incorrect")
+					var expected_out: float = atan2(out_dir.y, abs(out_dir.x))
+					if abs(angle_difference(anim_chk.rotation, expected_out)) > 0.05:
+						push_error("[MarchState] smoke: outbound facing incorrect")
 						ok = false
-					# Return direction must reverse visual facing.
-					_orient_march_icon(icon, start - dest_orient)
-					var expected_ret: float = (start - dest_orient).angle() - MARCH_ART_NATIVE_ANGLE
+					if anim_chk.flip_h != (out_dir.x < 0.0):
+						push_error("[MarchState] smoke: outbound flip_h incorrect")
+						ok = false
+					# Return must reverse travel facing with the same convention.
+					var ret_dir: Vector2 = start - dest_orient
+					_orient_march_icon(icon, ret_dir)
+					var expected_ret: float = atan2(ret_dir.y, abs(ret_dir.x))
 					if abs(angle_difference(anim_chk.rotation, expected_ret)) > 0.05:
-						push_error("[MarchState] smoke: return facing offset incorrect")
+						push_error("[MarchState] smoke: return facing incorrect")
+						ok = false
+					if anim_chk.flip_h != (ret_dir.x < 0.0):
+						push_error("[MarchState] smoke: return flip_h incorrect")
+						ok = false
+					# Pure vertical: outbound up must not use a ~180° invert vs return down.
+					_orient_march_icon(icon, Vector2(0, -100))
+					if abs(anim_chk.rotation + PI * 0.5) > 0.05 or anim_chk.flip_v:
+						push_error("[MarchState] smoke: upward facing should be -90° upright, not inverted")
+						ok = false
+					_orient_march_icon(icon, Vector2(0, 100))
+					if abs(anim_chk.rotation - PI * 0.5) > 0.05 or anim_chk.flip_v:
+						push_error("[MarchState] smoke: downward facing should be +90° upright")
 						ok = false
 			var dest := Vector2(
 				float(active_marches[0].get("target_position", {}).get("x", 0)),

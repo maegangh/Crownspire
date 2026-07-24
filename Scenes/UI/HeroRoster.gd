@@ -22,6 +22,8 @@ const RARITY_FRAMES := {
 
 const CARD_SIZE := Vector2(318, 430)
 const PORTRAIT_SIZE := Vector2(286, 300)
+## Pixels of movement before a press becomes a scroll (tap vs swipe).
+const DRAG_THRESHOLD_PX := 14.0
 
 @onready var hero_grid: GridContainer = get_node_or_null("ScrollContainer/HeroGrid")
 @onready var hero_details_panel: Control = get_node_or_null("HeroDetails")
@@ -31,6 +33,11 @@ const PORTRAIT_SIZE := Vector2(286, 300)
 var _content: VBoxContainer
 var _empty_label: Label
 var _title_label: Label
+
+## Touch / mouse drag scrolling over cards without requiring the scrollbar.
+var _drag_tracking: bool = false
+var _drag_moved: bool = false
+var _drag_start: Vector2 = Vector2.ZERO
 
 
 func _ready() -> void:
@@ -71,6 +78,10 @@ func _polish_shell_layout() -> void:
 		scroll.offset_top = 92.0
 		scroll.offset_bottom = 1260.0
 		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		# Keep scrolling; hide the bar so mobile users swipe the card area.
+		scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+		scroll.mouse_filter = Control.MOUSE_FILTER_STOP
+		scroll.scroll_deadzone = int(DRAG_THRESHOLD_PX)
 
 
 func _setup_content_root() -> void:
@@ -251,14 +262,11 @@ func _make_recruited_card(hero_id: String, owned_hero: Dictionary) -> PanelConta
 	open_btn.text = "VIEW"
 	open_btn.custom_minimum_size = Vector2(0, 44)
 	open_btn.add_theme_font_size_override("font_size", 16)
-	open_btn.pressed.connect(func() -> void: _on_hero_selected(hero_id))
+	_wire_tap_action(open_btn, func() -> void: _on_hero_selected(hero_id))
 	col.add_child(open_btn)
 
-	# Whole card also opens details.
-	panel.gui_input.connect(func(event: InputEvent) -> void:
-		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-			_on_hero_selected(hero_id)
-	)
+	# Whole card opens details on tap — not on swipe.
+	_wire_tap_action(panel, func() -> void: _on_hero_selected(hero_id))
 
 	return panel
 
@@ -330,7 +338,7 @@ func _make_shard_card(entry: Dictionary) -> PanelContainer:
 		recruit_btn.text = "RECRUIT HERO"
 		recruit_btn.custom_minimum_size = Vector2(0, 48)
 		recruit_btn.add_theme_font_size_override("font_size", 17)
-		recruit_btn.pressed.connect(func() -> void: _on_unlock_from_shards(hero_id))
+		_wire_tap_action(recruit_btn, func() -> void: _on_unlock_from_shards(hero_id))
 		col.add_child(recruit_btn)
 	else:
 		var locked := Label.new()
@@ -414,3 +422,113 @@ func _on_hero_selected(hero_id: String) -> void:
 
 func _on_back_pressed() -> void:
 	get_tree().change_scene_to_file("res://Scenes/City/City.tscn")
+
+
+# --- Touch / drag scroll (mobile-first) ---
+
+## Wire a control so a short tap runs action, but a swipe only scrolls.
+func _wire_tap_action(control: Control, action: Callable) -> void:
+	if control is BaseButton:
+		var btn := control as BaseButton
+		# Prefer our release-time check so a swipe never recruits / opens.
+		btn.pressed.connect(func() -> void:
+			if _drag_moved:
+				return
+			if action.is_valid():
+				action.call()
+		)
+	else:
+		control.mouse_filter = Control.MOUSE_FILTER_STOP
+		control.gui_input.connect(func(event: InputEvent) -> void:
+			if _is_pointer_release(event) and not _drag_moved:
+				action.call()
+		)
+
+
+func _is_pointer_release(event: InputEvent) -> bool:
+	if event is InputEventScreenTouch:
+		return not (event as InputEventScreenTouch).pressed
+	if event is InputEventMouseButton:
+		var mb := event as InputEventMouseButton
+		return mb.button_index == MOUSE_BUTTON_LEFT and not mb.pressed
+	return false
+
+
+func _is_over_scroll_area(screen_pos: Vector2) -> bool:
+	if scroll == null or not scroll.is_visible_in_tree():
+		return false
+	return scroll.get_global_rect().has_point(screen_pos)
+
+
+func _clear_drag_moved_flag() -> void:
+	_drag_moved = false
+
+
+func _apply_roster_drag(relative: Vector2) -> void:
+	if scroll == null:
+		return
+	scroll.scroll_vertical = int(scroll.scroll_vertical - relative.y)
+
+
+func _input(event: InputEvent) -> void:
+	if scroll == null:
+		return
+	if hero_details_panel != null and hero_details_panel.visible:
+		return
+
+	# Mouse wheel — works over cards/buttons without needing the scrollbar.
+	if event is InputEventMouseButton:
+		var wheel := event as InputEventMouseButton
+		if wheel.pressed and _is_over_scroll_area(wheel.position):
+			if wheel.button_index == MOUSE_BUTTON_WHEEL_UP:
+				scroll.scroll_vertical = int(scroll.scroll_vertical - 48)
+				get_viewport().set_input_as_handled()
+				return
+			if wheel.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+				scroll.scroll_vertical = int(scroll.scroll_vertical + 48)
+				get_viewport().set_input_as_handled()
+				return
+
+	if event is InputEventScreenTouch:
+		var touch := event as InputEventScreenTouch
+		if touch.pressed:
+			if _is_over_scroll_area(touch.position):
+				_drag_tracking = true
+				_drag_moved = false
+				_drag_start = touch.position
+		else:
+			_drag_tracking = false
+			# Keep _drag_moved true through BaseButton.pressed, then clear.
+			call_deferred("_clear_drag_moved_flag")
+		return
+
+	if event is InputEventScreenDrag and _drag_tracking:
+		var drag := event as InputEventScreenDrag
+		if not _drag_moved and _drag_start.distance_to(drag.position) >= DRAG_THRESHOLD_PX:
+			_drag_moved = true
+		if _drag_moved:
+			_apply_roster_drag(drag.relative)
+			get_viewport().set_input_as_handled()
+		return
+
+	if event is InputEventMouseButton and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:
+		var mb := event as InputEventMouseButton
+		if mb.pressed:
+			if _is_over_scroll_area(mb.position):
+				_drag_tracking = true
+				_drag_moved = false
+				_drag_start = mb.position
+		else:
+			_drag_tracking = false
+			call_deferred("_clear_drag_moved_flag")
+		return
+
+	if event is InputEventMouseMotion and _drag_tracking:
+		var motion := event as InputEventMouseMotion
+		if (motion.button_mask & MOUSE_BUTTON_MASK_LEFT) == 0:
+			return
+		if not _drag_moved and _drag_start.distance_to(motion.position) >= DRAG_THRESHOLD_PX:
+			_drag_moved = true
+		if _drag_moved:
+			_apply_roster_drag(motion.relative)
+			get_viewport().set_input_as_handled()
