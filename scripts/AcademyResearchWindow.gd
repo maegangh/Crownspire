@@ -82,6 +82,29 @@ var selected_node_id: String = ""
 var zoom_level: float = 1.0
 var canvas_dimensions: Vector2 = Vector2(1200, 600)
 
+## Mobile navigation: HOME → CATEGORY → DETAIL
+enum MobilePage { HOME, CATEGORY, DETAIL }
+const MOBILE_CATEGORIES: Array[Dictionary] = [
+	{"id": "economy", "title": "ECONOMY", "subtitle": "Production & yields"},
+	{"id": "military", "title": "MILITARY", "subtitle": "Troops & combat"},
+	{"id": "development", "title": "DEVELOPMENT", "subtitle": "City growth"},
+	{"id": "hero", "title": "HERO", "subtitle": "Hero power"},
+	{"id": "alliance", "title": "ALLIANCE", "subtitle": "Shared strength"},
+]
+
+var _mobile_page: MobilePage = MobilePage.HOME
+var _mobile_shell: Control
+var _mobile_home: Control
+var _mobile_category: Control
+var _mobile_detail: Control
+var _mobile_title: Label
+var _mobile_back_btn: Button
+var _mobile_home_grid: GridContainer
+var _mobile_tech_list: VBoxContainer
+var _mobile_detail_body: VBoxContainer
+var _mobile_active_banner: Label
+var _mobile_built: bool = false
+
 # Local fallbacks for offline testing or missing UIManager state
 var _local_research_levels: Dictionary = {}
 var _local_active_research: Dictionary = {} # Contains: research_id, level, time_remaining, total_duration
@@ -131,41 +154,124 @@ func _ready() -> void:
 	# Setup Speedup cards
 	_setup_speedup_buttons()
 	
-	# Load current states from UIManager
+	# Load / migrate into canonical ResearchState
 	_load_persistent_state()
 	
 	# Setup Connection drawing callback
 	if connection_layer:
 		connection_layer.draw.connect(_draw_connections)
 	
-	# Initial rendering
+	# Initial rendering — mobile shell (hide dense desktop split layout).
 	_update_resources_display()
-	change_category("Economy")
+	_setup_mobile_shell()
+	_mobile_show_home()
 	
 	# Connect Global currency updates
 	var ui = _get_ui_manager()
 	if ui and ui.has_signal("currency_changed"):
 		ui.currency_changed.connect(_on_global_currency_changed)
 
-func _process(delta: float) -> void:
-	_tick_active_research(delta)
+	if has_node("/root/ResearchState"):
+		if not ResearchState.research_jobs_changed.is_connected(_on_research_state_jobs_changed):
+			ResearchState.research_jobs_changed.connect(_on_research_state_jobs_changed)
+		if not ResearchState.research_completed.is_connected(_on_research_state_completed):
+			ResearchState.research_completed.connect(_on_research_state_completed)
 
-# Tick active research queue progress
-func _tick_active_research(delta: float) -> void:
+
+## Open from City Research Hall (Academy) tap. Reuses this existing window.
+func open_research() -> void:
+	visible = true
+	mouse_filter = Control.MOUSE_FILTER_STOP
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	z_index = 200
+	if dark_overlay != null:
+		dark_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+		dark_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		dark_overlay.color = Color(0.02, 0.03, 0.05, 0.72)
+	_apply_portrait_window_layout()
+	if has_node("/root/GameState"):
+		GameState.popup_open = true
+	move_to_front()
+	_update_resources_display()
+	_load_persistent_state()
+	if academy_level_badge:
+		var academy = _get_academy_building_ref()
+		var lvl = int(academy.get("level", 1))
+		academy_level_badge.text = "Hall Lv %d" % maxi(1, lvl)
+	_setup_mobile_shell()
+	_mobile_show_home()
+
+
+## Fit MainPanel inside 720×1280 with HUD-safe margins (portrait).
+func _apply_portrait_window_layout() -> void:
+	if main_panel == null:
+		return
+	var view: Vector2 = get_viewport_rect().size
+	if view.x < 1.0 or view.y < 1.0:
+		view = Vector2(720, 1280)
+	var top_safe: float = 96.0
+	var bottom_safe: float = 196.0
+	var side: float = 10.0
+	main_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
+	main_panel.anchor_left = 0.0
+	main_panel.anchor_top = 0.0
+	main_panel.anchor_right = 1.0
+	main_panel.anchor_bottom = 1.0
+	main_panel.offset_left = side
+	main_panel.offset_top = top_safe
+	main_panel.offset_right = -side
+	main_panel.offset_bottom = -bottom_safe
+	main_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	main_panel.grow_vertical = Control.GROW_DIRECTION_BOTH
+
+func _process(_delta: float) -> void:
+	# ResearchState owns timers; window only mirrors UI.
+	_sync_active_research_ui()
+
+
+func _on_research_state_jobs_changed() -> void:
+	_sync_active_research_ui()
+	if visible and _mobile_built:
+		call_deferred("_deferred_mobile_refresh_after_job_change")
+
+
+func _on_research_state_completed(research_id: String, lvl: int) -> void:
+	var ui = _get_ui_manager()
+	if ui:
+		if ui.has_signal("technology_researched"):
+			ui.technology_researched.emit(research_id, lvl)
+		if "power" in ui:
+			ui.power += 800 * lvl
+	var node_def = _find_node_in_db(research_id)
+	var node_name = node_def.get("name", research_id)
+	_trigger_log_message("Unveiled research breakthrough! '%s' Level %d is complete." % [node_name, lvl])
+	_rebuild_tech_tree()
+	if visible and _mobile_built:
+		call_deferred("_deferred_mobile_refresh_after_job_change")
+
+
+# Tick active research queue progress (UI mirror only)
+func _sync_active_research_ui() -> void:
 	var active = get_active_job()
 	if active.is_empty():
 		if active_project_box: active_project_box.visible = false
 		if active_project_empty_lbl: active_project_empty_lbl.visible = true
+		if visible and _mobile_page == MobilePage.HOME and _mobile_active_banner != null:
+			var used: int = 0
+			if has_node("/root/ResearchState"):
+				used = ResearchState.get_used_research_queues()
+			if used > 0:
+				_mobile_active_banner.text = "Research queues in use: %d / %d" % [
+					used,
+					ResearchState.get_research_queue_limit() if has_node("/root/ResearchState") else 1,
+				]
+			else:
+				_mobile_active_banner.text = "No active research"
 		return
 		
 	if active_project_box: active_project_box.visible = true
 	if active_project_empty_lbl: active_project_empty_lbl.visible = false
 	
-	# Tick countdown
-	active["time_remaining"] = maxf(0.0, active["time_remaining"] - delta)
-	save_persistent_state()
-	
-	# UI displays
 	var node_def = _find_node_in_db(active.get("research_id", ""))
 	var node_name = node_def.get("name", "Technology")
 	
@@ -184,10 +290,13 @@ func _tick_active_research(delta: float) -> void:
 	if btn_instant_valor:
 		var valor_cost = int(active["time_remaining"] * 1.5)
 		btn_instant_valor.text = "INSTANT (%d VALOR)" % valor_cost
-		
-	# Check for completion
-	if active["time_remaining"] <= 0.0:
-		_complete_research_job()
+
+	if visible and _mobile_built:
+		if _mobile_page == MobilePage.HOME and _mobile_active_banner != null:
+			_mobile_active_banner.text = "Researching: %s  ·  %s" % [
+				node_name,
+				format_duration(float(active.get("time_remaining", 0.0))),
+			]
 
 # Load database securely
 func _load_database() -> void:
@@ -223,6 +332,9 @@ func _load_database() -> void:
 
 func _load_persistent_state() -> void:
 	var academy = _get_academy_building_ref()
+	var active: Dictionary = {}
+	var queue: Array = []
+	var levels: Dictionary = {}
 	if not academy.is_empty():
 		if not academy.has("research_levels"):
 			academy["research_levels"] = {}
@@ -230,10 +342,25 @@ func _load_persistent_state() -> void:
 			academy["active_research"] = {}
 		if not academy.has("research_queue"):
 			academy["research_queue"] = []
+		active = academy.get("active_research", {})
+		queue = academy.get("research_queue", [])
+		levels = academy.get("research_levels", {})
 	else:
-		push_warning("[Crownspire AcademyResearch] Academy building object not found in UIManager. Using local state.")
+		active = _local_active_research
+		queue = _local_research_queue
+		levels = _local_research_levels
+
+	if has_node("/root/ResearchState"):
+		ResearchState.import_legacy_jobs(active, queue, levels)
+		# Clear ephemeral window locals so UI cannot fork a second job set.
+		_local_active_research = {}
+		_local_research_queue = []
+		if not levels.is_empty():
+			_local_research_levels = ResearchState.research_levels.duplicate(true)
 
 func save_persistent_state() -> void:
+	if has_node("/root/ResearchState"):
+		ResearchState.save_research_state()
 	var ui = _get_ui_manager()
 	if ui and ui.has_method("save_player_state"):
 		ui.call("save_player_state")
@@ -245,18 +372,29 @@ func _get_academy_building_ref() -> Dictionary:
 	return {}
 
 func get_research_levels() -> Dictionary:
+	if has_node("/root/ResearchState"):
+		return ResearchState.research_levels
 	var academy = _get_academy_building_ref()
 	if not academy.is_empty():
 		return academy["research_levels"]
 	return _local_research_levels
 
 func get_active_job() -> Dictionary:
+	if has_node("/root/ResearchState"):
+		return ResearchState.get_primary_job()
 	var academy = _get_academy_building_ref()
 	if not academy.is_empty():
 		return academy["active_research"]
 	return _local_active_research
 
 func set_active_job(job: Dictionary) -> void:
+	# Legacy setter — route through ResearchState when available.
+	if has_node("/root/ResearchState"):
+		if job.is_empty():
+			ResearchState.cancel_primary_research()
+		else:
+			ResearchState.try_start_research(job)
+		return
 	var academy = _get_academy_building_ref()
 	if not academy.is_empty():
 		academy["active_research"] = job
@@ -265,12 +403,18 @@ func set_active_job(job: Dictionary) -> void:
 	save_persistent_state()
 
 func get_queue() -> Array:
+	if has_node("/root/ResearchState"):
+		return ResearchState.get_waiting_jobs()
 	var academy = _get_academy_building_ref()
 	if not academy.is_empty():
 		return academy["research_queue"]
 	return _local_research_queue
 
 func set_queue(q: Array) -> void:
+	# Waiting queue beyond active slots is no longer used for free players.
+	# Keep setter as no-op when ResearchState owns jobs (migration preserves excess in active_jobs).
+	if has_node("/root/ResearchState"):
+		return
 	var academy = _get_academy_building_ref()
 	if not academy.is_empty():
 		academy["research_queue"] = q
@@ -279,6 +423,16 @@ func set_queue(q: Array) -> void:
 	save_persistent_state()
 
 func get_resource(res_type: String) -> int:
+	# Food/Wood/Stone/Iron are owned by GameState (same wallet as Top HUD).
+	match res_type:
+		"food":
+			return int(GameState.food)
+		"wood":
+			return int(GameState.wood)
+		"stone":
+			return int(GameState.stone)
+		"iron":
+			return int(GameState.iron)
 	var ui = _get_ui_manager()
 	if ui:
 		if res_type == "valor":
@@ -291,6 +445,31 @@ func get_resource(res_type: String) -> int:
 	return int(_local_resources.get(res_type, 0))
 
 func add_resource(res_type: String, amount: int) -> void:
+	match res_type:
+		"food":
+			GameState.food = maxi(0, int(GameState.food) + amount)
+			GameState.save_resources()
+			GameState.resources_changed.emit()
+			_update_resources_display()
+			return
+		"wood":
+			GameState.wood = maxi(0, int(GameState.wood) + amount)
+			GameState.save_resources()
+			GameState.resources_changed.emit()
+			_update_resources_display()
+			return
+		"stone":
+			GameState.stone = maxi(0, int(GameState.stone) + amount)
+			GameState.save_resources()
+			GameState.resources_changed.emit()
+			_update_resources_display()
+			return
+		"iron":
+			GameState.iron = maxi(0, int(GameState.iron) + amount)
+			GameState.save_resources()
+			GameState.resources_changed.emit()
+			_update_resources_display()
+			return
 	var ui = _get_ui_manager()
 	if ui:
 		if res_type == "valor":
@@ -426,7 +605,7 @@ func _rebuild_tech_tree() -> void:
 			status = "locked"
 		elif is_max:
 			status = "max"
-		elif get_active_job().get("research_id", "") == n_id:
+		elif _is_researching_id(n_id):
 			status = "researching"
 		elif _is_queued(n_id):
 			status = "queued"
@@ -915,8 +1094,8 @@ func _update_action_button_state(node: Dictionary, level: int, is_max: bool, cos
 	btn_start_research.disabled = false
 	btn_start_research.remove_theme_color_override("font_color")
 	
-	var is_researching_current = get_active_job().get("research_id", "") == node["id"]
-	var is_queued_current = _is_queued(node["id"])
+	var is_researching_current = _is_researching_id(str(node.get("id", "")))
+	var is_queued_current = _is_queued(str(node.get("id", "")))
 	
 	if is_max:
 		btn_start_research.text = "MAX LEVEL REACHED"
@@ -928,30 +1107,28 @@ func _update_action_button_state(node: Dictionary, level: int, is_max: bool, cos
 		btn_start_research.text = "QUEUED FOR RESEARCH..."
 		btn_start_research.disabled = true
 	else:
-		# Check locks
 		var unlocked = check_node_unlocked(node)["unlocked"]
 		if not unlocked:
 			btn_start_research.text = "LOCKED (PREREQUISITES)"
 			btn_start_research.disabled = true
 		else:
-			# Check enough resource assets
 			var affordable = check_resources_affordable(cost_data)
-			var queue = get_queue()
-			var is_active_busy = not get_active_job().is_empty()
-			
-			if is_active_busy and queue.size() >= 4:
-				btn_start_research.text = "SCHOLAR LABS FULL (QUEUE 4/4)"
+			var queue_full := false
+			if has_node("/root/ResearchState"):
+				queue_full = not ResearchState.has_free_research_queue()
+			else:
+				queue_full = not get_active_job().is_empty()
+
+			if queue_full:
+				btn_start_research.text = "Research Queue Full"
 				btn_start_research.disabled = true
 			elif not affordable:
 				btn_start_research.text = "INSUFFICIENT RESOURCES"
 				btn_start_research.disabled = true
 			else:
-				if is_active_busy:
-					btn_start_research.text = "ADD TO RESEARCH QUEUE"
-				else:
-					btn_start_research.text = "START RESEARCH breakthrough"
+				btn_start_research.text = "START RESEARCH"
 
-# Starts active or queue research
+# Starts research into canonical ResearchState queue (limit enforced there).
 func _on_start_research_pressed() -> void:
 	var node = _find_node_in_db(selected_node_id)
 	if node.is_empty():
@@ -964,6 +1141,14 @@ func _on_start_research_pressed() -> void:
 	# Verify prerequisites
 	if not check_node_unlocked(node)["unlocked"]:
 		return
+
+	# Canonical queue gate — before spending resources.
+	if has_node("/root/ResearchState"):
+		var gate: Dictionary = ResearchState.can_start_research(selected_node_id)
+		if not bool(gate.get("ok", false)):
+			_trigger_log_message(str(gate.get("reason", "Research Queue Full")), true)
+			_pulse_research_queue_hud()
+			return
 		
 	# Verify costs
 	if not check_resources_affordable(cost_data):
@@ -985,31 +1170,55 @@ func _on_start_research_pressed() -> void:
 		"time_remaining": float(duration),
 		"total_duration": float(duration)
 	}
-	
-	var active = get_active_job()
-	if active.is_empty():
-		set_active_job(job)
+
+	if has_node("/root/ResearchState"):
+		var started: Dictionary = ResearchState.try_start_research(job)
+		if not bool(started.get("ok", false)):
+			# Refund if state rejected after deduct (should be rare).
+			add_resource("food", cost_data["food"])
+			add_resource("wood", cost_data["wood"])
+			add_resource("stone", cost_data["stone"])
+			add_resource("iron", cost_data["iron"])
+			add_resource("valor", cost_data["valor"])
+			_trigger_log_message(str(started.get("reason", "Research Queue Full")), true)
+			_pulse_research_queue_hud()
+			return
 		_trigger_log_message("Begun active Scholar research: '%s' Level %d." % [node["name"], next_lvl])
 	else:
-		var queue = get_queue()
-		queue.append(job)
-		set_queue(queue)
-		_trigger_log_message("Enqueued tech breakthrough: '%s' Level %d." % [node["name"], next_lvl])
-		_update_queue_list_ui()
-		
-	# Reload tree and inspect card
+		var active = get_active_job()
+		if active.is_empty():
+			set_active_job(job)
+			_trigger_log_message("Begun active Scholar research: '%s' Level %d." % [node["name"], next_lvl])
+		else:
+			_trigger_log_message("Research Queue Full", true)
+			_pulse_research_queue_hud()
+			add_resource("food", cost_data["food"])
+			add_resource("wood", cost_data["wood"])
+			add_resource("stone", cost_data["stone"])
+			add_resource("iron", cost_data["iron"])
+			add_resource("valor", cost_data["valor"])
+			return
+
 	_rebuild_tech_tree()
 
 func cancel_research_job(idx_or_active) -> void:
 	var target_job = {}
 	var refund_factor = 0.7 # refund 70% of costs
-	
-	if idx_or_active is String and idx_or_active == "active":
+
+	if has_node("/root/ResearchState"):
+		if idx_or_active is String and idx_or_active == "active":
+			target_job = ResearchState.cancel_primary_research()
+		elif idx_or_active is String:
+			target_job = ResearchState.cancel_research(str(idx_or_active))
+		else:
+			var waiting: Array = ResearchState.get_waiting_jobs()
+			var idx = int(idx_or_active)
+			if idx >= 0 and idx < waiting.size():
+				target_job = ResearchState.cancel_research(str((waiting[idx] as Dictionary).get("research_id", "")))
+	elif idx_or_active is String and idx_or_active == "active":
 		target_job = get_active_job()
 		if target_job.is_empty():
 			return
-			
-		# Promote first queued item
 		var queue = get_queue()
 		if queue.size() > 0:
 			var next_job = queue.pop_front()
@@ -1017,78 +1226,32 @@ func cancel_research_job(idx_or_active) -> void:
 			set_queue(queue)
 		else:
 			set_active_job({})
-			
 		_update_queue_list_ui()
 	else:
-		var queue = get_queue()
-		var idx = int(idx_or_active)
-		if idx >= 0 and idx < queue.size():
-			target_job = queue[idx]
-			queue.remove_at(idx)
-			set_queue(queue)
+		var queue2 = get_queue()
+		var idx2 = int(idx_or_active)
+		if idx2 >= 0 and idx2 < queue2.size():
+			target_job = queue2[idx2]
+			queue2.remove_at(idx2)
+			set_queue(queue2)
 		_update_queue_list_ui()
 			
 	if not target_job.is_empty():
 		var node = _find_node_in_db(target_job["research_id"])
 		if not node.is_empty():
 			var cost_data = get_node_level_costs(node, target_job["level"])
-			# Refund resources
 			add_resource("food", int(cost_data["food"] * refund_factor))
 			add_resource("wood", int(cost_data["wood"] * refund_factor))
 			add_resource("stone", int(cost_data["stone"] * refund_factor))
 			add_resource("iron", int(cost_data["iron"] * refund_factor))
 			add_resource("valor", int(cost_data["valor"] * refund_factor))
-			
 			_trigger_log_message("Cancelled research for '%s'. Refunded 70%% resources." % node["name"])
 			
 	_rebuild_tech_tree()
 
 func _complete_research_job() -> void:
-	var active = get_active_job()
-	if active.is_empty():
-		return
-		
-	var n_id = active["research_id"]
-	var lvl = active["level"]
-	
-	# Complete in research levels
-	var levels = get_research_levels()
-	levels[n_id] = lvl
-	
-	# Emit global trigger signals
-	var ui = _get_ui_manager()
-	if ui:
-		if ui.has_signal("technology_researched"):
-			ui.technology_researched.emit(n_id, lvl)
-		# Power gain boost
-		if "power" in ui:
-			ui.power += 800 * lvl
-			
-	var node_def = _find_node_in_db(n_id)
-	var node_name = node_def.get("name", n_id)
-	_trigger_log_message("Unveiled research breakthrough! '%s' Level %d is complete." % [node_name, lvl])
-	
-	# Trigger reward claiming layout if possible
-	if ui and ui.has_signal("reward_claimed"):
-		var reward_list: Array[Dictionary] = [{
-			"name": "Sovereign Research: %s Level %d" % [node_name, lvl],
-			"quantity": 1,
-			"rarity": 4
-		}]
-		ui.reward_claimed.emit(reward_list)
-		
-	# Promote queue
-	var queue = get_queue()
-	if queue.size() > 0:
-		var next_job = queue.pop_front()
-		set_active_job(next_job)
-		set_queue(queue)
-	else:
-		set_active_job({})
-		
-	_update_queue_list_ui()
-	_rebuild_tech_tree()
-	save_persistent_state()
+	# Completion is owned by ResearchState._complete_job → research_completed signal.
+	pass
 
 func _update_queue_list_ui() -> void:
 	if not queue_list: return
@@ -1233,9 +1396,16 @@ func check_resources_affordable(cost_data: Dictionary) -> bool:
 	if get_resource("valor") < cost_data["valor"]: return false
 	return true
 
+func _is_researching_id(n_id: String) -> bool:
+	if has_node("/root/ResearchState"):
+		return not ResearchState.get_job_for(n_id).is_empty()
+	return get_active_job().get("research_id", "") == n_id
+
+
 func _is_queued(n_id: String) -> bool:
+	# Overflow / waiting jobs only (primary is "researching").
 	for job in get_queue():
-		if job["research_id"] == n_id:
+		if str(job.get("research_id", "")) == n_id:
 			return true
 	return false
 
@@ -1290,8 +1460,548 @@ func _trigger_log_message(msg: String, is_warn: bool = false) -> void:
 	else:
 		print("[%s] %s" % ["WARNING" if is_warn else "SUCCESS", msg])
 
+
+func _pulse_research_queue_hud() -> void:
+	var hud: Node = get_tree().root.find_child("GameHUD", true, false)
+	if hud != null and hud.has_method("pulse_queue_status"):
+		hud.call("pulse_queue_status", "research")
+
+
+# =============================================================================
+# MOBILE NAVIGATION (Category Home → Category List → Tech Detail)
+# Reuses existing research logic; replaces dense desktop split layout.
+# =============================================================================
+
+func _setup_mobile_shell() -> void:
+	if _mobile_built and _mobile_shell != null and is_instance_valid(_mobile_shell):
+		return
+	var vbox: VBoxContainer = get_node_or_null("MainPanel/VBox") as VBoxContainer
+	if vbox == null:
+		return
+
+	# Hide legacy dense desktop chrome and ensure it cannot steal clicks.
+	for path: String in [
+		"MainPanel/VBox/CategoryTabs",
+		"MainPanel/VBox/ZoomControls",
+		"MainPanel/VBox/ContentArea",
+	]:
+		var legacy: CanvasItem = get_node_or_null(path) as CanvasItem
+		if legacy != null:
+			legacy.visible = false
+			if legacy is Control:
+				(legacy as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+				_set_mouse_filter_recursive(legacy, Control.MOUSE_FILTER_IGNORE)
+
+	# Header title + back wiring.
+	var title: Label = get_node_or_null("MainPanel/VBox/Header/Margin/HBox/TitleContainer/TitleRow/Title") as Label
+	if title != null:
+		_mobile_title = title
+		_mobile_title.add_theme_font_size_override("font_size", 22)
+		_mobile_title.text = "ACADEMY RESEARCH"
+	var subtitle: CanvasItem = get_node_or_null("MainPanel/VBox/Header/Margin/HBox/TitleContainer/Subtitle") as CanvasItem
+	if subtitle != null:
+		subtitle.visible = false
+	var header_row: HBoxContainer = get_node_or_null("MainPanel/VBox/Header/Margin/HBox") as HBoxContainer
+	if header_row != null and _mobile_back_btn == null:
+		_mobile_back_btn = Button.new()
+		_mobile_back_btn.name = "MobileBackButton"
+		_mobile_back_btn.text = "‹"
+		_mobile_back_btn.custom_minimum_size = Vector2(56, 48)
+		_mobile_back_btn.add_theme_font_size_override("font_size", 28)
+		_mobile_back_btn.pressed.connect(_on_mobile_back_pressed)
+		header_row.add_child(_mobile_back_btn)
+		header_row.move_child(_mobile_back_btn, 0)
+
+	_mobile_shell = Control.new()
+	_mobile_shell.name = "MobileShell"
+	_mobile_shell.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_mobile_shell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_mobile_shell.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	vbox.add_child(_mobile_shell)
+
+	_mobile_home = _make_mobile_page("HomePage")
+	_mobile_category = _make_mobile_page("CategoryPage")
+	_mobile_detail = _make_mobile_page("DetailPage")
+	_mobile_shell.add_child(_mobile_home)
+	_mobile_shell.add_child(_mobile_category)
+	_mobile_shell.add_child(_mobile_detail)
+
+	# HOME
+	var home_margin := MarginContainer.new()
+	home_margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	home_margin.add_theme_constant_override("margin_left", 12)
+	home_margin.add_theme_constant_override("margin_right", 12)
+	home_margin.add_theme_constant_override("margin_top", 8)
+	home_margin.add_theme_constant_override("margin_bottom", 8)
+	_mobile_home.add_child(home_margin)
+	var home_col := VBoxContainer.new()
+	home_col.add_theme_constant_override("separation", 12)
+	home_margin.add_child(home_col)
+	_mobile_active_banner = Label.new()
+	_mobile_active_banner.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_mobile_active_banner.add_theme_font_size_override("font_size", 15)
+	_mobile_active_banner.add_theme_color_override("font_color", Color(0.86, 0.70, 0.32, 1.0))
+	home_col.add_child(_mobile_active_banner)
+	var hint := Label.new()
+	hint.text = "Choose a research discipline"
+	hint.add_theme_font_size_override("font_size", 16)
+	hint.add_theme_color_override("font_color", Color(0.72, 0.68, 0.58, 1.0))
+	home_col.add_child(hint)
+	var home_scroll := ScrollContainer.new()
+	home_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	home_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	home_col.add_child(home_scroll)
+	_mobile_home_grid = GridContainer.new()
+	_mobile_home_grid.columns = 2
+	_mobile_home_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_mobile_home_grid.add_theme_constant_override("h_separation", 10)
+	_mobile_home_grid.add_theme_constant_override("v_separation", 10)
+	home_scroll.add_child(_mobile_home_grid)
+
+	# CATEGORY
+	var cat_margin := MarginContainer.new()
+	cat_margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	cat_margin.add_theme_constant_override("margin_left", 10)
+	cat_margin.add_theme_constant_override("margin_right", 10)
+	cat_margin.add_theme_constant_override("margin_top", 6)
+	cat_margin.add_theme_constant_override("margin_bottom", 6)
+	_mobile_category.add_child(cat_margin)
+	var cat_scroll := ScrollContainer.new()
+	cat_scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	cat_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	cat_margin.add_child(cat_scroll)
+	_mobile_tech_list = VBoxContainer.new()
+	_mobile_tech_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_mobile_tech_list.add_theme_constant_override("separation", 10)
+	cat_scroll.add_child(_mobile_tech_list)
+
+	# DETAIL
+	var det_margin := MarginContainer.new()
+	det_margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	det_margin.add_theme_constant_override("margin_left", 12)
+	det_margin.add_theme_constant_override("margin_right", 12)
+	det_margin.add_theme_constant_override("margin_top", 6)
+	det_margin.add_theme_constant_override("margin_bottom", 6)
+	_mobile_detail.add_child(det_margin)
+	var det_scroll := ScrollContainer.new()
+	det_scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	det_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	det_margin.add_child(det_scroll)
+	_mobile_detail_body = VBoxContainer.new()
+	_mobile_detail_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_mobile_detail_body.add_theme_constant_override("separation", 10)
+	det_scroll.add_child(_mobile_detail_body)
+
+	_mobile_built = true
+
+
+func _make_mobile_page(page_name: String) -> Control:
+	var page := Control.new()
+	page.name = page_name
+	page.visible = false
+	page.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	page.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	page.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	page.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	return page
+
+
+func _set_mobile_page_visible(page: Control, is_on: bool) -> void:
+	if page == null:
+		return
+	page.visible = is_on
+	page.mouse_filter = Control.MOUSE_FILTER_STOP if is_on else Control.MOUSE_FILTER_IGNORE
+
+
+func _set_mouse_filter_recursive(node: Node, filter: Control.MouseFilter) -> void:
+	if node is Control:
+		(node as Control).mouse_filter = filter
+	for child: Node in node.get_children():
+		_set_mouse_filter_recursive(child, filter)
+
+
+func _mobile_show_home() -> void:
+	_setup_mobile_shell()
+	_mobile_page = MobilePage.HOME
+	_set_mobile_page_visible(_mobile_home, true)
+	_set_mobile_page_visible(_mobile_category, false)
+	_set_mobile_page_visible(_mobile_detail, false)
+	if _mobile_back_btn:
+		_mobile_back_btn.visible = false
+	if _mobile_title:
+		_mobile_title.text = "ACADEMY RESEARCH"
+	_refresh_mobile_home()
+
+
+func _mobile_show_category(cat_id: String) -> void:
+	_setup_mobile_shell()
+	active_category = _canon_category_title(cat_id)
+	_mobile_page = MobilePage.CATEGORY
+	_set_mobile_page_visible(_mobile_home, false)
+	_set_mobile_page_visible(_mobile_category, true)
+	_set_mobile_page_visible(_mobile_detail, false)
+	if _mobile_back_btn:
+		_mobile_back_btn.visible = true
+	if _mobile_title:
+		_mobile_title.text = active_category.to_upper()
+	_refresh_mobile_category_list()
+
+
+func _mobile_show_detail(tech_id: String) -> void:
+	_setup_mobile_shell()
+	selected_node_id = tech_id
+	_mobile_page = MobilePage.DETAIL
+	_set_mobile_page_visible(_mobile_home, false)
+	_set_mobile_page_visible(_mobile_category, false)
+	_set_mobile_page_visible(_mobile_detail, true)
+	if _mobile_back_btn:
+		_mobile_back_btn.visible = true
+	var node: Dictionary = _find_node_in_db(tech_id)
+	if _mobile_title:
+		_mobile_title.text = str(node.get("name", "Technology"))
+	_refresh_mobile_detail()
+
+
+func _on_mobile_back_pressed() -> void:
+	match _mobile_page:
+		MobilePage.DETAIL:
+			_mobile_show_category(active_category)
+		MobilePage.CATEGORY:
+			_mobile_show_home()
+		_:
+			_mobile_show_home()
+
+
+func _canon_category_title(raw: String) -> String:
+	match raw.strip_edges().to_lower():
+		"economy":
+			return "Economy"
+		"military":
+			return "Military"
+		"development", "dev":
+			return "Development"
+		"alliance":
+			return "Alliance"
+		"hero":
+			return "Hero"
+		_:
+			return raw.capitalize()
+
+
+func _category_progress_pct(cat_id: String) -> float:
+	var total: int = 0
+	var have: int = 0
+	var levels: Dictionary = get_research_levels()
+	for node: Variant in database:
+		if typeof(node) != TYPE_DICTIONARY:
+			continue
+		if str((node as Dictionary).get("category", "")).to_lower() != cat_id.to_lower():
+			continue
+		var max_lvl: int = maxi(1, int((node as Dictionary).get("maxLevel", 1)))
+		total += max_lvl
+		have += clampi(int(levels.get(str((node as Dictionary).get("id", "")), 0)), 0, max_lvl)
+	if total <= 0:
+		return 0.0
+	return 100.0 * float(have) / float(total)
+
+
+func _clear_mobile_children(container: Node) -> void:
+	if container == null:
+		return
+	# queue_free only — never free() during/after button signals.
+	while container.get_child_count() > 0:
+		var c: Node = container.get_child(0)
+		container.remove_child(c)
+		c.queue_free()
+
+
+func _refresh_mobile_home() -> void:
+	if _mobile_home_grid == null:
+		return
+	_clear_mobile_children(_mobile_home_grid)
+
+	var active: Dictionary = get_active_job()
+	if _mobile_active_banner != null:
+		if active.is_empty():
+			_mobile_active_banner.text = "No active research"
+		else:
+			var n: Dictionary = _find_node_in_db(str(active.get("research_id", "")))
+			_mobile_active_banner.text = "Researching: %s  ·  %s" % [
+				str(n.get("name", "Technology")),
+				format_duration(float(active.get("time_remaining", 0.0))),
+			]
+
+	for entry: Dictionary in MOBILE_CATEGORIES:
+		var cat_id: String = str(entry.get("id", ""))
+		var pct: float = _category_progress_pct(cat_id)
+		var card := Button.new()
+		card.custom_minimum_size = Vector2(300, 148)
+		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		card.text = ""
+		card.add_theme_stylebox_override("normal", _mobile_card_style(Color(0.12, 0.10, 0.18, 1.0)))
+		card.add_theme_stylebox_override("hover", _mobile_card_style(Color(0.18, 0.14, 0.24, 1.0)))
+		card.add_theme_stylebox_override("pressed", _mobile_card_style(Color(0.22, 0.16, 0.10, 1.0)))
+		card.clip_contents = true
+
+		var row := HBoxContainer.new()
+		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.set_anchors_preset(Control.PRESET_FULL_RECT)
+		row.offset_left = 12
+		row.offset_right = -12
+		row.offset_top = 12
+		row.offset_bottom = -12
+		row.add_theme_constant_override("separation", 12)
+		card.add_child(row)
+
+		var icon := TextureRect.new()
+		icon.custom_minimum_size = Vector2(56, 56)
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_apply_category_icon(icon, _canon_category_title(cat_id))
+		row.add_child(icon)
+
+		var col := VBoxContainer.new()
+		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		col.alignment = BoxContainer.ALIGNMENT_CENTER
+		col.add_theme_constant_override("separation", 4)
+		row.add_child(col)
+
+		var title_l := Label.new()
+		title_l.text = str(entry.get("title", ""))
+		title_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		title_l.add_theme_font_size_override("font_size", 20)
+		title_l.add_theme_color_override("font_color", Color(0.95, 0.84, 0.40, 1.0))
+		title_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		col.add_child(title_l)
+
+		var sub_l := Label.new()
+		sub_l.text = str(entry.get("subtitle", ""))
+		sub_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		sub_l.add_theme_font_size_override("font_size", 14)
+		sub_l.add_theme_color_override("font_color", Color(0.72, 0.68, 0.58, 1.0))
+		sub_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		col.add_child(sub_l)
+
+		var pct_l := Label.new()
+		pct_l.text = "%d%%" % int(round(pct))
+		pct_l.add_theme_font_size_override("font_size", 22)
+		pct_l.add_theme_color_override("font_color", Color(0.78, 0.88, 1.0, 1.0))
+		pct_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		col.add_child(pct_l)
+
+		var captured: String = cat_id
+		card.pressed.connect(func() -> void: _mobile_show_category(captured))
+		_mobile_home_grid.add_child(card)
+
+
+func _mobile_card_style(bg: Color) -> StyleBoxFlat:
+	var s := StyleBoxFlat.new()
+	s.bg_color = bg
+	s.border_color = Color(0.72, 0.58, 0.28, 0.85)
+	s.set_border_width_all(2)
+	s.set_corner_radius_all(14)
+	s.content_margin_left = 14
+	s.content_margin_right = 14
+	s.content_margin_top = 14
+	s.content_margin_bottom = 14
+	return s
+
+
+func _refresh_mobile_category_list() -> void:
+	if _mobile_tech_list == null:
+		return
+	_clear_mobile_children(_mobile_tech_list)
+
+	var cat_key: String = active_category.to_lower()
+	for node: Variant in database:
+		if typeof(node) != TYPE_DICTIONARY:
+			continue
+		var def: Dictionary = node as Dictionary
+		if str(def.get("category", "")).to_lower() != cat_key:
+			continue
+		var n_id: String = str(def.get("id", ""))
+		var level: int = int(get_research_levels().get(n_id, 0))
+		var max_lvl: int = maxi(1, int(def.get("maxLevel", 1)))
+		var unlock_data: Dictionary = check_node_unlocked(def)
+		var unlocked: bool = bool(unlock_data.get("unlocked", false))
+		var status: String = "Available"
+		if not unlocked:
+			status = "Locked"
+		elif level >= max_lvl:
+			status = "Completed"
+		elif _is_researching_id(n_id):
+			status = "Researching"
+		elif _is_queued(n_id):
+			status = "Queued"
+
+		var row := Button.new()
+		row.custom_minimum_size = Vector2(0, 96)
+		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		row.text = "%s\nLv %d / %d   ·   %s" % [str(def.get("name", n_id)), level, max_lvl, status]
+		row.add_theme_font_size_override("font_size", 18)
+		row.add_theme_color_override("font_color", Color(0.93, 0.88, 0.76, 1.0))
+		row.add_theme_stylebox_override("normal", _mobile_card_style(Color(0.10, 0.09, 0.15, 1.0)))
+		row.add_theme_stylebox_override("hover", _mobile_card_style(Color(0.16, 0.13, 0.22, 1.0)))
+		var captured_id: String = n_id
+		row.pressed.connect(func() -> void: _mobile_show_detail(captured_id))
+		_mobile_tech_list.add_child(row)
+
+
+func _refresh_mobile_detail() -> void:
+	if _mobile_detail_body == null:
+		return
+	_clear_mobile_children(_mobile_detail_body)
+
+	var node: Dictionary = _find_node_in_db(selected_node_id)
+	if node.is_empty():
+		_mobile_detail_body.add_child(_mobile_text("Technology not found.", 18, Color(1, 0.5, 0.4)))
+		return
+
+	var level: int = int(get_research_levels().get(selected_node_id, 0))
+	var max_lvl: int = maxi(1, int(node.get("maxLevel", 1)))
+	var is_max: bool = level >= max_lvl
+	var unlock_data: Dictionary = check_node_unlocked(node)
+	var unlocked: bool = bool(unlock_data.get("unlocked", false))
+	var cost_data: Dictionary = get_node_level_costs(node, level + 1)
+	var active: Dictionary = {}
+	if has_node("/root/ResearchState"):
+		active = ResearchState.get_job_for(selected_node_id)
+	else:
+		active = get_active_job()
+		if str(active.get("research_id", "")) != selected_node_id:
+			active = {}
+	var is_researching: bool = not active.is_empty()
+
+	_mobile_detail_body.add_child(_mobile_text(str(node.get("name", "Technology")), 26, Color(0.95, 0.84, 0.40)))
+	_mobile_detail_body.add_child(_mobile_text("Level %d / %d" % [level, max_lvl], 18, Color(0.80, 0.76, 0.68)))
+	_mobile_detail_body.add_child(_mobile_text(str(node.get("description", "")), 17, Color(0.90, 0.86, 0.78)))
+
+	# Effects
+	if level > 0:
+		var cur: Dictionary = _get_level_data(node, level)
+		var fx: Array = cur.get("effects", [])
+		if fx.size() > 0:
+			var fx_txt: PackedStringArray = PackedStringArray()
+			for e: Variant in fx:
+				fx_txt.append(str(e))
+			_mobile_detail_body.add_child(_mobile_text("Current Effect\n" + "\n".join(fx_txt), 16, Color(0.55, 0.85, 0.60)))
+	if not is_max:
+		var nxt: Dictionary = _get_level_data(node, level + 1)
+		var nfx: Array = nxt.get("effects", [])
+		if nfx.size() > 0:
+			var nfx_txt: PackedStringArray = PackedStringArray()
+			for e2: Variant in nfx:
+				nfx_txt.append(str(e2))
+			_mobile_detail_body.add_child(_mobile_text("Next Effect\n" + "\n".join(nfx_txt), 16, Color(0.70, 0.78, 0.95)))
+
+	# Prerequisites
+	var prereq_lines: PackedStringArray = PackedStringArray()
+	for req: Variant in node.get("prerequisites", []):
+		if typeof(req) != TYPE_DICTIONARY:
+			continue
+		var req_id: String = str((req as Dictionary).get("researchId", ""))
+		var req_lvl: int = int((req as Dictionary).get("level", 1))
+		var req_def: Dictionary = _find_node_in_db(req_id)
+		var have: int = int(get_research_levels().get(req_id, 0))
+		var met: bool = have >= req_lvl or level >= 1
+		prereq_lines.append("%s %s Lv.%d (have %d)" % ["✔" if met else "✖", str(req_def.get("name", req_id)), req_lvl, have])
+	if prereq_lines.is_empty():
+		prereq_lines.append("No prerequisites")
+	_mobile_detail_body.add_child(_mobile_text("Prerequisites\n" + "\n".join(prereq_lines), 16, Color(0.85, 0.80, 0.70)))
+
+	# Costs / time
+	if is_max:
+		_mobile_detail_body.add_child(_mobile_text("Maximum level reached.", 18, Color(0.86, 0.70, 0.32)))
+	else:
+		var cost_txt: String = "Food %d · Wood %d · Stone %d · Iron %d · Valor %d" % [
+			int(cost_data.get("food", 0)),
+			int(cost_data.get("wood", 0)),
+			int(cost_data.get("stone", 0)),
+			int(cost_data.get("iron", 0)),
+			int(cost_data.get("valor", 0)),
+		]
+		_mobile_detail_body.add_child(_mobile_text("Cost\n" + cost_txt, 16, Color(0.80, 0.76, 0.68)))
+		_mobile_detail_body.add_child(_mobile_text(
+			"Duration  %s" % format_duration(float(cost_data.get("duration", 0))),
+			16,
+			Color(0.80, 0.76, 0.68)
+		))
+
+	if is_researching:
+		_mobile_detail_body.add_child(_mobile_text(
+			"In progress — %s remaining" % format_duration(float(active.get("time_remaining", 0.0))),
+			18,
+			Color(0.55, 0.82, 0.95)
+		))
+		var cancel := Button.new()
+		cancel.text = "CANCEL RESEARCH"
+		cancel.custom_minimum_size = Vector2(0, 56)
+		cancel.add_theme_font_size_override("font_size", 18)
+		cancel.pressed.connect(func() -> void:
+			cancel_research_job(selected_node_id)
+			# Defer rebuild — Cancel button lives in _mobile_detail_body.
+			call_deferred("_deferred_mobile_refresh_after_job_change")
+		)
+		_mobile_detail_body.add_child(cancel)
+	elif not unlocked:
+		var why: String = str(unlock_data.get("reason", "Locked"))
+		_mobile_detail_body.add_child(_mobile_text("Locked\n%s" % why, 17, Color(1.0, 0.55, 0.45)))
+	elif is_max:
+		pass
+	else:
+		var start := Button.new()
+		start.custom_minimum_size = Vector2(0, 64)
+		start.add_theme_font_size_override("font_size", 20)
+		var affordable: bool = check_resources_affordable(cost_data)
+		var queue_full := false
+		if has_node("/root/ResearchState"):
+			queue_full = not ResearchState.has_free_research_queue()
+		else:
+			queue_full = not get_active_job().is_empty()
+		if not affordable:
+			start.text = "INSUFFICIENT RESOURCES"
+			start.disabled = true
+		elif queue_full:
+			start.text = "Research Queue Full"
+			start.disabled = true
+		else:
+			start.text = "START RESEARCH"
+		start.pressed.connect(func() -> void:
+			_on_start_research_pressed()
+			# Defer rebuild — Start button is a child of _mobile_detail_body.
+			call_deferred("_deferred_mobile_refresh_after_job_change")
+		)
+		_mobile_detail_body.add_child(start)
+
+
+func _deferred_mobile_refresh_after_job_change() -> void:
+	if not is_instance_valid(self) or not _mobile_built:
+		return
+	if _mobile_page == MobilePage.DETAIL:
+		_refresh_mobile_detail()
+	if _mobile_page == MobilePage.CATEGORY or _mobile_page == MobilePage.DETAIL:
+		_refresh_mobile_category_list()
+	_refresh_mobile_home()
+
+
+func _mobile_text(text: String, size: int, color: Color) -> Label:
+	var l := Label.new()
+	l.text = text
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.add_theme_font_size_override("font_size", size)
+	l.add_theme_color_override("font_color", color)
+	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return l
+
+
 func _on_close_pressed() -> void:
 	visible = false
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if has_node("/root/GameState"):
+		GameState.popup_open = false
 	queue_free()
 
 func _get_hardcoded_database() -> Array:

@@ -2,6 +2,8 @@ extends Control
 
 ## Wildling march setup — production UI. March logic stays in MarchState.
 
+const MobileScrollUtil = preload("res://scripts/UI/MobileScroll.gd")
+
 const COL_INK := Color(0.93, 0.88, 0.76, 1.0)
 const COL_MUTED := Color(0.72, 0.66, 0.55, 1.0)
 const COL_GOLD := Color(0.86, 0.70, 0.32, 1.0)
@@ -13,8 +15,10 @@ const COL_BORDER := Color(0.58, 0.46, 0.28, 0.90)
 const COL_SLOT := Color(0.08, 0.07, 0.10, 0.95)
 const COL_SLOT_BORDER := Color(0.48, 0.40, 0.28, 0.85)
 
-const UI_LAYOUT_VERSION: int = 3
-const BOTTOM_SAFE_MARGIN: float = 220.0
+const UI_LAYOUT_VERSION: int = 4
+## Keep chrome clear of World top resource bar + bottom nav (720×1280).
+const TOP_SAFE_MARGIN: float = 188.0
+const BOTTOM_SAFE_MARGIN: float = 200.0
 
 var _target: Dictionary = {}
 var _selected_heroes: Array[String] = []
@@ -74,9 +78,8 @@ func open_for_target(target: Dictionary) -> void:
 
 
 func _ensure_current_layout() -> void:
-	# Rebuild every open so hot-reloads never leave stale Select All / Clear rows.
-	if _built_layout_version != UI_LAYOUT_VERSION or get_node_or_null("MarchWindow") == null:
-		_build_ui()
+	# Always rebuild on open — prevents stale troop rows / missing +/- after hot-reload.
+	_build_ui()
 
 
 func _auto_pick_first_hero() -> void:
@@ -104,6 +107,7 @@ func _build_ui() -> void:
 	dim.name = "DimBackground"
 	dim.color = Color(0.04, 0.03, 0.06, 0.72)
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.offset_top = TOP_SAFE_MARGIN
 	dim.offset_bottom = -BOTTOM_SAFE_MARGIN
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(dim)
@@ -111,32 +115,38 @@ func _build_ui() -> void:
 	var window := PanelContainer.new()
 	window.name = "MarchWindow"
 	window.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	window.offset_left = 20.0
-	window.offset_top = 28.0
-	window.offset_right = -20.0
+	window.offset_left = 12.0
+	window.offset_top = TOP_SAFE_MARGIN
+	window.offset_right = -12.0
 	window.offset_bottom = -BOTTOM_SAFE_MARGIN
 	window.mouse_filter = Control.MOUSE_FILTER_STOP
 	window.add_theme_stylebox_override("panel", _panel_style(COL_PANEL, COL_BORDER, 18, 2))
 	add_child(window)
 
 	var outer := MarginContainer.new()
-	outer.add_theme_constant_override("margin_left", 14)
-	outer.add_theme_constant_override("margin_right", 14)
-	outer.add_theme_constant_override("margin_top", 10)
-	outer.add_theme_constant_override("margin_bottom", 12)
+	outer.add_theme_constant_override("margin_left", 12)
+	outer.add_theme_constant_override("margin_right", 12)
+	outer.add_theme_constant_override("margin_top", 8)
+	outer.add_theme_constant_override("margin_bottom", 10)
 	window.add_child(outer)
 
 	var shell := VBoxContainer.new()
-	shell.add_theme_constant_override("separation", 10)
+	shell.name = "Shell"
+	shell.add_theme_constant_override("separation", 8)
 	outer.add_child(shell)
 
-	# Fixed header — always visible.
+	# ---- Fixed header (chrome + target) ----
+	var header_block := VBoxContainer.new()
+	header_block.name = "FixedHeader"
+	header_block.add_theme_constant_override("separation", 6)
+	shell.add_child(header_block)
+
 	var header := HBoxContainer.new()
 	header.name = "HeaderRow"
 	header.add_theme_constant_override("separation", 10)
-	shell.add_child(header)
+	header_block.add_child(header)
 
-	var back_btn := _make_chrome_button("BACK", Vector2(110, 54))
+	var back_btn := _make_chrome_button("BACK", Vector2(110, 52))
 	back_btn.name = "BackButton"
 	back_btn.pressed.connect(_on_back)
 	header.add_child(back_btn)
@@ -145,75 +155,75 @@ func _build_ui() -> void:
 	title.text = "MARCH SETUP"
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 28)
+	title.add_theme_font_size_override("font_size", 26)
 	title.add_theme_color_override("font_color", COL_GOLD)
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	header.add_child(title)
 
-	var close_btn := _make_chrome_button("X", Vector2(64, 54))
+	var close_btn := _make_chrome_button("X", Vector2(64, 52))
 	close_btn.name = "CloseButton"
 	close_btn.pressed.connect(_on_close_pressed)
 	header.add_child(close_btn)
 
-	# Scrollable middle content.
-	var scroll := ScrollContainer.new()
-	scroll.name = "ContentScroll"
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	shell.add_child(scroll)
-
-	var root := VBoxContainer.new()
-	root.name = "ContentRoot"
-	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	root.add_theme_constant_override("separation", 12)
-	scroll.add_child(root)
-
-	# --- Target ---
 	var target_card := PanelContainer.new()
-	target_card.add_theme_stylebox_override("panel", _panel_style(COL_CARD, COL_BORDER, 14, 1))
-	root.add_child(target_card)
+	target_card.name = "TargetSummary"
+	target_card.add_theme_stylebox_override("panel", _panel_style(COL_CARD, COL_BORDER, 12, 1))
+	header_block.add_child(target_card)
 
 	var target_margin := MarginContainer.new()
-	target_margin.add_theme_constant_override("margin_left", 14)
-	target_margin.add_theme_constant_override("margin_right", 14)
-	target_margin.add_theme_constant_override("margin_top", 12)
-	target_margin.add_theme_constant_override("margin_bottom", 12)
+	target_margin.add_theme_constant_override("margin_left", 12)
+	target_margin.add_theme_constant_override("margin_right", 12)
+	target_margin.add_theme_constant_override("margin_top", 8)
+	target_margin.add_theme_constant_override("margin_bottom", 8)
 	target_card.add_child(target_margin)
 
 	var target_col := VBoxContainer.new()
-	target_col.add_theme_constant_override("separation", 6)
+	target_col.add_theme_constant_override("separation", 2)
 	target_margin.add_child(target_col)
 
-	var target_eyebrow := Label.new()
-	target_eyebrow.text = "TARGET"
-	target_eyebrow.add_theme_font_size_override("font_size", 14)
-	target_eyebrow.add_theme_color_override("font_color", COL_MUTED)
-	target_col.add_child(target_eyebrow)
-
 	_target_name_label = Label.new()
-	_target_name_label.text = "Wildling"
-	_target_name_label.add_theme_font_size_override("font_size", 24)
+	_target_name_label.text = "Target"
+	_target_name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_target_name_label.add_theme_font_size_override("font_size", 20)
 	_target_name_label.add_theme_color_override("font_color", COL_INK)
+	_target_name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	target_col.add_child(_target_name_label)
 
 	_target_meta_label = Label.new()
 	_target_meta_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_target_meta_label.add_theme_font_size_override("font_size", 16)
+	_target_meta_label.add_theme_font_size_override("font_size", 14)
 	_target_meta_label.add_theme_color_override("font_color", COL_MUTED)
+	_target_meta_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	target_col.add_child(_target_meta_label)
 
-	# --- Heroes ---
+	# ---- Scrollable middle (heroes + troops + summary) ----
+	var scroll := ScrollContainer.new()
+	scroll.name = "ContentScroll"
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	shell.add_child(scroll)
+	MobileScrollUtil.ensure(self, scroll, "MobileScrollMarchSetup")
+
+	var root := VBoxContainer.new()
+	root.name = "ContentRoot"
+	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	root.add_theme_constant_override("separation", 10)
+	scroll.add_child(root)
+
 	root.add_child(_section_label("HEROES"))
 
 	var heroes_hint := Label.new()
 	heroes_hint.text = "Tap a slot to assign or clear a hero"
 	heroes_hint.add_theme_font_size_override("font_size", 14)
 	heroes_hint.add_theme_color_override("font_color", COL_MUTED)
+	heroes_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(heroes_hint)
 	_heroes_hint = heroes_hint
 
 	var slots_row := HBoxContainer.new()
-	slots_row.add_theme_constant_override("separation", 12)
+	slots_row.add_theme_constant_override("separation", 10)
 	slots_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	root.add_child(slots_row)
 
@@ -235,7 +245,6 @@ func _build_ui() -> void:
 	clear_heroes.pressed.connect(_on_clear_heroes)
 	hero_actions.add_child(clear_heroes)
 
-	# --- Troops ---
 	root.add_child(_section_label("TROOPS"))
 
 	var troops_card := PanelContainer.new()
@@ -243,15 +252,15 @@ func _build_ui() -> void:
 	root.add_child(troops_card)
 
 	var troops_margin := MarginContainer.new()
-	troops_margin.add_theme_constant_override("margin_left", 12)
-	troops_margin.add_theme_constant_override("margin_right", 12)
+	troops_margin.add_theme_constant_override("margin_left", 10)
+	troops_margin.add_theme_constant_override("margin_right", 10)
 	troops_margin.add_theme_constant_override("margin_top", 10)
 	troops_margin.add_theme_constant_override("margin_bottom", 10)
 	troops_card.add_child(troops_margin)
 
 	var troops_col := VBoxContainer.new()
 	troops_col.name = "TroopRows"
-	troops_col.add_theme_constant_override("separation", 12)
+	troops_col.add_theme_constant_override("separation", 14)
 	troops_margin.add_child(troops_col)
 
 	_add_troop_row(troops_col, "infantry", "Infantry")
@@ -263,23 +272,22 @@ func _build_ui() -> void:
 	troop_actions.add_theme_constant_override("separation", 10)
 	troop_actions.alignment = BoxContainer.ALIGNMENT_CENTER
 	troops_col.add_child(troop_actions)
-	var select_all_troops := _make_chrome_button("SELECT ALL TROOPS", Vector2(240, 50))
+	var select_all_troops := _make_chrome_button("SELECT ALL", Vector2(200, 52))
 	select_all_troops.pressed.connect(_on_select_all_troops)
 	troop_actions.add_child(select_all_troops)
-	var clear_troops := _make_chrome_button("CLEAR", Vector2(120, 50))
+	var clear_troops := _make_chrome_button("CLEAR", Vector2(140, 52))
 	clear_troops.pressed.connect(_on_clear_troops)
 	troop_actions.add_child(clear_troops)
 
-	# --- Summary ---
 	var summary_card := PanelContainer.new()
 	summary_card.add_theme_stylebox_override("panel", _panel_style(COL_CARD, COL_GOLD, 14, 1))
 	root.add_child(summary_card)
 
 	var summary_margin := MarginContainer.new()
-	summary_margin.add_theme_constant_override("margin_left", 14)
-	summary_margin.add_theme_constant_override("margin_right", 14)
-	summary_margin.add_theme_constant_override("margin_top", 12)
-	summary_margin.add_theme_constant_override("margin_bottom", 12)
+	summary_margin.add_theme_constant_override("margin_left", 12)
+	summary_margin.add_theme_constant_override("margin_right", 12)
+	summary_margin.add_theme_constant_override("margin_top", 10)
+	summary_margin.add_theme_constant_override("margin_bottom", 10)
 	summary_card.add_child(summary_margin)
 
 	var summary_row := HBoxContainer.new()
@@ -294,14 +302,20 @@ func _build_ui() -> void:
 	_capacity_value_label = cap_block.get_node("Value") as Label
 	summary_row.add_child(cap_block)
 
+	# ---- Fixed footer ----
+	var footer := VBoxContainer.new()
+	footer.name = "FixedFooter"
+	footer.add_theme_constant_override("separation", 6)
+	shell.add_child(footer)
+
 	_status_label = Label.new()
 	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_status_label.add_theme_font_size_override("font_size", 15)
+	_status_label.add_theme_font_size_override("font_size", 14)
 	_status_label.add_theme_color_override("font_color", COL_MUTED)
-	root.add_child(_status_label)
+	_status_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	footer.add_child(_status_label)
 
-	# Fixed MARCH button under the scroll — always above bottom HUD.
 	_march_button = Button.new()
 	_march_button.name = "MarchButton"
 	_march_button.text = "MARCH"
@@ -314,7 +328,7 @@ func _build_ui() -> void:
 	_march_button.add_theme_stylebox_override("pressed", _button_style(Color(0.62, 0.46, 0.14, 1.0), Color(0.82, 0.68, 0.30, 1.0)))
 	_march_button.add_theme_stylebox_override("disabled", _button_style(Color(0.22, 0.20, 0.18, 1.0), Color(0.35, 0.32, 0.28, 0.8)))
 	_march_button.pressed.connect(_on_march_pressed)
-	shell.add_child(_march_button)
+	footer.add_child(_march_button)
 
 	print("[MarchSetupScreen] layout v%d built from res://scripts/UI/MarchSetupScreen.gd" % UI_LAYOUT_VERSION)
 
@@ -363,7 +377,7 @@ func _make_stat_block(title: String) -> VBoxContainer:
 
 func _make_hero_slot(index: int) -> Control:
 	var slot := Button.new()
-	slot.custom_minimum_size = Vector2(168, 210)
+	slot.custom_minimum_size = Vector2(140, 168)
 	slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	slot.clip_contents = true
 	slot.add_theme_stylebox_override("normal", _panel_style(COL_SLOT, COL_SLOT_BORDER, 12, 2))
@@ -414,34 +428,56 @@ func _make_hero_slot(index: int) -> Control:
 
 
 func _add_troop_row(parent: VBoxContainer, kind: String, display_name: String) -> void:
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
-	parent.add_child(row)
-
-	var info := VBoxContainer.new()
-	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	info.add_theme_constant_override("separation", 2)
-	row.add_child(info)
+	var block := VBoxContainer.new()
+	block.name = "TroopRow_%s" % kind
+	block.add_theme_constant_override("separation", 6)
+	parent.add_child(block)
 
 	var name_l := Label.new()
-	name_l.text = display_name
+	name_l.text = display_name.to_upper()
 	name_l.add_theme_font_size_override("font_size", 18)
 	name_l.add_theme_color_override("font_color", COL_INK)
-	info.add_child(name_l)
-
-	var qty := Label.new()
-	qty.text = "0 selected"
-	qty.add_theme_font_size_override("font_size", 15)
-	qty.add_theme_color_override("font_color", COL_GOLD)
-	info.add_child(qty)
-	_troop_qty_labels[kind] = qty
+	name_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	block.add_child(name_l)
 
 	var avail := Label.new()
-	avail.text = "0 available"
-	avail.add_theme_font_size_override("font_size", 13)
+	avail.text = "Available: 0"
+	avail.add_theme_font_size_override("font_size", 14)
 	avail.add_theme_color_override("font_color", COL_MUTED)
-	info.add_child(avail)
+	avail.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	block.add_child(avail)
 	_troop_avail_labels[kind] = avail
+
+	var controls := HBoxContainer.new()
+	controls.add_theme_constant_override("separation", 10)
+	controls.alignment = BoxContainer.ALIGNMENT_CENTER
+	block.add_child(controls)
+
+	var minus_big := _make_chrome_button("−100", Vector2(88, 58))
+	minus_big.pressed.connect(_on_troop_adjust.bind(kind, -100))
+	controls.add_child(minus_big)
+
+	var minus := _make_chrome_button("−", Vector2(64, 58))
+	minus.pressed.connect(_on_troop_adjust.bind(kind, -1))
+	controls.add_child(minus)
+
+	var qty := Label.new()
+	qty.text = "0"
+	qty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	qty.custom_minimum_size = Vector2(120, 0)
+	qty.add_theme_font_size_override("font_size", 26)
+	qty.add_theme_color_override("font_color", COL_GOLD)
+	qty.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	controls.add_child(qty)
+	_troop_qty_labels[kind] = qty
+
+	var plus := _make_chrome_button("+", Vector2(64, 58))
+	plus.pressed.connect(_on_troop_adjust.bind(kind, 1))
+	controls.add_child(plus)
+
+	var plus_big := _make_chrome_button("+100", Vector2(88, 58))
+	plus_big.pressed.connect(_on_troop_adjust.bind(kind, 100))
+	controls.add_child(plus_big)
 
 
 func _panel_style(bg: Color, border: Color, radius: float, border_w: float) -> StyleBoxFlat:
@@ -507,9 +543,7 @@ func _on_select_all_troops() -> void:
 		if remaining <= 0:
 			_set_troop(kind, 0)
 			continue
-		var available: int = 0
-		if has_node("/root/TroopState"):
-			available = TroopState.get_available_count(_troop_type_name(kind))
+		var available: int = _available_for_kind(kind)
 		var take: int = mini(available, remaining)
 		_set_troop(kind, take)
 		remaining -= take
@@ -521,6 +555,24 @@ func _on_clear_troops() -> void:
 	_marksmen = 0
 	_cavalry = 0
 	_refresh()
+
+
+func _on_troop_adjust(kind: String, delta: int) -> void:
+	var current: int = _get_troop(kind)
+	var available: int = _available_for_kind(kind)
+	var capacity: int = MarchState.get_march_capacity() if has_node("/root/MarchState") else 0
+	var others: int = (_infantry + _marksmen + _cavalry) - current
+	var room: int = maxi(0, capacity - others)
+	var max_allowed: int = mini(available, room)
+	var next: int = clampi(current + delta, 0, max_allowed)
+	_set_troop(kind, next)
+	_refresh_summary()
+
+
+func _available_for_kind(kind: String) -> int:
+	if not has_node("/root/TroopState"):
+		return 0
+	return maxi(0, TroopState.get_available_count(_troop_type_name(kind)))
 
 
 func _on_select_all_heroes() -> void:
@@ -619,21 +671,41 @@ func _next_available_hero_id() -> String:
 
 
 func _refresh() -> void:
-	var species: String = str(_target.get("species", "Wildling")).capitalize()
-	var level: int = int(_target.get("level", 1))
+	var is_resource: bool = str(_target.get("target_type", "")) == "resource"
 	var castle: Vector2 = MarchState.get_castle_world_position() if has_node("/root/MarchState") else Vector2.ZERO
 	var pos: Dictionary = _target.get("position", {})
+	if pos.is_empty() and _target.has("world_position"):
+		pos = _target.get("world_position", {})
 	var target_pos := Vector2(float(pos.get("x", 0)), float(pos.get("y", 0)))
 	var travel: int = MarchState.estimate_travel_seconds(castle, target_pos) if has_node("/root/MarchState") else 0
 	var dist: int = int(castle.distance_to(target_pos))
 
-	_target_name_label.text = "%s  ·  Lv.%d" % [species, level]
-	var power: int = int(_target.get("power", 0))
-	_target_meta_label.text = "Recommended Power  %s\nDistance  %d    ·    Travel  %s" % [
-		_format_power(power),
-		dist,
-		_format_travel(travel),
-	]
+	if is_resource:
+		var display: String = str(_target.get("display_name", _target.get("resource_type", "Resource")))
+		var level: int = int(_target.get("resource_level", _target.get("level", 1)))
+		var rtype: String = str(_target.get("resource_type", "")).capitalize()
+		var amount: int = int(_target.get("resource_amount", 0))
+		_target_name_label.text = "%s  ·  Lv.%d" % [display, level]
+		_target_meta_label.text = "Resource  %s\nAvailable  %s\nDistance  %d    ·    Travel  %s" % [
+			rtype,
+			_format_number(amount),
+			dist,
+			_format_travel(travel),
+		]
+		if _march_button:
+			_march_button.text = "GATHER"
+	else:
+		var species: String = str(_target.get("species", "Wildling")).capitalize()
+		var level_w: int = int(_target.get("level", 1))
+		var power: int = int(_target.get("power", 0))
+		_target_name_label.text = "%s  ·  Lv.%d" % [species, level_w]
+		_target_meta_label.text = "Recommended Power  %s\nDistance  %d    ·    Travel  %s" % [
+			_format_power(power),
+			dist,
+			_format_travel(travel),
+		]
+		if _march_button:
+			_march_button.text = "MARCH"
 
 	_refresh_hero_slots()
 	_refresh_summary()
@@ -731,11 +803,23 @@ func _refresh_summary() -> void:
 
 	var check: Dictionary = {"ok": false, "error": "MarchState unavailable."}
 	if has_node("/root/MarchState"):
-		check = MarchState.validate_wildling_dispatch(_target, _troop_dict(), _selected_heroes)
+		if str(_target.get("target_type", "")) == "resource":
+			check = MarchState.validate_resource_setup(_target, _troop_dict(), _selected_heroes)
+		else:
+			check = MarchState.validate_wildling_dispatch(_target, _troop_dict(), _selected_heroes)
 
 	_march_button.disabled = not bool(check.get("ok", false))
 	if check.get("ok", false):
-		_status_label.text = "Ready to march."
+		if str(_target.get("target_type", "")) == "resource":
+			var composition: Dictionary = MarchState.build_troop_tier_composition(_troop_dict())
+			var cargo: int = MarchState.calculate_troop_load(composition)
+			var g_amt: int = mini(cargo, int(_target.get("resource_amount", 0)))
+			_status_label.text = "Ready to gather · Cargo %s · Target %s" % [
+				_format_number(cargo),
+				_format_number(g_amt),
+			]
+		else:
+			_status_label.text = "Ready to march."
 		_status_label.add_theme_color_override("font_color", COL_OK)
 	else:
 		_status_label.text = str(check.get("error", "Cannot march."))
@@ -745,11 +829,11 @@ func _refresh_summary() -> void:
 func _set_troop_labels(kind: String, selected: int, troop_type: String) -> void:
 	var avail: int = 0
 	if has_node("/root/TroopState"):
-		avail = TroopState.get_available_count(troop_type)
+		avail = maxi(0, TroopState.get_available_count(troop_type))
 	if _troop_qty_labels.has(kind):
-		(_troop_qty_labels[kind] as Label).text = "%s selected" % _format_number(selected)
+		(_troop_qty_labels[kind] as Label).text = _format_number(selected)
 	if _troop_avail_labels.has(kind):
-		(_troop_avail_labels[kind] as Label).text = "%s available" % _format_number(avail)
+		(_troop_avail_labels[kind] as Label).text = "Available: %s" % _format_number(avail)
 
 
 func _format_number(value: int) -> String:
@@ -769,6 +853,28 @@ func _on_march_pressed() -> void:
 		_status_label.text = "MarchState unavailable."
 		_status_label.add_theme_color_override("font_color", COL_WARN)
 		return
+
+	# Resource targets must never enter wildling combat dispatch.
+	if str(_target.get("target_type", "")) == "resource":
+		var gather_check: Dictionary = MarchState.validate_resource_setup(
+			_target, _troop_dict(), _selected_heroes
+		)
+		if not bool(gather_check.get("ok", false)):
+			_status_label.text = str(gather_check.get("error", "Cannot gather."))
+			_status_label.add_theme_color_override("font_color", COL_WARN)
+			_refresh_summary()
+			return
+		var gather_result: Dictionary = MarchState.dispatch_gather_march(
+			_target, _troop_dict(), _selected_heroes
+		)
+		if not bool(gather_result.get("ok", false)):
+			_status_label.text = str(gather_result.get("error", "Gather dispatch failed."))
+			_status_label.add_theme_color_override("font_color", COL_WARN)
+			_refresh_summary()
+			return
+		_close_to_map()
+		return
+
 	var result: Dictionary = MarchState.dispatch_wildling_march(_target, _troop_dict(), _selected_heroes)
 	if not result.get("ok", false):
 		_status_label.text = str(result.get("error", "Dispatch failed."))
@@ -778,9 +884,15 @@ func _on_march_pressed() -> void:
 	_close_to_map()
 
 
-## BACK — close setup and reopen the Wildling popup if that target still exists.
+## BACK — close without dispatch; reopen source popup when possible.
 func _on_back() -> void:
+	# Closing never deploys troops / never reserves a resource tile.
 	_close_screens()
+	if str(_target.get("target_type", "")) == "resource":
+		var rpanel: Node = _find_resource_panel()
+		if rpanel != null and rpanel.has_method("reopen_last"):
+			rpanel.reopen_last()
+		return
 	var panel: Node = _find_wildling_panel()
 	if panel == null:
 		return
@@ -788,7 +900,7 @@ func _on_back() -> void:
 		panel.reopen_last()
 
 
-## X — close setup and return to World Map only.
+## X — close setup and return to World Map only (no dispatch / no reservation).
 func _on_close_pressed() -> void:
 	_close_to_map()
 
@@ -806,6 +918,11 @@ func _close_screens() -> void:
 	# Belt-and-suspenders: never leave an invisible input trap.
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_target = {}
+	_infantry = 0
+	_marksmen = 0
+	_cavalry = 0
+	_selected_heroes.clear()
 
 
 func _find_wildling_panel() -> Node:
@@ -816,3 +933,13 @@ func _find_wildling_panel() -> Node:
 	if panel != null:
 		return panel
 	return world.get_node_or_null("CanvasLayer/WildlingPanel")
+
+
+func _find_resource_panel() -> Node:
+	var world: Node = get_tree().current_scene
+	if world == null:
+		return null
+	var panel: Node = world.get_node_or_null("HUD/ResourcePanel")
+	if panel != null:
+		return panel
+	return get_tree().root.find_child("ResourcePanel", true, false)

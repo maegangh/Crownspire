@@ -1,5 +1,6 @@
 extends Control
 
+const MobileScrollUtil = preload("res://scripts/UI/MobileScroll.gd")
 const TABS: Array[String] = ["Main", "Daily", "Achievement"]
 
 var current_tab: String = "Main"
@@ -96,6 +97,7 @@ func _build_ui() -> void:
 	scroll.name = "QuestScroll"
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_child(scroll)
+	MobileScrollUtil.ensure(self, scroll, "MobileScrollQuest")
 
 	list_box = VBoxContainer.new()
 	list_box.name = "QuestList"

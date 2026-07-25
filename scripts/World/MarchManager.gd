@@ -40,9 +40,9 @@ func _process(delta: float) -> void:
 				var distance = current_pos.distance_to(march.target_position)
 				var move_step = march.speed * delta
 				
-				# Rotate to face target position smoothly
+				# Fixed isometric march art: never rotate; flip_h for left vs right.
 				if dir.length() > 0.1:
-					march.instance.rotation = lerp_angle(march.instance.rotation, dir.angle(), 12.0 * delta)
+					_apply_march_visual_direction(march.instance, dir)
 				
 				if move_step >= distance:
 					march.instance.global_position = march.target_position
@@ -69,7 +69,7 @@ func _process(delta: float) -> void:
 				var move_step = march.speed * delta
 				
 				if dir.length() > 0.1:
-					march.instance.rotation = lerp_angle(march.instance.rotation, dir.angle(), 12.0 * delta)
+					_apply_march_visual_direction(march.instance, dir)
 					
 				if move_step >= distance:
 					march.instance.global_position = march.start_position
@@ -118,3 +118,16 @@ func _cleanup_march(march: MarchData) -> void:
 		march.instance.queue_free()
 	march_returned_home.emit()
 	print("[MarchManager] March returned safely to stronghold.")
+
+
+## Same rule as MarchState: SE isometric art — rotation 0, flip_h only.
+func _apply_march_visual_direction(march_visual: Node2D, travel_vector: Vector2) -> void:
+	if march_visual == null or travel_vector.length() <= 0.1:
+		return
+	march_visual.rotation = 0.0
+	var anim: AnimatedSprite2D = march_visual.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	if anim == null:
+		return
+	anim.rotation = 0.0
+	anim.flip_v = false
+	anim.flip_h = travel_vector.x < 0.0

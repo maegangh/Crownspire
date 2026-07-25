@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Crownspire"
-run/main_scene="uid://cx62g7x8d3"
+run/main_scene="uid://dx5ri22ocwrao"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 config/main_scene="uid://77p42eque6ex"
@@ -27,6 +27,7 @@ ResearchState="*uid://rt7h2cgb656t"
 CampaignManager1="*uid://dbpy2m2mjhsgt"
 DataManager="*uid://cqs7opgpocfv7"
 InventoryState="*uid://ccm434wq7yfhf"
+ResourceTileState="*res://Scripts/ResourceTileState.gd"
 MarchState="*uid://dode3xwoljw4e"
 BagState="*uid://bomv0lqviqnrv"
 ItemDatabase="*uid://o053iu3nf15a"
@@ -35,6 +36,7 @@ GameEvents="*uid://bnud8tmp66a7o"
 UIManager="*uid://dwj0bsgdfw377"
 AllianceState="*res://Scripts/AllianceState.gd"
 MailManager="*res://Scripts/MailManager.gd"
+ConstructionState="*res://Scripts/ConstructionState.gd"
 
 [display]
 

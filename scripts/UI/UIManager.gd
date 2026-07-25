@@ -224,6 +224,7 @@ func open_screen(screen_name: String) -> void:
 		_screen_root.move_child(screen, _screen_root.get_child_count() - 1)
 		if screen.has_method("on_open"):
 			screen.on_open()
+		_notify_secondary_hud(false)
 		return
 
 	close_current_screen()
@@ -238,6 +239,7 @@ func open_screen(screen_name: String) -> void:
 
 	if screen.has_method("on_open"):
 		screen.on_open()
+	_notify_secondary_hud(false)
 
 
 func close_current_screen() -> void:
@@ -247,6 +249,13 @@ func close_current_screen() -> void:
 
 	_hide_all_screens()
 	_set_popup_background_active(false)
+	_notify_secondary_hud(true)
+
+
+func _notify_secondary_hud(is_visible: bool) -> void:
+	var hud: Node = get_parent()
+	if hud != null and hud.has_method("set_secondary_hud_visible"):
+		hud.set_secondary_hud_visible(is_visible)
 
 
 func is_screen_open() -> bool:
@@ -303,17 +312,192 @@ func run_navigation_smoke_test() -> bool:
 	if get_current_screen_name() != "MailScreen" or not _is_only_screen_visible("MailScreen"):
 		push_error("[UIManager] Smoke test failed: Mail open")
 		ok = false
-
-	close_current_screen()
+	else:
+		var mail: Control = _screen_root.get_node_or_null("MailScreen") as Control
+		if mail != null:
+			# Force layout pass so global rects match portrait viewport.
+			mail.queue_redraw()
+			if mail.has_method("_apply_safe_area"):
+				mail.call("_apply_safe_area")
+			var close_btn: Button = mail.find_child("MailCloseButton", true, false) as Button
+			if close_btn == null:
+				push_error("[UIManager] Smoke test failed: MailCloseButton missing")
+				ok = false
+			elif not close_btn.visible or close_btn.disabled:
+				push_error("[UIManager] Smoke test failed: MailCloseButton not usable")
+				ok = false
+			else:
+				# X must sit BELOW permanent top HUD (chrome z=100 covers ScreenRoot).
+				var chrome: Control = get_parent().get_node_or_null("Control") as Control
+				var top_bar: Control = chrome.get_node_or_null("TopBarTexture") as Control if chrome else null
+				var bottom_bar: Control = chrome.get_node_or_null("BottomBarTexture") as Control if chrome else null
+				var close_rect: Rect2 = close_btn.get_global_rect()
+				if top_bar != null:
+					var top_rect: Rect2 = top_bar.get_global_rect()
+					var top_bottom: float = top_rect.position.y + top_rect.size.y
+					if close_rect.position.y < top_bottom:
+						push_error("[UIManager] Smoke test failed: Mail X under top HUD (X.y=%.1f top_bar.bottom=%.1f)" % [
+							close_rect.position.y, top_bottom
+						])
+						ok = false
+					else:
+						print("[UIManager] Mail X clear of top HUD (X.y=%.1f > top_bar.bottom=%.1f)" % [
+							close_rect.position.y, top_bottom
+						])
+				if bottom_bar != null and mail.has_method("get_layout_debug"):
+					var dbg: Dictionary = mail.call("get_layout_debug")
+					var win: Rect2 = dbg.get("window", Rect2())
+					var bot_top: float = bottom_bar.get_global_rect().position.y
+					if win.size.y > 0.0 and (win.position.y + win.size.y) > bot_top + 1.0:
+						push_error("[UIManager] Smoke test failed: Mail window overlaps bottom HUD")
+						ok = false
+					else:
+						print("[UIManager] Mail window above bottom HUD (window.bottom=%.1f bot_top=%.1f insets t=%.1f b=%.1f)" % [
+							win.position.y + win.size.y,
+							bot_top,
+							float(dbg.get("top_inset", 0.0)),
+							float(dbg.get("bottom_inset", 0.0)),
+						])
+				# Header X must not live inside a ScrollContainer.
+				var p: Node = close_btn.get_parent()
+				while p != null and p != mail:
+					if p is ScrollContainer:
+						push_error("[UIManager] Smoke test failed: Mail X is inside ScrollContainer")
+						ok = false
+						break
+					p = p.get_parent()
+				close_btn.pressed.emit()
+				if is_screen_open() and get_current_screen_name() == "MailScreen":
+					push_error("[UIManager] Smoke test failed: Mail X did not close screen")
+					ok = false
+				else:
+					print("[UIManager] Mail X close OK")
+	# Ensure closed before continuing (idempotent if X already closed).
+	if is_screen_open() and get_current_screen_name() == "MailScreen":
+		close_current_screen()
 	if is_screen_open() or _popup_background.visible:
 		push_error("[UIManager] Smoke test failed: Mail close")
 		ok = false
+
+	# Secondary HUD (Mail) must hide while a screen is open and restore after close.
+	var hud: Node = get_parent()
+	if hud != null and hud.has_method("set_secondary_hud_visible"):
+		open_screen("BagScreen")
+		var mail_btn: Control = hud.get_node_or_null("Control/MailButton") as Control
+		if mail_btn != null and mail_btn.visible:
+			push_error("[UIManager] Smoke test failed: Mail still visible over Bag")
+			ok = false
+		close_current_screen()
+		if mail_btn != null and not mail_btn.visible:
+			push_error("[UIManager] Smoke test failed: Mail did not restore after Bag close")
+			ok = false
 
 	open_screen("AllianceScreen")
 	close_current_screen()
 	if is_screen_open():
 		push_error("[UIManager] Smoke test failed: Alliance close")
 		ok = false
+
+	# Troop Training screen open/close + safe header X.
+	var train: Control = _screen_root.get_node_or_null("TroopTrainingScreen") as Control
+	if train == null:
+		push_error("[UIManager] Smoke test failed: TroopTrainingScreen missing")
+		ok = false
+	elif train.has_method("open_for_building"):
+		train.call("open_for_building", "Infantry", "infantry_barracks", 1)
+		if get_current_screen_name() != "TroopTrainingScreen" or not _is_only_screen_visible("TroopTrainingScreen"):
+			push_error("[UIManager] Smoke test failed: TroopTraining open")
+			ok = false
+		else:
+			var close_btn: Button = train.find_child("CloseButton", true, false) as Button
+			var chrome: Control = get_parent().get_node_or_null("Control") as Control
+			var top_bar: Control = chrome.get_node_or_null("TopBarTexture") as Control if chrome else null
+			if close_btn == null or not close_btn.visible:
+				push_error("[UIManager] Smoke test failed: TroopTraining CloseButton")
+				ok = false
+			elif top_bar != null:
+				var top_bottom: float = top_bar.get_global_rect().position.y + top_bar.get_global_rect().size.y
+				if close_btn.get_global_rect().position.y < top_bottom:
+					push_error("[UIManager] Smoke test failed: TroopTraining X under top HUD")
+					ok = false
+				else:
+					print("[UIManager] TroopTraining X clear of top HUD")
+			close_btn.pressed.emit()
+			if is_screen_open() and get_current_screen_name() == "TroopTrainingScreen":
+				close_current_screen()
+			if is_screen_open():
+				push_error("[UIManager] Smoke test failed: TroopTraining close")
+				ok = false
+			else:
+				print("[UIManager] TroopTraining close OK")
+
+	# Canonical training job API + spend-before-start path (Marksmen T1).
+	if has_node("/root/TroopState") and has_node("/root/TroopDatabase") and has_node("/root/GameState"):
+		if TroopState.is_training_ready("Marksmen"):
+			TroopState.collect_training("Marksmen")
+		if not TroopState.is_training_active("Marksmen"):
+			GameState.food = maxi(int(GameState.food), 50000)
+			GameState.wood = maxi(int(GameState.wood), 50000)
+			GameState.stone = maxi(int(GameState.stone), 50000)
+			GameState.iron = maxi(int(GameState.iron), 50000)
+			var cost: Dictionary = TroopDatabase.get_training_cost("marksmen", 1, 5)
+			var duration: int = TroopDatabase.get_training_time("marksmen", 1, 5)
+			if TroopDatabase.spend_training_cost(cost) and TroopState.start_training("Marksmen", 5, duration, 1):
+				var job: Dictionary = TroopState.get_training_job("Marksmen")
+				if job.is_empty() or int(job.get("quantity", 0)) != 5 or str(job.get("job_type", "")) != "train":
+					push_error("[UIManager] Smoke test failed: training job API")
+					ok = false
+				else:
+					print("[UIManager] Troop training job API OK (Marksmen T1 x5, %ds)" % duration)
+					TroopState.marksmen_finish_time = int(Time.get_unix_time_from_system()) - 1
+					TroopState.check_finished_training()
+					var before_t1: int = TroopState.get_tier_count("Marksmen", 1)
+					TroopState.collect_training("Marksmen")
+					if TroopState.get_tier_count("Marksmen", 1) != before_t1 + 5:
+						push_error("[UIManager] Smoke test failed: collect did not add T1 troops")
+						ok = false
+					else:
+						print("[UIManager] Troop collect OK")
+			else:
+				push_error("[UIManager] Smoke test failed: could not start Marksmen training")
+				ok = false
+
+		# Promotion: seed T1, promote to T2 with cost-delta formula.
+		if TroopState.has_active_job("Infantry"):
+			if TroopState.is_training_ready("Infantry"):
+				TroopState.collect_training("Infantry")
+		if not TroopState.has_active_job("Infantry"):
+			TroopState.add_tier_troops("Infantry", 1, 20)
+			var before_src: int = TroopState.get_tier_count("Infantry", 1)
+			var before_dst: int = TroopState.get_tier_count("Infantry", 2)
+			var pcost: Dictionary = TroopDatabase.get_promotion_cost("infantry", 1, 2, 8)
+			var pdur: int = TroopDatabase.get_promotion_time("infantry", 1, 2, 8)
+			GameState.food = maxi(int(GameState.food), int(pcost.get("food", 0)) + 1000)
+			GameState.wood = maxi(int(GameState.wood), int(pcost.get("wood", 0)) + 1000)
+			if TroopDatabase.spend_training_cost(pcost) and TroopState.start_promotion("Infantry", 8, pdur, 1, 2):
+				if TroopState.get_tier_count("Infantry", 1) != before_src - 8:
+					push_error("[UIManager] Smoke test failed: promote did not reserve source")
+					ok = false
+				else:
+					var pjob: Dictionary = TroopState.get_training_job("Infantry")
+					if str(pjob.get("job_type", "")) != "promote":
+						push_error("[UIManager] Smoke test failed: promote job_type")
+						ok = false
+					else:
+						TroopState.infantry_finish_time = int(Time.get_unix_time_from_system()) - 1
+						TroopState.check_finished_training()
+						TroopState.collect_training("Infantry")
+						if TroopState.get_tier_count("Infantry", 2) != before_dst + 8:
+							push_error("[UIManager] Smoke test failed: promote collect target")
+							ok = false
+						elif TroopState.get_tier_count("Infantry", 1) != before_src - 8:
+							push_error("[UIManager] Smoke test failed: promote duplicated source")
+							ok = false
+						else:
+							print("[UIManager] Troop promote OK (T1→T2 x8, formula %s)" % TroopDatabase.PROMOTION_FORMULA_VERSION)
+			else:
+				push_error("[UIManager] Smoke test failed: could not start promotion")
+				ok = false
 
 	if ok:
 		print("[UIManager] HUD navigation smoke test PASSED")

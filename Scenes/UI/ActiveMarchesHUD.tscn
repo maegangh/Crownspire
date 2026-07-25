@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Scripts/UI/ActiveMarchesHUD.gd" id="1_marches"]
+
+[node name="ActiveMarchesHUD" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 8.0
+offset_top = 210.0
+offset_right = 226.0
+offset_bottom = 630.0
+mouse_filter = 2
+script = ExtResource("1_marches")

@@ -3,6 +3,8 @@ extends CanvasLayer
 ## Crownspire Hero Recruitment — Royal / Mythic UI.
 ## Draws award shards only; pools must be configured in data/hero_recruitment_pools.json.
 
+const MobileScrollUtil = preload("res://scripts/UI/MobileScroll.gd")
+
 const COL_INK := Color(0.96, 0.95, 0.92, 1.0)
 const COL_MUTED := Color(0.72, 0.78, 0.88, 1.0)
 const COL_GOLD := Color(0.90, 0.74, 0.32, 1.0)
@@ -499,6 +501,7 @@ func _open_preview(tier_id: String) -> void:
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	col.add_child(scroll)
+	MobileScrollUtil.configure(scroll)
 	var list := VBoxContainer.new()
 	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	list.add_theme_constant_override("separation", 10)
@@ -608,6 +611,7 @@ func _show_results(results: Array) -> void:
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	col.add_child(scroll)
+	MobileScrollUtil.configure(scroll)
 	var list := VBoxContainer.new()
 	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	list.add_theme_constant_override("separation", 12)

@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://dlullsj6f7pty" path="res://Scenes/resource_click.gd" id="1_njadd"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_2l8cn"]
+size = Vector2(1000, 760)
 
 [node name="ResourceNode" type="Node2D" unique_id=504056031]
 
@@ -13,7 +14,10 @@ offset_right = 40.0
 offset_bottom = 23.0
 
 [node name="ClickArea" type="Area2D" parent="." unique_id=426586773]
+input_pickable = true
+monitoring = true
 script = ExtResource("1_njadd")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ClickArea" unique_id=814151269]
+visible = false
 shape = SubResource("RectangleShape2D_2l8cn")

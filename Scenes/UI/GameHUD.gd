@@ -26,9 +26,17 @@ extends CanvasLayer
 @onready var alliance_button: Button = $Control/BottomBarTexture/BottomButtons/AllianceButton
 @onready var world_city_button: Button = $Control/BottomBarTexture/BottomButtons/WorldCityButton
 
+var _queue_status_hud: Control = null
+var _world_search_button: Button = null
+var _world_search_panel: Control = null
+var _active_marches_hud: Control = null
+
 func _ready():
 	setup_bottom_bar()
 	_configure_bottom_nav()
+	_setup_queue_status_hud()
+	_setup_active_marches_hud()
+	_setup_world_search_ui()
 	update_resources()
 	connect_buttons()
 	_refresh_mail_badge()
@@ -42,6 +50,145 @@ func _ready():
 			call_deferred("_resync_marches")
 	if has_node("/root/MailManager") and not MailManager.mail_changed.is_connected(_on_mail_changed):
 		MailManager.mail_changed.connect(_on_mail_changed)
+
+
+func _setup_queue_status_hud() -> void:
+	# City-only persistent queue strip. World map keeps the same GameHUD scene but hides this.
+	_queue_status_hud = get_node_or_null("Control/QueueStatusHUD") as Control
+	if _queue_status_hud == null:
+		var packed: PackedScene = load("res://Scenes/UI/QueueStatusHUD.tscn") as PackedScene
+		if packed == null:
+			push_warning("[GameHUD] QueueStatusHUD.tscn missing.")
+			return
+		_queue_status_hud = packed.instantiate() as Control
+		_queue_status_hud.name = "QueueStatusHUD"
+		var host: Node = get_node_or_null("Control")
+		if host == null:
+			host = self
+		host.add_child(_queue_status_hud)
+	_sync_queue_status_visibility()
+
+
+## Brief highlight when a queue-full attempt fails (beta UX).
+func pulse_queue_status(kind: String) -> void:
+	if _queue_status_hud != null and _queue_status_hud.has_method("pulse_queue"):
+		_queue_status_hud.call("pulse_queue", kind)
+
+
+func _sync_queue_status_visibility() -> void:
+	if _queue_status_hud == null or not is_instance_valid(_queue_status_hud):
+		return
+	if is_world_screen:
+		_queue_status_hud.visible = false
+		return
+	# Hide under full ScreenRoot screens (Bag/Alliance/etc). Keep visible during city popups.
+	var show_queue: bool = true
+	var manager: Node = get_node_or_null("UIManager")
+	if manager != null and manager.has_method("is_screen_open") and bool(manager.is_screen_open()):
+		show_queue = false
+	_queue_status_hud.visible = show_queue
+
+
+func _setup_active_marches_hud() -> void:
+	# World-only march status. Separate from City QueueStatusHUD.
+	var host: Control = get_node_or_null("Control") as Control
+	if host == null:
+		return
+	_active_marches_hud = host.get_node_or_null("ActiveMarchesHUD") as Control
+	if _active_marches_hud == null:
+		var packed: PackedScene = load("res://Scenes/UI/ActiveMarchesHUD.tscn") as PackedScene
+		if packed == null:
+			push_warning("[GameHUD] ActiveMarchesHUD.tscn missing.")
+			return
+		_active_marches_hud = packed.instantiate() as Control
+		_active_marches_hud.name = "ActiveMarchesHUD"
+		host.add_child(_active_marches_hud)
+	_sync_active_marches_visibility()
+
+
+func _sync_active_marches_visibility() -> void:
+	if _active_marches_hud == null or not is_instance_valid(_active_marches_hud):
+		return
+	var show_marches: bool = is_world_screen
+	var manager: Node = get_node_or_null("UIManager")
+	if manager != null and manager.has_method("is_screen_open") and bool(manager.is_screen_open()):
+		show_marches = false
+	_active_marches_hud.visible = show_marches
+	# Root stays IGNORE so empty space never blocks map pan.
+	_active_marches_hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+
+func _setup_world_search_ui() -> void:
+	var host: Control = get_node_or_null("Control") as Control
+	if host == null:
+		return
+
+	_world_search_button = host.get_node_or_null("WorldSearchButton") as Button
+	if _world_search_button == null:
+		_world_search_button = Button.new()
+		_world_search_button.name = "WorldSearchButton"
+		_world_search_button.text = "🔍\nSEARCH"
+		_world_search_button.focus_mode = Control.FOCUS_NONE
+		var fill := StyleBoxFlat.new()
+		fill.bg_color = Color(0.12, 0.11, 0.16, 0.92)
+		fill.border_color = Color(0.78, 0.66, 0.34, 0.95)
+		fill.set_border_width_all(2)
+		fill.set_corner_radius_all(14)
+		_world_search_button.add_theme_stylebox_override("normal", fill)
+		_world_search_button.add_theme_font_size_override("font_size", 16)
+		_world_search_button.add_theme_color_override("font_color", Color(0.96, 0.92, 0.82, 1.0))
+		host.add_child(_world_search_button)
+	# Bottom-left above nav — clear of Mail (right) and ActiveMarchesHUD (top-left).
+	_world_search_button.custom_minimum_size = Vector2(96, 96)
+	_world_search_button.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	_world_search_button.anchor_left = 0.0
+	_world_search_button.anchor_top = 1.0
+	_world_search_button.anchor_right = 0.0
+	_world_search_button.anchor_bottom = 1.0
+	# Bottom nav top ≈ offset -179; keep ~16px clearance above it.
+	_world_search_button.offset_left = 14.0
+	_world_search_button.offset_top = -291.0
+	_world_search_button.offset_right = 110.0
+	_world_search_button.offset_bottom = -195.0
+	_world_search_button.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_world_search_button.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	if not _world_search_button.pressed.is_connected(_on_world_search_pressed):
+		_world_search_button.pressed.connect(_on_world_search_pressed)
+
+	_world_search_panel = host.get_node_or_null("WorldSearchPanel") as Control
+	if _world_search_panel == null:
+		var packed: PackedScene = load("res://Scenes/UI/WorldSearchPanel.tscn") as PackedScene
+		if packed != null:
+			_world_search_panel = packed.instantiate() as Control
+			_world_search_panel.name = "WorldSearchPanel"
+			host.add_child(_world_search_panel)
+	_sync_world_search_visibility()
+
+
+func _sync_world_search_visibility() -> void:
+	var show_search: bool = is_world_screen
+	var manager: Node = get_node_or_null("UIManager")
+	if manager != null and manager.has_method("is_screen_open") and bool(manager.is_screen_open()):
+		show_search = false
+	if _world_search_button != null and is_instance_valid(_world_search_button):
+		_world_search_button.visible = show_search
+		_world_search_button.mouse_filter = (
+			Control.MOUSE_FILTER_STOP if show_search else Control.MOUSE_FILTER_IGNORE
+		)
+	if not show_search and _world_search_panel != null and is_instance_valid(_world_search_panel):
+		if _world_search_panel.has_method("close_panel"):
+			_world_search_panel.call("close_panel")
+		else:
+			_world_search_panel.visible = false
+
+
+func _on_world_search_pressed() -> void:
+	if not is_world_screen:
+		return
+	if _world_search_panel == null or not is_instance_valid(_world_search_panel):
+		return
+	if _world_search_panel.has_method("open_panel"):
+		_world_search_panel.call("open_panel")
 
 
 func _resync_marches() -> void:
@@ -98,6 +245,14 @@ func _run_hud_navigation_smoke_test_if_headless() -> void:
 	else:
 		print("[GameHUD] Skipping March smoke tests (set CROWNSPIR_MARCH_SMOKE=1 for isolated runs).")
 
+	if OS.get_environment("CROWNSPIR_RESOURCE_TILE_SMOKE") == "1":
+		if has_node("/root/ResourceTileState") and ResourceTileState.has_method("run_resource_tile_step3_smoke_test"):
+			ResourceTileState.run_resource_tile_step3_smoke_test()
+		if has_node("/root/MarchState") and MarchState.has_method("run_gather_tile_sync_smoke_test"):
+			MarchState.run_gather_tile_sync_smoke_test()
+	else:
+		print("[GameHUD] Skipping ResourceTile smoke tests (set CROWNSPIR_RESOURCE_TILE_SMOKE=1 for isolated runs).")
+
 	if OS.get_environment("CROWNSPIR_HERO_SMOKE") == "1":
 		if has_node("/root/HeroState") and HeroState.has_method("run_hero_roster_smoke_test"):
 			HeroState.run_hero_roster_smoke_test()
@@ -106,6 +261,33 @@ func _run_hud_navigation_smoke_test_if_headless() -> void:
 
 func _process(_delta):
 	update_resources()
+	_sync_secondary_hud_visibility()
+	_sync_queue_status_visibility()
+	_sync_active_marches_visibility()
+	_sync_world_search_visibility()
+
+
+## Secondary HUD chrome (Mail). Hidden while a main ScreenRoot screen or city popup is open.
+func set_secondary_hud_visible(is_visible: bool) -> void:
+	if mail_button == null or not is_instance_valid(mail_button):
+		return
+	mail_button.visible = is_visible
+	# Hidden Mail must never leave an active hitbox over Close/X controls.
+	mail_button.mouse_filter = Control.MOUSE_FILTER_STOP if is_visible else Control.MOUSE_FILTER_IGNORE
+	if mail_unread_badge != null and is_instance_valid(mail_unread_badge):
+		mail_unread_badge.visible = is_visible
+		mail_unread_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+
+func _sync_secondary_hud_visibility() -> void:
+	var show_secondary: bool = true
+	var manager: Node = get_node_or_null("UIManager")
+	if manager != null and manager.has_method("is_screen_open") and bool(manager.is_screen_open()):
+		show_secondary = false
+	elif has_node("/root/GameState") and bool(GameState.popup_open):
+		# Tavern / building upgrade / other city popups.
+		show_secondary = false
+	set_secondary_hud_visible(show_secondary)
 
 func setup_bottom_bar():
 	if is_world_screen:
@@ -190,7 +372,7 @@ func _validate_bottom_nav_hitboxes() -> void:
 	print("[GameHUD] Bottom nav OK: Heroes→Wayfinder→Bag→Quest→Alliance→WorldCity (no overlaps).")
 
 
-## Mail sits below the top resource strip on the right — must not cover Diamonds/VIP/Shop.
+## Mail sits bottom-right, directly above the bottom nav bar.
 func _validate_mail_hitbox() -> void:
 	if mail_button == null or not is_instance_valid(mail_button):
 		push_error("[GameHUD] Mail button missing.")
@@ -200,18 +382,36 @@ func _validate_mail_hitbox() -> void:
 		push_error("[GameHUD] Mail hitbox too small: %s" % str(mail_rect))
 		return
 
+	# Must sit in the lower HUD band (above bottom bar), not near top resources.
+	if mail_rect.position.y < 900.0:
+		push_error("[GameHUD] Mail not bottom-anchored (y=%.1f)." % mail_rect.position.y)
+		return
+
 	if shop_button != null and is_instance_valid(shop_button):
 		var shop_rect: Rect2 = shop_button.get_global_rect()
 		if mail_rect.intersects(shop_rect):
 			push_error("[GameHUD] Mail overlaps Shop hitbox.")
 			return
 
-	# Diamonds / VIP live in the upper resource strip (roughly y < 160 on 1280 portrait).
-	if mail_rect.position.y < 160.0:
-		push_error("[GameHUD] Mail sits too high — may cover Diamonds/VIP (y=%.1f)." % mail_rect.position.y)
-		return
+	if bottom_bar_texture != null and is_instance_valid(bottom_bar_texture):
+		var bar_rect: Rect2 = bottom_bar_texture.get_global_rect()
+		if mail_rect.intersects(bar_rect):
+			push_error("[GameHUD] Mail overlaps bottom navigation bar.")
+			return
 
-	print("[GameHUD] Mail hitbox OK: %s (below resource strip, no Shop overlap)." % str(mail_rect))
+	if world_city_button != null and is_instance_valid(world_city_button):
+		var world_rect: Rect2 = world_city_button.get_global_rect()
+		if mail_rect.intersects(world_rect):
+			push_error("[GameHUD] Mail overlaps World/City button.")
+			return
+
+	if alliance_button != null and is_instance_valid(alliance_button):
+		var alliance_rect: Rect2 = alliance_button.get_global_rect()
+		if mail_rect.intersects(alliance_rect):
+			push_error("[GameHUD] Mail overlaps Alliance button.")
+			return
+
+	print("[GameHUD] Mail hitbox OK: %s (bottom-right above nav)." % str(mail_rect))
 
 
 func update_resources():

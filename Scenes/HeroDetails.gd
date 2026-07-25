@@ -1,5 +1,7 @@
 extends "res://Scenes/UI/HeroDetailsPanel.gd"
 
+const MobileScrollUtil = preload("res://scripts/UI/MobileScroll.gd")
+
 enum Tab {
 	OVERVIEW,
 	STATS,
@@ -259,6 +261,7 @@ func _ensure_page_list(page: Control, list_name: String) -> VBoxContainer:
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.mouse_filter = Control.MOUSE_FILTER_STOP
 	page.add_child(scroll)
+	MobileScrollUtil.ensure(page, scroll, "MobileScroll%s" % list_name)
 
 	var list: VBoxContainer = VBoxContainer.new()
 	list.name = list_name

@@ -1,5 +1,8 @@
 extends Node
 
+## Emitted after Food/Wood/Stone/Iron (or diamonds/power/vip) change and save.
+signal resources_changed
+
 var castle_level = 1
 
 var food = 1000
@@ -33,28 +36,45 @@ var ui_blocking_input: bool = false
 func _ready():
 	load_resources()
 
+func can_afford_resources(food_cost: int, wood_cost: int, stone_cost: int, iron_cost: int) -> bool:
+	return (
+		food >= food_cost
+		and wood >= wood_cost
+		and stone >= stone_cost
+		and iron >= iron_cost
+	)
+
 func add_food(amount: int):
 	food += amount
 	save_resources()
+	resources_changed.emit()
 
 func add_wood(amount: int):
 	wood += amount
 	save_resources()
+	resources_changed.emit()
 
 func add_stone(amount: int):
 	stone += amount
 	save_resources()
+	resources_changed.emit()
 
 func add_iron(amount: int):
 	iron += amount
 	save_resources()
+	resources_changed.emit()
 
-func spend_resources(food_cost: int, wood_cost: int, stone_cost: int, iron_cost: int):
+## Canonical spend for Food/Wood/Stone/Iron. Returns false if unaffordable (no change).
+func spend_resources(food_cost: int, wood_cost: int, stone_cost: int, iron_cost: int) -> bool:
+	if not can_afford_resources(food_cost, wood_cost, stone_cost, iron_cost):
+		return false
 	food -= food_cost
 	wood -= wood_cost
 	stone -= stone_cost
 	iron -= iron_cost
 	save_resources()
+	resources_changed.emit()
+	return true
 
 func save_resources():
 	var save = ConfigFile.new()

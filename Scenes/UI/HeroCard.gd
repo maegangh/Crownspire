@@ -28,7 +28,7 @@ func _ready() -> void:
 	if not pressed.is_connected(_on_pressed):
 		pressed.connect(_on_pressed)
 	if notification_dot != null:
-		 notification_dot.visible = false
+		notification_dot.visible = false
 
 
 func set_hero(hero_data: Dictionary) -> void:

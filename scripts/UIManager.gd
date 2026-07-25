@@ -83,18 +83,36 @@ func upgrade_building(building_id: String) -> Dictionary:
 	var reqs = b.get("resources_required", {})
 	var multiplier = 1.0 + lvl * 0.15
 	
-	# Verify and deduct
+	# Deduct costs from canonical GameState wallet (same as Top HUD).
+	var food_cost := 0
+	var wood_cost := 0
+	var stone_cost := 0
+	var iron_cost := 0
 	for res in reqs.keys():
 		var cost = int(reqs[res] * multiplier)
-		var current_val = get(res)
-		if current_val < cost:
-			return {"success": false, "error": "Insufficient " + res}
-	
-	# Deduct costs
+		match str(res):
+			"food":
+				food_cost = cost
+			"wood":
+				wood_cost = cost
+			"stone":
+				stone_cost = cost
+			"iron":
+				iron_cost = cost
+			_:
+				var current_val = get(res)
+				if current_val == null or int(current_val) < cost:
+					return {"success": false, "error": "Insufficient " + str(res)}
+	if not GameState.can_afford_resources(food_cost, wood_cost, stone_cost, iron_cost):
+		return {"success": false, "error": "Insufficient resources"}
+	if not GameState.spend_resources(food_cost, wood_cost, stone_cost, iron_cost):
+		return {"success": false, "error": "Insufficient resources"}
 	for res in reqs.keys():
-		var cost = int(reqs[res] * multiplier)
-		set(res, get(res) - cost)
-		currency_changed.emit(res, float(get(res)))
+		var cost2 = int(reqs[res] * multiplier)
+		if str(res) in ["food", "wood", "stone", "iron"]:
+			continue
+		set(res, int(get(res)) - cost2)
+		currency_changed.emit(str(res), float(get(res)))
 		
 	# Upgrade level
 	b["level"] = lvl + 1

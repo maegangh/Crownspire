@@ -19,6 +19,7 @@
 [ext_resource type="Texture2D" uid="uid://cnextpfvf0wsa" path="res://assets/UI/wildling_cards/bear_card.png" id="16_qgij0"]
 [ext_resource type="Texture2D" uid="uid://ctwaupkx6abn3" path="res://assets/UI/wildling_cards/spider_card.png" id="17_jfqr5"]
 [ext_resource type="PackedScene" uid="uid://bh08artiwt8rc" path="res://Scenes/WildlingPanel.tscn" id="17_uo8to"]
+[ext_resource type="PackedScene" path="res://Scenes/ResourcePanel.tscn" id="17_respanel"]
 [ext_resource type="Texture2D" uid="uid://bc3btqnta45r2" path="res://assets/UI/wildling_cards/boar_card.png" id="18_o3h75"]
 [ext_resource type="Texture2D" uid="uid://6cn657gfcdjk" path="res://assets/UI/wildling_cards/troll_card.png" id="19_qrnde"]
 [ext_resource type="Texture2D" uid="uid://ybaw7tbmepw" path="res://assets/UI/wildling_cards/dragon_card.png" id="20_va38e"]
@@ -204,10 +205,13 @@ offset_right = 250.0
 offset_bottom = 280.0
 size_flags_horizontal = 0
 size_flags_vertical = 0
+mouse_filter = 2
 
 [node name="Labels" type="Node2D" parent="HUD" unique_id=924927819]
 
 [node name="WildlingPanel" parent="HUD" unique_id=488162736 instance=ExtResource("17_uo8to")]
+
+[node name="ResourcePanel" parent="HUD" instance=ExtResource("17_respanel")]
 
 [node name="WildlingRegions" type="Node2D" parent="." unique_id=196643114]
 z_index = 30

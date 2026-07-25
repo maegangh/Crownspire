@@ -3,6 +3,8 @@ extends Control
 ## Alliance Home hub UI refactor.
 ## Navigation only — reuses Sprint 1A/1B/1C AllianceState APIs unchanged.
 
+const MobileScrollUtil = preload("res://scripts/UI/MobileScroll.gd")
+
 enum ViewMode {
 	LOBBY,
 	CREATE,
@@ -154,6 +156,7 @@ func _build_shell() -> void:
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	root.add_child(scroll)
+	MobileScrollUtil.ensure(self, scroll, "MobileScrollAlliance")
 
 	_content = VBoxContainer.new()
 	_content.name = "Content"

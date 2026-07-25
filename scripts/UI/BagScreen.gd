@@ -1,5 +1,6 @@
 extends Control
 
+const MobileScrollUtil = preload("res://scripts/UI/MobileScroll.gd")
 const ITEM_SLOT_SCENE := preload("res://Scenes/UI/ItemSlot.tscn")
 
 @onready var panel: Panel = $Panel
@@ -61,6 +62,10 @@ func _ready() -> void:
 	event_button.pressed.connect(func(): show_category("event"))
 
 	use_button.pressed.connect(_on_use_pressed)
+
+	var item_scroll: ScrollContainer = get_node_or_null("Panel/ItemGrid") as ScrollContainer
+	if item_scroll != null:
+		MobileScrollUtil.ensure(self, item_scroll, "MobileScrollBag")
 
 	_clear_details()
 

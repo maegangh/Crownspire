@@ -59,7 +59,7 @@ func get_messages_by_category(category: String) -> Array[Dictionary]:
 		var msg_type: String = str(msg.get("type", ""))
 		if category == "battle" and msg_type == "wildling_battle":
 			out.append(msg)
-		elif category == "system" and msg_type == "system":
+		elif category == "system" and msg_type in ["system", "gathering_report"]:
 			out.append(msg)
 	return out
 
@@ -76,6 +76,12 @@ func has_report_for_march(march_id: String) -> bool:
 		return false
 	var report_id: String = _report_id_for_march(march_id)
 	return not get_message(report_id).is_empty()
+
+
+func has_gathering_report_for_march(march_id: String) -> bool:
+	if march_id == "":
+		return false
+	return not get_message(_gathering_report_id_for_march(march_id)).is_empty()
 
 
 func mark_read(report_id: String) -> void:
@@ -165,6 +171,78 @@ func add_wildling_battle_report(march: Dictionary, result: Dictionary) -> bool:
 	return true
 
 
+## Create exactly one gathering report after home return + resource credit.
+## Returns true if a new report was inserted.
+func add_gathering_report(march: Dictionary) -> bool:
+	var march_id: String = str(march.get("march_id", ""))
+	if march_id == "":
+		return false
+	var report_id: String = _gathering_report_id_for_march(march_id)
+	if not get_message(report_id).is_empty():
+		return false
+
+	var target: Dictionary = march.get("target_data", {})
+	if typeof(target) != TYPE_DICTIONARY:
+		target = {}
+	var rtype: String = str(march.get("resource_type", target.get("resource_type", ""))).strip_edges().to_lower()
+	var display_name: String = str(target.get("display_name", "")).strip_edges()
+	if display_name == "":
+		display_name = _resource_display_name(rtype)
+	var level: int = int(target.get("resource_level", target.get("level", 1)))
+	var amount: int = maxi(0, int(march.get("gathered_amount", 0)))
+	var troops: Dictionary = march.get("original_troops", march.get("troops", {}))
+	if typeof(troops) != TYPE_DICTIONARY:
+		troops = {}
+	var hero_ids: Array = []
+	for hid: Variant in march.get("hero_ids", []):
+		hero_ids.append(str(hid))
+
+	var report: Dictionary = {
+		"report_id": report_id,
+		"type": "gathering_report",
+		"category": "system",
+		"timestamp": int(Time.get_unix_time_from_system()),
+		"read": false,
+		"march_id": march_id,
+		"title": "Gathering Report",
+		"status": "Successful",
+		"resource": {
+			"type": rtype,
+			"display_type": rtype.capitalize(),
+			"amount": amount,
+		},
+		"source": {
+			"display_name": display_name,
+			"level": level,
+		},
+		"march": {
+			"hero_ids": hero_ids,
+			"infantry": int(troops.get("infantry", 0)),
+			"marksmen": int(troops.get("marksmen", 0)),
+			"cavalry": int(troops.get("cavalry", 0)),
+			"cargo_capacity": int(march.get("cargo_capacity", 0)),
+			"departure_timestamp": int(march.get("departure_timestamp", 0)),
+			"gather_started_unix": int(march.get("gather_started_unix", 0)),
+			"gather_end_unix": int(march.get("gather_end_unix", 0)),
+			"return_arrival_timestamp": int(march.get("return_arrival_timestamp", 0)),
+		},
+		"preview": "%s Lv.%d\n+%s %s" % [
+			display_name,
+			level,
+			_format_amount(amount),
+			rtype.capitalize(),
+		],
+		"summary": "March returned safely.",
+	}
+
+	messages.insert(0, report)
+	while messages.size() > MAX_MESSAGES:
+		messages.pop_back()
+	save_mail()
+	mail_changed.emit()
+	return true
+
+
 func save_mail() -> void:
 	var save := ConfigFile.new()
 	save.set_value("meta", "save_version", SAVE_VERSION)
@@ -190,8 +268,38 @@ func _report_id_for_march(march_id: String) -> String:
 	return "wildling_battle_%s" % march_id
 
 
+func _gathering_report_id_for_march(march_id: String) -> String:
+	return "gathering_report_%s" % march_id
+
+
 func _species_display_name(species: String) -> String:
 	var cleaned: String = species.strip_edges()
 	if cleaned == "":
 		return "Wildling"
 	return "Wildling %s" % cleaned.capitalize()
+
+
+func _resource_display_name(resource_type: String) -> String:
+	match resource_type.strip_edges().to_lower():
+		"food":
+			return "Fertile Wheat Farm"
+		"wood":
+			return "Cedar Lumber Camp"
+		"stone":
+			return "Granite Stone Quarry"
+		"iron":
+			return "Magnetic Iron Lode"
+		_:
+			return resource_type.capitalize()
+
+
+func _format_amount(value: int) -> String:
+	var raw: String = str(maxi(0, value))
+	var out: String = ""
+	var count: int = 0
+	for i: int in range(raw.length() - 1, -1, -1):
+		out = raw[i] + out
+		count += 1
+		if count % 3 == 0 and i > 0:
+			out = "," + out
+	return out
