@@ -1,5 +1,7 @@
 extends CanvasLayer
 
+const WorldSearchPanelScene: PackedScene = preload("res://Scenes/UI/WorldSearchPanel.tscn")
+
 @export var is_world_screen: bool = false
 @export var bottom_bar_home: Texture2D
 @export var bottom_bar_world: Texture2D
@@ -35,8 +37,9 @@ func _ready():
 	setup_bottom_bar()
 	_configure_bottom_nav()
 	_setup_queue_status_hud()
-	_setup_active_marches_hud()
+	# Search before ActiveMarches so a marches HUD fault cannot skip the SEARCH button.
 	_setup_world_search_ui()
+	_setup_active_marches_hud()
 	update_resources()
 	connect_buttons()
 	_refresh_mail_badge()
@@ -50,6 +53,27 @@ func _ready():
 			call_deferred("_resync_marches")
 	if has_node("/root/MailManager") and not MailManager.mail_changed.is_connected(_on_mail_changed):
 		MailManager.mail_changed.connect(_on_mail_changed)
+	# Canonical nav events after this screen successfully loaded.
+	if has_node("/root/GameEvents"):
+		if is_world_screen:
+			GameEvents.emit_world_opened()
+		else:
+			GameEvents.emit_city_opened()
+	# Ensure tutorial overlay exists even if scene instance omitted it.
+	call_deferred("_ensure_tutorial_overlay")
+
+
+func _ensure_tutorial_overlay() -> void:
+	if get_node_or_null("TutorialOverlay") != null:
+		return
+	var packed: PackedScene = load("res://Scenes/UI/TutorialOverlay.tscn") as PackedScene
+	if packed == null:
+		push_warning("[GameHUD] TutorialOverlay.tscn missing")
+		return
+	var overlay: Control = packed.instantiate() as Control
+	overlay.name = "TutorialOverlay"
+	add_child(overlay)
+	move_child(overlay, get_child_count() - 1)
 
 
 func _setup_queue_status_hud() -> void:
@@ -156,12 +180,10 @@ func _setup_world_search_ui() -> void:
 		_world_search_button.pressed.connect(_on_world_search_pressed)
 
 	_world_search_panel = host.get_node_or_null("WorldSearchPanel") as Control
-	if _world_search_panel == null:
-		var packed: PackedScene = load("res://Scenes/UI/WorldSearchPanel.tscn") as PackedScene
-		if packed != null:
-			_world_search_panel = packed.instantiate() as Control
-			_world_search_panel.name = "WorldSearchPanel"
-			host.add_child(_world_search_panel)
+	if _world_search_panel == null and WorldSearchPanelScene != null:
+		_world_search_panel = WorldSearchPanelScene.instantiate() as Control
+		_world_search_panel.name = "WorldSearchPanel"
+		host.add_child(_world_search_panel)
 	_sync_world_search_visibility()
 
 
@@ -258,6 +280,54 @@ func _run_hud_navigation_smoke_test_if_headless() -> void:
 			HeroState.run_hero_roster_smoke_test()
 	else:
 		print("[GameHUD] Skipping Hero smoke tests (set CROWNSPIR_HERO_SMOKE=1 for isolated runs).")
+
+	if has_node("/root/StatResolver"):
+		if StatResolver.has_method("run_phase1_smoke_test"):
+			StatResolver.run_phase1_smoke_test()
+		if StatResolver.has_method("run_phase2_smoke_test"):
+			StatResolver.run_phase2_smoke_test()
+	if has_node("/root/WildlingCombatResolver") and WildlingCombatResolver.has_method("run_phase3_smoke_test"):
+		WildlingCombatResolver.run_phase3_smoke_test()
+	if has_node("/root/HealingState") and HealingState.has_method("run_phase4_smoke_test"):
+		HealingState.run_phase4_smoke_test()
+	if has_node("/root/SanctuaryState") and SanctuaryState.has_method("run_phase5_smoke_test"):
+		SanctuaryState.run_phase5_smoke_test()
+
+	_run_world_search_smoke_if_world()
+
+
+func _run_world_search_smoke_if_world() -> void:
+	if not is_world_screen:
+		return
+	if _world_search_panel == null or not is_instance_valid(_world_search_panel):
+		push_warning("[GameHUD] WorldSearchPanel missing on World HUD.")
+		return
+	if not _world_search_panel.has_method("open_panel"):
+		return
+	_world_search_panel.call("open_panel")
+	var win: Control = _world_search_panel.get_node_or_null("SearchWindow") as Control
+	if win == null:
+		push_error("[GameHUD] WorldSearch SearchWindow missing.")
+	else:
+		var w: float = win.offset_right - win.offset_left
+		var h: float = win.offset_bottom - win.offset_top
+		print("[GameHUD] WorldSearch open OK | window %.0fx%.0f" % [w, h])
+		if w < 300.0 or h < 280.0:
+			push_error("[GameHUD] WorldSearch window too small.")
+		if win.offset_top < 140.0:
+			push_error("[GameHUD] WorldSearch overlaps top HUD.")
+	# Exercise live find helpers against current World scene.
+	if _world_search_panel.has_method("_find_nearest_resource"):
+		var food: Dictionary = _world_search_panel.call("_find_nearest_resource", "food", 1)
+		print("[GameHUD] WorldSearch food L1 ok=%s" % str(bool(food.get("ok", false))))
+	if _world_search_panel.has_method("_find_nearest_wildling"):
+		var wild: Dictionary = _world_search_panel.call("_find_nearest_wildling", 1)
+		print("[GameHUD] WorldSearch wildling L1 ok=%s" % str(bool(wild.get("ok", false))))
+	_world_search_panel.call("close_panel")
+	if bool(_world_search_panel.visible):
+		push_error("[GameHUD] WorldSearch failed to close.")
+	else:
+		print("[GameHUD] WorldSearch close OK")
 
 func _process(_delta):
 	update_resources()
@@ -425,9 +495,13 @@ func update_resources():
 	vip_label.text = "VIP %d" % GameState.vip_level
 
 func format_number(value: int) -> String:
+	## Canonical compact resource display for HUD + upgrade requirements.
+	## Absolute units: 999 → "999", 1000 → "1.0K", 1_000_000 → "1.0M", 1_000_000_000 → "1.0B".
+	if value >= 1000000000:
+		return "%.1fB" % (value / 1000000000.0)
 	if value >= 1000000:
 		return "%.1fM" % (value / 1000000.0)
-	elif value >= 1000:
+	if value >= 1000:
 		return "%.1fK" % (value / 1000.0)
 	return str(value)
 

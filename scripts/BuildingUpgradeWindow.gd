@@ -22,6 +22,7 @@ const REQUIREMENT_ROW_SCENE = preload("res://UI/building_upgrade/RequirementRow.
 @onready var finish_button: Button = %FinishButton
 @onready var upgrade_button: Button = %UpgradeButton
 @onready var close_button: TextureButton = %CloseButton
+var speedup_button: Button = null
 
 @onready var celebration_panel: PanelContainer = %CelebrationPanel
 @onready var celebration_title: Label = %CelebrationTitle
@@ -58,6 +59,7 @@ func _ready() -> void:
 		upgrade_button.pressed.connect(_on_upgrade_button_pressed)
 	if finish_button:
 		finish_button.pressed.connect(_on_finish_button_pressed)
+	_ensure_speedup_button()
 
 	load_building_data()
 
@@ -367,6 +369,7 @@ func _add_resource_row(display_name: String, resource_id: String, req_amount: in
 		var cost: int = int(max(1, int(ceil(float(missing) / float(rate)))))
 		missing_resources_crystal_cost += cost
 
+	# Both sides use the same formatter on absolute units (affordability uses these ints).
 	row.setup(
 		display_name,
 		icon_path,
@@ -429,6 +432,93 @@ func refresh_requirements_and_buttons() -> void:
 			finish_button.text = "Finish Now (%d 💎)" % max(5, base_speed_cost)
 		# Finish Now blocked when another building occupies the only queue slot.
 		finish_button.disabled = queue_full and not this_upgrading
+
+	if speedup_button:
+		# Enabled whenever a real construction timer is running — even with 0 bag speedups.
+		var rem: float = 0.0
+		if this_upgrading and has_node("/root/ConstructionState"):
+			rem = ConstructionState.get_remaining_seconds(building_id)
+		var can_speedup: bool = this_upgrading and rem > 0.0
+		speedup_button.visible = this_upgrading
+		speedup_button.disabled = not can_speedup
+		_apply_speedup_button_visuals(can_speedup)
+
+
+func _ensure_speedup_button() -> void:
+	if speedup_button != null and is_instance_valid(speedup_button):
+		return
+	var footer: Node = null
+	if finish_button != null:
+		footer = finish_button.get_parent()
+	elif upgrade_button != null:
+		footer = upgrade_button.get_parent()
+	if footer == null:
+		return
+	speedup_button = Button.new()
+	speedup_button.name = "SpeedUpButton"
+	speedup_button.text = "SPEED UP"
+	speedup_button.custom_minimum_size = Vector2(0, 48)
+	speedup_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	speedup_button.visible = false
+	speedup_button.pressed.connect(_on_speedup_button_pressed)
+	_apply_speedup_button_visuals(true)
+	# Insert before Finish so SPEED UP is the primary action while upgrading.
+	if finish_button != null and finish_button.get_index() >= 0:
+		footer.add_child(speedup_button)
+		footer.move_child(speedup_button, finish_button.get_index())
+	else:
+		footer.add_child(speedup_button)
+
+
+func _apply_speedup_button_visuals(active: bool) -> void:
+	## Active = Crownspire sapphire/blue (same family as Upgrade). Disabled = muted gray.
+	if speedup_button == null:
+		return
+	var normal := StyleBoxFlat.new()
+	var hover := StyleBoxFlat.new()
+	var pressed := StyleBoxFlat.new()
+	var disabled := StyleBoxFlat.new()
+	for sb: StyleBoxFlat in [normal, hover, pressed, disabled]:
+		sb.content_margin_left = 16
+		sb.content_margin_right = 16
+		sb.content_margin_top = 10
+		sb.content_margin_bottom = 10
+		sb.set_corner_radius_all(6)
+		sb.border_width_bottom = 3
+	if active:
+		normal.bg_color = Color(0.13, 0.26, 0.46, 1)
+		normal.border_color = Color(0.08, 0.18, 0.32, 1)
+		hover.bg_color = Color(0.18, 0.35, 0.6, 1)
+		hover.border_color = Color(0.1, 0.23, 0.42, 1)
+		pressed.bg_color = Color(0.10, 0.20, 0.38, 1)
+		pressed.border_color = Color(0.06, 0.14, 0.28, 1)
+		speedup_button.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+		speedup_button.add_theme_color_override("font_hover_color", Color(1, 1, 1, 1))
+		speedup_button.add_theme_color_override("font_pressed_color", Color(0.95, 0.95, 1, 1))
+	else:
+		normal.bg_color = Color(0.55, 0.58, 0.62, 1)
+		normal.border_color = Color(0.42, 0.45, 0.48, 1)
+		hover.bg_color = normal.bg_color
+		hover.border_color = normal.border_color
+		pressed.bg_color = normal.bg_color
+		pressed.border_color = normal.border_color
+		speedup_button.add_theme_color_override("font_color", Color(0.85, 0.85, 0.88, 1))
+	disabled.bg_color = Color(0.70, 0.73, 0.76, 1)
+	disabled.border_color = Color(0.55, 0.58, 0.61, 1)
+	speedup_button.add_theme_stylebox_override("normal", normal)
+	speedup_button.add_theme_stylebox_override("hover", hover)
+	speedup_button.add_theme_stylebox_override("pressed", pressed)
+	speedup_button.add_theme_stylebox_override("disabled", disabled)
+	speedup_button.add_theme_color_override("font_disabled_color", Color(0.78, 0.80, 0.82, 1))
+
+
+func _on_speedup_button_pressed() -> void:
+	if not has_node("/root/SpeedupService"):
+		return
+	if not ConstructionState.is_building_upgrading(building_id):
+		return
+	# Always open — popup shows empty state + debug grants when bag has no speedups.
+	SpeedupService.open_speedup_popup(SpeedupService.CAT_CONSTRUCTION, building_id)
 
 
 func _format_secs(seconds: float) -> String:
@@ -668,9 +758,18 @@ func _on_celebration_close_pressed() -> void:
 
 
 func _format_amount(amt: int) -> String:
+	## Canonical compact formatter — same rules as GameHUD.format_number.
+	## Uses absolute resource units from buildings.json / GameState (NOT implied-thousands).
+	## Example: cost 68 → "68"; owned 46000 → "46.0K".
+	var hud: Node = get_tree().root.find_child("GameHUD", true, false) if get_tree() else null
+	if hud != null and hud.has_method("format_number"):
+		return str(hud.call("format_number", amt))
+	# Fallback mirrors GameHUD (incl. billions).
+	if amt >= 1000000000:
+		return "%.1fB" % (float(amt) / 1000000000.0)
 	if amt >= 1000000:
 		return "%.1fM" % (float(amt) / 1000000.0)
-	elif amt >= 1000:
+	if amt >= 1000:
 		return "%.1fK" % (float(amt) / 1000.0)
 	return str(amt)
 

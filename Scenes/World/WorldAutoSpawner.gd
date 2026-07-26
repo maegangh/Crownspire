@@ -1,7 +1,10 @@
 extends Node2D
 
+const WildlingLairDatabase = preload("res://scripts/World/WildlingLairDatabase.gd")
+
 @export var resource_node_scene: PackedScene
 @export var wildling_node_scene: PackedScene
+@export var wildling_lair_node_scene: PackedScene
 
 @export var food_texture: Texture2D
 @export var wood_texture: Texture2D
@@ -25,23 +28,30 @@ extends Node2D
 
 @export var resource_count: int = 40
 @export var wildling_count: int = 30
-@export var map_size: Vector2 = Vector2(4096, 4096)
+## Conservative beta count — one lair per level band (Lv.1–10).
+@export var wildling_lair_count: int = 10
+@export var map_size: Vector2 = Vector2(8192, 8192)
 @export var edge_margin: float = 300.0
 @export var resource_min_distance: float = 160.0
+## Raised from 280 → 360 for larger dedicated Lair art footprint.
+@export var lair_min_distance: float = 360.0
 @export var castle_exclusion_radius: float = 500.0
 
 @onready var resource_spawns: Node2D = $ResourceSpawns
 @onready var wildling_spawns: Node2D = $WildlingSpawns
+@onready var wildling_lair_spawns: Node2D = get_node_or_null("WildlingLairSpawns")
 
 var rng := RandomNumberGenerator.new()
 
 func _ready() -> void:
 	rng.randomize()
+	_ensure_wildling_lair_spawns_root()
 	if has_node("/root/ResourceTileState"):
 		ResourceTileState.clear_live_nodes()
 		ResourceTileState.process_respawns()
 	spawn_resources()
 	spawn_wildlings()
+	spawn_wildling_lairs()
 	if has_node("/root/ResourceTileState"):
 		# After live nodes exist + marches already loaded by autoload order.
 		ResourceTileState.repair_stale_reservations()
@@ -234,6 +244,118 @@ func spawn_wildlings() -> void:
 			click.species = get_wildling_species(level)
 			click.card_texture = get_wildling_card(level)
 
+
+func _ensure_wildling_lair_spawns_root() -> void:
+	if wildling_lair_spawns != null and is_instance_valid(wildling_lair_spawns):
+		return
+	wildling_lair_spawns = get_node_or_null("WildlingLairSpawns") as Node2D
+	if wildling_lair_spawns != null:
+		return
+	# Migrate temporary Phase-1 node name if present.
+	var legacy: Node2D = get_node_or_null("MonsterDenSpawns") as Node2D
+	if legacy != null:
+		legacy.name = "WildlingLairSpawns"
+		wildling_lair_spawns = legacy
+		return
+	wildling_lair_spawns = Node2D.new()
+	wildling_lair_spawns.name = "WildlingLairSpawns"
+	add_child(wildling_lair_spawns)
+
+
+## Session-local Wildling Lairs (presentation). Not multiplayer-persisted.
+## Stable IDs encode level + grid cell so UI/search/future RPC can key lairs.
+func spawn_wildling_lairs() -> void:
+	_ensure_wildling_lair_spawns_root()
+	while wildling_lair_spawns.get_child_count() > 0:
+		var child: Node = wildling_lair_spawns.get_child(0)
+		wildling_lair_spawns.remove_child(child)
+		child.free()
+
+	if wildling_lair_node_scene == null:
+		push_warning("[WildlingLair] wildling_lair_node_scene not assigned")
+		return
+
+	var level_min: int = WildlingLairDatabase.level_min()
+	var level_max: int = WildlingLairDatabase.level_max()
+	var spawned: int = 0
+	var variant_counts := {"beast": 0, "horror": 0, "ancient": 0}
+	for i: int in range(wildling_lair_count):
+		# Spread levels across 1–10 for beta search coverage.
+		var level: int = level_min + (i % (level_max - level_min + 1))
+		var def: Dictionary = WildlingLairDatabase.get_level_def(level)
+		if def.is_empty():
+			continue
+		var pos: Vector2 = _find_clear_lair_position()
+		var lair_id: String = _make_stable_lair_id(level, pos, i)
+		var node: Node2D = wildling_lair_node_scene.instantiate()
+		wildling_lair_spawns.add_child(node)
+		node.position = pos
+		node.scale = Vector2.ONE
+		node.z_index = 105
+		if node.has_method("setup_from_def"):
+			node.call("setup_from_def", def, lair_id)
+		var variant: String = str(def.get("visual_variant", "beast"))
+		if variant_counts.has(variant):
+			variant_counts[variant] = int(variant_counts[variant]) + 1
+		spawned += 1
+	print("[WildlingLair] Spawned %d lairs (beta session-local) variants=%s" % [
+		spawned,
+		str(variant_counts),
+	])
+	_smoke_wildling_lairs()
+
+
+func _smoke_wildling_lairs() -> void:
+	if wildling_lair_spawns == null:
+		push_warning("[WildlingLair] smoke FAILED: no WildlingLairSpawns root")
+		return
+	var count: int = wildling_lair_spawns.get_child_count()
+	if count <= 0:
+		push_warning("[WildlingLair] smoke FAILED: zero lairs")
+		return
+	var min_d: float = INF
+	var nodes: Array = wildling_lair_spawns.get_children()
+	for i: int in range(nodes.size()):
+		var a: Node2D = nodes[i] as Node2D
+		if a == null:
+			continue
+		if is_near_player_castle(a.global_position):
+			push_warning("[WildlingLair] smoke WARN: lair near castle %s" % a.name)
+		for j: int in range(i + 1, nodes.size()):
+			var b: Node2D = nodes[j] as Node2D
+			if b == null:
+				continue
+			min_d = minf(min_d, a.global_position.distance_to(b.global_position))
+	if min_d < lair_min_distance * 0.5:
+		push_warning("[WildlingLair] smoke WARN: lairs closer than expected (%.1f)" % min_d)
+	# WorldAutoSpawner is attached to WorldRoot — look up HUD on self, not parent.
+	var panel: Node = get_node_or_null("HUD/WildlingLairPanel")
+	if panel == null:
+		push_warning("[WildlingLair] smoke WARN: WildlingLairPanel missing under HUD")
+	print("[WildlingLair] smoke OK lairs=%d min_pair_dist=%.1f panel=%s" % [
+		count,
+		min_d if min_d < INF else -1.0,
+		str(panel != null),
+	])
+
+
+func _make_stable_lair_id(level: int, pos: Vector2, seq: int) -> String:
+	var gx: int = int(floor(pos.x / 32.0))
+	var gy: int = int(floor(pos.y / 32.0))
+	return "lair_L%d_x%d_y%d_s%02d" % [level, gx, gy, seq]
+
+
+func _find_clear_lair_position() -> Vector2:
+	var pos: Vector2 = random_map_position()
+	for _attempt: int in range(64):
+		pos = random_map_position()
+		if is_near_player_castle(pos):
+			continue
+		if is_position_clear(pos, lair_min_distance):
+			return pos
+	return pos
+
+
 func get_resource_texture(resource_type: String) -> Texture2D:
 	match resource_type:
 		"food": return food_texture
@@ -289,5 +411,10 @@ func is_position_clear(pos: Vector2, min_distance: float) -> bool:
 	for node in wildling_spawns.get_children():
 		if node.global_position.distance_to(pos) < min_distance:
 			return false
+
+	if wildling_lair_spawns != null:
+		for node in wildling_lair_spawns.get_children():
+			if node.global_position.distance_to(pos) < min_distance:
+				return false
 
 	return true

@@ -53,6 +53,8 @@ func _ignore_controls_recursive(node: Node) -> void:
 func activate_building_tap() -> void:
 	if GameState.popup_open or _is_main_screen_open():
 		return
+	if has_node("/root/GameEvents"):
+		GameEvents.emit_building_selected(building_id)
 	_open_upgrade_window()
 
 

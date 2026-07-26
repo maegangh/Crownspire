@@ -126,6 +126,16 @@ func add_wildling_battle_report(march: Dictionary, result: Dictionary) -> bool:
 	for hid: Variant in march.get("hero_ids", []):
 		hero_ids.append(str(hid))
 
+	var wounded: Dictionary = result.get("wounded", losses)
+	if typeof(wounded) != TYPE_DICTIONARY:
+		wounded = losses
+	var player_stats: Dictionary = result.get("player_stats", {})
+	if typeof(player_stats) != TYPE_DICTIONARY:
+		player_stats = {}
+	var wildling_stats: Dictionary = result.get("wildling_stats", {})
+	if typeof(wildling_stats) != TYPE_DICTIONARY:
+		wildling_stats = {}
+
 	var report: Dictionary = {
 		"report_id": report_id,
 		"type": "wildling_battle",
@@ -142,6 +152,7 @@ func add_wildling_battle_report(march: Dictionary, result: Dictionary) -> bool:
 		"result": {
 			"victory": bool(result.get("victory", false)),
 			"summary": str(result.get("summary", "")),
+			"rounds": int(result.get("rounds", 0)),
 		},
 		"march": {
 			"hero_ids": hero_ids,
@@ -155,10 +166,26 @@ func add_wildling_battle_report(march: Dictionary, result: Dictionary) -> bool:
 			"marksmen": int(losses.get("marksmen", 0)),
 			"cavalry": int(losses.get("cavalry", 0)),
 		},
+		"wounded": {
+			"infantry": int(wounded.get("infantry", 0)),
+			"marksmen": int(wounded.get("marksmen", 0)),
+			"cavalry": int(wounded.get("cavalry", 0)),
+		},
+		"wounded_routing": _routing_summary(result.get("wounded_routing", march.get("wounded_routing", {}))),
 		"survivors": {
 			"infantry": int(survivors.get("infantry", 0)),
 			"marksmen": int(survivors.get("marksmen", 0)),
 			"cavalry": int(survivors.get("cavalry", 0)),
+		},
+		"player_stats": {
+			"attack": int(player_stats.get("attack", 0)),
+			"defense": int(player_stats.get("defense", 0)),
+			"health": int(player_stats.get("health", 0)),
+		},
+		"wildling_stats": {
+			"attack": int(wildling_stats.get("attack", 0)),
+			"defense": int(wildling_stats.get("defense", 0)),
+			"health": int(wildling_stats.get("health", 0)),
 		},
 		"rewards": rewards.duplicate(true),
 	}
@@ -169,6 +196,17 @@ func add_wildling_battle_report(march: Dictionary, result: Dictionary) -> bool:
 	save_mail()
 	mail_changed.emit()
 	return true
+
+
+func _routing_summary(raw: Variant) -> Dictionary:
+	var out := {"hospital": 0, "sanctuary": 0, "total": 0}
+	if typeof(raw) != TYPE_DICTIONARY:
+		return out
+	var d: Dictionary = raw as Dictionary
+	out["hospital"] = int(d.get("hospital_count", 0))
+	out["sanctuary"] = int(d.get("sanctuary_count", 0))
+	out["total"] = int(out["hospital"]) + int(out["sanctuary"])
+	return out
 
 
 ## Create exactly one gathering report after home return + resource credit.

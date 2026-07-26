@@ -86,6 +86,8 @@ func _open_panel() -> void:
 			show_amount = int(state.get("remaining_amount", show_amount))
 
 	panel.call("open_panel", node, resource_type, show_level, show_amount, tex, show_tile_id)
+	if has_node("/root/GameEvents"):
+		GameEvents.emit_resource_tile_selected(str(resource_type))
 
 
 func _find_resource_panel() -> Node:

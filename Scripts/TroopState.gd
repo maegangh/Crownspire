@@ -12,13 +12,26 @@ var infantry_by_tier: Dictionary = {}
 var marksmen_by_tier: Dictionary = {}
 var cavalry_by_tier: Dictionary = {}
 
+## Legacy flat wounded totals (kept in sync with wounded_*_by_tier).
 var wounded_infantry: int = 0
 var wounded_marksmen: int = 0
 var wounded_cavalry: int = 0
 
+## Persistent per-tier wounded pools (Wildling PvE Phase 3).
+## Shape: { tier_int: count }
+var wounded_infantry_by_tier: Dictionary = {}
+var wounded_marksmen_by_tier: Dictionary = {}
+var wounded_cavalry_by_tier: Dictionary = {}
+
 var hospital_capacity: int = 1000
+## Legacy flat Sanctuary fields (CampaignManager / old UI). Beta overflow uses tier maps; no capacity delete.
 var sanctuary_capacity: int = 500
 var sanctuary_troops: int = 0
+
+## Persistent Sanctuary overflow pools (Phase 5). Shape: { tier_int: count }
+var sanctuary_infantry_by_tier: Dictionary = {}
+var sanctuary_marksmen_by_tier: Dictionary = {}
+var sanctuary_cavalry_by_tier: Dictionary = {}
 
 ## One job slot per troop type.
 var infantry_training_active: bool = false
@@ -203,11 +216,372 @@ func _remove_any_tiers(troop_type: String, amount: int) -> bool:
 	return true
 
 
-## Return survivors into tier 1 (legacy wildling marches do not track tier yet).
+## Return survivors into tier 1 (legacy flat return path).
 func _add_any(troop_type: String, amount: int) -> void:
 	if amount <= 0:
 		return
 	add_tier_troops(troop_type, 1, amount)
+
+
+func _wounded_tier_map(troop_type: String) -> Dictionary:
+	match _canon(troop_type):
+		"Infantry":
+			return wounded_infantry_by_tier
+		"Marksmen":
+			return wounded_marksmen_by_tier
+		"Cavalry":
+			return wounded_cavalry_by_tier
+		_:
+			return {}
+
+
+func _set_wounded_tier_map(troop_type: String, map: Dictionary) -> void:
+	match _canon(troop_type):
+		"Infantry":
+			wounded_infantry_by_tier = map
+		"Marksmen":
+			wounded_marksmen_by_tier = map
+		"Cavalry":
+			wounded_cavalry_by_tier = map
+
+
+func _resync_wounded_totals() -> void:
+	wounded_infantry = _sum_tier_map(wounded_infantry_by_tier)
+	wounded_marksmen = _sum_tier_map(wounded_marksmen_by_tier)
+	wounded_cavalry = _sum_tier_map(wounded_cavalry_by_tier)
+
+
+func _sum_tier_map(map: Dictionary) -> int:
+	var total: int = 0
+	for k: Variant in map.keys():
+		total += int(map[k])
+	return total
+
+
+## Add wounded troops by tier composition. Does NOT touch available troops.
+## composition: { "infantry": {1: n, ...}, "marksmen": {}, "cavalry": {} }
+func add_wounded_by_tiers(composition: Dictionary) -> void:
+	if typeof(composition) != TYPE_DICTIONARY:
+		return
+	for kind: String in ["infantry", "marksmen", "cavalry"]:
+		var by_tier: Dictionary = composition.get(kind, {}) as Dictionary
+		if typeof(by_tier) != TYPE_DICTIONARY:
+			continue
+		var display: String = "Infantry"
+		if kind == "marksmen":
+			display = "Marksmen"
+		elif kind == "cavalry":
+			display = "Cavalry"
+		var map: Dictionary = _wounded_tier_map(display).duplicate(true)
+		for tk: Variant in by_tier.keys():
+			var amt: int = int(by_tier[tk])
+			if amt <= 0:
+				continue
+			var tier: int = int(tk)
+			map[tier] = int(map.get(tier, 0)) + amt
+		_set_wounded_tier_map(display, map)
+	_resync_wounded_totals()
+	save_troops()
+	training_updated.emit()
+
+
+func get_wounded_by_tiers() -> Dictionary:
+	return {
+		"infantry": _serialize_tier_map(wounded_infantry_by_tier),
+		"marksmen": _serialize_tier_map(wounded_marksmen_by_tier),
+		"cavalry": _serialize_tier_map(wounded_cavalry_by_tier),
+	}
+
+
+func get_wounded_count(troop_type: String = "") -> int:
+	_resync_wounded_totals()
+	if troop_type == "":
+		return wounded_infantry + wounded_marksmen + wounded_cavalry
+	match _canon(troop_type):
+		"Infantry":
+			return wounded_infantry
+		"Marksmen":
+			return wounded_marksmen
+		"Cavalry":
+			return wounded_cavalry
+		_:
+			return 0
+
+
+func get_wounded_tier_count(troop_type: String, tier: int) -> int:
+	var map: Dictionary = _wounded_tier_map(troop_type)
+	return maxi(0, int(map.get(tier, map.get(str(tier), 0))))
+
+
+## True if every requested type/tier amount is available in wounded pools.
+func can_remove_wounded_by_tiers(composition: Dictionary) -> bool:
+	if typeof(composition) != TYPE_DICTIONARY:
+		return false
+	for kind: String in ["infantry", "marksmen", "cavalry"]:
+		var by_tier: Dictionary = composition.get(kind, {}) as Dictionary
+		if typeof(by_tier) != TYPE_DICTIONARY:
+			continue
+		var display: String = "Infantry"
+		if kind == "marksmen":
+			display = "Marksmen"
+		elif kind == "cavalry":
+			display = "Cavalry"
+		for tk: Variant in by_tier.keys():
+			var need: int = int(by_tier[tk])
+			if need <= 0:
+				continue
+			if get_wounded_tier_count(display, int(tk)) < need:
+				return false
+	return true
+
+
+## Remove wounded by exact tiers (healing reservation). Does not touch available troops.
+func remove_wounded_by_tiers(composition: Dictionary) -> bool:
+	if not can_remove_wounded_by_tiers(composition):
+		return false
+	for kind: String in ["infantry", "marksmen", "cavalry"]:
+		var by_tier: Dictionary = composition.get(kind, {}) as Dictionary
+		if typeof(by_tier) != TYPE_DICTIONARY:
+			continue
+		var display: String = "Infantry"
+		if kind == "marksmen":
+			display = "Marksmen"
+		elif kind == "cavalry":
+			display = "Cavalry"
+		var map: Dictionary = _wounded_tier_map(display).duplicate(true)
+		for tk: Variant in by_tier.keys():
+			var take: int = int(by_tier[tk])
+			if take <= 0:
+				continue
+			var tier: int = int(tk)
+			var have: int = int(map.get(tier, map.get(str(tier), 0)))
+			var left: int = have - take
+			map.erase(tier)
+			map.erase(str(tier))
+			if left > 0:
+				map[tier] = left
+		_set_wounded_tier_map(display, map)
+	_resync_wounded_totals()
+	save_troops()
+	training_updated.emit()
+	return true
+
+
+## Canonical capacity from HealingState (hospital level × 1000). Fallback local field.
+func get_hospital_capacity() -> int:
+	if has_node("/root/HealingState") and HealingState.has_method("get_hospital_capacity"):
+		hospital_capacity = HealingState.get_hospital_capacity()
+	return hospital_capacity
+
+
+## Waiting wounded + troops reserved in the active Hospital healing job.
+func get_hospital_occupancy() -> int:
+	var waiting: int = get_wounded_count()
+	var healing: int = 0
+	if has_node("/root/HealingState") and HealingState.has_method("get_healing_occupancy"):
+		healing = HealingState.get_healing_occupancy()
+	return waiting + healing
+
+
+func get_hospital_available_capacity() -> int:
+	return maxi(0, get_hospital_capacity() - get_hospital_occupancy())
+
+
+func _sanctuary_tier_map(troop_type: String) -> Dictionary:
+	match _canon(troop_type):
+		"Infantry":
+			return sanctuary_infantry_by_tier
+		"Marksmen":
+			return sanctuary_marksmen_by_tier
+		"Cavalry":
+			return sanctuary_cavalry_by_tier
+		_:
+			return {}
+
+
+func _set_sanctuary_tier_map(troop_type: String, map: Dictionary) -> void:
+	match _canon(troop_type):
+		"Infantry":
+			sanctuary_infantry_by_tier = map
+		"Marksmen":
+			sanctuary_marksmen_by_tier = map
+		"Cavalry":
+			sanctuary_cavalry_by_tier = map
+
+
+func _resync_sanctuary_totals() -> void:
+	sanctuary_troops = (
+		_sum_tier_map(sanctuary_infantry_by_tier)
+		+ _sum_tier_map(sanctuary_marksmen_by_tier)
+		+ _sum_tier_map(sanctuary_cavalry_by_tier)
+	)
+
+
+func get_sanctuary_by_tiers() -> Dictionary:
+	return {
+		"infantry": _serialize_tier_map(sanctuary_infantry_by_tier),
+		"marksmen": _serialize_tier_map(sanctuary_marksmen_by_tier),
+		"cavalry": _serialize_tier_map(sanctuary_cavalry_by_tier),
+	}
+
+
+func get_sanctuary_count() -> int:
+	_resync_sanctuary_totals()
+	return sanctuary_troops
+
+
+func get_sanctuary_tier_count(troop_type: String, tier: int) -> int:
+	var map: Dictionary = _sanctuary_tier_map(troop_type)
+	return maxi(0, int(map.get(tier, map.get(str(tier), 0))))
+
+
+func add_sanctuary_by_tiers(composition: Dictionary) -> void:
+	if typeof(composition) != TYPE_DICTIONARY:
+		return
+	for kind: String in ["infantry", "marksmen", "cavalry"]:
+		var by_tier: Dictionary = composition.get(kind, {}) as Dictionary
+		if typeof(by_tier) != TYPE_DICTIONARY:
+			continue
+		var display: String = "Infantry"
+		if kind == "marksmen":
+			display = "Marksmen"
+		elif kind == "cavalry":
+			display = "Cavalry"
+		var map: Dictionary = _sanctuary_tier_map(display).duplicate(true)
+		for tk: Variant in by_tier.keys():
+			var amt: int = int(by_tier[tk])
+			if amt <= 0:
+				continue
+			var tier: int = int(tk)
+			map[tier] = int(map.get(tier, 0)) + amt
+		_set_sanctuary_tier_map(display, map)
+	_resync_sanctuary_totals()
+	save_troops()
+	training_updated.emit()
+
+
+func remove_sanctuary_by_tiers(composition: Dictionary) -> bool:
+	if typeof(composition) != TYPE_DICTIONARY:
+		return false
+	for kind: String in ["infantry", "marksmen", "cavalry"]:
+		var by_tier: Dictionary = composition.get(kind, {}) as Dictionary
+		if typeof(by_tier) != TYPE_DICTIONARY:
+			continue
+		var display: String = "Infantry"
+		if kind == "marksmen":
+			display = "Marksmen"
+		elif kind == "cavalry":
+			display = "Cavalry"
+		for tk: Variant in by_tier.keys():
+			var need: int = int(by_tier[tk])
+			if need <= 0:
+				continue
+			if get_sanctuary_tier_count(display, int(tk)) < need:
+				return false
+	for kind2: String in ["infantry", "marksmen", "cavalry"]:
+		var by_tier2: Dictionary = composition.get(kind2, {}) as Dictionary
+		if typeof(by_tier2) != TYPE_DICTIONARY:
+			continue
+		var display2: String = "Infantry"
+		if kind2 == "marksmen":
+			display2 = "Marksmen"
+		elif kind2 == "cavalry":
+			display2 = "Cavalry"
+		var map: Dictionary = _sanctuary_tier_map(display2).duplicate(true)
+		for tk2: Variant in by_tier2.keys():
+			var take: int = int(by_tier2[tk2])
+			if take <= 0:
+				continue
+			var tier: int = int(tk2)
+			var have: int = int(map.get(tier, map.get(str(tier), 0)))
+			var left: int = have - take
+			map.erase(tier)
+			map.erase(str(tier))
+			if left > 0:
+				map[tier] = left
+		_set_sanctuary_tier_map(display2, map)
+	_resync_sanctuary_totals()
+	save_troops()
+	training_updated.emit()
+	return true
+
+
+func _empty_tier_composition() -> Dictionary:
+	return {"infantry": {}, "marksmen": {}, "cavalry": {}}
+
+
+func _count_tier_composition(composition: Dictionary) -> int:
+	var total: int = 0
+	for kind: String in ["infantry", "marksmen", "cavalry"]:
+		var by_tier: Dictionary = composition.get(kind, {}) as Dictionary
+		if typeof(by_tier) != TYPE_DICTIONARY:
+			continue
+		for tk: Variant in by_tier.keys():
+			total += maxi(0, int(by_tier[tk]))
+	return total
+
+
+func _add_to_composition(dest: Dictionary, kind: String, tier: int, amount: int) -> void:
+	if amount <= 0:
+		return
+	var by_tier: Dictionary = (dest.get(kind, {}) as Dictionary).duplicate(true)
+	by_tier[str(tier)] = int(by_tier.get(str(tier), by_tier.get(tier, 0))) + amount
+	dest[kind] = by_tier
+
+
+## Canonical casualty routing (Phase 5).
+## Hospital fills first (available = capacity − waiting − healing job).
+## Overflow → Sanctuary (no capacity delete). Deterministic order:
+## Infantry → Marksmen → Cavalry; lowest tier first within type.
+## Returns { hospital, sanctuary, hospital_count, sanctuary_count, available_before }.
+func route_wounded_by_tiers(casualty_tiers: Dictionary) -> Dictionary:
+	var hospital_part: Dictionary = _empty_tier_composition()
+	var sanctuary_part: Dictionary = _empty_tier_composition()
+	var available: int = get_hospital_available_capacity()
+	var available_before: int = available
+
+	if typeof(casualty_tiers) != TYPE_DICTIONARY:
+		return {
+			"hospital": hospital_part,
+			"sanctuary": sanctuary_part,
+			"hospital_count": 0,
+			"sanctuary_count": 0,
+			"available_before": available_before,
+		}
+
+	for kind: String in ["infantry", "marksmen", "cavalry"]:
+		var by_tier: Dictionary = casualty_tiers.get(kind, {}) as Dictionary
+		if typeof(by_tier) != TYPE_DICTIONARY or by_tier.is_empty():
+			continue
+		var tiers: Array = by_tier.keys()
+		tiers.sort_custom(func(a: Variant, b: Variant) -> bool: return int(a) < int(b))
+		for tk: Variant in tiers:
+			var tier: int = int(tk)
+			var qty: int = maxi(0, int(by_tier[tk]))
+			if qty <= 0:
+				continue
+			var to_h: int = mini(qty, available)
+			var to_s: int = qty - to_h
+			_add_to_composition(hospital_part, kind, tier, to_h)
+			_add_to_composition(sanctuary_part, kind, tier, to_s)
+			available -= to_h
+
+	var h_count: int = _count_tier_composition(hospital_part)
+	var s_count: int = _count_tier_composition(sanctuary_part)
+	if h_count > 0:
+		add_wounded_by_tiers(hospital_part)
+	if s_count > 0:
+		add_sanctuary_by_tiers(sanctuary_part)
+		if has_node("/root/SanctuaryState") and SanctuaryState.has_method("enqueue_recovery"):
+			SanctuaryState.enqueue_recovery(sanctuary_part)
+
+	return {
+		"hospital": hospital_part,
+		"sanctuary": sanctuary_part,
+		"hospital_count": h_count,
+		"sanctuary_count": s_count,
+		"available_before": available_before,
+	}
 
 
 func deploy_troops(infantry_count: int, marksmen_count: int, cavalry_count: int) -> bool:
@@ -314,6 +688,8 @@ func start_training(troop_type: String, amount: int, duration_sec: int = -1, tar
 	_set_job(canon, "train", amount, target_tier, 0, now, now + time_needed)
 	save_troops()
 	training_updated.emit()
+	if has_node("/root/GameEvents"):
+		GameEvents.emit_troop_training_started(canon, target_tier, amount)
 	return true
 
 
@@ -339,6 +715,8 @@ func start_promotion(
 	_set_job(canon, "promote", amount, target_tier, source_tier, now, now + time_needed)
 	save_troops()
 	training_updated.emit()
+	if has_node("/root/GameEvents"):
+		GameEvents.emit_troop_training_started(canon, target_tier, amount)
 	return true
 
 
@@ -419,8 +797,9 @@ func collect_training(troop_type: String) -> bool:
 	save_troops()
 	training_updated.emit()
 
+	# Awarded on collect (troops actually granted) — not when timer merely ends.
 	if has_node("/root/GameEvents") and job_type == "train":
-		GameEvents.emit_troops_trained(amount)
+		GameEvents.emit_troop_training_completed(canon, target_tier, amount)
 	return true
 
 
@@ -645,6 +1024,18 @@ func save_troops() -> void:
 	save.set_value("troops", "infantry_by_tier", _serialize_tier_map(infantry_by_tier))
 	save.set_value("troops", "marksmen_by_tier", _serialize_tier_map(marksmen_by_tier))
 	save.set_value("troops", "cavalry_by_tier", _serialize_tier_map(cavalry_by_tier))
+	_resync_wounded_totals()
+	save.set_value("troops", "wounded_infantry", wounded_infantry)
+	save.set_value("troops", "wounded_marksmen", wounded_marksmen)
+	save.set_value("troops", "wounded_cavalry", wounded_cavalry)
+	save.set_value("troops", "wounded_infantry_by_tier", _serialize_tier_map(wounded_infantry_by_tier))
+	save.set_value("troops", "wounded_marksmen_by_tier", _serialize_tier_map(wounded_marksmen_by_tier))
+	save.set_value("troops", "wounded_cavalry_by_tier", _serialize_tier_map(wounded_cavalry_by_tier))
+	_resync_sanctuary_totals()
+	save.set_value("troops", "sanctuary_troops", sanctuary_troops)
+	save.set_value("troops", "sanctuary_infantry_by_tier", _serialize_tier_map(sanctuary_infantry_by_tier))
+	save.set_value("troops", "sanctuary_marksmen_by_tier", _serialize_tier_map(sanctuary_marksmen_by_tier))
+	save.set_value("troops", "sanctuary_cavalry_by_tier", _serialize_tier_map(sanctuary_cavalry_by_tier))
 
 	save.set_value("training", "infantry_active", infantry_training_active)
 	save.set_value("training", "marksmen_active", marksmen_training_active)
@@ -694,6 +1085,35 @@ func load_troops() -> void:
 	marksmen_by_tier = _deserialize_tier_map(save.get_value("troops", "marksmen_by_tier", {}), legacy_mar)
 	cavalry_by_tier = _deserialize_tier_map(save.get_value("troops", "cavalry_by_tier", {}), legacy_cav)
 	_resync_totals()
+
+	var legacy_w_inf: int = int(save.get_value("troops", "wounded_infantry", 0))
+	var legacy_w_mar: int = int(save.get_value("troops", "wounded_marksmen", 0))
+	var legacy_w_cav: int = int(save.get_value("troops", "wounded_cavalry", 0))
+	wounded_infantry_by_tier = _deserialize_tier_map(
+		save.get_value("troops", "wounded_infantry_by_tier", {}), legacy_w_inf
+	)
+	wounded_marksmen_by_tier = _deserialize_tier_map(
+		save.get_value("troops", "wounded_marksmen_by_tier", {}), legacy_w_mar
+	)
+	wounded_cavalry_by_tier = _deserialize_tier_map(
+		save.get_value("troops", "wounded_cavalry_by_tier", {}), legacy_w_cav
+	)
+	_resync_wounded_totals()
+
+	var legacy_sanct: int = int(save.get_value("troops", "sanctuary_troops", 0))
+	sanctuary_infantry_by_tier = _deserialize_tier_map(
+		save.get_value("troops", "sanctuary_infantry_by_tier", {}), 0
+	)
+	sanctuary_marksmen_by_tier = _deserialize_tier_map(
+		save.get_value("troops", "sanctuary_marksmen_by_tier", {}), 0
+	)
+	sanctuary_cavalry_by_tier = _deserialize_tier_map(
+		save.get_value("troops", "sanctuary_cavalry_by_tier", {}), 0
+	)
+	_resync_sanctuary_totals()
+	# Legacy flat-only sanctuary: keep count visible but do not invent tier splits.
+	if sanctuary_troops == 0 and legacy_sanct > 0:
+		sanctuary_troops = legacy_sanct
 
 	infantry_training_active = bool(save.get_value("training", "infantry_active", false))
 	marksmen_training_active = bool(save.get_value("training", "marksmen_active", false))

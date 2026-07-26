@@ -1,6 +1,6 @@
 extends RefCounted
 
-## Minimal World Map tap-vs-drag classifier (resource tiles Step 1).
+## Minimal World Map tap-vs-drag classifier (resource tiles + Wildling Lairs).
 ## Same 24px relative-motion threshold idea as CityGesture, but World-scoped.
 ## Do NOT auto-apply to Wildlings without an explicit follow-up task.
 ##

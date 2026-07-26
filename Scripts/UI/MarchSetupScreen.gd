@@ -15,10 +15,13 @@ const COL_BORDER := Color(0.58, 0.46, 0.28, 0.90)
 const COL_SLOT := Color(0.08, 0.07, 0.10, 0.95)
 const COL_SLOT_BORDER := Color(0.48, 0.40, 0.28, 0.85)
 
-const UI_LAYOUT_VERSION: int = 4
-## Keep chrome clear of World top resource bar + bottom nav (720×1280).
-const TOP_SAFE_MARGIN: float = 188.0
-const BOTTOM_SAFE_MARGIN: float = 200.0
+const UI_LAYOUT_VERSION: int = 6
+## Keep chrome clear of World top resource bar + bottom nav (portrait-safe).
+const TOP_SAFE_MARGIN: float = 172.0
+const BOTTOM_SAFE_MARGIN: float = 196.0
+## Above GameHUD chrome (z=100) while open so Back/X are never buried.
+const OPEN_SCREEN_ROOT_Z: int = 120
+const IDLE_SCREEN_ROOT_Z: int = 0
 
 var _target: Dictionary = {}
 var _selected_heroes: Array[String] = []
@@ -35,8 +38,8 @@ var _status_label: Label
 var _hero_slots: Array[Button] = []
 var _hero_portraits: Array[TextureRect] = []
 var _hero_captions: Array[Label] = []
-var _troop_qty_labels: Dictionary = {} # kind -> Label
-var _troop_avail_labels: Dictionary = {} # kind -> Label
+var _troop_qty_labels: Dictionary = {} # kind -> Label ("Selected: X")
+var _troop_avail_labels: Dictionary = {} # kind -> Label ("Available: Y")
 var _march_button: Button
 var _placeholder_texture: Texture2D
 var _heroes_hint: Label
@@ -52,13 +55,15 @@ func on_open() -> void:
 	_ensure_current_layout()
 	visible = true
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	z_index = 40
+	z_index = 50
+	_set_screen_root_elevated(true)
 	_refresh()
 
 
 func on_close() -> void:
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_set_screen_root_elevated(false)
 
 
 func open_for_target(target: Dictionary) -> void:
@@ -146,8 +151,9 @@ func _build_ui() -> void:
 	header.add_theme_constant_override("separation", 10)
 	header_block.add_child(header)
 
-	var back_btn := _make_chrome_button("BACK", Vector2(110, 52))
+	var back_btn := _make_chrome_button("← BACK", Vector2(128, 48))
 	back_btn.name = "BackButton"
+	back_btn.tooltip_text = "Return to Wildling without marching"
 	back_btn.pressed.connect(_on_back)
 	header.add_child(back_btn)
 
@@ -155,13 +161,14 @@ func _build_ui() -> void:
 	title.text = "MARCH SETUP"
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 26)
+	title.add_theme_font_size_override("font_size", 22)
 	title.add_theme_color_override("font_color", COL_GOLD)
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	header.add_child(title)
 
-	var close_btn := _make_chrome_button("X", Vector2(64, 52))
+	var close_btn := _make_chrome_button("✕", Vector2(56, 48))
 	close_btn.name = "CloseButton"
+	close_btn.tooltip_text = "Close and return to World Map"
 	close_btn.pressed.connect(_on_close_pressed)
 	header.add_child(close_btn)
 
@@ -239,9 +246,11 @@ func _build_ui() -> void:
 	hero_actions.alignment = BoxContainer.ALIGNMENT_CENTER
 	root.add_child(hero_actions)
 	var select_all_heroes := _make_chrome_button("SELECT ALL HEROES", Vector2(240, 50))
+	select_all_heroes.name = "SelectAllHeroesButton"
 	select_all_heroes.pressed.connect(_on_select_all_heroes)
 	hero_actions.add_child(select_all_heroes)
 	var clear_heroes := _make_chrome_button("CLEAR", Vector2(120, 50))
+	clear_heroes.name = "ClearHeroesButton"
 	clear_heroes.pressed.connect(_on_clear_heroes)
 	hero_actions.add_child(clear_heroes)
 
@@ -272,10 +281,12 @@ func _build_ui() -> void:
 	troop_actions.add_theme_constant_override("separation", 10)
 	troop_actions.alignment = BoxContainer.ALIGNMENT_CENTER
 	troops_col.add_child(troop_actions)
-	var select_all_troops := _make_chrome_button("SELECT ALL", Vector2(200, 52))
+	var select_all_troops := _make_chrome_button("SELECT ALL TROOPS", Vector2(260, 50))
+	select_all_troops.name = "SelectAllTroopsButton"
 	select_all_troops.pressed.connect(_on_select_all_troops)
 	troop_actions.add_child(select_all_troops)
-	var clear_troops := _make_chrome_button("CLEAR", Vector2(140, 52))
+	var clear_troops := _make_chrome_button("CLEAR", Vector2(120, 50))
+	clear_troops.name = "ClearTroopsButton"
 	clear_troops.pressed.connect(_on_clear_troops)
 	troop_actions.add_child(clear_troops)
 
@@ -294,8 +305,10 @@ func _build_ui() -> void:
 	summary_row.add_theme_constant_override("separation", 12)
 	summary_margin.add_child(summary_row)
 
-	var power_block := _make_stat_block("MARCH POWER")
+	var power_block := _make_stat_block("COMBAT")
 	_power_value_label = power_block.get_node("Value") as Label
+	_power_value_label.add_theme_font_size_override("font_size", 16)
+	_power_value_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	summary_row.add_child(power_block)
 
 	var cap_block := _make_stat_block("CAPACITY")
@@ -428,56 +441,36 @@ func _make_hero_slot(index: int) -> Control:
 
 
 func _add_troop_row(parent: VBoxContainer, kind: String, display_name: String) -> void:
+	## Display-only row. Selection is controlled solely by global SELECT ALL TROOPS / CLEAR.
 	var block := VBoxContainer.new()
 	block.name = "TroopRow_%s" % kind
-	block.add_theme_constant_override("separation", 6)
+	block.add_theme_constant_override("separation", 2)
 	parent.add_child(block)
 
 	var name_l := Label.new()
-	name_l.text = display_name.to_upper()
+	name_l.text = display_name
 	name_l.add_theme_font_size_override("font_size", 18)
 	name_l.add_theme_color_override("font_color", COL_INK)
 	name_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	block.add_child(name_l)
 
+	var selected_l := Label.new()
+	selected_l.name = "SelectedLabel"
+	selected_l.text = "Selected: 0"
+	selected_l.add_theme_font_size_override("font_size", 15)
+	selected_l.add_theme_color_override("font_color", COL_GOLD)
+	selected_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	block.add_child(selected_l)
+	_troop_qty_labels[kind] = selected_l
+
 	var avail := Label.new()
+	avail.name = "AvailableLabel"
 	avail.text = "Available: 0"
 	avail.add_theme_font_size_override("font_size", 14)
 	avail.add_theme_color_override("font_color", COL_MUTED)
 	avail.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	block.add_child(avail)
 	_troop_avail_labels[kind] = avail
-
-	var controls := HBoxContainer.new()
-	controls.add_theme_constant_override("separation", 10)
-	controls.alignment = BoxContainer.ALIGNMENT_CENTER
-	block.add_child(controls)
-
-	var minus_big := _make_chrome_button("−100", Vector2(88, 58))
-	minus_big.pressed.connect(_on_troop_adjust.bind(kind, -100))
-	controls.add_child(minus_big)
-
-	var minus := _make_chrome_button("−", Vector2(64, 58))
-	minus.pressed.connect(_on_troop_adjust.bind(kind, -1))
-	controls.add_child(minus)
-
-	var qty := Label.new()
-	qty.text = "0"
-	qty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	qty.custom_minimum_size = Vector2(120, 0)
-	qty.add_theme_font_size_override("font_size", 26)
-	qty.add_theme_color_override("font_color", COL_GOLD)
-	qty.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	controls.add_child(qty)
-	_troop_qty_labels[kind] = qty
-
-	var plus := _make_chrome_button("+", Vector2(64, 58))
-	plus.pressed.connect(_on_troop_adjust.bind(kind, 1))
-	controls.add_child(plus)
-
-	var plus_big := _make_chrome_button("+100", Vector2(88, 58))
-	plus_big.pressed.connect(_on_troop_adjust.bind(kind, 100))
-	controls.add_child(plus_big)
 
 
 func _panel_style(bg: Color, border: Color, radius: float, border_w: float) -> StyleBoxFlat:
@@ -537,7 +530,9 @@ func _on_select_all_troops() -> void:
 	_infantry = 0
 	_marksmen = 0
 	_cavalry = 0
-	var capacity: int = MarchState.get_march_capacity() if has_node("/root/MarchState") else 0
+	var capacity: int = (
+		MarchState.get_march_capacity(_selected_heroes) if has_node("/root/MarchState") else 0
+	)
 	var remaining: int = capacity
 	for kind: String in ["infantry", "marksmen", "cavalry"]:
 		if remaining <= 0:
@@ -555,18 +550,6 @@ func _on_clear_troops() -> void:
 	_marksmen = 0
 	_cavalry = 0
 	_refresh()
-
-
-func _on_troop_adjust(kind: String, delta: int) -> void:
-	var current: int = _get_troop(kind)
-	var available: int = _available_for_kind(kind)
-	var capacity: int = MarchState.get_march_capacity() if has_node("/root/MarchState") else 0
-	var others: int = (_infantry + _marksmen + _cavalry) - current
-	var room: int = maxi(0, capacity - others)
-	var max_allowed: int = mini(available, room)
-	var next: int = clampi(current + delta, 0, max_allowed)
-	_set_troop(kind, next)
-	_refresh_summary()
 
 
 func _available_for_kind(kind: String) -> int:
@@ -677,7 +660,11 @@ func _refresh() -> void:
 	if pos.is_empty() and _target.has("world_position"):
 		pos = _target.get("world_position", {})
 	var target_pos := Vector2(float(pos.get("x", 0)), float(pos.get("y", 0)))
-	var travel: int = MarchState.estimate_travel_seconds(castle, target_pos) if has_node("/root/MarchState") else 0
+	var travel: int = (
+		MarchState.estimate_travel_seconds(castle, target_pos, _selected_heroes)
+		if has_node("/root/MarchState")
+		else 0
+	)
 	var dist: int = int(castle.distance_to(target_pos))
 
 	if is_resource:
@@ -787,14 +774,24 @@ func _refresh_summary() -> void:
 	_set_troop_labels("cavalry", _cavalry, "Cavalry")
 
 	var total: int = _infantry + _marksmen + _cavalry
-	var capacity: int = MarchState.get_march_capacity() if has_node("/root/MarchState") else 0
-	var power: int = (
-		MarchState.calculate_march_power(_troop_dict(), _selected_heroes)
-		if has_node("/root/MarchState")
-		else 0
+	var capacity: int = (
+		MarchState.get_march_capacity(_selected_heroes) if has_node("/root/MarchState") else 0
 	)
-
-	_power_value_label.text = _format_number(power)
+	# Real StatResolver combat totals — do not show fake class-weight "Power".
+	var atk_s := "0"
+	var def_s := "0"
+	var hp_s := "0"
+	if has_node("/root/MarchState") and has_node("/root/StatResolver") and total > 0:
+		var composition: Dictionary = MarchState.build_troop_tier_composition(_troop_dict())
+		if not composition.is_empty():
+			var resolved: Dictionary = StatResolver.resolve_march_combat_stats(
+				composition, _selected_heroes
+			)
+			var totals: Dictionary = resolved.get("totals", {}) as Dictionary
+			atk_s = _format_number(int(totals.get("attack", 0)))
+			def_s = _format_number(int(totals.get("defense", 0)))
+			hp_s = _format_number(int(totals.get("health", 0)))
+	_power_value_label.text = "ATK %s\nDEF %s\nHP %s" % [atk_s, def_s, hp_s]
 	_capacity_value_label.text = "%s / %s" % [_format_number(total), _format_number(capacity)]
 	if total > capacity:
 		_capacity_value_label.add_theme_color_override("font_color", COL_WARN)
@@ -831,7 +828,7 @@ func _set_troop_labels(kind: String, selected: int, troop_type: String) -> void:
 	if has_node("/root/TroopState"):
 		avail = maxi(0, TroopState.get_available_count(troop_type))
 	if _troop_qty_labels.has(kind):
-		(_troop_qty_labels[kind] as Label).text = _format_number(selected)
+		(_troop_qty_labels[kind] as Label).text = "Selected: %s" % _format_number(selected)
 	if _troop_avail_labels.has(kind):
 		(_troop_avail_labels[kind] as Label).text = "Available: %s" % _format_number(avail)
 
@@ -884,23 +881,15 @@ func _on_march_pressed() -> void:
 	_close_to_map()
 
 
-## BACK — close without dispatch; reopen source popup when possible.
+## BACK — close without dispatch; reopen the exact source target popup when possible.
 func _on_back() -> void:
-	# Closing never deploys troops / never reserves a resource tile.
+	# Snapshot before close clears local setup state. Never dispatches / never mutates ownership.
+	var target_snapshot: Dictionary = _target.duplicate(true)
 	_close_screens()
-	if str(_target.get("target_type", "")) == "resource":
-		var rpanel: Node = _find_resource_panel()
-		if rpanel != null and rpanel.has_method("reopen_last"):
-			rpanel.reopen_last()
-		return
-	var panel: Node = _find_wildling_panel()
-	if panel == null:
-		return
-	if panel.has_method("reopen_last"):
-		panel.reopen_last()
+	_reopen_source_from_target(target_snapshot)
 
 
-## X — close setup and return to World Map only (no dispatch / no reservation).
+## X — close setup and return to World Map only (no dispatch / no reservation / no popup).
 func _on_close_pressed() -> void:
 	_close_to_map()
 
@@ -918,11 +907,60 @@ func _close_screens() -> void:
 	# Belt-and-suspenders: never leave an invisible input trap.
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_set_screen_root_elevated(false)
 	_target = {}
 	_infantry = 0
 	_marksmen = 0
 	_cavalry = 0
 	_selected_heroes.clear()
+
+
+func _set_screen_root_elevated(elevated: bool) -> void:
+	var screen_root: Control = get_parent() as Control
+	if screen_root == null:
+		return
+	screen_root.z_index = OPEN_SCREEN_ROOT_Z if elevated else IDLE_SCREEN_ROOT_Z
+
+
+func _reopen_source_from_target(target: Dictionary) -> void:
+	if target.is_empty():
+		return
+	# Resource gather path — restore exact tile panel when possible.
+	if str(target.get("target_type", "")) == "resource" or target.has("resource_tile_id"):
+		var rpanel: Node = _find_resource_panel()
+		if rpanel != null and rpanel.has_method("reopen_last"):
+			rpanel.reopen_last()
+		return
+
+	var panel: Node = _find_wildling_panel()
+	if panel == null:
+		return
+	var wildling: Node2D = _resolve_exact_wildling(target)
+	if wildling == null or not is_instance_valid(wildling) or not wildling.visible:
+		# Target gone — World Map only (already closed setup).
+		return
+	if panel.has_method("open_panel"):
+		var species: String = str(target.get("species", "wolf"))
+		var level: int = int(target.get("level", 1))
+		var power: int = int(target.get("power", 100))
+		panel.call("open_panel", null, level, power, wildling, species)
+	elif panel.has_method("reopen_last"):
+		panel.reopen_last()
+
+
+func _resolve_exact_wildling(target: Dictionary) -> Node2D:
+	## Prefer canonical instance_id from MarchState.build_wildling_target — never "nearest".
+	var want_id: int = int(target.get("instance_id", 0))
+	if want_id != 0:
+		var obj: Object = instance_from_id(want_id)
+		if obj is Node2D and is_instance_valid(obj):
+			return obj as Node2D
+	var path_str: String = str(target.get("node_path", "")).strip_edges()
+	if not path_str.is_empty():
+		var by_path: Node = get_tree().root.get_node_or_null(NodePath(path_str))
+		if by_path is Node2D and is_instance_valid(by_path):
+			return by_path as Node2D
+	return null
 
 
 func _find_wildling_panel() -> Node:

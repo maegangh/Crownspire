@@ -256,6 +256,7 @@ func _sync_active_research_ui() -> void:
 	if active.is_empty():
 		if active_project_box: active_project_box.visible = false
 		if active_project_empty_lbl: active_project_empty_lbl.visible = true
+		_sync_speedup_button_state()
 		if visible and _mobile_page == MobilePage.HOME and _mobile_active_banner != null:
 			var used: int = 0
 			if has_node("/root/ResearchState"):
@@ -290,6 +291,8 @@ func _sync_active_research_ui() -> void:
 	if btn_instant_valor:
 		var valor_cost = int(active["time_remaining"] * 1.5)
 		btn_instant_valor.text = "INSTANT (%d VALOR)" % valor_cost
+
+	_sync_speedup_button_state()
 
 	if visible and _mobile_built:
 		if _mobile_page == MobilePage.HOME and _mobile_active_banner != null:
@@ -483,41 +486,118 @@ func add_resource(res_type: String, amount: int) -> void:
 		_local_resources[res_type] = max(0, int(_local_resources.get(res_type, 0)) + amount)
 	_update_resources_display()
 
-# Speedup options config
+# Shared Speed Up entry (Bag items via SpeedupService — not fake local timers).
 func _setup_speedup_buttons() -> void:
+	if speedup_container == null:
+		return
 	for child in speedup_container.get_children():
 		child.queue_free()
-		
-	var speedups = [
-		{"label": "1m Focus", "seconds": 60},
-		{"label": "5m Scroll", "seconds": 300},
-		{"label": "15m Tome", "seconds": 900},
-		{"label": "1h Decree", "seconds": 3600}
-	]
-	
-	for s in speedups:
-		var btn = Button.new()
-		btn.text = "-%dm %s" % [int(s["seconds"]/60), s["label"]]
-		btn.add_theme_font_size_override("font_size", 9)
-		btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-		btn.pressed.connect(func(): apply_speedup(s["seconds"]))
-		speedup_container.add_child(btn)
+	var btn := Button.new()
+	btn.name = "SpeedUpButton"
+	btn.text = "SPEED UP"
+	btn.custom_minimum_size = Vector2(0, 48)
+	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	btn.add_theme_font_size_override("font_size", 16)
+	btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	btn.pressed.connect(_on_shared_speedup_pressed)
+	_style_research_speedup_button(btn, true)
+	speedup_container.add_child(btn)
+	_sync_speedup_button_state()
 
+
+func _style_research_speedup_button(btn: Button, active: bool) -> void:
+	if btn == null:
+		return
+	var normal := StyleBoxFlat.new()
+	var hover := StyleBoxFlat.new()
+	var pressed := StyleBoxFlat.new()
+	var disabled := StyleBoxFlat.new()
+	for sb: StyleBoxFlat in [normal, hover, pressed, disabled]:
+		sb.content_margin_left = 14
+		sb.content_margin_right = 14
+		sb.content_margin_top = 10
+		sb.content_margin_bottom = 10
+		sb.set_corner_radius_all(8)
+		sb.set_border_width_all(0)
+		sb.border_width_bottom = 3
+	if active:
+		normal.bg_color = Color(0.13, 0.26, 0.46, 1)
+		normal.border_color = Color(0.08, 0.18, 0.32, 1)
+		hover.bg_color = Color(0.18, 0.35, 0.6, 1)
+		hover.border_color = Color(0.1, 0.23, 0.42, 1)
+		pressed.bg_color = Color(0.10, 0.20, 0.38, 1)
+		pressed.border_color = Color(0.06, 0.14, 0.28, 1)
+		btn.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+	else:
+		normal.bg_color = Color(0.55, 0.58, 0.62, 1)
+		normal.border_color = Color(0.42, 0.45, 0.48, 1)
+		hover = normal
+		pressed = normal
+		btn.add_theme_color_override("font_color", Color(0.85, 0.85, 0.88, 1))
+	disabled.bg_color = Color(0.70, 0.73, 0.76, 1)
+	disabled.border_color = Color(0.55, 0.58, 0.61, 1)
+	btn.add_theme_stylebox_override("normal", normal)
+	btn.add_theme_stylebox_override("hover", hover)
+	btn.add_theme_stylebox_override("pressed", pressed)
+	btn.add_theme_stylebox_override("disabled", disabled)
+
+
+func _sync_speedup_button_state() -> void:
+	if speedup_container == null:
+		return
+	var btn: Button = speedup_container.get_node_or_null("SpeedUpButton") as Button
+	if btn == null:
+		return
+	var active: Dictionary = get_active_job()
+	var rem: float = float(active.get("time_remaining", 0.0))
+	var can_speedup: bool = not active.is_empty() and rem > 0.0
+	btn.visible = not active.is_empty()
+	btn.disabled = not can_speedup
+	_style_research_speedup_button(btn, can_speedup)
+
+
+func _on_shared_speedup_pressed() -> void:
+	var active: Dictionary = get_active_job()
+	if active.is_empty():
+		return
+	if not has_node("/root/SpeedupService"):
+		return
+	var rid: String = str(active.get("research_id", ""))
+	SpeedupService.open_speedup_popup(SpeedupService.CAT_RESEARCH, rid)
+
+
+## Legacy entry point — routes through shared SpeedupService when possible.
 func apply_speedup(seconds: float) -> void:
 	var active = get_active_job()
 	if active.is_empty():
 		return
-		
-	active["time_remaining"] = maxf(0.0, active["time_remaining"] - seconds)
-	save_persistent_state()
-	
-	var node_def = _find_node_in_db(active.get("research_id", ""))
-	var name_str = node_def.get("name", active["research_id"])
-	
-	_trigger_log_message("Applied research speedup: -%s to '%s'." % [format_duration(seconds), name_str])
-	
-	if active["time_remaining"] <= 0.0:
-		_complete_research_job()
+	if not has_node("/root/SpeedupService") or not has_node("/root/ResearchState"):
+		_trigger_log_message("Speedup service unavailable.")
+		return
+	# Prefer owned research/universal bag items; do not invent free time.
+	var rid: String = str(active.get("research_id", ""))
+	var needed: int = int(ceil(seconds))
+	var used_any: bool = false
+	for row: Dictionary in SpeedupService.list_owned_eligible(SpeedupService.CAT_RESEARCH):
+		var per: int = int(row.get("seconds", 0))
+		if per <= 0:
+			continue
+		var result: Dictionary = SpeedupService.apply_speedup_item(
+			SpeedupService.CAT_RESEARCH,
+			rid,
+			str(row.get("item_id", "")),
+			1
+		)
+		if bool(result.get("ok", false)):
+			used_any = true
+			needed -= per
+			if needed <= 0 or bool(result.get("completed", false)):
+				break
+	if used_any:
+		_sync_active_research_ui()
+		_sync_speedup_button_state()
+	else:
+		_trigger_log_message("No eligible research speedups in Bag.")
 
 func _on_instant_valor_pressed() -> void:
 	var active = get_active_job()

@@ -177,6 +177,8 @@ func try_start_construction(building_id: String, a = null, b = null, c = null) -
 	save_construction_state()
 	_sync_resource_manager_flags(bid, true, float(end_unix - now))
 	construction_jobs_changed.emit()
+	if has_node("/root/GameEvents"):
+		GameEvents.emit_building_upgrade_started(bid, target_level)
 	return {"ok": true, "reason": "", "end_unix": end_unix}
 
 
@@ -186,6 +188,41 @@ func finish_construction_now(building_id: String) -> Dictionary:
 	if idx < 0:
 		return {"ok": false, "reason": "No active construction for this building."}
 	return complete_construction(building_id)
+
+
+## Reduce real construction end_unix by seconds. Completes via canonical path if due.
+func speedup_construction(building_id: String, seconds: int) -> Dictionary:
+	var bid: String = building_id.strip_edges()
+	var idx: int = _find_job_index(bid)
+	if idx < 0:
+		return {"ok": false, "reason": "No active construction for this building."}
+	var sec: int = maxi(0, seconds)
+	if sec <= 0:
+		return {"ok": false, "reason": "Invalid speedup duration."}
+
+	var job: Dictionary = active_jobs[idx] as Dictionary
+	var now: int = int(Time.get_unix_time_from_system())
+	var end_unix: int = int(job.get("end_unix", now)) - sec
+	job["end_unix"] = end_unix
+	job["time_remaining"] = maxf(0.0, float(end_unix - now))
+	active_jobs[idx] = job
+	save_construction_state()
+	_sync_resource_manager_flags(bid, true, float(job["time_remaining"]))
+	construction_jobs_changed.emit()
+
+	if end_unix <= now:
+		var done: Dictionary = complete_construction(bid)
+		done["completed"] = true
+		done["remaining"] = 0.0
+		return done
+
+	return {
+		"ok": true,
+		"reason": "",
+		"completed": false,
+		"remaining": float(job["time_remaining"]),
+		"end_unix": end_unix,
+	}
 
 
 func complete_construction(building_id: String) -> Dictionary:
@@ -265,6 +302,8 @@ func _complete_job_at(idx: int) -> Dictionary:
 	_notify_city_level(bid, new_level)
 	construction_completed.emit(bid, new_level)
 	construction_jobs_changed.emit()
+	if has_node("/root/GameEvents"):
+		GameEvents.emit_building_upgraded(bid, new_level)
 	return {
 		"ok": true,
 		"new_level": new_level,

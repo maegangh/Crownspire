@@ -65,6 +65,8 @@ func on_open() -> void:
 	else:
 		_view = ViewMode.LOBBY
 	_refresh()
+	if has_node("/root/GameEvents"):
+		GameEvents.emit_alliance_opened()
 
 
 func on_close() -> void:

@@ -86,11 +86,15 @@ func finish_march() -> void:
 
 # --- Capacity / helpers ---
 
-func get_march_capacity() -> int:
+## Final march capacity via StatResolver (Citadel base + research flats + march-hero %).
+## hero_ids: selected march heroes for march-active capacity bonuses.
+func get_march_capacity(hero_ids: Array = []) -> int:
+	if has_node("/root/StatResolver") and StatResolver.has_method("get_march_capacity"):
+		return int(StatResolver.get_march_capacity(hero_ids))
 	var castle_level: int = 1
 	if has_node("/root/GameState"):
 		castle_level = max(1, int(GameState.castle_level))
-	# Centralized beta fallback: castle level is the only current capacity hook.
+	# Fallback if StatResolver unavailable (should not happen in production).
 	return BASE_MARCH_CAPACITY + (castle_level * CAPACITY_PER_CASTLE_LEVEL)
 
 
@@ -109,7 +113,10 @@ func can_start_wildling_march() -> Dictionary:
 	return {"ok": true}
 
 
-func estimate_travel_seconds(from_pos: Vector2, to_pos: Vector2) -> int:
+## Travel time using StatResolver march speed (base 220 px/s + march-hero %).
+func estimate_travel_seconds(from_pos: Vector2, to_pos: Vector2, hero_ids: Array = []) -> int:
+	if has_node("/root/StatResolver") and StatResolver.has_method("estimate_travel_seconds"):
+		return int(StatResolver.estimate_travel_seconds(from_pos, to_pos, hero_ids))
 	var dist: float = from_pos.distance_to(to_pos)
 	return max(5, int(ceil(dist / MARCH_SPEED_PX_PER_SEC)))
 
@@ -174,7 +181,7 @@ func validate_wildling_dispatch(
 	if TroopState.get_available_count("Cavalry") < cav:
 		return {"ok": false, "error": "Not enough Cavalry."}
 
-	var capacity: int = get_march_capacity()
+	var capacity: int = get_march_capacity(hero_ids)
 	if total > capacity:
 		return {"ok": false, "error": "Troops exceed march capacity (%d)." % capacity}
 
@@ -227,26 +234,30 @@ func dispatch_wildling_march(
 		target["instance_id"] = live_wildling.get_instance_id()
 		target["node_path"] = str(live_wildling.get_path())
 
-	var travel_sec: int = estimate_travel_seconds(start_pos, target_pos)
+	var hero_payload: Array = []
+	for hid: Variant in hero_ids:
+		hero_payload.append(str(hid))
+	var travel_sec: int = estimate_travel_seconds(start_pos, target_pos, hero_payload)
 	var now: int = int(Time.get_unix_time_from_system())
 	var troop_payload: Dictionary = {
 		"infantry": int(troops.get("infantry", 0)),
 		"marksmen": int(troops.get("marksmen", 0)),
 		"cavalry": int(troops.get("cavalry", 0)),
 	}
-	var hero_payload: Array = []
-	for hid: Variant in hero_ids:
-		hero_payload.append(str(hid))
+	var composition: Dictionary = build_troop_tier_composition(troops)
+	if composition.is_empty():
+		return {"ok": false, "error": "Could not allocate troop tiers."}
 
-	if not TroopState.deploy_troops(
-		troop_payload["infantry"],
-		troop_payload["marksmen"],
-		troop_payload["cavalry"]
-	):
-		return {"ok": false, "error": "Failed to deploy troops."}
+	# Tier-aware deploy (same ownership model as gather marches).
+	if not TroopState.deploy_troops_by_tiers(composition):
+		return {"ok": false, "error": "Failed to deploy troops by tier."}
 
 	for hid: Variant in hero_payload:
 		HeroState.set_hero_on_march(str(hid), true)
+
+	var combat_preview: Dictionary = {}
+	if has_node("/root/StatResolver") and StatResolver.has_method("resolve_march_combat_stats"):
+		combat_preview = StatResolver.resolve_march_combat_stats(composition, hero_payload)
 
 	var march_id: String = "march_%d_%d" % [now, randi() % 100000]
 	var march: Dictionary = {
@@ -265,8 +276,14 @@ func dispatch_wildling_march(
 		"hero_ids": hero_payload,
 		"troops": troop_payload.duplicate(true),
 		"original_troops": troop_payload.duplicate(true),
+		"troop_tiers": composition.duplicate(true),
+		"original_troop_tiers": composition.duplicate(true),
 		"surviving_troops": troop_payload.duplicate(true),
-		"march_power": calculate_march_power(troop_payload, hero_payload),
+		"surviving_troop_tiers": composition.duplicate(true),
+		"wounded_troop_tiers": {"infantry": {}, "marksmen": {}, "cavalry": {}},
+		"wounded_recorded": false,
+		"march_power": calculate_march_power(troop_payload, hero_payload), # legacy field only
+		"combat_stats_preview": combat_preview,
 		"battle_resolved": false,
 		"battle_result": {},
 		"rewards_granted": false,
@@ -276,6 +293,8 @@ func dispatch_wildling_march(
 	save_marches()
 	_ensure_visual(march)
 	marches_changed.emit()
+	if has_node("/root/GameEvents"):
+		GameEvents.emit_march_dispatched(march)
 	return {"ok": true, "march_id": march_id, "travel_seconds": travel_sec}
 
 
@@ -340,8 +359,9 @@ func _tick_marches() -> void:
 
 func _resolve_battle(march: Dictionary) -> void:
 	if bool(march.get("battle_resolved", false)):
-		# Already resolved (e.g. offline); ensure returning.
-		if str(march.get("status", "")) == STATUS_MARCHING:
+		# Already resolved (e.g. offline); ensure wounded recorded + returning.
+		_record_wounded_from_march(march)
+		if str(march.get("status", "")) in [STATUS_MARCHING, STATUS_IN_COMBAT]:
 			_begin_return(march)
 		return
 
@@ -349,19 +369,51 @@ func _resolve_battle(march: Dictionary) -> void:
 	var target: Dictionary = march.get("target_data", {})
 	var wildling: Node2D = _resolve_wildling_node(target)
 	var wildling_alive: bool = wildling != null and is_instance_valid(wildling) and wildling.visible
-	var wildling_power: int = int(target.get("power", 100))
-	var march_power: int = int(march.get("march_power", 0))
+	var hero_ids: Array = march.get("hero_ids", []) as Array
+	var tiers: Dictionary = march.get("original_troop_tiers", march.get("troop_tiers", {})) as Dictionary
+	if typeof(tiers) != TYPE_DICTIONARY or tiers.is_empty():
+		# Legacy marches without tier data — rebuild from flat counts (all as T1).
+		tiers = _legacy_tiers_from_flat(march.get("original_troops", march.get("troops", {})))
 
-	var result: Dictionary = resolve_wildling_combat(
-		march.get("troops", {}),
-		march_power,
-		wildling_power,
-		int(target.get("level", 1)),
-		wildling_alive
-	)
+	var result: Dictionary
+	if not wildling_alive:
+		result = {
+			"victory": false,
+			"summary": "The Wildling fled before your march arrived.",
+			"rounds": 0,
+			"surviving_troops": (march.get("original_troops", march.get("troops", {})) as Dictionary).duplicate(true),
+			"surviving_troop_tiers": tiers.duplicate(true),
+			"wounded_troop_tiers": {"infantry": {}, "marksmen": {}, "cavalry": {}},
+			"losses": {"infantry": 0, "marksmen": 0, "cavalry": 0},
+			"wounded": {"infantry": 0, "marksmen": 0, "cavalry": 0},
+			"permanent_losses": {"infantry": 0, "marksmen": 0, "cavalry": 0},
+			"player_stats": {},
+			"wildling_stats": {},
+		}
+	elif has_node("/root/WildlingCombatResolver") and has_node("/root/StatResolver"):
+		var player_stats: Dictionary = StatResolver.resolve_march_combat_stats(tiers, hero_ids)
+		var wstats: Dictionary = WildlingCombatResolver.get_wildling_combat_stats(
+			int(target.get("level", 1)),
+			str(target.get("species", ""))
+		)
+		result = WildlingCombatResolver.resolve_battle(player_stats, wstats, tiers)
+		result["player_march_stats"] = player_stats
+	else:
+		# Fallback should never run in production — keep old stub only if resolver missing.
+		result = resolve_wildling_combat(
+			march.get("troops", {}),
+			int(march.get("march_power", 0)),
+			int(target.get("power", 100)),
+			int(target.get("level", 1)),
+			wildling_alive
+		)
+
 	march["battle_result"] = result
 	march["battle_resolved"] = true
 	march["surviving_troops"] = result.get("surviving_troops", {}).duplicate(true)
+	march["surviving_troop_tiers"] = result.get("surviving_troop_tiers", tiers).duplicate(true)
+	march["wounded_troop_tiers"] = result.get("wounded_troop_tiers", {}).duplicate(true)
+	_record_wounded_from_march(march)
 
 	if result.get("victory", false) and wildling_alive:
 		_defeat_wildling(wildling, target)
@@ -370,11 +422,72 @@ func _resolve_battle(march: Dictionary) -> void:
 			march["rewards_granted"] = true
 			result["rewards"] = rewards
 			if has_node("/root/GameEvents"):
-				GameEvents.emit_wildling_defeated(1)
+				var wid: String = str(target.get("instance_id", ""))
+				if wid.is_empty():
+					wid = "%s_L%d" % [
+						str(target.get("species", "wildling")),
+						int(target.get("level", 1)),
+					]
+				GameEvents.emit_wildling_defeated(wid)
 
 	_create_battle_mail_report(march, result)
 	march_battle_resolved.emit(str(march.get("march_id", "")), result)
 	_begin_return(march)
+
+
+func _record_wounded_from_march(march: Dictionary) -> void:
+	if bool(march.get("wounded_recorded", false)):
+		return
+	if not has_node("/root/TroopState"):
+		return
+	var wounded_tiers: Dictionary = march.get("wounded_troop_tiers", {}) as Dictionary
+	if typeof(wounded_tiers) != TYPE_DICTIONARY:
+		return
+	var any: bool = false
+	for kind: String in ["infantry", "marksmen", "cavalry"]:
+		var by_tier: Dictionary = wounded_tiers.get(kind, {}) as Dictionary
+		if typeof(by_tier) == TYPE_DICTIONARY and not by_tier.is_empty():
+			any = true
+			break
+	if any:
+		# Canonical Hospital→Sanctuary routing (Phase 5). Do not bypass with add_wounded_by_tiers.
+		var routed: Dictionary = {}
+		if TroopState.has_method("route_wounded_by_tiers"):
+			routed = TroopState.route_wounded_by_tiers(wounded_tiers)
+		elif TroopState.has_method("add_wounded_by_tiers"):
+			TroopState.add_wounded_by_tiers(wounded_tiers)
+			routed = {
+				"hospital": wounded_tiers,
+				"sanctuary": {"infantry": {}, "marksmen": {}, "cavalry": {}},
+				"hospital_count": _count_flat_from_tiers(wounded_tiers),
+				"sanctuary_count": 0,
+			}
+		march["wounded_routing"] = routed
+		var br: Dictionary = march.get("battle_result", {}) as Dictionary
+		if typeof(br) == TYPE_DICTIONARY:
+			br["wounded_routing"] = routed
+			march["battle_result"] = br
+	march["wounded_recorded"] = true
+
+
+func _count_flat_from_tiers(tiers: Dictionary) -> int:
+	var total: int = 0
+	for kind: String in ["infantry", "marksmen", "cavalry"]:
+		var by_tier: Dictionary = tiers.get(kind, {}) as Dictionary
+		if typeof(by_tier) != TYPE_DICTIONARY:
+			continue
+		for tk: Variant in by_tier.keys():
+			total += maxi(0, int(by_tier[tk]))
+	return total
+
+
+func _legacy_tiers_from_flat(troops: Dictionary) -> Dictionary:
+	var out: Dictionary = {"infantry": {}, "marksmen": {}, "cavalry": {}}
+	for kind: String in ["infantry", "marksmen", "cavalry"]:
+		var n: int = int(troops.get(kind, 0))
+		if n > 0:
+			out[kind] = {1: n}
+	return out
 
 
 ## Persist exactly one Mail battle report per resolved march (no reward re-grant).
@@ -464,7 +577,8 @@ func _begin_return_at(march: Dictionary, start_unix: int) -> void:
 		float(march.get("target_position", {}).get("x", 0)),
 		float(march.get("target_position", {}).get("y", 0))
 	)
-	var travel_sec: int = estimate_travel_seconds(cur_pos, start_pos)
+	var return_heroes: Array = march.get("hero_ids", []) as Array
+	var travel_sec: int = estimate_travel_seconds(cur_pos, start_pos, return_heroes)
 	march["status"] = STATUS_RETURNING
 	march["departure_timestamp"] = start_unix
 	march["arrival_timestamp"] = start_unix # outbound complete
@@ -514,13 +628,21 @@ func _begin_gathering(march: Dictionary) -> void:
 		_begin_return_at(march, arrival)
 		return
 
-	var gather_sec: int = calculate_gather_seconds(gather_amount)
+	var gather_heroes: Array = march.get("hero_ids", []) as Array
+	var gather_rtype: String = str(march.get("resource_type", ""))
+	var gather_sec: int = calculate_gather_seconds(gather_amount, gather_rtype, gather_heroes)
+	var gather_rate: float = BASE_GATHER_RATE_PER_SEC
+	if has_node("/root/StatResolver") and StatResolver.has_method("get_gather_rate"):
+		gather_rate = float(StatResolver.get_gather_rate(gather_rtype, gather_heroes))
 	march["gather_target_amount"] = gather_amount
 	march["gather_seconds"] = gather_sec
+	march["gather_rate_per_sec"] = gather_rate
 	march["status"] = STATUS_GATHERING
 	march["gather_started_unix"] = arrival
 	march["gather_end_unix"] = arrival + gather_sec
 	# Tile amount is reduced on gather complete; GameState credit only on home return.
+	if has_node("/root/GameEvents"):
+		GameEvents.emit_gathering_started(gather_rtype)
 
 
 func _finish_gathering(march: Dictionary) -> void:
@@ -565,13 +687,20 @@ func _complete_return(march: Dictionary) -> void:
 		march["status"] = STATUS_COMPLETED
 		return
 
-	var survivors: Dictionary = march.get("surviving_troops", {})
-	if has_node("/root/TroopState"):
-		TroopState.return_troops(
-			int(survivors.get("infantry", 0)),
-			int(survivors.get("marksmen", 0)),
-			int(survivors.get("cavalry", 0))
-		)
+	# Wildling / combat marches: return survivors by tier; wounded already recorded at battle.
+	_record_wounded_from_march(march)
+	if not bool(march.get("troops_returned", false)) and has_node("/root/TroopState"):
+		var surv_tiers: Dictionary = march.get("surviving_troop_tiers", {}) as Dictionary
+		if typeof(surv_tiers) == TYPE_DICTIONARY and not surv_tiers.is_empty():
+			TroopState.return_troops_by_tiers(surv_tiers)
+		else:
+			var survivors: Dictionary = march.get("surviving_troops", {})
+			TroopState.return_troops(
+				int(survivors.get("infantry", 0)),
+				int(survivors.get("marksmen", 0)),
+				int(survivors.get("cavalry", 0))
+			)
+		march["troops_returned"] = true
 	if has_node("/root/HeroState"):
 		for hid2: Variant in march.get("hero_ids", []):
 			HeroState.set_hero_on_march(str(hid2), false)
@@ -598,6 +727,9 @@ func _credit_gather_cargo(march: Dictionary) -> void:
 			GameState.add_iron(amount)
 		_:
 			push_warning("[MarchState] Unknown gather resource_type '%s' — no credit." % rtype)
+			return
+	if has_node("/root/GameEvents"):
+		GameEvents.emit_gathering_completed(rtype, amount)
 
 
 func _defeat_wildling(wildling: Node2D, target: Dictionary) -> void:
@@ -712,9 +844,21 @@ func _sync_visuals() -> void:
 			_update_visual_progress(march, Time.get_unix_time_from_system())
 
 
+## True only for KingdomMap / WorldRoot — march icons must not parent under City.
+func _is_world_map_scene(scene: Node) -> bool:
+	if scene == null:
+		return false
+	if str(scene.name) == "WorldRoot":
+		return true
+	if scene.get_node_or_null("PlayerCastleMarker") != null:
+		return true
+	var path: String = str(scene.scene_file_path)
+	return path.ends_with("KingdomMap.tscn")
+
+
 func _get_marches_root() -> Node2D:
 	var world: Node = get_tree().current_scene
-	if world == null:
+	if world == null or not _is_world_map_scene(world):
 		return null
 	var root: Node2D = world.get_node_or_null("Marches") as Node2D
 	if root == null:
@@ -727,15 +871,50 @@ func _get_marches_root() -> Node2D:
 	return root
 
 
+## Safe cache read: never typed-assign a freed Object out of a Dictionary.
+## World↔City frees Marches children while MarchState (autoload) keeps keys.
+func _get_visual(march_id: String) -> Node2D:
+	if not _visuals.has(march_id):
+		return null
+	var ref: Variant = _visuals[march_id]
+	if not is_instance_valid(ref):
+		_visuals.erase(march_id)
+		return null
+	return ref as Node2D
+
+
+func _get_gather_indicator(march_id: String) -> Node2D:
+	if not _gather_indicators.has(march_id):
+		return null
+	var ref: Variant = _gather_indicators[march_id]
+	if not is_instance_valid(ref):
+		_gather_indicators.erase(march_id)
+		return null
+	return ref as Node2D
+
+
+## Drop autoload cache entries whose Nodes died with a freed World scene.
+func _forget_dead_map_visuals() -> void:
+	var dead_v: Array[String] = []
+	for key: Variant in _visuals.keys():
+		if not is_instance_valid(_visuals[key]):
+			dead_v.append(str(key))
+	for mid: String in dead_v:
+		_visuals.erase(mid)
+	var dead_g: Array[String] = []
+	for key2: Variant in _gather_indicators.keys():
+		if not is_instance_valid(_gather_indicators[key2]):
+			dead_g.append(str(key2))
+	for gid: String in dead_g:
+		_gather_indicators.erase(gid)
+
+
 func _ensure_visual(march: Dictionary) -> void:
 	var march_id: String = str(march.get("march_id", ""))
 	if march_id == "":
 		return
-	if _visuals.has(march_id):
-		var existing: Node2D = _visuals[march_id] as Node2D
-		if existing != null and is_instance_valid(existing):
-			return
-		_visuals.erase(march_id)
+	if _get_visual(march_id) != null:
+		return
 	var root: Node2D = _get_marches_root()
 	if root == null:
 		return
@@ -844,26 +1023,25 @@ func _destroy_visual(march_id: String) -> void:
 	_clear_gather_indicator(march_id)
 	if not _visuals.has(march_id):
 		return
-	var node: Node2D = _visuals[march_id]
+	var ref: Variant = _visuals[march_id]
 	_visuals.erase(march_id)
-	if is_instance_valid(node):
-		node.queue_free()
+	if is_instance_valid(ref):
+		(ref as Node).queue_free()
 
 
 func _update_visual_progress(march: Dictionary, now: float) -> void:
 	var march_id: String = str(march.get("march_id", ""))
-	if not _visuals.has(march_id):
-		_ensure_visual(march)
-	if not _visuals.has(march_id):
+	if march_id == "":
 		return
-	var icon: Node2D = _visuals[march_id]
-	if not is_instance_valid(icon):
-		_visuals.erase(march_id)
+	# Leaving World frees Marches children; autoload cache must not typed-assign them.
+	if _get_marches_root() == null:
+		_forget_dead_map_visuals()
+		return
+	var icon: Node2D = _get_visual(march_id)
+	if icon == null:
 		_ensure_visual(march)
-		if not _visuals.has(march_id):
-			return
-		icon = _visuals[march_id]
-		if not is_instance_valid(icon):
+		icon = _get_visual(march_id)
+		if icon == null:
 			return
 
 	var start_pos: Vector2 = Vector2(
@@ -919,12 +1097,10 @@ func _ensure_gather_indicator(march: Dictionary, target_pos: Vector2) -> void:
 	var march_id: String = str(march.get("march_id", ""))
 	if march_id == "":
 		return
-	if _gather_indicators.has(march_id):
-		var existing: Node2D = _gather_indicators[march_id] as Node2D
-		if existing != null and is_instance_valid(existing):
-			existing.global_position = target_pos + Vector2(0.0, -72.0)
-			return
-		_gather_indicators.erase(march_id)
+	var existing: Node2D = _get_gather_indicator(march_id)
+	if existing != null:
+		existing.global_position = target_pos + Vector2(0.0, -72.0)
+		return
 
 	var root: Node2D = _get_marches_root()
 	if root == null:
@@ -974,11 +1150,8 @@ func _make_gather_indicator() -> Node2D:
 
 
 func _update_gather_indicator(march_id: String, now: float) -> void:
-	if not _gather_indicators.has(march_id):
-		return
-	var badge: Node2D = _gather_indicators[march_id] as Node2D
-	if badge == null or not is_instance_valid(badge):
-		_gather_indicators.erase(march_id)
+	var badge: Node2D = _get_gather_indicator(march_id)
+	if badge == null:
 		return
 	# Keep badge roughly constant on-screen size while the map zooms.
 	var cam: Camera2D = get_viewport().get_camera_2d() if get_viewport() != null else null
@@ -1007,10 +1180,10 @@ func _format_mmss(total_sec: int) -> String:
 func _clear_gather_indicator(march_id: String) -> void:
 	if not _gather_indicators.has(march_id):
 		return
-	var badge: Node2D = _gather_indicators[march_id] as Node2D
+	var ref: Variant = _gather_indicators[march_id]
 	_gather_indicators.erase(march_id)
-	if badge != null and is_instance_valid(badge):
-		badge.queue_free()
+	if is_instance_valid(ref):
+		(ref as Node).queue_free()
 
 
 ## Single canonical orientation for outbound AND return.
@@ -1230,7 +1403,7 @@ func validate_resource_setup(
 	if TroopState.get_available_count("Cavalry") < cav:
 		return {"ok": false, "error": "Not enough Cavalry."}
 
-	var capacity: int = get_march_capacity()
+	var capacity: int = get_march_capacity(hero_ids)
 	if total > capacity:
 		return {"ok": false, "error": "Troops exceed march capacity (%d)." % capacity}
 
@@ -1290,7 +1463,9 @@ func calculate_troop_load(composition: Dictionary) -> int:
 	return total
 
 
-func calculate_gather_seconds(gather_amount: int) -> int:
+func calculate_gather_seconds(gather_amount: int, resource_type: String = "", hero_ids: Array = []) -> int:
+	if has_node("/root/StatResolver") and StatResolver.has_method("calculate_gather_seconds"):
+		return int(StatResolver.calculate_gather_seconds(gather_amount, resource_type, hero_ids))
 	if gather_amount <= 0:
 		return MIN_GATHER_SECONDS
 	var rate: float = maxf(0.001, BASE_GATHER_RATE_PER_SEC)
@@ -1321,13 +1496,20 @@ func dispatch_gather_march(
 	if gather_target_amount <= 0:
 		return {"ok": false, "error": "Nothing to gather."}
 
-	var gather_seconds: int = calculate_gather_seconds(gather_target_amount)
+	var hero_payload: Array = []
+	for hid: Variant in hero_ids:
+		hero_payload.append(str(hid))
+	var rtype: String = str(target.get("resource_type", "")).strip_edges().to_lower()
+	var gather_rate: float = BASE_GATHER_RATE_PER_SEC
+	if has_node("/root/StatResolver") and StatResolver.has_method("get_gather_rate"):
+		gather_rate = float(StatResolver.get_gather_rate(rtype, hero_payload))
+	var gather_seconds: int = calculate_gather_seconds(gather_target_amount, rtype, hero_payload)
 	var start_pos: Vector2 = get_castle_world_position()
 	var target_pos := Vector2(
 		float(target.get("position", {}).get("x", 0)),
 		float(target.get("position", {}).get("y", 0))
 	)
-	var travel_sec: int = estimate_travel_seconds(start_pos, target_pos)
+	var travel_sec: int = estimate_travel_seconds(start_pos, target_pos, hero_payload)
 	var now: int = int(Time.get_unix_time_from_system())
 
 	var troop_payload: Dictionary = {
@@ -1335,9 +1517,6 @@ func dispatch_gather_march(
 		"marksmen": int(troops.get("marksmen", 0)),
 		"cavalry": int(troops.get("cavalry", 0)),
 	}
-	var hero_payload: Array = []
-	for hid: Variant in hero_ids:
-		hero_payload.append(str(hid))
 
 	# Reserve tile before consuming troops / march slot.
 	var march_id: String = "march_%d_%d" % [now, randi() % 100000]
@@ -1354,7 +1533,6 @@ func dispatch_gather_march(
 		for hid2: Variant in hero_payload:
 			HeroState.set_hero_on_march(str(hid2), true)
 
-	var rtype: String = str(target.get("resource_type", "")).strip_edges().to_lower()
 	var target_payload: Dictionary = target.duplicate(true)
 	target_payload["resource_tile_id"] = tile_id
 	target_payload["resource_amount"] = remaining_live
@@ -1385,7 +1563,7 @@ func dispatch_gather_march(
 		"gather_seconds": gather_seconds,
 		"gather_started_unix": 0,
 		"gather_end_unix": 0,
-		"gather_rate_per_sec": BASE_GATHER_RATE_PER_SEC,
+		"gather_rate_per_sec": gather_rate,
 		"tile_amount_applied": false,
 		"resources_credited": false,
 		"troops_returned": false,
@@ -1399,6 +1577,8 @@ func dispatch_gather_march(
 	save_marches()
 	_ensure_visual(march)
 	marches_changed.emit()
+	if has_node("/root/GameEvents"):
+		GameEvents.emit_march_dispatched(march)
 	return {
 		"ok": true,
 		"march_id": march_id,
@@ -1428,6 +1608,8 @@ func end_smoke_isolation() -> void:
 
 func resync_map_visuals() -> void:
 	# Clear stale icons/indicators then rebuild for the current World Map scene.
+	# First drop refs already freed by a prior World→City scene change.
+	_forget_dead_map_visuals()
 	for key: Variant in _visuals.keys():
 		_destroy_visual(str(key))
 	for key: Variant in _gather_indicators.keys():
@@ -1566,9 +1748,43 @@ func run_gather_tile_sync_smoke_test() -> bool:
 	return false
 
 
+## Proves stale freed Node2D entries in _visuals do not throw on update.
+func _run_freed_visual_cache_smoke() -> bool:
+	var probe_id: String = "__smoke_freed_visual__"
+	var orphan := Node2D.new()
+	orphan.name = probe_id
+	_visuals[probe_id] = orphan
+	orphan.free() # immediate free — same invalid state as scene teardown
+	var peeked: Node2D = _get_visual(probe_id)
+	if peeked != null or _visuals.has(probe_id):
+		push_error("[MarchState] smoke: freed visual cache peek failed")
+		_visuals.erase(probe_id)
+		return false
+	# Re-seed a freed ref and exercise the tick update path (must not SCRIPT ERROR).
+	var orphan2 := Node2D.new()
+	_visuals[probe_id] = orphan2
+	orphan2.free()
+	_update_visual_progress({
+		"march_id": probe_id,
+		"status": STATUS_MARCHING,
+		"start_position": {"x": 0.0, "y": 0.0},
+		"target_position": {"x": 10.0, "y": 0.0},
+		"departure_timestamp": 0,
+		"arrival_timestamp": 999999,
+	}, Time.get_unix_time_from_system())
+	_forget_dead_map_visuals()
+	_visuals.erase(probe_id)
+	print("[MarchState] freed visual cache smoke PASSED")
+	return true
+
+
 func run_wildling_march_smoke_test() -> bool:
 	begin_smoke_isolation()
 	var ok: bool = true
+
+	# Reproduce World→City freed-icon crash: typed assign from stale _visuals cache.
+	if not _run_freed_visual_cache_smoke():
+		ok = false
 
 	var bak_inf: int = 0
 	var bak_mar: int = 0
@@ -1675,8 +1891,8 @@ func run_wildling_march_smoke_test() -> bool:
 		# Visual must be the animated march asset, not the old Polygon2D arrow.
 		if not active_marches.is_empty():
 			var mid: String = str(active_marches[0].get("march_id", ""))
-			if _visuals.has(mid):
-				var icon: Node2D = _visuals[mid]
+			var icon: Node2D = _get_visual(mid)
+			if icon != null:
 				if icon.get_node_or_null("Body") is Polygon2D:
 					push_error("[MarchState] smoke: arrow placeholder Body still present")
 					ok = false
@@ -1754,14 +1970,26 @@ func run_wildling_march_smoke_test() -> bool:
 		active_marches.clear()
 		save_marches()
 
-	# Combat resolver unit check.
-	var win: Dictionary = resolve_wildling_combat({"infantry": 100, "marksmen": 0, "cavalry": 0}, 5000, 100, 1, true)
-	if not win.get("victory", false):
-		push_error("[MarchState] smoke: expected combat victory")
-		ok = false
-	var lose: Dictionary = resolve_wildling_combat({"infantry": 1, "marksmen": 0, "cavalry": 0}, 10, 5000, 20, true)
-	if lose.get("victory", false):
-		push_error("[MarchState] smoke: expected combat defeat")
+	# Combat resolver unit check (Phase 3 — StatResolver + WildlingCombatResolver).
+	if has_node("/root/WildlingCombatResolver") and has_node("/root/StatResolver"):
+		var win_tiers: Dictionary = {"infantry": {3: 120}, "marksmen": {2: 40}, "cavalry": {2: 40}}
+		var win_stats: Dictionary = StatResolver.resolve_march_combat_stats(win_tiers, [])
+		var win: Dictionary = WildlingCombatResolver.resolve_battle(
+			win_stats, WildlingCombatResolver.get_wildling_combat_stats(1, "wolf"), win_tiers
+		)
+		if not win.get("victory", false):
+			push_error("[MarchState] smoke: expected combat victory")
+			ok = false
+		var lose_tiers: Dictionary = {"infantry": {1: 8}, "marksmen": {}, "cavalry": {}}
+		var lose_stats: Dictionary = StatResolver.resolve_march_combat_stats(lose_tiers, [])
+		var lose: Dictionary = WildlingCombatResolver.resolve_battle(
+			lose_stats, WildlingCombatResolver.get_wildling_combat_stats(28, "troll"), lose_tiers
+		)
+		if lose.get("victory", false):
+			push_error("[MarchState] smoke: expected combat defeat")
+			ok = false
+	else:
+		push_error("[MarchState] smoke: WildlingCombatResolver/StatResolver missing")
 		ok = false
 
 	if get_march_capacity() < BASE_MARCH_CAPACITY:

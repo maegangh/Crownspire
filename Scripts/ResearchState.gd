@@ -125,6 +125,8 @@ func try_start_research(job: Dictionary) -> Dictionary:
 	active_jobs.append(stored)
 	save_research_state()
 	research_jobs_changed.emit()
+	if has_node("/root/GameEvents"):
+		GameEvents.emit_research_started(rid)
 	return {"ok": true, "reason": ""}
 
 
@@ -143,6 +145,51 @@ func cancel_primary_research() -> Dictionary:
 	if active_jobs.is_empty():
 		return {}
 	return cancel_research(str((active_jobs[0] as Dictionary).get("research_id", "")))
+
+
+## Reduce real research time_remaining. Completes via canonical path if due.
+func speedup_research(research_id: String, seconds: float) -> Dictionary:
+	var rid: String = research_id.strip_edges()
+	var idx: int = _find_job_index(rid)
+	if idx < 0 and rid.is_empty() and not active_jobs.is_empty():
+		rid = str((active_jobs[0] as Dictionary).get("research_id", ""))
+		idx = _find_job_index(rid)
+	if idx < 0:
+		return {"ok": false, "reason": "No active research for this project."}
+	var sec: float = maxf(0.0, seconds)
+	if sec <= 0.0:
+		return {"ok": false, "reason": "Invalid speedup duration."}
+
+	var job: Dictionary = active_jobs[idx] as Dictionary
+	var rem: float = maxf(0.0, float(job.get("time_remaining", 0.0)) - sec)
+	job["time_remaining"] = rem
+	active_jobs[idx] = job
+	save_research_state()
+	research_jobs_changed.emit()
+
+	if rem <= 0.0:
+		_complete_job(rid)
+		return {
+			"ok": true,
+			"reason": "",
+			"completed": true,
+			"remaining": 0.0,
+			"research_id": rid,
+		}
+	return {
+		"ok": true,
+		"reason": "",
+		"completed": false,
+		"remaining": rem,
+		"research_id": rid,
+	}
+
+
+func get_remaining_seconds(research_id: String = "") -> float:
+	var job: Dictionary = get_job_for(research_id) if not research_id.is_empty() else get_primary_job()
+	if job.is_empty():
+		return 0.0
+	return float(job.get("time_remaining", 0.0))
 
 
 func get_research_level(research_id: String) -> int:
@@ -221,6 +268,8 @@ func _complete_job(research_id: String) -> void:
 	save_research_state()
 	research_completed.emit(research_id, lvl)
 	research_jobs_changed.emit()
+	if has_node("/root/GameEvents"):
+		GameEvents.emit_research_completed(research_id)
 
 
 func _find_job_index(research_id: String) -> int:

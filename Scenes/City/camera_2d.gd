@@ -67,7 +67,8 @@ func _input(event: InputEvent) -> void:
 	# While a City gesture is active, keep ownership until release even if the
 	# pointer drifts over HUD chrome — otherwise press/release get desynced and
 	# taps never fire.
-	var gui_blocks_new_gesture: bool = _pointer_over_blocking_gui()
+	var probe_pos: Vector2 = _event_screen_pos(event)
+	var gui_blocks_new_gesture: bool = _pointer_over_blocking_gui(probe_pos)
 	if gui_blocks_new_gesture and not CityGestureUtil.pressing:
 		return
 
@@ -111,7 +112,20 @@ func _is_pointer_release(event: InputEvent) -> bool:
 	return false
 
 
-func _pointer_over_blocking_gui() -> bool:
+func _event_screen_pos(event: InputEvent) -> Vector2:
+	if event is InputEventMouseButton:
+		return (event as InputEventMouseButton).position
+	if event is InputEventScreenTouch:
+		return (event as InputEventScreenTouch).position
+	if event is InputEventMouseMotion:
+		return (event as InputEventMouseMotion).position
+	if event is InputEventScreenDrag:
+		return (event as InputEventScreenDrag).position
+	var vp: Viewport = get_viewport()
+	return vp.get_mouse_position() if vp != null else Vector2.ZERO
+
+
+func _pointer_over_blocking_gui(screen_pos: Vector2 = Vector2.INF) -> bool:
 	var vp: Viewport = get_viewport()
 	if vp == null:
 		return false
@@ -120,6 +134,13 @@ func _pointer_over_blocking_gui() -> bool:
 		return false
 	# Building level badges are Controls parented under Node2D buildings — must NOT block city taps.
 	if _is_building_decor_control(hovered):
+		return false
+	var pos: Vector2 = screen_pos
+	if pos == Vector2.INF:
+		pos = vp.get_mouse_position()
+	# FTUE spotlight hole is visual-only (HighlightHole IGNORE). If the pointer is inside
+	# that hole, do not let leftover ScreenRoot dims / non-chrome Controls steal the gesture.
+	if _pointer_inside_tutorial_spotlight_hole(pos) and not _is_tutorial_interactive_chrome(hovered):
 		return false
 	# Any other Control (HUD buttons, screens, upgrade window) keeps ownership.
 	return true
@@ -136,6 +157,33 @@ func _is_building_decor_control(ctrl: Control) -> bool:
 	return false
 
 
+func _pointer_inside_tutorial_spotlight_hole(screen_pos: Vector2) -> bool:
+	var hud: Node = get_parent().get_node_or_null("GameHUD") if get_parent() else null
+	if hud == null and get_tree() != null:
+		hud = get_tree().root.find_child("GameHUD", true, false)
+	if hud == null:
+		return false
+	var overlay: Node = hud.get_node_or_null("TutorialOverlay")
+	if overlay == null or not (overlay is CanvasItem) or not (overlay as CanvasItem).visible:
+		return false
+	var hole: Control = overlay.find_child("HighlightHole", true, false) as Control
+	if hole == null or not hole.visible or hole.size.x < 8.0 or hole.size.y < 8.0:
+		return false
+	return hole.get_global_rect().has_point(screen_pos)
+
+
+func _is_tutorial_interactive_chrome(ctrl: Control) -> bool:
+	var n: Node = ctrl
+	while n != null:
+		var nm: String = str(n.name)
+		if nm in ["InstructionPanel", "SkipButton", "ContinueButton", "SkipConfirm"]:
+			return true
+		if nm == "TutorialOverlay":
+			return false
+		n = n.get_parent()
+	return false
+
+
 func _is_blocked() -> bool:
 	if has_node("/root/GameState") and GameState.ui_blocking_input:
 		return true
@@ -147,6 +195,17 @@ func _is_blocked() -> bool:
 	if hud != null:
 		var mgr: Node = hud.get_node_or_null("UIManager")
 		if mgr != null and mgr.has_method("is_screen_open") and bool(mgr.is_screen_open()):
+			# Ghost ownership: screen visually closed but UIManager still claims open.
+			var screen_name: String = ""
+			if mgr.has_method("get_current_screen_name"):
+				screen_name = str(mgr.call("get_current_screen_name"))
+			var screen: CanvasItem = null
+			if not screen_name.is_empty():
+				screen = hud.get_node_or_null("ScreenRoot/" + screen_name) as CanvasItem
+			if screen != null and not screen.visible:
+				if mgr.has_method("close_current_screen"):
+					mgr.call("close_current_screen")
+				return false
 			return true
 	return false
 
@@ -158,6 +217,11 @@ func _viewport_to_world(screen_pos: Vector2) -> Vector2:
 	var vp_size: Vector2 = vp.get_visible_rect().size
 	# Camera-centered conversion — avoids stretch/canvas transform mismatches.
 	return get_screen_center_position() + (screen_pos - vp_size * 0.5) / zoom
+
+
+## Soft framing helper for tutorials / UI focus. Does not change zoom or gesture thresholds.
+func focus_world_position(world_pos: Vector2) -> void:
+	global_position = world_pos
 
 
 func _handle_press(is_pressed: bool, screen_pos: Vector2) -> void:

@@ -10,11 +10,15 @@
 [ext_resource type="Script" path="res://scripts/UI/AllianceScreen.gd" id="7_alliance"]
 [ext_resource type="Script" path="res://scripts/UI/ShopScreen.gd" id="7_shop"]
 [ext_resource type="Script" path="res://scripts/UI/MarchSetupScreen.gd" id="7_march"]
+[ext_resource type="Script" path="res://scripts/UI/RallySetupScreen.gd" id="7_rally"]
 [ext_resource type="Script" path="res://scripts/UI/MailScreen.gd" id="7_mail"]
 [ext_resource type="Script" path="res://scripts/UI/TroopTrainingScreen.gd" id="7_train"]
+[ext_resource type="Script" path="res://scripts/UI/HospitalScreen.gd" id="7_hospital"]
+[ext_resource type="Script" path="res://scripts/UI/SanctuaryScreen.gd" id="7_sanctuary"]
 [ext_resource type="Texture2D" path="res://Art/UI/Placeholder/mail_envelope.png" id="9_mail_icon"]
 [ext_resource type="PackedScene" uid="uid://bcj1wm45rrorc" path="res://UI/building_upgrade/BuildingUpgradeWindow (2).tscn" id="8_0quiv"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/QueueStatusHUD.tscn" id="9_queue"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/TutorialOverlay.tscn" id="10_tutorial"]
 
 [node name="GameHUD" type="CanvasLayer" unique_id=1833121157]
 script = ExtResource("1_8yvrw")
@@ -348,6 +352,17 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("7_march")
 
+[node name="RallySetupScreen" type="Control" parent="ScreenRoot"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("7_rally")
+
 [node name="QuestScreen" type="Control" parent="ScreenRoot" unique_id=538321268]
 visible = false
 layout_mode = 1
@@ -390,6 +405,28 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("7_train")
+
+[node name="HospitalScreen" type="Control" parent="ScreenRoot"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("7_hospital")
+
+[node name="SanctuaryScreen" type="Control" parent="ScreenRoot"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("7_sanctuary")
 
 [node name="EventsScreen" type="Control" parent="ScreenRoot" unique_id=129498655]
 visible = false
@@ -552,4 +589,6 @@ offset_bottom = 23.0
 text = "Tooltip Popup"
 
 [node name="BuildingUpgradeWindow" parent="." unique_id=949679645 instance=ExtResource("8_0quiv")]
+
+[node name="TutorialOverlay" parent="." instance=ExtResource("10_tutorial")]
 visible = false

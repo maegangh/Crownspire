@@ -77,6 +77,8 @@ func activate_collect_tap() -> void:
 func activate_building_tap() -> void:
 	if GameState.popup_open or _is_main_screen_open():
 		return
+	if has_node("/root/GameEvents") and not building_id.strip_edges().is_empty():
+		GameEvents.emit_building_selected(building_id)
 	_on_upgrade_tap()
 
 
@@ -114,18 +116,25 @@ func _on_upgrade_area_input_event(_viewport, event, _shape_idx):
 func _on_collect_tap() -> void:
 	if not ready_to_collect:
 		return
+	var collected_type: String = ""
 	if building_name == "Farm":
 		GameState.add_food(collect_amount)
+		collected_type = "food"
 	elif building_name == "LumberMill":
 		GameState.add_wood(collect_amount)
+		collected_type = "wood"
 	elif building_name == "Quarry":
 		GameState.add_stone(collect_amount)
+		collected_type = "stone"
 	elif building_name == "IronMine":
 		GameState.add_iron(collect_amount)
+		collected_type = "iron"
 	else:
 		return
 
 	set_ready_to_collect(false)
+	if has_node("/root/GameEvents") and not collected_type.is_empty():
+		GameEvents.emit_resource_collected(collected_type, collect_amount)
 	get_tree().create_timer(5.0).timeout.connect(func():
 		set_ready_to_collect(true)
 	)
@@ -141,7 +150,29 @@ func _on_upgrade_tap() -> void:
 	if building_id == "academy" or building_name == "Academy":
 		_open_research_hall_actions()
 		return
+	if _is_hospital_building():
+		_open_hospital_actions()
+		return
+	if _is_sanctuary_building():
+		_open_sanctuary_screen()
+		return
 	open_upgrade_window()
+
+
+func _is_hospital_building() -> bool:
+	var id_key: String = building_id.strip_edges().to_lower()
+	if id_key in ["hospital", "medical_tent", "infirmary"]:
+		return true
+	var nm: String = building_name.strip_edges().to_lower()
+	return nm == "hospital" or nm == "sacred hospital"
+
+
+func _is_sanctuary_building() -> bool:
+	var id_key: String = building_id.strip_edges().to_lower()
+	if id_key in ["sanctuary", "grave_sanctuary"]:
+		return true
+	var nm: String = building_name.strip_edges().to_lower()
+	return nm == "sanctuary" or nm == "grave sanctuary"
 
 
 ## Troop building tap → Train / Upgrade chooser (shared BuildingActionPopup).
@@ -174,6 +205,9 @@ func _resolve_building_action_title() -> String:
 		"marksmen_camp": "MARKSMEN CAMP",
 		"cavalry_stable": "CAVALRY STABLE",
 		"academy": "RESEARCH HALL",
+		"hospital": "HOSPITAL",
+		"medical_tent": "HOSPITAL",
+		"infirmary": "HOSPITAL",
 	}
 	if titles.has(id_key):
 		return str(titles[id_key])
@@ -217,7 +251,19 @@ func _is_main_screen_open() -> bool:
 	if hud == null:
 		return false
 	var mgr: Node = hud.get_node_or_null("UIManager")
-	return mgr != null and mgr.has_method("is_screen_open") and bool(mgr.is_screen_open())
+	if mgr == null or not mgr.has_method("is_screen_open") or not bool(mgr.is_screen_open()):
+		return false
+	# Stale ownership after visual-only closes must not block building taps.
+	var screen_name: String = ""
+	if mgr.has_method("get_current_screen_name"):
+		screen_name = str(mgr.call("get_current_screen_name"))
+	if not screen_name.is_empty():
+		var screen: CanvasItem = hud.get_node_or_null("ScreenRoot/" + screen_name) as CanvasItem
+		if screen != null and not screen.visible:
+			if mgr.has_method("close_current_screen"):
+				mgr.call("close_current_screen")
+			return false
+	return true
 
 
 func _open_tavern_recruit() -> void:
@@ -237,6 +283,62 @@ func _open_tavern_recruit() -> void:
 		tavern.call("open_tavern")
 	else:
 		push_error("ResourceManager: TavernWindow missing open_tavern().")
+
+
+## Hospital tap → Heal Troops / Upgrade chooser.
+func _open_hospital_actions() -> void:
+	var hud: Node = _get_game_hud()
+	var parent_n: Node = hud if hud != null else get_tree().current_scene
+	if parent_n == null:
+		parent_n = get_tree().root
+
+	BuildingActionPopupScript.present(
+		parent_n,
+		_resolve_building_action_title(),
+		[
+			{"id": "heal", "label": "Heal Troops"},
+			{"id": "upgrade", "label": "Upgrade"},
+		],
+		func(action_id: String) -> void:
+			match action_id:
+				"heal":
+					_open_hospital_screen()
+				"upgrade":
+					open_upgrade_window()
+	)
+
+
+func _open_hospital_screen() -> void:
+	var hud: Node = _get_game_hud()
+	if hud == null:
+		push_error("ResourceManager: GameHUD not found for Hospital.")
+		return
+	var screen: Node = hud.get_node_or_null("ScreenRoot/HospitalScreen")
+	if screen == null:
+		push_error("ResourceManager: HospitalScreen missing under GameHUD/ScreenRoot.")
+		return
+	var manager: Node = hud.get_node_or_null("UIManager")
+	if manager != null and manager.has_method("open_screen"):
+		manager.call("open_screen", "HospitalScreen")
+	elif screen.has_method("on_open"):
+		screen.call("on_open")
+
+
+## Sanctuary is not upgradeable in Phase 5 — open recovery screen only.
+func _open_sanctuary_screen() -> void:
+	var hud: Node = _get_game_hud()
+	if hud == null:
+		push_error("ResourceManager: GameHUD not found for Sanctuary.")
+		return
+	var screen: Node = hud.get_node_or_null("ScreenRoot/SanctuaryScreen")
+	if screen == null:
+		push_error("ResourceManager: SanctuaryScreen missing under GameHUD/ScreenRoot.")
+		return
+	var manager: Node = hud.get_node_or_null("UIManager")
+	if manager != null and manager.has_method("open_screen"):
+		manager.call("open_screen", "SanctuaryScreen")
+	elif screen.has_method("on_open"):
+		screen.call("on_open")
 
 
 ## Research Hall tap → small action chooser (Research / Upgrade), not direct research.

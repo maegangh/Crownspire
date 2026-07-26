@@ -18,7 +18,7 @@ const FALLBACK_TOP_INSET: float = 180.0
 const FALLBACK_BOTTOM_INSET: float = 190.0
 const SIDE_INSET: float = 14.0
 const CONTENT_GAP: float = 10.0
-const UI_LAYOUT_VERSION: int = 5
+const UI_LAYOUT_VERSION: int = 6
 const TIER_CHIP_COUNT: int = 6 ## visible window of tiers around selection
 
 const TROOP_ICONS := {
@@ -69,6 +69,13 @@ var _source_row: HBoxContainer
 var _source_buttons: Array[Button] = []
 
 var _amount_label: Label
+var _qty_selected_label: Label
+var _qty_range_label: Label
+var _qty_slider: HSlider
+var _qty_minus_btn: Button
+var _qty_plus_btn: Button
+var _qty_row: HBoxContainer
+var _qty_syncing: bool = false
 var _summary_label: Label
 var _cost_label: Label
 var _action_button: Button
@@ -79,6 +86,7 @@ var _job_title: Label
 var _job_detail: Label
 var _job_time: Label
 var _collect_button: Button
+var _speedup_button: Button
 
 
 func _ready() -> void:
@@ -444,12 +452,24 @@ func _build_ui() -> void:
 	_job_time = _ink_label("", 24, COL_OK)
 	_job_time.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_job_block.add_child(_job_time)
+	_speedup_button = _chrome_button("SPEED UP", Vector2(0, 56))
+	_speedup_button.name = "SpeedUpButton"
+	_speedup_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_speedup_button.pressed.connect(_on_speedup_pressed)
+	_apply_training_speedup_visuals(true)
+	_job_block.add_child(_speedup_button)
 	_collect_button = _chrome_button("COLLECT", Vector2(0, 56))
+	_collect_button.name = "CollectButton"
 	_collect_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_collect_button.pressed.connect(_on_collect_pressed)
+	# Gold completion treatment for COLLECT.
+	_collect_button.add_theme_stylebox_override("normal", _button_style(Color(0.55, 0.42, 0.12, 1.0), COL_GOLD))
+	_collect_button.add_theme_stylebox_override("hover", _button_style(Color(0.68, 0.52, 0.16, 1.0), Color(1.0, 0.86, 0.42, 1.0)))
+	_collect_button.add_theme_color_override("font_color", Color(1, 0.95, 0.8, 1))
 	_job_block.add_child(_collect_button)
 
 	_idle_block = VBoxContainer.new()
+	_idle_block.name = "IdleBlock"
 	_idle_block.add_theme_constant_override("separation", 4)
 	_idle_block.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_shell.add_child(_idle_block)
@@ -525,24 +545,55 @@ func _build_ui() -> void:
 	_idle_block.add_child(_source_row)
 
 	_idle_block.add_child(_section("AMOUNT"))
-	var qty := HBoxContainer.new()
-	qty.add_theme_constant_override("separation", 8)
-	qty.alignment = BoxContainer.ALIGNMENT_CENTER
-	_idle_block.add_child(qty)
-	var minus := _chrome_button("−", Vector2(60, 48))
-	minus.pressed.connect(func() -> void: _adjust_amount(-_amount_step()))
-	qty.add_child(minus)
+	_qty_selected_label = _ink_label("Selected: 0", 20, COL_INK)
+	_qty_selected_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_qty_selected_label.add_theme_font_size_override("font_size", 22)
+	_idle_block.add_child(_qty_selected_label)
+
+	_qty_row = HBoxContainer.new()
+	_qty_row.name = "QuantityRow"
+	_qty_row.add_theme_constant_override("separation", 8)
+	_qty_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_idle_block.add_child(_qty_row)
+
+	_qty_minus_btn = _chrome_button("−", Vector2(52, 48))
+	_qty_minus_btn.name = "QtyMinus"
+	_qty_minus_btn.pressed.connect(func() -> void: _adjust_amount(-1))
+	_qty_row.add_child(_qty_minus_btn)
+
+	_qty_slider = HSlider.new()
+	_qty_slider.name = "QuantitySlider"
+	_qty_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_qty_slider.custom_minimum_size = Vector2(160, 40)
+	_qty_slider.min_value = 0
+	_qty_slider.max_value = 0
+	_qty_slider.step = 1
+	_qty_slider.rounded = true
+	_qty_slider.scrollable = false
+	_qty_slider.focus_mode = Control.FOCUS_NONE
+	_apply_qty_slider_theme(_qty_slider)
+	_qty_slider.value_changed.connect(_on_qty_slider_changed)
+	_qty_row.add_child(_qty_slider)
+
+	_qty_plus_btn = _chrome_button("+", Vector2(52, 48))
+	_qty_plus_btn.name = "QtyPlus"
+	_qty_plus_btn.pressed.connect(func() -> void: _adjust_amount(1))
+	_qty_row.add_child(_qty_plus_btn)
+
+	# Keep a readable Selected mirror for smoke / compact layouts.
 	_amount_label = Label.new()
-	_amount_label.custom_minimum_size = Vector2(110, 48)
-	_amount_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_amount_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_amount_label.add_theme_font_size_override("font_size", 26)
-	_amount_label.add_theme_color_override("font_color", COL_INK)
-	qty.add_child(_amount_label)
-	var plus := _chrome_button("+", Vector2(60, 48))
-	plus.pressed.connect(func() -> void: _adjust_amount(_amount_step()))
-	qty.add_child(plus)
+	_amount_label.name = "AmountLabel"
+	_amount_label.visible = false
+	_amount_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_idle_block.add_child(_amount_label)
+
+	_qty_range_label = _ink_label("0 / 0", 14, COL_MUTED)
+	_qty_range_label.name = "QtyRangeLabel"
+	_qty_range_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_idle_block.add_child(_qty_range_label)
+
 	var max_btn := _chrome_button("MAX", Vector2(0, 40))
+	max_btn.name = "QtyMax"
 	max_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	max_btn.pressed.connect(_on_max_pressed)
 	_idle_block.add_child(max_btn)
@@ -555,6 +606,7 @@ func _build_ui() -> void:
 	_idle_block.add_child(_cost_label)
 
 	_action_button = _chrome_button("TRAIN", Vector2(0, 56))
+	_action_button.name = "ActionButton"
 	_action_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_action_button.add_theme_font_size_override("font_size", 20)
 	_action_button.pressed.connect(_on_action_pressed)
@@ -606,11 +658,10 @@ func _capacity() -> int:
 	return TroopDatabase.get_training_capacity(_building_level) if has_node("/root/TroopDatabase") else 100
 
 
-func _amount_step() -> int:
-	return 10 if _capacity() >= 100 else 1
-
-
+## Canonical selectable max: TroopDatabase capacity ∩ affordability (∩ source owned for promote).
 func _max_for_mode() -> int:
+	if not has_node("/root/TroopDatabase"):
+		return _capacity()
 	if _mode == "promote":
 		var avail: int = TroopState.get_tier_count(_troop_type, _source_tier)
 		return TroopDatabase.get_max_promotable(_db_type(), _source_tier, _selected_tier, _building_level, avail)
@@ -618,14 +669,11 @@ func _max_for_mode() -> int:
 
 
 func _clamp_amount() -> void:
-	var cap: int = _capacity()
-	if _mode == "promote":
-		cap = mini(cap, TroopState.get_tier_count(_troop_type, _source_tier))
-	_amount = clampi(_amount, 0, maxi(0, cap))
+	_amount = clampi(_amount, 0, maxi(0, _max_for_mode()))
 
 
 func _adjust_amount(delta: int) -> void:
-	_amount = clampi(_amount + delta, 0, _capacity() if _mode == "train" else mini(_capacity(), TroopState.get_tier_count(_troop_type, _source_tier)))
+	_amount = clampi(_amount + delta, 0, maxi(0, _max_for_mode()))
 	_refresh_idle_summary()
 
 
@@ -635,6 +683,37 @@ func _on_max_pressed() -> void:
 		_status_label.text = "Nothing available to %s." % _mode
 		_status_label.add_theme_color_override("font_color", COL_WARN)
 	_refresh_idle_summary()
+
+
+func _on_qty_slider_changed(value: float) -> void:
+	if _qty_syncing:
+		return
+	_amount = clampi(int(round(value)), 0, maxi(0, _max_for_mode()))
+	_refresh_idle_summary()
+
+
+func _sync_quantity_controls() -> void:
+	var max_qty: int = maxi(0, _max_for_mode())
+	_amount = clampi(_amount, 0, max_qty)
+	# Exact integers for quantity readout (slider precision); costs still use compact formatter.
+	if _qty_selected_label != null:
+		_qty_selected_label.text = "Selected: %d" % _amount
+	if _amount_label != null:
+		_amount_label.text = str(_amount)
+	if _qty_range_label != null:
+		_qty_range_label.text = "%d / %d" % [_amount, max_qty]
+	if _qty_slider != null:
+		_qty_syncing = true
+		_qty_slider.min_value = 0
+		_qty_slider.max_value = float(maxi(max_qty, 0))
+		_qty_slider.step = 1
+		_qty_slider.value = float(_amount)
+		_qty_slider.editable = max_qty > 0
+		_qty_syncing = false
+	if _qty_minus_btn != null:
+		_qty_minus_btn.disabled = _amount <= 0
+	if _qty_plus_btn != null:
+		_qty_plus_btn.disabled = _amount >= max_qty
 
 
 func _refresh_view() -> void:
@@ -665,8 +744,15 @@ func _refresh_job() -> void:
 	else:
 		_job_title.text = "TRAINING"
 		_job_detail.text = "%s  %s  T%d" % [_format_number(qty), _troop_type, target]
-	_collect_button.visible = TroopState.is_training_ready(_troop_type)
-	if TroopState.is_training_ready(_troop_type):
+	var ready: bool = TroopState.is_training_ready(_troop_type)
+	var active: bool = TroopState.is_training_active(_troop_type)
+	_collect_button.visible = ready
+	if _speedup_button != null:
+		var can_speedup: bool = active and not ready
+		_speedup_button.visible = can_speedup
+		_speedup_button.disabled = not can_speedup
+		_apply_training_speedup_visuals(can_speedup)
+	if ready:
 		_job_time.text = "Complete — ready to collect"
 		_status_label.text = ""
 	else:
@@ -753,18 +839,19 @@ func _refresh_source_highlight() -> void:
 
 
 func _refresh_idle_summary() -> void:
-	_amount_label.text = _format_number(_amount)
+	_sync_quantity_controls()
 	var cap: int = _capacity()
+	var max_qty: int = _max_for_mode()
 	var time_sec: int = 0
 	var cost: Dictionary = {}
 	if _mode == "promote":
 		time_sec = TroopDatabase.get_promotion_time(_db_type(), _source_tier, _selected_tier, _amount) if _amount > 0 else 0
 		cost = TroopDatabase.get_promotion_cost(_db_type(), _source_tier, _selected_tier, _amount) if _amount > 0 else {}
-		_summary_label.text = "Promote T%d → T%d\nAvailable %s\nCapacity %s / %s\nTime %s" % [
+		_summary_label.text = "Promote T%d → T%d\nAvailable %s\nMax %s  ·  Capacity %s\nTime %s" % [
 			_source_tier,
 			_selected_tier,
 			_format_number(TroopState.get_tier_count(_troop_type, _source_tier)),
-			_format_number(_amount),
+			_format_number(max_qty),
 			_format_number(cap),
 			_format_hms(time_sec),
 		]
@@ -772,10 +859,10 @@ func _refresh_idle_summary() -> void:
 	else:
 		time_sec = TroopDatabase.get_training_time(_db_type(), _selected_tier, _amount) if _amount > 0 else 0
 		cost = TroopDatabase.get_training_cost(_db_type(), _selected_tier, _amount) if _amount > 0 else {}
-		_summary_label.text = "Train T%d\nOwned %s\nCapacity %s / %s\nTime %s" % [
+		_summary_label.text = "Train T%d\nOwned %s\nMax %s  ·  Capacity %s\nTime %s" % [
 			_selected_tier,
 			_format_number(TroopState.get_tier_count(_troop_type, _selected_tier)),
-			_format_number(_amount),
+			_format_number(max_qty),
 			_format_number(cap),
 			_format_hms(time_sec),
 		]
@@ -851,6 +938,30 @@ func _on_action_pressed() -> void:
 	_refresh_view()
 
 
+func _apply_training_speedup_visuals(active: bool) -> void:
+	if _speedup_button == null:
+		return
+	if active:
+		_speedup_button.add_theme_stylebox_override("normal", _button_style(Color(0.13, 0.26, 0.46, 1.0), Color(0.35, 0.55, 0.85, 1.0)))
+		_speedup_button.add_theme_stylebox_override("hover", _button_style(Color(0.18, 0.35, 0.6, 1.0), Color(0.55, 0.75, 1.0, 1.0)))
+		_speedup_button.add_theme_stylebox_override("pressed", _button_style(Color(0.10, 0.20, 0.38, 1.0), Color(0.25, 0.45, 0.75, 1.0)))
+		_speedup_button.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+	else:
+		_speedup_button.add_theme_stylebox_override("normal", _button_style(Color(0.35, 0.36, 0.38, 1.0), Color(0.45, 0.46, 0.48, 1.0)))
+		_speedup_button.add_theme_stylebox_override("disabled", _button_style(Color(0.30, 0.31, 0.33, 1.0), Color(0.40, 0.41, 0.43, 1.0)))
+		_speedup_button.add_theme_color_override("font_color", Color(0.75, 0.76, 0.78, 1))
+		_speedup_button.add_theme_color_override("font_disabled_color", Color(0.65, 0.66, 0.68, 1))
+
+
+func _on_speedup_pressed() -> void:
+	if not has_node("/root/SpeedupService"):
+		return
+	if not TroopState.is_training_active(_troop_type) or TroopState.is_training_ready(_troop_type):
+		return
+	# Always open popup (empty-state + debug grants allowed).
+	SpeedupService.open_speedup_popup(SpeedupService.CAT_TRAINING, _troop_type)
+
+
 func _on_collect_pressed() -> void:
 	if not TroopState.collect_training(_troop_type):
 		_status_label.text = "Nothing ready to collect."
@@ -900,8 +1011,8 @@ func _format_cost_lines(cost: Dictionary) -> String:
 	for key: String in ["food", "wood", "stone", "iron"]:
 		var value: int = int(cost.get(key, 0))
 		if value > 0:
-			parts.append("%s %s" % [key.capitalize(), _format_number(value)])
-	return "  ".join(parts) if not parts.is_empty() else "Free"
+			parts.append("%s     %s" % [key.capitalize(), _format_number(value)])
+	return "\n".join(parts) if not parts.is_empty() else "Free"
 
 
 func _format_hms(total_sec: int) -> String:
@@ -919,15 +1030,53 @@ func _format_remaining(total_sec: int) -> String:
 
 
 func _format_number(value: int) -> String:
-	var raw: String = str(value)
-	var out: String = ""
-	var count: int = 0
-	for i: int in range(raw.length() - 1, -1, -1):
-		out = raw[i] + out
-		count += 1
-		if count % 3 == 0 and i > 0:
-			out = "," + out
-	return out
+	## Prefer GameHUD canonical compact formatter (K/M/B); fall back to plain digits.
+	var hud: Node = _get_game_hud()
+	if hud != null and hud.has_method("format_number"):
+		return str(hud.call("format_number", value))
+	if value >= 1000000000:
+		return "%.1fB" % (value / 1000000000.0)
+	if value >= 1000000:
+		return "%.1fM" % (value / 1000000.0)
+	if value >= 1000:
+		return "%.1fK" % (value / 1000.0)
+	return str(value)
+
+
+func _get_game_hud() -> Node:
+	var p: Node = get_parent()
+	while p != null:
+		if p.name == "GameHUD" or (p.has_method("format_number") and p.get_node_or_null("UIManager") != null):
+			return p
+		p = p.get_parent()
+	if get_tree() != null:
+		return get_tree().root.find_child("GameHUD", true, false)
+	return null
+
+
+func _apply_qty_slider_theme(slider: HSlider) -> void:
+	var track := StyleBoxFlat.new()
+	track.bg_color = Color(0.12, 0.18, 0.30, 1.0)
+	track.border_color = Color(0.35, 0.55, 0.85, 0.85)
+	track.set_border_width_all(1)
+	track.set_corner_radius_all(8)
+	track.content_margin_top = 6
+	track.content_margin_bottom = 6
+	track.content_margin_left = 4
+	track.content_margin_right = 4
+	slider.add_theme_stylebox_override("slider", track)
+
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = Color(0.22, 0.45, 0.78, 1.0)
+	fill.border_color = COL_GOLD
+	fill.set_border_width_all(1)
+	fill.set_corner_radius_all(8)
+	slider.add_theme_stylebox_override("grabber_area", fill)
+	slider.add_theme_stylebox_override("grabber_area_highlight", fill)
+
+	# Grabber size via theme constants (Godot 4 HSlider).
+	slider.add_theme_constant_override("center_grabber", 1)
+	slider.custom_minimum_size = Vector2(160, 44)
 
 
 func _ink_label(text: String, size: int, color: Color) -> Label:

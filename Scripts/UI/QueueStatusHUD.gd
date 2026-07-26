@@ -1,9 +1,10 @@
 extends Control
 class_name QueueStatusHUD
 
-## Compact right-side City queue status. Reads ConstructionState / ResearchState / TroopState.
+## Compact right-side City queue status.
+## Reads ConstructionState / ResearchState / TroopState / HealingState.
 ## Does not own timers or queue rules. Root + decorative children use MOUSE_FILTER_IGNORE;
-## only the three queue cards receive taps.
+## only the queue cards receive taps.
 
 const CARD_WIDTH := 168.0
 const CARD_PAD := 8.0
@@ -18,6 +19,7 @@ var _vbox: VBoxContainer
 var _construction: Dictionary = {}
 var _research: Dictionary = {}
 var _training: Dictionary = {}
+var _healing: Dictionary = {}
 
 var _building_names: Dictionary = {}
 var _research_names: Dictionary = {}
@@ -34,7 +36,8 @@ func _ready() -> void:
 	anchor_bottom = 1.0
 	offset_left = 8.0
 	offset_right = CARD_WIDTH + 10.0
-	offset_top = 210.0
+	# Slightly higher start so four compact cards fit above the nav.
+	offset_top = 196.0
 	offset_bottom = -150.0
 	z_index = 40
 
@@ -59,6 +62,8 @@ func pulse_queue(kind: String) -> void:
 			card = _research
 		"training", "train", "troop":
 			card = _training
+		"healing", "heal", "hospital":
+			card = _healing
 		_:
 			return
 	var panel: PanelContainer = card.get("panel") as PanelContainer
@@ -86,9 +91,11 @@ func _build_ui() -> void:
 	_construction = _make_card("Construction", "_on_construction_pressed")
 	_research = _make_card("Research", "_on_research_pressed")
 	_training = _make_card("Training", "_on_training_pressed")
+	_healing = _make_card("Healing", "_on_healing_pressed")
 	_vbox.add_child(_construction["panel"])
 	_vbox.add_child(_research["panel"])
 	_vbox.add_child(_training["panel"])
+	_vbox.add_child(_healing["panel"])
 
 
 func _make_card(title: String, press_method: String) -> Dictionary:
@@ -167,6 +174,12 @@ func _connect_signals() -> void:
 		var ts: Node = get_node("/root/TroopState")
 		if not ts.training_updated.is_connected(_on_jobs_changed):
 			ts.training_updated.connect(_on_jobs_changed)
+	if has_node("/root/HealingState"):
+		var hs: Node = get_node("/root/HealingState")
+		if not hs.healing_jobs_changed.is_connected(_on_jobs_changed):
+			hs.healing_jobs_changed.connect(_on_jobs_changed)
+		if not hs.healing_completed.is_connected(_on_healing_completed):
+			hs.healing_completed.connect(_on_healing_completed)
 
 
 func _on_jobs_changed(_a = null, _b = null) -> void:
@@ -183,12 +196,17 @@ func _on_research_completed(_id: String, _lvl: int) -> void:
 	_on_jobs_changed()
 
 
+func _on_healing_completed(_id: String, _qty: int) -> void:
+	_on_jobs_changed()
+
+
 # --- Rebuild job rows only when identity changes ------------------------------
 
 func _rebuild_all_job_rows() -> void:
 	_sync_card_jobs(_construction, _collect_construction_jobs())
 	_sync_card_jobs(_research, _collect_research_jobs())
 	_sync_card_jobs(_training, _collect_training_jobs())
+	_sync_card_jobs(_healing, _collect_healing_jobs())
 
 
 func _sync_card_jobs(card: Dictionary, jobs: Array) -> void:
@@ -322,6 +340,19 @@ func _collect_training_jobs() -> Array:
 	return out
 
 
+func _collect_healing_jobs() -> Array:
+	var out: Array = []
+	if not has_node("/root/HealingState") or not HealingState.has_active_job():
+		return out
+	var job: Dictionary = HealingState.get_active_job()
+	out.append({
+		"key": str(job.get("job_id", "heal")),
+		"target": "%s troops" % _format_amount(int(job.get("total_quantity", 0))),
+		"remaining": float(job.get("time_remaining", 0.0)),
+	})
+	return out
+
+
 func _refresh_headers() -> void:
 	if has_node("/root/ConstructionState"):
 		var used: int = ConstructionState.get_used_construction_queues()
@@ -343,11 +374,19 @@ func _refresh_headers() -> void:
 	else:
 		(_training["header"] as Label).text = "Training %d" % train_count
 
+	if has_node("/root/HealingState"):
+		var used_h: int = HealingState.get_used_queues()
+		var limit_h: int = HealingState.get_queue_limit()
+		(_healing["header"] as Label).text = "Healing %d/%d" % [used_h, limit_h]
+	else:
+		(_healing["header"] as Label).text = "Healing"
+
 
 func _refresh_timers() -> void:
 	_update_card_timers(_construction, _collect_construction_jobs())
 	_update_card_timers(_research, _collect_research_jobs())
 	_update_card_timers(_training, _collect_training_jobs())
+	_update_card_timers(_healing, _collect_healing_jobs())
 
 
 func _update_card_timers(card: Dictionary, jobs: Array) -> void:
@@ -378,6 +417,8 @@ func _update_card_timers(card: Dictionary, jobs: Array) -> void:
 				(row["timer"] as Label).text = "Collect"
 				continue
 			rem = TroopState.get_training_time_left(key)
+		elif kind == "healing" and has_node("/root/HealingState"):
+			rem = HealingState.get_remaining_seconds()
 		(row["timer"] as Label).text = _format_mmss(rem)
 
 
@@ -490,6 +531,31 @@ func _on_training_pressed() -> void:
 		screen.call("open_for_building", troop_type, building_id, 1)
 	if manager != null and manager.has_method("open_screen"):
 		manager.call("open_screen", "TroopTrainingScreen")
+
+
+func _on_healing_pressed() -> void:
+	var hud := _game_hud()
+	if hud == null:
+		return
+	var manager: Node = hud.get_node_or_null("UIManager")
+	if manager != null and manager.has_method("open_screen"):
+		manager.call("open_screen", "HospitalScreen")
+		return
+	var screen: Node = hud.get_node_or_null("ScreenRoot/HospitalScreen")
+	if screen != null and screen.has_method("on_open"):
+		screen.call("on_open")
+
+
+func _format_amount(value: int) -> String:
+	var raw: String = str(maxi(0, value))
+	var out: String = ""
+	var count: int = 0
+	for i: int in range(raw.length() - 1, -1, -1):
+		out = raw[i] + out
+		count += 1
+		if count % 3 == 0 and i > 0:
+			out = "," + out
+	return out
 
 
 func _game_hud() -> Node:

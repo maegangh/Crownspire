@@ -73,6 +73,8 @@ func on_open() -> void:
 	_refresh_list()
 	visible = true
 	mouse_filter = Control.MOUSE_FILTER_STOP
+	if has_node("/root/GameEvents"):
+		GameEvents.emit_mail_opened()
 	print("[MailScreen] opened layout v%d | safe top=%.1f bottom=%.1f | window %.0fx%.0f" % [
 		UI_LAYOUT_VERSION,
 		_top_inset,
@@ -409,7 +411,7 @@ func _show_detail_page() -> void:
 	_set_panel_input(_inbox_root, false)
 	_set_panel_input(_detail_root, true)
 	if _header_title != null:
-		var detail_title: String = "BATTLE REPORT"
+		var detail_title: String = "WILDLING BATTLE REPORT"
 		if has_node("/root/MailManager") and _detail_id != "":
 			var msg: Dictionary = MailManager.get_message(_detail_id)
 			if str(msg.get("type", "")) == "gathering_report":
@@ -627,6 +629,13 @@ func _populate_gathering_detail(msg: Dictionary) -> void:
 
 
 func _populate_battle_detail(msg: Dictionary) -> void:
+	var header := Label.new()
+	header.text = "WILDLING BATTLE REPORT"
+	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	header.add_theme_font_size_override("font_size", 22)
+	header.add_theme_color_override("font_color", COL_GOLD)
+	_detail_body.add_child(header)
+
 	var victory: bool = bool(msg.get("result", {}).get("victory", false))
 	var result_l := Label.new()
 	result_l.text = "Victory" if victory else "Defeat"
@@ -636,14 +645,40 @@ func _populate_battle_detail(msg: Dictionary) -> void:
 	_detail_body.add_child(result_l)
 
 	var target: Dictionary = msg.get("target", {})
-	_detail_body.add_child(_kv_block("Target", "%s\nLv.%d" % [
+	_detail_body.add_child(_kv_block("Wildling", "%s\nLv.%d" % [
 		str(target.get("display_name", "Wildling")),
 		int(target.get("level", 1)),
 	]))
 
-	var march: Dictionary = msg.get("march", {})
-	_detail_body.add_child(_kv_block("March Power", _format_number(int(march.get("march_power", 0)))))
+	var rounds: int = int(msg.get("result", {}).get("rounds", 0))
+	if rounds > 0:
+		_detail_body.add_child(_kv_block("Rounds", str(rounds)))
 
+	var player_stats: Dictionary = msg.get("player_stats", {})
+	if typeof(player_stats) == TYPE_DICTIONARY and (
+		int(player_stats.get("attack", 0)) > 0
+		or int(player_stats.get("defense", 0)) > 0
+		or int(player_stats.get("health", 0)) > 0
+	):
+		_detail_body.add_child(_kv_block("Your Stats", "ATK %s\nDEF %s\nHP %s" % [
+			_format_number(int(player_stats.get("attack", 0))),
+			_format_number(int(player_stats.get("defense", 0))),
+			_format_number(int(player_stats.get("health", 0))),
+		]))
+
+	var wildling_stats: Dictionary = msg.get("wildling_stats", {})
+	if typeof(wildling_stats) == TYPE_DICTIONARY and (
+		int(wildling_stats.get("attack", 0)) > 0
+		or int(wildling_stats.get("defense", 0)) > 0
+		or int(wildling_stats.get("health", 0)) > 0
+	):
+		_detail_body.add_child(_kv_block("Wildling Stats", "ATK %s\nDEF %s\nHP %s" % [
+			_format_number(int(wildling_stats.get("attack", 0))),
+			_format_number(int(wildling_stats.get("defense", 0))),
+			_format_number(int(wildling_stats.get("health", 0))),
+		]))
+
+	var march: Dictionary = msg.get("march", {})
 	var hero_names: PackedStringArray = PackedStringArray()
 	for hid: Variant in march.get("hero_ids", []):
 		hero_names.append(_hero_display_name(str(hid)))
@@ -653,8 +688,17 @@ func _populate_battle_detail(msg: Dictionary) -> void:
 	))
 
 	_detail_body.add_child(_kv_block("Troops Sent", _troop_lines(march)))
-	_detail_body.add_child(_kv_block("Losses", _troop_lines(msg.get("losses", {}))))
 	_detail_body.add_child(_kv_block("Survivors", _troop_lines(msg.get("survivors", {}))))
+	var wounded: Dictionary = msg.get("wounded", msg.get("losses", {}))
+	_detail_body.add_child(_kv_block("Wounded", _troop_lines(wounded)))
+	var routing: Dictionary = msg.get("wounded_routing", {}) as Dictionary
+	if typeof(routing) == TYPE_DICTIONARY and (
+		int(routing.get("hospital", 0)) > 0 or int(routing.get("sanctuary", 0)) > 0
+	):
+		_detail_body.add_child(_kv_block("Routed", "Hospital %s\nSanctuary %s" % [
+			_format_number(int(routing.get("hospital", 0))),
+			_format_number(int(routing.get("sanctuary", 0))),
+		]))
 
 	var rewards: Dictionary = msg.get("rewards", {})
 	if victory and not rewards.is_empty():
