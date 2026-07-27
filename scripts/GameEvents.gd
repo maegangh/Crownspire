@@ -42,6 +42,9 @@ signal resource_collected(resource_type: String, amount: int)
 signal mail_opened
 signal alliance_opened
 
+# --- Speedups (actual seconds reduced, not item face duration) ---
+signal speedup_used(category: String, seconds_actual: int)
+
 
 func _log_event(message: String) -> void:
 	print("[FTUE EVENT] %s" % message)
@@ -180,3 +183,12 @@ func emit_mail_opened() -> void:
 func emit_alliance_opened() -> void:
 	alliance_opened.emit()
 	_log_event("alliance_opened")
+
+
+func emit_speedup_used(category: String, seconds_actual: int) -> void:
+	var cat: String = category.strip_edges().to_lower()
+	var secs: int = maxi(0, seconds_actual)
+	if cat.is_empty() or secs <= 0:
+		return
+	speedup_used.emit(cat, secs)
+	_log_event("speedup_used: %s %ds" % [cat, secs])

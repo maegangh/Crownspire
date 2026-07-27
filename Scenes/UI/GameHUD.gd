@@ -17,9 +17,15 @@ const WorldSearchPanelScene: PackedScene = preload("res://Scenes/UI/WorldSearchP
 @onready var vip_label: Label = $Control/TopBarTexture/TopLabels/VipLabel
 
 @onready var portrait_button: TextureButton = $Control/PlayerPortraitButton
-@onready var shop_button: TextureButton = $Control/ShopButton
+@onready var right_feature_buttons: VBoxContainer = $Control/RightFeatureButtons
+@onready var shop_button: TextureButton = $Control/RightFeatureButtons/ShopButton
+@onready var events_button: Button = $Control/RightFeatureButtons/EventsButton
+@onready var events_claim_badge: Label = $Control/RightFeatureButtons/EventsButton/ClaimBadge
 @onready var mail_button: TextureButton = $Control/MailButton
 @onready var mail_unread_badge: Label = $Control/MailButton/UnreadBadge
+
+var _event_toast_label: Label = null
+var _event_toast_timer: float = 0.0
 
 @onready var heroes_button: Button = $Control/BottomBarTexture/BottomButtons/HeroesButton
 @onready var wayfinder_button: Button = $Control/BottomBarTexture/BottomButtons/WayfinderButton
@@ -34,15 +40,20 @@ var _world_search_panel: Control = null
 var _active_marches_hud: Control = null
 
 func _ready():
-	setup_bottom_bar()
+	_apply_screen_context()
 	_configure_bottom_nav()
 	_setup_queue_status_hud()
 	# Search before ActiveMarches so a marches HUD fault cannot skip the SEARCH button.
 	_setup_world_search_ui()
 	_setup_active_marches_hud()
+	_apply_screen_context()
 	update_resources()
 	connect_buttons()
+	_style_events_button()
 	_refresh_mail_badge()
+	_refresh_events_badge()
+	if has_node("/root/GameState") and not GameState.resources_changed.is_connected(_on_resources_changed):
+		GameState.resources_changed.connect(_on_resources_changed)
 	call_deferred("_validate_bottom_nav_hitboxes")
 	call_deferred("_validate_mail_hitbox")
 	call_deferred("_run_hud_navigation_smoke_test_if_headless")
@@ -53,6 +64,11 @@ func _ready():
 			call_deferred("_resync_marches")
 	if has_node("/root/MailManager") and not MailManager.mail_changed.is_connected(_on_mail_changed):
 		MailManager.mail_changed.connect(_on_mail_changed)
+	if has_node("/root/EventState"):
+		if not EventState.event_changed.is_connected(_on_event_state_changed):
+			EventState.event_changed.connect(_on_event_state_changed)
+		if not EventState.points_awarded.is_connected(_on_event_points_awarded):
+			EventState.points_awarded.connect(_on_event_points_awarded)
 	# Canonical nav events after this screen successfully loaded.
 	if has_node("/root/GameEvents"):
 		if is_world_screen:
@@ -102,15 +118,15 @@ func pulse_queue_status(kind: String) -> void:
 func _sync_queue_status_visibility() -> void:
 	if _queue_status_hud == null or not is_instance_valid(_queue_status_hud):
 		return
-	if is_world_screen:
-		_queue_status_hud.visible = false
-		return
-	# Hide under full ScreenRoot screens (Bag/Alliance/etc). Keep visible during city popups.
-	var show_queue: bool = true
+	var show_queue: bool = not is_world_screen
 	var manager: Node = get_node_or_null("UIManager")
-	if manager != null and manager.has_method("is_screen_open") and bool(manager.is_screen_open()):
+	if show_queue and manager != null and manager.has_method("is_screen_open") and bool(manager.is_screen_open()):
+		# Hide under full ScreenRoot screens (Bag/Alliance/etc). Keep visible during city popups.
 		show_queue = false
 	_queue_status_hud.visible = show_queue
+	_queue_status_hud.mouse_filter = (
+		Control.MOUSE_FILTER_STOP if show_queue else Control.MOUSE_FILTER_IGNORE
+	)
 
 
 func _setup_active_marches_hud() -> void:
@@ -135,11 +151,41 @@ func _sync_active_marches_visibility() -> void:
 		return
 	var show_marches: bool = is_world_screen
 	var manager: Node = get_node_or_null("UIManager")
-	if manager != null and manager.has_method("is_screen_open") and bool(manager.is_screen_open()):
+	if show_marches and manager != null and manager.has_method("is_screen_open") and bool(manager.is_screen_open()):
 		show_marches = false
 	_active_marches_hud.visible = show_marches
-	# Root stays IGNORE so empty space never blocks map pan.
+	# Never intercept City taps; ignore on World empty space too.
 	_active_marches_hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+
+## Single screen-context apply for City vs World HUD chrome.
+func _apply_screen_context() -> void:
+	setup_bottom_bar()
+	_sync_queue_status_visibility()
+	_sync_active_marches_visibility()
+	_sync_world_search_visibility()
+	_sync_right_feature_visibility()
+
+
+func _on_resources_changed() -> void:
+	update_resources()
+
+
+func _sync_right_feature_visibility() -> void:
+	# Shop + Events stay on the right stack; hide only under main ScreenRoot screens.
+	var show_right: bool = true
+	var manager: Node = get_node_or_null("UIManager")
+	if manager != null and manager.has_method("is_screen_open") and bool(manager.is_screen_open()):
+		show_right = false
+	if right_feature_buttons != null and is_instance_valid(right_feature_buttons):
+		right_feature_buttons.visible = show_right
+	if shop_button != null and is_instance_valid(shop_button):
+		shop_button.mouse_filter = Control.MOUSE_FILTER_STOP if show_right else Control.MOUSE_FILTER_IGNORE
+	if events_button != null and is_instance_valid(events_button):
+		events_button.mouse_filter = Control.MOUSE_FILTER_STOP if show_right else Control.MOUSE_FILTER_IGNORE
+		if events_claim_badge != null and is_instance_valid(events_claim_badge):
+			events_claim_badge.visible = show_right and events_claim_badge.text != ""
+			events_claim_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
 func _setup_world_search_ui() -> void:
@@ -240,6 +286,77 @@ func _refresh_mail_badge() -> void:
 	else:
 		mail_unread_badge.text = "●%d" % count
 
+
+func _style_events_button() -> void:
+	if events_button == null:
+		return
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = Color(0.12, 0.16, 0.24, 0.94)
+	fill.border_color = Color(0.78, 0.66, 0.34, 0.95)
+	fill.set_border_width_all(2)
+	fill.set_corner_radius_all(14)
+	events_button.add_theme_stylebox_override("normal", fill)
+	events_button.add_theme_stylebox_override("pressed", fill)
+	events_button.add_theme_stylebox_override("hover", fill)
+	events_button.add_theme_font_size_override("font_size", 14)
+	events_button.add_theme_color_override("font_color", Color(0.96, 0.92, 0.82, 1.0))
+	events_button.focus_mode = Control.FOCUS_NONE
+
+
+func _on_event_state_changed() -> void:
+	_refresh_events_badge()
+
+
+func _refresh_events_badge() -> void:
+	if events_claim_badge == null:
+		return
+	var show_dot: bool = false
+	if has_node("/root/EventState") and EventState.has_method("has_unclaimed_milestones"):
+		show_dot = bool(EventState.has_unclaimed_milestones())
+	events_claim_badge.text = "●" if show_dot else ""
+	events_claim_badge.visible = events_button != null and events_button.visible and show_dot
+
+
+func _on_event_points_awarded(_event_id: String, points: int, _reason: String, _total: int) -> void:
+	if points <= 0:
+		return
+	_show_event_points_toast("+%d Royal Ascension" % points)
+
+
+func _show_event_points_toast(message: String) -> void:
+	if _event_toast_label == null or not is_instance_valid(_event_toast_label):
+		_event_toast_label = Label.new()
+		_event_toast_label.name = "EventPointsToast"
+		_event_toast_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_event_toast_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_event_toast_label.add_theme_font_size_override("font_size", 18)
+		_event_toast_label.add_theme_color_override("font_color", Color(0.95, 0.82, 0.40, 1.0))
+		_event_toast_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+		_event_toast_label.offset_top = 220.0
+		_event_toast_label.offset_bottom = 250.0
+		_event_toast_label.offset_left = -200.0
+		_event_toast_label.offset_right = 200.0
+		$Control.add_child(_event_toast_label)
+	_event_toast_label.text = message
+	_event_toast_label.visible = true
+	_event_toast_label.modulate.a = 1.0
+	_event_toast_timer = 1.6
+	var manager: Node = get_node_or_null("UIManager")
+	if manager != null and manager.has_method("show_toast"):
+		manager.call("show_toast", message)
+
+
+func _tick_event_toast(delta: float) -> void:
+	if _event_toast_label == null or not is_instance_valid(_event_toast_label) or not _event_toast_label.visible:
+		return
+	_event_toast_timer -= delta
+	if _event_toast_timer <= 0.0:
+		_event_toast_label.visible = false
+		return
+	if _event_toast_timer < 0.45:
+		_event_toast_label.modulate.a = clampf(_event_toast_timer / 0.45, 0.0, 1.0)
+
+
 func _run_hud_navigation_smoke_test_if_headless() -> void:
 	if DisplayServer.get_name() != "headless":
 		return
@@ -280,6 +397,20 @@ func _run_hud_navigation_smoke_test_if_headless() -> void:
 			HeroState.run_hero_roster_smoke_test()
 	else:
 		print("[GameHUD] Skipping Hero smoke tests (set CROWNSPIR_HERO_SMOKE=1 for isolated runs).")
+
+	if OS.get_environment("CROWNSPIR_EVENT_SMOKE") == "1":
+		if has_node("/root/EventState") and EventState.has_method("run_royal_ascension_smoke_test"):
+			EventState.run_royal_ascension_smoke_test()
+		var manager_ev: Node = get_node_or_null("UIManager")
+		if manager_ev != null:
+			manager_ev.open_screen("EventsScreen")
+			if manager_ev.get_current_screen_name() != "EventsScreen":
+				push_error("[GameHUD] EventsScreen open smoke failed")
+			else:
+				print("[GameHUD] EventsScreen open OK")
+			manager_ev.close_current_screen()
+	else:
+		print("[GameHUD] Skipping Event smoke tests (set CROWNSPIR_EVENT_SMOKE=1 for isolated runs).")
 
 	if has_node("/root/StatResolver"):
 		if StatResolver.has_method("run_phase1_smoke_test"):
@@ -329,15 +460,19 @@ func _run_world_search_smoke_if_world() -> void:
 	else:
 		print("[GameHUD] WorldSearch close OK")
 
-func _process(_delta):
+func _process(delta):
+	# Resource labels primarily refresh via GameState.resources_changed.
+	# Keep a light fallback sync for diamonds/power/vip and HUD chrome.
 	update_resources()
 	_sync_secondary_hud_visibility()
 	_sync_queue_status_visibility()
 	_sync_active_marches_visibility()
 	_sync_world_search_visibility()
+	_sync_right_feature_visibility()
+	_tick_event_toast(delta)
 
 
-## Secondary HUD chrome (Mail). Hidden while a main ScreenRoot screen or city popup is open.
+## Secondary HUD chrome (Mail only). Shop/Events live in RightFeatureButtons.
 func set_secondary_hud_visible(is_visible: bool) -> void:
 	if mail_button == null or not is_instance_valid(mail_button):
 		return
@@ -510,6 +645,8 @@ func connect_buttons():
 		portrait_button.pressed.connect(_on_portrait_pressed)
 	if shop_button:
 		shop_button.pressed.connect(_on_shop_pressed)
+	if events_button:
+		events_button.pressed.connect(_on_events_pressed)
 	if mail_button:
 		mail_button.pressed.connect(_on_mail_pressed)
 	if heroes_button:
@@ -530,6 +667,10 @@ func _on_portrait_pressed():
 
 func _on_shop_pressed():
 	$UIManager.open_screen("ShopScreen")
+
+func _on_events_pressed():
+	$UIManager.open_screen("EventsScreen")
+
 
 func _on_mail_pressed():
 	$UIManager.open_screen("MailScreen")

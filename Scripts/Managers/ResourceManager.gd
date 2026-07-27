@@ -156,7 +156,17 @@ func _on_upgrade_tap() -> void:
 	if _is_sanctuary_building():
 		_open_sanctuary_screen()
 		return
+	if _is_wall_building():
+		_open_wall_actions()
+		return
 	open_upgrade_window()
+
+
+func _is_wall_building() -> bool:
+	var id_key: String = building_id.strip_edges().to_lower()
+	if id_key == "wall":
+		return true
+	return building_name.strip_edges().to_lower() == "wall"
 
 
 func _is_hospital_building() -> bool:
@@ -208,6 +218,7 @@ func _resolve_building_action_title() -> String:
 		"hospital": "HOSPITAL",
 		"medical_tent": "HOSPITAL",
 		"infirmary": "HOSPITAL",
+		"wall": "WALL",
 	}
 	if titles.has(id_key):
 		return str(titles[id_key])
@@ -320,6 +331,47 @@ func _open_hospital_screen() -> void:
 	var manager: Node = hud.get_node_or_null("UIManager")
 	if manager != null and manager.has_method("open_screen"):
 		manager.call("open_screen", "HospitalScreen")
+	elif screen.has_method("on_open"):
+		screen.call("on_open")
+
+
+## Wall tap → Defense / Upgrade chooser.
+func _open_wall_actions() -> void:
+	var hud: Node = _get_game_hud()
+	var parent_n: Node = hud if hud != null else get_tree().current_scene
+	if parent_n == null:
+		parent_n = get_tree().root
+
+	BuildingActionPopupScript.present(
+		parent_n,
+		_resolve_building_action_title(),
+		[
+			{"id": "defense", "label": "Defense"},
+			{"id": "upgrade", "label": "Upgrade"},
+		],
+		func(action_id: String) -> void:
+			match action_id:
+				"defense":
+					# Deferred so BuildingActionPopup can finish freeing mid-signal.
+					call_deferred("_open_wall_defense_screen")
+				"upgrade":
+					# Deferred: open after chooser signal completes; uses canonical BuildingUpgradeWindow.
+					call_deferred("open_upgrade_window")
+	)
+
+
+func _open_wall_defense_screen() -> void:
+	var hud: Node = _get_game_hud()
+	if hud == null:
+		push_error("ResourceManager: GameHUD not found for Wall Defense.")
+		return
+	var screen: Node = hud.get_node_or_null("ScreenRoot/WallDefenseScreen")
+	if screen == null:
+		push_error("ResourceManager: WallDefenseScreen missing under GameHUD/ScreenRoot.")
+		return
+	var manager: Node = hud.get_node_or_null("UIManager")
+	if manager != null and manager.has_method("open_screen"):
+		manager.call("open_screen", "WallDefenseScreen")
 	elif screen.has_method("on_open"):
 		screen.call("on_open")
 
@@ -506,3 +558,14 @@ func open_upgrade_window() -> void:
 		return
 
 	window.open_for_building(building_id)
+	# Surface missing buildings.json entries (e.g. wall) instead of a silent no-op.
+	if window is CanvasItem and not (window as CanvasItem).visible:
+		push_error(
+			"ResourceManager: BuildingUpgradeWindow did not open for '%s' (missing buildings.json entry?)."
+			% building_id
+		)
+		var hud: Node = _get_game_hud()
+		if hud != null:
+			var ui: Node = hud.get_node_or_null("UIManager")
+			if ui != null and ui.has_method("show_toast"):
+				ui.call("show_toast", "Upgrade data missing for %s" % building_id)

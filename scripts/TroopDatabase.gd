@@ -147,17 +147,29 @@ func get_training_capacity(building_level: int) -> int:
 	return 100 + (level - 1) * 50
 
 
+## Resource-only affordability for 1-unit trainingCost (no capacity cap).
+## Same resource loop used by get_max_trainable — not a separate formula.
+func get_affordable_trainable_count(troop_type: String, tier: int) -> int:
+	return _max_units_affordable_for_cost(get_training_cost(troop_type, tier, 1))
+
+
 ## Max amount limited by capacity and currently affordable resources.
 func get_max_trainable(troop_type: String, tier: int, building_level: int) -> int:
 	var capacity: int = get_training_capacity(building_level)
 	if capacity <= 0:
 		return 0
-	var unit_cost: Dictionary = get_training_cost(troop_type, tier, 1)
-	var max_by_res: int = capacity
+	return maxi(0, mini(capacity, get_affordable_trainable_count(troop_type, tier)))
+
+
+func _max_units_affordable_for_cost(unit_cost: Dictionary) -> int:
+	## Shared affordability loop for train + promote unit costs.
+	var max_by_res: int = 0x7fffffff
+	var saw_cost: bool = false
 	for key: String in ["food", "wood", "stone", "iron"]:
 		var unit: int = int(unit_cost.get(key, 0))
 		if unit <= 0:
 			continue
+		saw_cost = true
 		var have: int = 0
 		match key:
 			"food":
@@ -169,7 +181,10 @@ func get_max_trainable(troop_type: String, tier: int, building_level: int) -> in
 			"iron":
 				have = int(GameState.iron)
 		max_by_res = mini(max_by_res, int(have / unit))
-	return maxi(0, mini(capacity, max_by_res))
+	# Free unit cost → unbounded by resources (capacity / ownership still bind).
+	if not saw_cost:
+		return 0x7fffffff
+	return maxi(0, max_by_res)
 
 
 ## ---------------------------------------------------------------------------
@@ -211,6 +226,11 @@ func get_promotion_time(troop_type: String, source_tier: int, target_tier: int, 
 	return maxi(1, unit * qty)
 
 
+## Resource-only affordability for 1-unit promotion cost (no capacity / ownership cap).
+func get_affordable_promotable_count(troop_type: String, source_tier: int, target_tier: int) -> int:
+	return _max_units_affordable_for_cost(get_promotion_cost(troop_type, source_tier, target_tier, 1))
+
+
 func get_max_promotable(
 	troop_type: String,
 	source_tier: int,
@@ -222,24 +242,7 @@ func get_max_promotable(
 	var limit: int = mini(capacity, maxi(0, available_source))
 	if limit <= 0:
 		return 0
-	var unit_cost: Dictionary = get_promotion_cost(troop_type, source_tier, target_tier, 1)
-	var max_by_res: int = limit
-	for key: String in ["food", "wood", "stone", "iron"]:
-		var unit: int = int(unit_cost.get(key, 0))
-		if unit <= 0:
-			continue
-		var have: int = 0
-		match key:
-			"food":
-				have = int(GameState.food)
-			"wood":
-				have = int(GameState.wood)
-			"stone":
-				have = int(GameState.stone)
-			"iron":
-				have = int(GameState.iron)
-		max_by_res = mini(max_by_res, int(have / unit))
-	return maxi(0, max_by_res)
+	return maxi(0, mini(limit, get_affordable_promotable_count(troop_type, source_tier, target_tier)))
 
 
 func get_display_name(troop_type: String, tier: int = 1) -> String:

@@ -107,7 +107,7 @@ func _exercise_troop(screen: Control, db: Node, ts: Node, troop: String) -> void
 	print("[QTY SLIDER] ", troop, " max=", max_qty, " capacity=", cap, " default_amount=", screen.get("_amount"))
 	_assert(max_qty > 0, "%s max_qty=0" % troop)
 	_assert(max_qty <= cap, "%s max exceeds capacity" % troop)
-	_assert(int(screen.get("_amount")) == 0, "%s default should remain 0" % troop)
+	_assert(int(screen.get("_amount")) == max_qty, "%s default should be affordable max" % troop)
 
 	# Drag to 1
 	slider.value = 1

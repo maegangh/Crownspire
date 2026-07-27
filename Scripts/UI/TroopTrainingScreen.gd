@@ -18,7 +18,7 @@ const FALLBACK_TOP_INSET: float = 180.0
 const FALLBACK_BOTTOM_INSET: float = 190.0
 const SIDE_INSET: float = 14.0
 const CONTENT_GAP: float = 10.0
-const UI_LAYOUT_VERSION: int = 6
+const UI_LAYOUT_VERSION: int = 7
 const TIER_CHIP_COUNT: int = 6 ## visible window of tiers around selection
 
 const TROOP_ICONS := {
@@ -71,11 +71,14 @@ var _source_buttons: Array[Button] = []
 var _amount_label: Label
 var _qty_selected_label: Label
 var _qty_range_label: Label
+var _qty_limits_label: Label
+var _qty_lock_label: Label
 var _qty_slider: HSlider
 var _qty_minus_btn: Button
 var _qty_plus_btn: Button
 var _qty_row: HBoxContainer
 var _qty_syncing: bool = false
+var _was_job_ui: bool = false
 var _summary_label: Label
 var _cost_label: Label
 var _action_button: Button
@@ -166,7 +169,6 @@ func _apply_troop_context(
 		_building_level = _lookup_training_building_level(_troop_type, _building_id)
 	if reset_mode_amount:
 		_mode = "train"
-		_amount = 0
 		_status_label_text_clear()
 	_bootstrap_selection()
 
@@ -209,7 +211,7 @@ func _bootstrap_selection() -> void:
 		_selected_tier = 1
 	_source_tier = _default_source_tier()
 	_tier_window_start = maxi(1, _selected_tier - 2)
-	_clamp_amount()
+	_select_default_amount()
 
 
 func _db_type() -> String:
@@ -580,6 +582,14 @@ func _build_ui() -> void:
 	_qty_plus_btn.pressed.connect(func() -> void: _adjust_amount(1))
 	_qty_row.add_child(_qty_plus_btn)
 
+	# Existing project lock glyph (same as locked tier chips) — no new art.
+	_qty_lock_label = _ink_label("🔒", 22, COL_GOLD)
+	_qty_lock_label.name = "QtyResourceLock"
+	_qty_lock_label.visible = false
+	_qty_lock_label.tooltip_text = "Resources limit how many you can train (capacity is higher)."
+	_qty_lock_label.mouse_filter = Control.MOUSE_FILTER_STOP
+	_qty_row.add_child(_qty_lock_label)
+
 	# Keep a readable Selected mirror for smoke / compact layouts.
 	_amount_label = Label.new()
 	_amount_label.name = "AmountLabel"
@@ -591,6 +601,12 @@ func _build_ui() -> void:
 	_qty_range_label.name = "QtyRangeLabel"
 	_qty_range_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_idle_block.add_child(_qty_range_label)
+
+	_qty_limits_label = _ink_label("", 13, COL_MUTED)
+	_qty_limits_label.name = "QtyLimitsLabel"
+	_qty_limits_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_qty_limits_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_idle_block.add_child(_qty_limits_label)
 
 	var max_btn := _chrome_button("MAX", Vector2(0, 40))
 	max_btn.name = "QtyMax"
@@ -624,7 +640,7 @@ func _set_mode(mode: String) -> void:
 	_mode = mode
 	if _mode == "promote":
 		_source_tier = _default_source_tier()
-	_clamp_amount()
+	_select_default_amount()
 	_refresh_view()
 
 
@@ -650,7 +666,7 @@ func _on_tier_chip_pressed(chip_index: int) -> void:
 	_selected_tier = tier
 	if _mode == "promote":
 		_source_tier = _default_source_tier()
-	_clamp_amount()
+	_select_default_amount()
 	_refresh_view()
 
 
@@ -658,14 +674,32 @@ func _capacity() -> int:
 	return TroopDatabase.get_training_capacity(_building_level) if has_node("/root/TroopDatabase") else 100
 
 
-## Canonical selectable max: TroopDatabase capacity ∩ affordability (∩ source owned for promote).
+func _capacity_max() -> int:
+	return maxi(0, _capacity())
+
+
+## Resource-only affordable count (may exceed capacity). Canonical TroopDatabase loop.
+func _affordable_max() -> int:
+	if not has_node("/root/TroopDatabase"):
+		return _capacity_max()
+	if _mode == "promote":
+		return TroopDatabase.get_affordable_promotable_count(_db_type(), _source_tier, _selected_tier)
+	return TroopDatabase.get_affordable_trainable_count(_db_type(), _selected_tier)
+
+
+## Canonical selectable max: capacity ∩ affordability (∩ source owned for promote).
 func _max_for_mode() -> int:
 	if not has_node("/root/TroopDatabase"):
-		return _capacity()
+		return _capacity_max()
 	if _mode == "promote":
 		var avail: int = TroopState.get_tier_count(_troop_type, _source_tier)
 		return TroopDatabase.get_max_promotable(_db_type(), _source_tier, _selected_tier, _building_level, avail)
 	return TroopDatabase.get_max_trainable(_db_type(), _selected_tier, _building_level)
+
+
+func _select_default_amount() -> void:
+	## Open / tier / mode: select max actually affordable (never over capacity).
+	_amount = maxi(0, _max_for_mode())
 
 
 func _clamp_amount() -> void:
@@ -680,7 +714,11 @@ func _adjust_amount(delta: int) -> void:
 func _on_max_pressed() -> void:
 	_amount = _max_for_mode()
 	if _amount <= 0:
-		_status_label.text = "Nothing available to %s." % _mode
+		_status_label.text = (
+			"Not enough resources to promote this troop."
+			if _mode == "promote"
+			else "Not enough resources to train this troop."
+		)
 		_status_label.add_theme_color_override("font_color", COL_WARN)
 	_refresh_idle_summary()
 
@@ -692,28 +730,55 @@ func _on_qty_slider_changed(value: float) -> void:
 	_refresh_idle_summary()
 
 
+func _is_resource_locked() -> bool:
+	## Lock only when resources (not capacity alone) bind the slider below capacity.
+	return _affordable_max() < _capacity_max()
+
+
 func _sync_quantity_controls() -> void:
-	var max_qty: int = maxi(0, _max_for_mode())
-	_amount = clampi(_amount, 0, max_qty)
-	# Exact integers for quantity readout (slider precision); costs still use compact formatter.
+	var capacity_max: int = _capacity_max()
+	var affordable_max: int = maxi(0, _affordable_max())
+	var effective_max: int = maxi(0, _max_for_mode())
+	_amount = clampi(_amount, 0, effective_max)
+
 	if _qty_selected_label != null:
 		_qty_selected_label.text = "Selected: %d" % _amount
 	if _amount_label != null:
 		_amount_label.text = str(_amount)
 	if _qty_range_label != null:
-		_qty_range_label.text = "%d / %d" % [_amount, max_qty]
+		_qty_range_label.text = "%d / %d" % [_amount, effective_max]
+	if _qty_limits_label != null:
+		if _mode == "promote":
+			var owned: int = TroopState.get_tier_count(_troop_type, _source_tier)
+			_qty_limits_label.text = "Capacity: %d   Affordable: %d   Owned: %d" % [
+				capacity_max,
+				affordable_max if affordable_max < 0x7fffffff else capacity_max,
+				owned,
+			]
+		else:
+			var aff_disp: int = affordable_max if affordable_max < 0x7fffffff else capacity_max
+			_qty_limits_label.text = "Training Capacity: %d   Affordable: %d" % [capacity_max, aff_disp]
+
+	var show_lock: bool = _is_resource_locked() and effective_max >= 0
+	if _qty_lock_label != null:
+		_qty_lock_label.visible = show_lock and effective_max > 0
+		if _mode == "promote":
+			_qty_lock_label.tooltip_text = "Resources limit how many you can promote (capacity is higher)."
+		else:
+			_qty_lock_label.tooltip_text = "Resources limit how many you can train (capacity is higher)."
+
 	if _qty_slider != null:
 		_qty_syncing = true
 		_qty_slider.min_value = 0
-		_qty_slider.max_value = float(maxi(max_qty, 0))
+		_qty_slider.max_value = float(effective_max)
 		_qty_slider.step = 1
 		_qty_slider.value = float(_amount)
-		_qty_slider.editable = max_qty > 0
+		_qty_slider.editable = effective_max > 0
 		_qty_syncing = false
 	if _qty_minus_btn != null:
-		_qty_minus_btn.disabled = _amount <= 0
+		_qty_minus_btn.disabled = _amount <= 0 or effective_max <= 0
 	if _qty_plus_btn != null:
-		_qty_plus_btn.disabled = _amount >= max_qty
+		_qty_plus_btn.disabled = _amount >= effective_max or effective_max <= 0
 
 
 func _refresh_view() -> void:
@@ -722,10 +787,15 @@ func _refresh_view() -> void:
 	_refresh_type_tabs()
 
 	if TroopState.is_training_ready(_troop_type) or TroopState.is_training_active(_troop_type):
+		_was_job_ui = true
 		_idle_block.visible = false
 		_job_block.visible = true
 		_refresh_job()
 		return
+
+	if _was_job_ui:
+		_was_job_ui = false
+		_select_default_amount()
 
 	_idle_block.visible = true
 	_job_block.visible = false
@@ -821,7 +891,7 @@ func _refresh_source_row() -> void:
 		var t: int = tier
 		btn.pressed.connect(func() -> void:
 			_source_tier = t
-			_clamp_amount()
+			_select_default_amount()
 			_refresh_idle_summary()
 			_refresh_source_highlight()
 		)
@@ -840,33 +910,28 @@ func _refresh_source_highlight() -> void:
 
 func _refresh_idle_summary() -> void:
 	_sync_quantity_controls()
-	var cap: int = _capacity()
-	var max_qty: int = _max_for_mode()
+	var effective_max: int = _max_for_mode()
 	var time_sec: int = 0
 	var cost: Dictionary = {}
 	if _mode == "promote":
 		time_sec = TroopDatabase.get_promotion_time(_db_type(), _source_tier, _selected_tier, _amount) if _amount > 0 else 0
 		cost = TroopDatabase.get_promotion_cost(_db_type(), _source_tier, _selected_tier, _amount) if _amount > 0 else {}
-		_summary_label.text = "Promote T%d → T%d\nAvailable %s\nMax %s  ·  Capacity %s\nTime %s" % [
+		_summary_label.text = "Promote T%d → T%d\nOwned source %s\nTime %s" % [
 			_source_tier,
 			_selected_tier,
 			_format_number(TroopState.get_tier_count(_troop_type, _source_tier)),
-			_format_number(max_qty),
-			_format_number(cap),
 			_format_hms(time_sec),
 		]
-		_action_button.text = "PROMOTE %s → T%d" % [_format_number(_amount), _selected_tier]
+		_action_button.text = "PROMOTE %d → T%d" % [_amount, _selected_tier]
 	else:
 		time_sec = TroopDatabase.get_training_time(_db_type(), _selected_tier, _amount) if _amount > 0 else 0
 		cost = TroopDatabase.get_training_cost(_db_type(), _selected_tier, _amount) if _amount > 0 else {}
-		_summary_label.text = "Train T%d\nOwned %s\nMax %s  ·  Capacity %s\nTime %s" % [
+		_summary_label.text = "Train T%d\nOwned %s\nTime %s" % [
 			_selected_tier,
 			_format_number(TroopState.get_tier_count(_troop_type, _selected_tier)),
-			_format_number(max_qty),
-			_format_number(cap),
 			_format_hms(time_sec),
 		]
-		_action_button.text = "TRAIN %s T%d" % [_format_number(_amount), _selected_tier]
+		_action_button.text = "TRAIN %d T%d" % [_amount, _selected_tier]
 
 	_cost_label.text = "Cost\n%s" % _format_cost_lines(cost)
 	var reason: String = _validate_reason()
@@ -876,13 +941,14 @@ func _refresh_idle_summary() -> void:
 		_status_label.add_theme_color_override("font_color", COL_WARN)
 	else:
 		_status_label.text = ""
+	# Keep zero-affordable messaging even when amount is already 0.
+	if effective_max <= 0 and reason != "":
+		_status_label.text = reason
 
 
 func _validate_reason() -> String:
 	if TroopState.has_active_job(_troop_type):
 		return "A training/promotion job is already active."
-	if _amount <= 0:
-		return "Select an amount greater than zero."
 	if not TroopDatabase.is_tier_unlocked(_db_type(), _selected_tier, _building_level):
 		return "LOCKED\nRequires %s" % TroopDatabase.get_unlock_requirement_text(_db_type(), _selected_tier)
 	if _mode == "promote":
@@ -890,12 +956,23 @@ func _validate_reason() -> String:
 			return "Select a higher unlocked tier to promote into."
 		if _source_tier <= 0 or _source_tier >= _selected_tier:
 			return "Choose a lower source tier."
-		if TroopState.get_tier_count(_troop_type, _source_tier) < _amount:
+		var owned: int = TroopState.get_tier_count(_troop_type, _source_tier)
+		if owned <= 0:
+			return "No lower-tier troops to promote."
+		if _max_for_mode() <= 0:
+			return "Not enough resources to promote this troop."
+		if owned < _amount:
 			return "Not enough T%d troops." % _source_tier
+		if _amount <= 0:
+			return "Select an amount greater than zero."
 		var pcost: Dictionary = TroopDatabase.get_promotion_cost(_db_type(), _source_tier, _selected_tier, _amount)
 		if not TroopDatabase.can_afford(pcost):
 			return TroopDatabase.get_missing_cost_text(pcost)
 	else:
+		if _max_for_mode() <= 0:
+			return "Not enough resources to train this troop."
+		if _amount <= 0:
+			return "Select an amount greater than zero."
 		if _amount > _capacity():
 			return "Amount exceeds training capacity."
 		var tcost: Dictionary = TroopDatabase.get_training_cost(_db_type(), _selected_tier, _amount)

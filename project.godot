@@ -43,6 +43,7 @@ HealingState="*res://Scripts/HealingState.gd"
 SanctuaryState="*res://Scripts/SanctuaryState.gd"
 TutorialState="*res://Scripts/TutorialState.gd"
 SpeedupService="*res://scripts/SpeedupService.gd"
+EventState="*res://scripts/EventState.gd"
 
 [display]
 

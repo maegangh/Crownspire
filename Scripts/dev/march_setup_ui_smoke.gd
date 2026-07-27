@@ -26,6 +26,31 @@ func _run() -> void:
 	var script_path: String = setup.get_script().resource_path if setup.get_script() else ""
 	print("[MARCH UI SMOKE] runtime script=", script_path)
 
+	# Gather setup: heroes must stay empty (no auto Maegan).
+	setup.call("open_for_target", {
+		"target_type": "resource",
+		"resource_tile_id": "smoke_tile",
+		"resource_type": "food",
+		"resource_level": 1,
+		"resource_amount": 1000,
+		"display_name": "Fertile Wheat Farm",
+		"position": {"x": 100.0, "y": 100.0},
+	})
+	await process_frame
+	await process_frame
+
+	var fail: Array[String] = []
+	var sel_var: Variant = setup.get("_selected_heroes")
+	if typeof(sel_var) == TYPE_ARRAY and not (sel_var as Array).is_empty():
+		fail.append("Gather setup auto-selected heroes (expected none)")
+	var heroes_section: Label = setup.find_child("HeroesSectionLabel", true, false) as Label
+	if heroes_section == null or not str(heroes_section.text).contains("OPTIONAL"):
+		fail.append("Gather heroes section should be labeled OPTIONAL")
+
+	if setup.find_child("CloseButton", true, false) != null:
+		(setup.find_child("CloseButton", true, false) as Button).pressed.emit()
+	await process_frame
+
 	setup.call("open_for_target", {
 		"instance_id": 1,
 		"species": "wolf",
@@ -42,7 +67,6 @@ func _run() -> void:
 	var clear_troops: Button = setup.find_child("ClearTroopsButton", true, false) as Button
 	var march_btn: Button = setup.find_child("MarchButton", true, false) as Button
 
-	var fail: Array[String] = []
 	if back == null:
 		fail.append("BackButton missing")
 	if close_btn == null:
@@ -53,6 +77,13 @@ func _run() -> void:
 		fail.append("CLEAR troops missing")
 	if march_btn == null:
 		fail.append("MARCH missing")
+
+	# Whole-screen scroll is forbidden — fixed portrait layout only.
+	var content_scroll: Node = setup.find_child("ContentScroll", true, false)
+	if content_scroll is ScrollContainer:
+		fail.append("ContentScroll ScrollContainer must not wrap the whole screen")
+	if setup.find_child("MobileScrollMarchSetup", true, false) != null:
+		fail.append("MobileScrollMarchSetup must be removed with whole-screen scroll")
 
 	# No per-row steppers / old Select All labels inside troop rows.
 	for kind: String in ["infantry", "marksmen", "cavalry"]:

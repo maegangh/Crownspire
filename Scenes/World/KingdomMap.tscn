@@ -258,3 +258,4 @@ script = ExtResource("27_qrnde")
 
 [node name="GameHUD" parent="." unique_id=1833121157 instance=ExtResource("28_va38e")]
 layer = 100
+is_world_screen = true

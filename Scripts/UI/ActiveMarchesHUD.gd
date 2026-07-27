@@ -166,14 +166,51 @@ func _make_card(march_id: String) -> Dictionary:
 	timer_l.add_theme_color_override("font_color", COL_TIMER)
 	vbox.add_child(timer_l)
 
+	var recall_btn := Button.new()
+	recall_btn.name = "RecallButton"
+	recall_btn.text = "↩ RECALL"
+	recall_btn.visible = false
+	recall_btn.focus_mode = Control.FOCUS_NONE
+	recall_btn.mouse_filter = Control.MOUSE_FILTER_STOP
+	recall_btn.custom_minimum_size = Vector2(0, 36)
+	recall_btn.add_theme_font_size_override("font_size", 15)
+	recall_btn.add_theme_color_override("font_color", Color(0.98, 0.92, 0.78, 1.0))
+	var rstyle := StyleBoxFlat.new()
+	rstyle.bg_color = Color(0.22, 0.14, 0.10, 0.95)
+	rstyle.border_color = Color(0.85, 0.55, 0.28, 0.95)
+	rstyle.set_border_width_all(1)
+	rstyle.set_corner_radius_all(8)
+	rstyle.content_margin_left = 8
+	rstyle.content_margin_right = 8
+	rstyle.content_margin_top = 6
+	rstyle.content_margin_bottom = 6
+	recall_btn.add_theme_stylebox_override("normal", rstyle)
+	var rhover := rstyle.duplicate() as StyleBoxFlat
+	rhover.bg_color = Color(0.32, 0.20, 0.12, 0.98)
+	recall_btn.add_theme_stylebox_override("hover", rhover)
+	recall_btn.pressed.connect(_on_recall_pressed.bind(march_id))
+	vbox.add_child(recall_btn)
+
 	return {
 		"panel": panel,
 		"status": status_l,
 		"line1": line1,
 		"line2": line2,
 		"timer": timer_l,
+		"recall": recall_btn,
 		"march_id": march_id,
 	}
+
+
+func _on_recall_pressed(march_id: String) -> void:
+	if not has_node("/root/MarchState"):
+		return
+	if not MarchState.has_method("recall_march"):
+		return
+	var result: Dictionary = MarchState.recall_march(march_id)
+	if not bool(result.get("ok", false)):
+		push_warning("[ActiveMarchesHUD] Recall failed: %s" % str(result.get("error", "")))
+
 
 
 func _on_card_gui_input(event: InputEvent, march_id: String) -> void:
@@ -223,6 +260,7 @@ func _update_card_text(card: Dictionary, march: Dictionary, now: int) -> void:
 	var line1: Label = card["line1"]
 	var line2: Label = card["line2"]
 	var timer_l: Label = card["timer"]
+	var recall_btn: Button = card.get("recall") as Button
 
 	var display_status: String = _status_label(status)
 	status_l.text = display_status
@@ -240,6 +278,17 @@ func _update_card_text(card: Dictionary, march: Dictionary, now: int) -> void:
 	else:
 		timer_l.visible = true
 		timer_l.text = _format_mmss(remain)
+
+	if recall_btn != null:
+		var can_recall: bool = (
+			mtype == "gather"
+			and (
+				status == MarchState.STATUS_MARCHING
+				or status == MarchState.STATUS_GATHERING
+			)
+		)
+		recall_btn.visible = can_recall
+		recall_btn.disabled = not can_recall
 
 
 func _status_label(status: String) -> String:

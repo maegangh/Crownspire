@@ -169,7 +169,10 @@ func _on_dim_gui_input(event: InputEvent) -> void:
 
 
 func _choose(action_id: String) -> void:
-	# Destination window (Research / Upgrade) owns GameState.popup_open.
+	# Clear chooser ownership first. Destination screens/windows re-assert popup_open if needed.
+	# Leaving this true after Defense/Train/etc. permanently blocked City building taps.
+	if has_node("/root/GameState"):
+		GameState.popup_open = false
 	action_chosen.emit(action_id)
 	queue_free()
 

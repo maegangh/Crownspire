@@ -8,11 +8,13 @@ signal heroes_changed
 const SAVE_PATH: String = "user://heroes.cfg"
 const SMOKE_SAVE_PATH: String = "user://heroes_smoke_test.cfg"
 const POOLS_PATH: String = "res://data/hero_recruitment_pools.json"
-const SAVE_VERSION: int = 2
+const SAVE_VERSION: int = 3
 const SHARDS_TO_UNLOCK: int = 10
 const CLEANUP_KEY: String = "prebeta_autoown_cleared_v1"
 const STARTER_KEY: String = "starter_maegan_granted_v1"
 const STARTER_HERO_ID: String = "maegan"
+## Canonical City Wall defensive hero capacity (beta).
+const MAX_WALL_DEFENDERS: int = 3
 
 var royal_tickets: int = 5
 var mythic_tickets: int = 1
@@ -35,6 +37,9 @@ var hero_xp: int = 0
 
 var royal_free_ready_unix: int = 0
 var mythic_free_ready_unix: int = 0
+
+## Persistent City Wall defensive assignments (owned hero ids only).
+var wall_defender_ids: Array[String] = []
 
 var _save_path_override: String = ""
 var _pools: Dictionary = {}
@@ -624,12 +629,83 @@ func set_hero_on_march(hero_id: String, on_march: bool) -> void:
 	heroes_changed.emit()
 
 
+func is_hero_wall_defender(hero_id: String) -> bool:
+	return hero_id in wall_defender_ids
+
+
+## Centralized: free for outbound marches (not on march, not Wall defense).
+func is_hero_available_for_march(hero_id: String) -> bool:
+	if not is_hero_owned(hero_id):
+		return false
+	if is_hero_on_march(hero_id):
+		return false
+	if is_hero_wall_defender(hero_id):
+		return false
+	return true
+
+
 func get_available_heroes() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for hero: Dictionary in recruited_heroes:
-		if not bool(hero.get("on_march", false)):
+		var hid: String = str(hero.get("id", ""))
+		if is_hero_available_for_march(hid):
 			result.append(hero.duplicate(true))
 	return result
+
+
+func get_wall_defender_ids() -> Array[String]:
+	return wall_defender_ids.duplicate()
+
+
+func get_max_wall_defenders() -> int:
+	return MAX_WALL_DEFENDERS
+
+
+## Replace Wall defender list. Only owned, not-on-march heroes. Persists.
+func set_wall_defenders(hero_ids: Array) -> Dictionary:
+	var cleaned: Array[String] = []
+	for hid_v: Variant in hero_ids:
+		var hid: String = str(hid_v).strip_edges()
+		if hid.is_empty() or hid in cleaned:
+			continue
+		if not is_hero_owned(hid):
+			return {"ok": false, "error": "Hero not owned: %s" % hid}
+		if is_hero_on_march(hid):
+			return {"ok": false, "error": "%s is on a march." % hid}
+		cleaned.append(hid)
+		if cleaned.size() > MAX_WALL_DEFENDERS:
+			return {"ok": false, "error": "Max %d Wall defenders." % MAX_WALL_DEFENDERS}
+	wall_defender_ids = cleaned
+	save_heroes()
+	heroes_changed.emit()
+	return {"ok": true, "wall_defender_ids": get_wall_defender_ids()}
+
+
+## Informational City Defense Power (sum of assigned defender display power).
+func get_city_defense_power() -> int:
+	var total: int = 0
+	for hid: String in wall_defender_ids:
+		total += get_hero_display_power(hid)
+	return total
+
+
+func get_hero_display_power(hero_id: String) -> int:
+	var owned: Dictionary = get_owned_hero(hero_id)
+	if owned.is_empty():
+		return 0
+	var template: Dictionary = {}
+	if has_node("/root/DataManager"):
+		template = DataManager.get_hero(hero_id)
+	var level: int = int(owned.get("level", 1))
+	var star_level: int = int(owned.get("starLevel", template.get("starLevel", 5)))
+	var star_progress: int = int(owned.get("starProgress", template.get("starProgress", 0)))
+	var level_factor: float = 1.0 + (float(level - 1) * 0.25)
+	var star_multiplier: float = get_star_power_multiplier(star_level, star_progress)
+	var attack: float = float(template.get("baseAttack", owned.get("baseAttack", 100))) * level_factor * star_multiplier
+	var defense: float = float(template.get("baseDefense", owned.get("baseDefense", 100))) * level_factor * star_multiplier
+	var health: float = float(template.get("baseHealth", owned.get("baseHealth", 1000))) * level_factor * star_multiplier
+	var leadership: float = float(template.get("leadership", owned.get("leadership", 50))) * level_factor * star_multiplier
+	return int((attack + defense) * 12.0 + (health * 0.5) + leadership)
 
 
 # --- Save / load / cleanup ---
@@ -648,12 +724,14 @@ func save_heroes() -> void:
 	save.set_value("roster", "hero_shards_json", JSON.stringify(hero_shards))
 	save.set_value("roster", "royal_free_ready_unix", royal_free_ready_unix)
 	save.set_value("roster", "mythic_free_ready_unix", mythic_free_ready_unix)
+	save.set_value("city_defense", "wall_defender_ids_json", JSON.stringify(wall_defender_ids))
 	save.save(get_save_path())
 
 
 func load_heroes() -> void:
 	recruited_heroes.clear()
 	hero_shards.clear()
+	wall_defender_ids.clear()
 	_starter_maegan_granted = false
 	var save := ConfigFile.new()
 	if save.load(get_save_path()) != OK:
@@ -690,11 +768,39 @@ func load_heroes() -> void:
 	if typeof(shards_parsed) == TYPE_DICTIONARY:
 		hero_shards = shards_parsed
 
+	var wall_raw: String = str(save.get_value("city_defense", "wall_defender_ids_json", "[]"))
+	var wall_parsed: Variant = JSON.parse_string(wall_raw)
+	if typeof(wall_parsed) == TYPE_ARRAY:
+		for hid_v: Variant in wall_parsed:
+			var hid: String = str(hid_v).strip_edges()
+			if hid != "" and hid not in wall_defender_ids:
+				wall_defender_ids.append(hid)
+
 	if current_hero_index >= recruited_heroes.size():
 		current_hero_index = recruited_heroes.size() - 1
 
 	_run_prebeta_autoown_cleanup(version)
 	_ensure_starter_maegan()
+	_sanitize_wall_defenders()
+
+
+func _sanitize_wall_defenders() -> void:
+	var cleaned: Array[String] = []
+	for hid: String in wall_defender_ids:
+		if not is_hero_owned(hid):
+			continue
+		if is_hero_on_march(hid):
+			continue
+		if hid in cleaned:
+			continue
+		cleaned.append(hid)
+		if cleaned.size() >= MAX_WALL_DEFENDERS:
+			break
+	if cleaned.size() != wall_defender_ids.size():
+		wall_defender_ids = cleaned
+		save_heroes()
+	else:
+		wall_defender_ids = cleaned
 
 
 ## One-time removal of heroes granted by the broken auto-own Tavern draw.
@@ -744,6 +850,7 @@ func begin_smoke_isolation() -> void:
 	_save_path_override = SMOKE_SAVE_PATH
 	recruited_heroes.clear()
 	hero_shards.clear()
+	wall_defender_ids.clear()
 	royal_tickets = 5
 	mythic_tickets = 1
 	hero_xp = 0
@@ -935,6 +1042,40 @@ func run_hero_roster_smoke_test() -> bool:
 			count_maegan += 1
 	if count_maegan != 1:
 		push_error("[HeroState] smoke: maegan duplicated after reload")
+		ok = false
+
+	# Wall defense assignment: persists, blocks marches, removable.
+	var wall_set: Dictionary = set_wall_defenders(["maegan"])
+	if not bool(wall_set.get("ok", false)):
+		push_error("[HeroState] smoke: wall assign maegan failed")
+		ok = false
+	if not is_hero_wall_defender("maegan"):
+		push_error("[HeroState] smoke: maegan not wall defender")
+		ok = false
+	if is_hero_available_for_march("maegan"):
+		push_error("[HeroState] smoke: wall defender must be unavailable for marches")
+		ok = false
+	var avail_ids: Array[String] = []
+	for h2: Dictionary in get_available_heroes():
+		avail_ids.append(str(h2.get("id", "")))
+	if "maegan" in avail_ids:
+		push_error("[HeroState] smoke: get_available_heroes still lists wall defender")
+		ok = false
+	if get_city_defense_power() <= 0:
+		push_error("[HeroState] smoke: city defense power should be > 0")
+		ok = false
+	save_heroes()
+	wall_defender_ids.clear()
+	load_heroes()
+	if not is_hero_wall_defender("maegan"):
+		push_error("[HeroState] smoke: wall defender lost after reload")
+		ok = false
+	var wall_clear: Dictionary = set_wall_defenders([])
+	if not bool(wall_clear.get("ok", false)) or is_hero_wall_defender("maegan"):
+		push_error("[HeroState] smoke: wall clear failed")
+		ok = false
+	if not is_hero_available_for_march("maegan"):
+		push_error("[HeroState] smoke: maegan should be available after wall clear")
 		ok = false
 
 	if ok:

@@ -1,0 +1,66 @@
+{
+	"id": "royal_ascension",
+	"name": "ROYAL ASCENSION",
+	"tagline": "The Crown calls upon every ruler to strengthen their realm.",
+	"description": "Strengthen your realm through construction, research, training, hunts, gathering, and speedups. Claim milestone rewards as your score rises.",
+	"duration_hours": 24,
+	"presentation": {
+		"banner_color": "#1a2744",
+		"accent_color": "#d4a84b"
+	},
+	"scoring": {
+		"building_upgraded": { "points": 500, "label": "Building Upgrade" },
+		"research_completed": { "points": 300, "label": "Research" },
+		"troop_training_completed": {
+			"points_per_100_troops": 150,
+			"label": "Train Troops"
+		},
+		"wildling_defeated": { "points": 100, "label": "Defeat Wildlings" },
+		"gathering_completed": {
+			"points_per_1000_resources": 10,
+			"label": "Gather Resources"
+		},
+		"speedup_used": {
+			"points_per_minute": 1,
+			"label": "Use Speedups"
+		}
+	},
+	"milestones": [
+		{
+			"threshold": 1000,
+			"rewards": [
+				{ "type": "item", "id": "resource_food_100k", "amount": 1 },
+				{ "type": "speedup", "id": "speedup_universal_1h", "amount": 1 }
+			]
+		},
+		{
+			"threshold": 3000,
+			"rewards": [
+				{ "type": "item", "id": "resource_wood_100k", "amount": 1 },
+				{ "type": "speedup", "id": "speedup_universal_1h", "amount": 2 }
+			]
+		},
+		{
+			"threshold": 7500,
+			"rewards": [
+				{ "type": "item", "id": "resource_stone_50k", "amount": 2 },
+				{ "type": "speedup", "id": "speedup_research_8h", "amount": 1 }
+			]
+		},
+		{
+			"threshold": 15000,
+			"rewards": [
+				{ "type": "item", "id": "resource_iron_25k", "amount": 2 },
+				{ "type": "speedup", "id": "speedup_universal_8h", "amount": 1 }
+			]
+		},
+		{
+			"threshold": 30000,
+			"rewards": [
+				{ "type": "item", "id": "resource_diamond_1000", "amount": 1 },
+				{ "type": "speedup", "id": "speedup_construction_24h", "amount": 1 },
+				{ "type": "speedup", "id": "speedup_universal_8h", "amount": 1 }
+			]
+		}
+	]
+}

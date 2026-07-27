@@ -104,6 +104,9 @@ var _mobile_tech_list: VBoxContainer
 var _mobile_detail_body: VBoxContainer
 var _mobile_active_banner: Label
 var _mobile_built: bool = false
+## Live "In progress — Ns remaining" label on mobile detail (updated each tick).
+var _mobile_detail_progress_label: Label = null
+var _mobile_detail_speedup_btn: Button = null
 
 # Local fallbacks for offline testing or missing UIManager state
 var _local_research_levels: Dictionary = {}
@@ -300,6 +303,7 @@ func _sync_active_research_ui() -> void:
 				node_name,
 				format_duration(float(active.get("time_remaining", 0.0))),
 			]
+		_sync_mobile_detail_active_job_ui(active)
 
 # Load database securely
 func _load_database() -> void:
@@ -1933,6 +1937,8 @@ func _refresh_mobile_category_list() -> void:
 func _refresh_mobile_detail() -> void:
 	if _mobile_detail_body == null:
 		return
+	_mobile_detail_progress_label = null
+	_mobile_detail_speedup_btn = null
 	_clear_mobile_children(_mobile_detail_body)
 
 	var node: Dictionary = _find_node_in_db(selected_node_id)
@@ -2011,15 +2017,36 @@ func _refresh_mobile_detail() -> void:
 		))
 
 	if is_researching:
-		_mobile_detail_body.add_child(_mobile_text(
+		_mobile_detail_progress_label = _mobile_text(
 			"In progress — %s remaining" % format_duration(float(active.get("time_remaining", 0.0))),
 			18,
 			Color(0.55, 0.82, 0.95)
-		))
+		)
+		_mobile_detail_progress_label.name = "MobileActiveProgress"
+		_mobile_detail_body.add_child(_mobile_detail_progress_label)
+
+		# Portrait path: SPEED UP must live here (desktop SpeedupContainer is hidden).
+		_mobile_detail_speedup_btn = Button.new()
+		_mobile_detail_speedup_btn.name = "MobileSpeedUpButton"
+		_mobile_detail_speedup_btn.text = "SPEED UP"
+		_mobile_detail_speedup_btn.custom_minimum_size = Vector2(0, 56)
+		_mobile_detail_speedup_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_mobile_detail_speedup_btn.add_theme_font_size_override("font_size", 20)
+		_mobile_detail_speedup_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		_mobile_detail_speedup_btn.pressed.connect(_on_shared_speedup_pressed)
+		var rem_now: float = float(active.get("time_remaining", 0.0))
+		var can_su: bool = rem_now > 0.0
+		_mobile_detail_speedup_btn.disabled = not can_su
+		_style_research_speedup_button(_mobile_detail_speedup_btn, can_su)
+		_mobile_detail_body.add_child(_mobile_detail_speedup_btn)
+
 		var cancel := Button.new()
+		cancel.name = "MobileCancelResearchButton"
 		cancel.text = "CANCEL RESEARCH"
-		cancel.custom_minimum_size = Vector2(0, 56)
-		cancel.add_theme_font_size_override("font_size", 18)
+		cancel.custom_minimum_size = Vector2(0, 52)
+		cancel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		cancel.add_theme_font_size_override("font_size", 17)
+		_style_mobile_cancel_button(cancel)
 		cancel.pressed.connect(func() -> void:
 			cancel_research_job(selected_node_id)
 			# Defer rebuild — Cancel button lives in _mobile_detail_body.
@@ -2065,6 +2092,51 @@ func _deferred_mobile_refresh_after_job_change() -> void:
 	if _mobile_page == MobilePage.CATEGORY or _mobile_page == MobilePage.DETAIL:
 		_refresh_mobile_category_list()
 	_refresh_mobile_home()
+
+
+func _sync_mobile_detail_active_job_ui(active: Dictionary) -> void:
+	## Tick-only refresh for the live mobile detail progress line + SPEED UP state.
+	if _mobile_page != MobilePage.DETAIL:
+		return
+	if _mobile_detail_progress_label != null and is_instance_valid(_mobile_detail_progress_label):
+		if active.is_empty() or str(active.get("research_id", "")) != selected_node_id:
+			# Job finished / switched — full rebuild handles idle/complete UI.
+			return
+		_mobile_detail_progress_label.text = "In progress — %s remaining" % format_duration(
+			float(active.get("time_remaining", 0.0))
+		)
+	if _mobile_detail_speedup_btn != null and is_instance_valid(_mobile_detail_speedup_btn):
+		var rem: float = float(active.get("time_remaining", 0.0)) if not active.is_empty() else 0.0
+		var can_su: bool = not active.is_empty() and rem > 0.0
+		_mobile_detail_speedup_btn.visible = not active.is_empty()
+		# Enabled whenever a real timer is running — even with 0 bag speedups.
+		_mobile_detail_speedup_btn.disabled = not can_su
+		_style_research_speedup_button(_mobile_detail_speedup_btn, can_su)
+
+
+func _style_mobile_cancel_button(btn: Button) -> void:
+	if btn == null:
+		return
+	var normal := StyleBoxFlat.new()
+	var hover := StyleBoxFlat.new()
+	var pressed := StyleBoxFlat.new()
+	for sb: StyleBoxFlat in [normal, hover, pressed]:
+		sb.content_margin_left = 14
+		sb.content_margin_right = 14
+		sb.content_margin_top = 10
+		sb.content_margin_bottom = 10
+		sb.set_corner_radius_all(8)
+		sb.set_border_width_all(1)
+	normal.bg_color = Color(0.14, 0.12, 0.16, 1.0)
+	normal.border_color = Color(0.40, 0.34, 0.30, 0.90)
+	hover.bg_color = Color(0.20, 0.16, 0.20, 1.0)
+	hover.border_color = Color(0.55, 0.45, 0.35, 0.95)
+	pressed.bg_color = Color(0.10, 0.09, 0.12, 1.0)
+	pressed.border_color = Color(0.30, 0.26, 0.24, 0.90)
+	btn.add_theme_stylebox_override("normal", normal)
+	btn.add_theme_stylebox_override("hover", hover)
+	btn.add_theme_stylebox_override("pressed", pressed)
+	btn.add_theme_color_override("font_color", Color(0.82, 0.76, 0.68, 1.0))
 
 
 func _mobile_text(text: String, size: int, color: Color) -> Label:

@@ -23,6 +23,17 @@ const STATUS_GATHERING: String = "GATHERING"
 const STATUS_RETURNING: String = "RETURNING"
 const STATUS_COMPLETED: String = "COMPLETED"
 
+## Legacy MarchManager ACTION pulse duration — restored for Wildling arrival presentation.
+const COMBAT_PRESENTATION_SEC: float = 2.5
+
+## Route visual intent (centralized — do not color by target node type alone).
+const ROUTE_FRIENDLY: String = "FRIENDLY"
+const ROUTE_HOSTILE: String = "HOSTILE"
+const ROUTE_COLOR_FRIENDLY := Color(0.28, 0.86, 0.42, 0.92)
+const ROUTE_COLOR_HOSTILE := Color(0.92, 0.22, 0.24, 0.92)
+
+const MarchRouteLineScript = preload("res://scripts/World/MarchRouteLine.gd")
+
 ## Beta placeholder gather rate (resources / second). Tunable — not final economy balance.
 ## Same base rate for Food/Wood/Stone/Iron in Step 2.
 const BASE_GATHER_RATE_PER_SEC: float = 50.0
@@ -37,9 +48,34 @@ var finish_time: int = 0
 var active_marches: Array[Dictionary] = []
 var _visuals: Dictionary = {} # march_id -> Node2D
 var _gather_indicators: Dictionary = {} # march_id -> Node2D (tile badge)
+var _route_lines: Dictionary = {} # march_id -> Node2D (dotted route)
 var _save_path_override: String = ""
 var _rewards_table: Dictionary = {}
 var _march_icon_scene: PackedScene = null
+
+
+## Canonical route intent for world-map dotted lines.
+## Prefer march_type / status — never infer solely from target node type.
+func get_route_visual_type(march: Dictionary) -> String:
+	var status: String = str(march.get("status", ""))
+	# Returns are always non-hostile movement home.
+	if status == STATUS_RETURNING:
+		return ROUTE_FRIENDLY
+	var mtype: String = str(march.get("march_type", "")).strip_edges().to_lower()
+	match mtype:
+		"wildling_hunt", "gather", "join_rally", "reinforce", "returning":
+			return ROUTE_FRIENDLY
+		"attack_city", "attack_resource_tile", "hostile_rally", "pvp_attack":
+			return ROUTE_HOSTILE
+		_:
+			# Unknown future types: default friendly (safer for current beta).
+			return ROUTE_FRIENDLY
+
+
+func get_route_color(march: Dictionary) -> Color:
+	if get_route_visual_type(march) == ROUTE_HOSTILE:
+		return ROUTE_COLOR_HOSTILE
+	return ROUTE_COLOR_FRIENDLY
 
 
 func _ready() -> void:
@@ -196,6 +232,8 @@ func validate_wildling_dispatch(
 			var hid: String = str(hero_id)
 			if HeroState.is_hero_on_march(hid):
 				return {"ok": false, "error": "Hero already on a march."}
+			if HeroState.has_method("is_hero_wall_defender") and HeroState.is_hero_wall_defender(hid):
+				return {"ok": false, "error": "Hero is assigned to City Defense."}
 			if HeroState.get_hero_index(hid) == -1:
 				return {"ok": false, "error": "Unknown hero selected."}
 
@@ -292,6 +330,7 @@ func dispatch_wildling_march(
 	active_marches.append(march)
 	save_marches()
 	_ensure_visual(march)
+	_update_march_route_visual(march) # outbound route at successful dispatch
 	marches_changed.emit()
 	if has_node("/root/GameEvents"):
 		GameEvents.emit_march_dispatched(march)
@@ -323,7 +362,8 @@ func _tick_marches() -> void:
 					if mtype == "gather":
 						_begin_gathering(march)
 					else:
-						_resolve_battle(march)
+						# Wildling / combat marches: present arrival attack, then resolve once.
+						_begin_combat_presentation(march)
 					active_marches[i] = march
 					changed = true
 			STATUS_GATHERING:
@@ -339,8 +379,11 @@ func _tick_marches() -> void:
 					finished_ids.append(str(march.get("march_id", "")))
 					changed = true
 			STATUS_IN_COMBAT:
-				# Should transition immediately inside _resolve_battle.
-				pass
+				_update_visual_progress(march, now_f)
+				if now >= int(march.get("combat_end_unix", 0)):
+					_resolve_battle(march)
+					active_marches[i] = march
+					changed = true
 
 	if not finished_ids.is_empty():
 		var remaining: Array[Dictionary] = []
@@ -355,6 +398,18 @@ func _tick_marches() -> void:
 	if changed:
 		save_marches()
 		marches_changed.emit()
+
+
+## Park at target and play short arrival presentation before combat resolves.
+func _begin_combat_presentation(march: Dictionary) -> void:
+	if bool(march.get("battle_resolved", false)):
+		_record_wounded_from_march(march)
+		_begin_return(march)
+		return
+	var arrival: int = int(march.get("arrival_timestamp", Time.get_unix_time_from_system()))
+	march["status"] = STATUS_IN_COMBAT
+	march["combat_end_unix"] = arrival + int(ceil(COMBAT_PRESENTATION_SEC))
+	_update_march_route_visual(march) # drop outbound route during presentation
 
 
 func _resolve_battle(march: Dictionary) -> void:
@@ -583,6 +638,90 @@ func _begin_return_at(march: Dictionary, start_unix: int) -> void:
 	march["departure_timestamp"] = start_unix
 	march["arrival_timestamp"] = start_unix # outbound complete
 	march["return_arrival_timestamp"] = start_unix + travel_sec
+	_update_march_route_visual(march) # return route: target → city
+
+
+## Player recall for gather marches (outbound travel or active gathering).
+## Reuses canonical RETURNING → _complete_return. Does not teleport home.
+func recall_march(march_id: String) -> Dictionary:
+	var idx: int = -1
+	var march: Dictionary = {}
+	for i: int in range(active_marches.size()):
+		if str(active_marches[i].get("march_id", "")) == march_id:
+			idx = i
+			march = active_marches[i]
+			break
+	if idx < 0:
+		return {"ok": false, "error": "March not found."}
+	if str(march.get("march_type", "")) != "gather":
+		return {"ok": false, "error": "Only gather marches can be recalled."}
+	var status: String = str(march.get("status", ""))
+	if status == STATUS_RETURNING or status == STATUS_COMPLETED:
+		return {"ok": false, "error": "March is already returning."}
+	if status != STATUS_MARCHING and status != STATUS_GATHERING:
+		return {"ok": false, "error": "March cannot be recalled in this state."}
+
+	var now: int = int(Time.get_unix_time_from_system())
+	var tile_id: String = _gather_tile_id(march)
+
+	if status == STATUS_MARCHING:
+		# Outbound recall: no cargo; return from current world position.
+		if has_node("/root/ResourceTileState") and tile_id != "":
+			ResourceTileState.release_reservation(tile_id, march_id)
+		march["gathered_amount"] = 0
+		march["gather_target_amount"] = 0
+		var cur: Vector2 = _compute_march_world_position(march, float(now))
+		march["target_position"] = {"x": cur.x, "y": cur.y}
+		_clear_gather_indicator(march_id)
+		_begin_return_at(march, now)
+	else:
+		# Active gathering: keep legitimate partial cargo; credit on city arrival.
+		var partial: int = _compute_partial_gathered_amount(march, now)
+		march["gathered_amount"] = partial
+		march["gather_target_amount"] = partial
+		march["gather_end_unix"] = now
+		if not bool(march.get("tile_amount_applied", false)):
+			if has_node("/root/ResourceTileState") and tile_id != "":
+				if partial > 0:
+					ResourceTileState.apply_gather_completion(tile_id, march_id, partial)
+				else:
+					ResourceTileState.release_reservation(tile_id, march_id)
+			march["tile_amount_applied"] = true
+		_clear_gather_indicator(march_id)
+		_begin_return_at(march, now)
+
+	active_marches[idx] = march
+	save_marches()
+	_ensure_visual(march)
+	_update_visual_progress(march, float(now))
+	marches_changed.emit()
+	return {"ok": true, "march_id": march_id, "gathered_amount": int(march.get("gathered_amount", 0))}
+
+
+func _compute_partial_gathered_amount(march: Dictionary, now_unix: int) -> int:
+	var target_amt: int = maxi(0, int(march.get("gather_target_amount", 0)))
+	if target_amt <= 0:
+		return 0
+	var started: int = int(march.get("gather_started_unix", now_unix))
+	var end_unix: int = int(march.get("gather_end_unix", now_unix))
+	if now_unix >= end_unix:
+		return target_amt
+	var elapsed: float = maxf(0.0, float(now_unix - started))
+	var rate: float = float(march.get("gather_rate_per_sec", BASE_GATHER_RATE_PER_SEC))
+	if rate <= 0.0:
+		rate = BASE_GATHER_RATE_PER_SEC
+	return clampi(int(floor(elapsed * rate)), 0, target_amt)
+
+
+func can_recall_march(march_id: String) -> bool:
+	for march: Dictionary in active_marches:
+		if str(march.get("march_id", "")) != march_id:
+			continue
+		if str(march.get("march_type", "")) != "gather":
+			return false
+		var status: String = str(march.get("status", ""))
+		return status == STATUS_MARCHING or status == STATUS_GATHERING
+	return false
 
 
 func _gather_tile_id(march: Dictionary) -> String:
@@ -640,6 +779,7 @@ func _begin_gathering(march: Dictionary) -> void:
 	march["status"] = STATUS_GATHERING
 	march["gather_started_unix"] = arrival
 	march["gather_end_unix"] = arrival + gather_sec
+	_update_march_route_visual(march) # remove outbound path while stationary gathering
 	# Tile amount is reduced on gather complete; GameState credit only on home return.
 	if has_node("/root/GameEvents"):
 		GameEvents.emit_gathering_started(gather_rtype)
@@ -841,6 +981,7 @@ func _sync_visuals() -> void:
 		var status: String = str(march.get("status", ""))
 		if status in [STATUS_MARCHING, STATUS_RETURNING, STATUS_IN_COMBAT, STATUS_GATHERING]:
 			_ensure_visual(march)
+			_update_march_route_visual(march)
 			_update_visual_progress(march, Time.get_unix_time_from_system())
 
 
@@ -907,6 +1048,12 @@ func _forget_dead_map_visuals() -> void:
 			dead_g.append(str(key2))
 	for gid: String in dead_g:
 		_gather_indicators.erase(gid)
+	var dead_r: Array[String] = []
+	for key3: Variant in _route_lines.keys():
+		if not is_instance_valid(_route_lines[key3]):
+			dead_r.append(str(key3))
+	for rid: String in dead_r:
+		_route_lines.erase(rid)
 
 
 func _ensure_visual(march: Dictionary) -> void:
@@ -914,6 +1061,7 @@ func _ensure_visual(march: Dictionary) -> void:
 	if march_id == "":
 		return
 	if _get_visual(march_id) != null:
+		_update_march_route_visual(march)
 		return
 	var root: Node2D = _get_marches_root()
 	if root == null:
@@ -929,6 +1077,7 @@ func _ensure_visual(march: Dictionary) -> void:
 	root.add_child(icon)
 	_play_march_walk(icon)
 	_visuals[march_id] = icon
+	_update_march_route_visual(march)
 
 
 func _make_animated_march_icon() -> Node2D:
@@ -1021,10 +1170,79 @@ func _compute_march_world_position(march: Dictionary, now: float) -> Vector2:
 
 func _destroy_visual(march_id: String) -> void:
 	_clear_gather_indicator(march_id)
+	_destroy_route_line(march_id)
 	if not _visuals.has(march_id):
 		return
 	var ref: Variant = _visuals[march_id]
 	_visuals.erase(march_id)
+	if is_instance_valid(ref):
+		(ref as Node).queue_free()
+
+
+func _get_route_line(march_id: String) -> Node2D:
+	if not _route_lines.has(march_id):
+		return null
+	var ref: Variant = _route_lines[march_id]
+	if not is_instance_valid(ref):
+		_route_lines.erase(march_id)
+		return null
+	return ref as Node2D
+
+
+## Canonical route lifecycle by march status. Movement-only — never tied to gather/combat actions.
+## MARCHING_TO_TARGET: city → target
+## GATHERING / IN_COMBAT: no route (stationary)
+## RETURNING: target → city
+## COMPLETED / other: no route
+func _update_march_route_visual(march: Dictionary) -> void:
+	var march_id: String = str(march.get("march_id", ""))
+	if march_id == "":
+		return
+	var status: String = str(march.get("status", ""))
+	if status == STATUS_GATHERING or status == STATUS_IN_COMBAT or status == STATUS_COMPLETED:
+		_destroy_route_line(march_id)
+		return
+	if status != STATUS_MARCHING and status != STATUS_RETURNING:
+		_destroy_route_line(march_id)
+		return
+	var root: Node2D = _get_marches_root()
+	if root == null:
+		return
+	var start_pos: Vector2 = Vector2(
+		float(march.get("start_position", {}).get("x", 0)),
+		float(march.get("start_position", {}).get("y", 0))
+	)
+	var target_pos: Vector2 = Vector2(
+		float(march.get("target_position", {}).get("x", 0)),
+		float(march.get("target_position", {}).get("y", 0))
+	)
+	var from_pos: Vector2 = start_pos
+	var to_pos: Vector2 = target_pos
+	if status == STATUS_RETURNING:
+		from_pos = target_pos
+		to_pos = start_pos
+	var line: Node2D = _get_route_line(march_id)
+	if line == null:
+		line = MarchRouteLineScript.new() as Node2D
+		line.name = "Route_%s" % march_id
+		line.z_index = 0 # under march icon (z=1)
+		root.add_child(line)
+		_route_lines[march_id] = line
+	var color: Color = get_route_color(march)
+	var anchor: Vector2 = _compute_march_world_position(march, Time.get_unix_time_from_system())
+	if line.has_method("configure"):
+		line.call("configure", from_pos, to_pos, color, anchor)
+	elif line.has_method("set_endpoints"):
+		line.call("set_endpoints", from_pos, to_pos)
+		if line.has_method("set_route_color"):
+			line.call("set_route_color", color)
+
+
+func _destroy_route_line(march_id: String) -> void:
+	if not _route_lines.has(march_id):
+		return
+	var ref: Variant = _route_lines[march_id]
+	_route_lines.erase(march_id)
 	if is_instance_valid(ref):
 		(ref as Node).queue_free()
 
@@ -1060,6 +1278,7 @@ func _update_visual_progress(march: Dictionary, now: float) -> void:
 	if status == STATUS_RETURNING:
 		_clear_gather_indicator(march_id)
 		icon.visible = true
+		icon.scale = Vector2.ONE
 		from_pos = target_pos
 		to_pos = start_pos
 		t0 = float(march.get("departure_timestamp", now))
@@ -1067,20 +1286,30 @@ func _update_visual_progress(march: Dictionary, now: float) -> void:
 	elif status == STATUS_GATHERING:
 		# Hide walking march; show compact tile indicator + timer instead.
 		icon.visible = false
+		icon.scale = Vector2.ONE
 		icon.global_position = target_pos
 		_ensure_gather_indicator(march, target_pos)
 		_update_gather_indicator(march_id, now)
+		_update_march_route_visual(march) # removes outbound route while stationary
 		return
 	elif status == STATUS_IN_COMBAT:
 		_clear_gather_indicator(march_id)
 		icon.visible = true
 		icon.global_position = target_pos
-		_apply_march_visual_direction(icon, Vector2(1, 0))
+		# Face outbound approach direction; pause walk; procedural rear/huff pulse
+		# (legacy MarchManager ACTION — no separate attack SpriteFrames exist).
+		_apply_march_visual_direction(icon, target_pos - start_pos)
 		_pause_march_walk(icon)
+		var arrival_f: float = float(march.get("arrival_timestamp", now))
+		var elapsed: float = maxf(0.0, now - arrival_f)
+		var pulse: float = 1.0 + 0.12 * sin(elapsed * 8.0)
+		icon.scale = Vector2(pulse, pulse)
+		_update_march_route_visual(march) # remove outbound during combat presentation
 		return
 	else:
 		_clear_gather_indicator(march_id)
 		icon.visible = true
+		icon.scale = Vector2.ONE
 		from_pos = start_pos
 		to_pos = target_pos
 		t0 = float(march.get("departure_timestamp", now))
@@ -1091,6 +1320,7 @@ func _update_visual_progress(march: Dictionary, now: float) -> void:
 	icon.global_position = from_pos.lerp(to_pos, alpha)
 	_apply_march_visual_direction(icon, to_pos - from_pos)
 	_play_march_walk(icon)
+	_update_march_route_visual(march)
 
 
 func _ensure_gather_indicator(march: Dictionary, target_pos: Vector2) -> void:
@@ -1250,7 +1480,15 @@ func _catch_up_offline() -> void:
 				if mtype == "gather":
 					_begin_gathering(march)
 				else:
-					_resolve_battle(march)
+					var arrival_ts: int = int(march.get("arrival_timestamp", 0))
+					var combat_end: int = arrival_ts + int(ceil(COMBAT_PRESENTATION_SEC))
+					if now >= combat_end:
+						# Offline past presentation window — resolve immediately (once).
+						march["status"] = STATUS_IN_COMBAT
+						march["combat_end_unix"] = combat_end
+						_resolve_battle(march)
+					else:
+						_begin_combat_presentation(march)
 				active_marches[i] = march
 				progressed = true
 			elif status == STATUS_GATHERING and now >= int(march.get("gather_end_unix", 0)):
@@ -1263,7 +1501,10 @@ func _catch_up_offline() -> void:
 				active_marches[i] = march
 				progressed = true
 			elif status == STATUS_IN_COMBAT:
-				_begin_return(march)
+				if now >= int(march.get("combat_end_unix", 0)):
+					_resolve_battle(march)
+				elif bool(march.get("battle_resolved", false)):
+					_begin_return(march)
 				active_marches[i] = march
 				progressed = true
 		if not progressed:
@@ -1410,16 +1651,18 @@ func validate_resource_setup(
 	if hero_ids.size() > MAX_HEROES_PER_MARCH:
 		return {"ok": false, "error": "Too many heroes (max %d)." % MAX_HEROES_PER_MARCH}
 
+	# Gathering: heroes are optional. Troops-only marches are valid.
 	if has_node("/root/HeroState"):
-		var roster_size: int = HeroState.recruited_heroes.size()
-		if roster_size > 0 and hero_ids.is_empty():
-			return {"ok": false, "error": "Select at least one hero."}
 		for hero_id: Variant in hero_ids:
 			var hid: String = str(hero_id)
-			if HeroState.is_hero_on_march(hid):
-				return {"ok": false, "error": "Hero already on a march."}
+			if hid.is_empty():
+				continue
 			if HeroState.get_hero_index(hid) == -1:
 				return {"ok": false, "error": "Unknown hero selected."}
+			if HeroState.is_hero_on_march(hid):
+				return {"ok": false, "error": "Hero already on a march."}
+			if HeroState.has_method("is_hero_wall_defender") and HeroState.is_hero_wall_defender(hid):
+				return {"ok": false, "error": "Hero is assigned to City Defense."}
 
 	return {"ok": true}
 
@@ -1576,6 +1819,7 @@ func dispatch_gather_march(
 	active_marches.append(march)
 	save_marches()
 	_ensure_visual(march)
+	_update_march_route_visual(march) # outbound route at successful dispatch (not at gather start)
 	marches_changed.emit()
 	if has_node("/root/GameEvents"):
 		GameEvents.emit_march_dispatched(march)
@@ -1597,6 +1841,8 @@ func begin_smoke_isolation() -> void:
 	active_marches.clear()
 	for key: Variant in _visuals.keys():
 		_destroy_visual(str(key))
+	for key: Variant in _route_lines.keys():
+		_destroy_route_line(str(key))
 	if FileAccess.file_exists(SMOKE_SAVE_PATH):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(SMOKE_SAVE_PATH))
 
@@ -1607,13 +1853,15 @@ func end_smoke_isolation() -> void:
 
 
 func resync_map_visuals() -> void:
-	# Clear stale icons/indicators then rebuild for the current World Map scene.
+	# Clear stale icons/indicators/routes then rebuild for the current World Map scene.
 	# First drop refs already freed by a prior World→City scene change.
 	_forget_dead_map_visuals()
 	for key: Variant in _visuals.keys():
 		_destroy_visual(str(key))
 	for key: Variant in _gather_indicators.keys():
 		_clear_gather_indicator(str(key))
+	for key: Variant in _route_lines.keys():
+		_destroy_route_line(str(key))
 	_sync_visuals()
 
 
@@ -1661,17 +1909,52 @@ func run_gather_tile_sync_smoke_test() -> bool:
 	}
 
 	var troops: Dictionary = {"infantry": 10, "marksmen": 0, "cavalry": 0}
+	# Troops-only gather must validate/dispatch with zero heroes.
 	var hero_ids: Array = []
-	if has_node("/root/HeroState"):
-		for hero: Dictionary in HeroState.get_available_heroes():
-			hero_ids.append(str(hero.get("id", "")))
-			break
+	var zero_hero_check: Dictionary = validate_resource_setup(target, troops, [])
+	if not bool(zero_hero_check.get("ok", false)):
+		push_error("[MarchState] gather smoke: troops-only gather must be valid: %s" % str(zero_hero_check.get("error", "")))
+		failed += 1
 	var d1: Dictionary = dispatch_gather_march(target, troops, hero_ids)
 	if not bool(d1.get("ok", false)):
 		push_error("[MarchState] gather smoke: dispatch failed: %s" % str(d1.get("error", "")))
 		failed += 1
+	elif not active_marches.is_empty() and get_route_visual_type(active_marches[0]) != ROUTE_FRIENDLY:
+		push_error("[MarchState] gather smoke: gather route must be FRIENDLY/green")
+		failed += 1
 	if ResourceTileState.get_status(tile_id) != ResourceTileState.STATUS_RESERVED:
 		push_error("[MarchState] gather smoke: tile not RESERVED after dispatch")
+		failed += 1
+
+	# Recall while outbound: RETURNING, no cargo, tile released.
+	if not active_marches.is_empty():
+		var mid_out: String = str(active_marches[0].get("march_id", ""))
+		var recall_out: Dictionary = recall_march(mid_out)
+		if not bool(recall_out.get("ok", false)):
+			push_error("[MarchState] gather smoke: outbound recall failed: %s" % str(recall_out.get("error", "")))
+			failed += 1
+		elif str(active_marches[0].get("status", "")) != STATUS_RETURNING:
+			push_error("[MarchState] gather smoke: outbound recall must enter RETURNING")
+			failed += 1
+		elif int(active_marches[0].get("gathered_amount", -1)) != 0:
+			push_error("[MarchState] gather smoke: outbound recall must have zero cargo")
+			failed += 1
+		elif ResourceTileState.get_status(tile_id) != ResourceTileState.STATUS_AVAILABLE:
+			push_error("[MarchState] gather smoke: outbound recall must release tile")
+			failed += 1
+		# Finish return so slot frees for remaining gather smoke.
+		_complete_return(active_marches[0])
+		_destroy_visual(mid_out)
+		active_marches.clear()
+		save_marches()
+
+	# Re-register tile for remaining gather lifecycle smoke.
+	ResourceTileState.register_or_update_tile(
+		tile_id, "food", 1, 10000, 10000, Vector2(4200, 4100), ResourceTileState.STATUS_AVAILABLE
+	)
+	d1 = dispatch_gather_march(target, troops, hero_ids)
+	if not bool(d1.get("ok", false)):
+		push_error("[MarchState] gather smoke: redispatch after recall failed: %s" % str(d1.get("error", "")))
 		failed += 1
 
 	var d2: Dictionary = dispatch_gather_march(target, troops, hero_ids)
@@ -1697,35 +1980,89 @@ func run_gather_tile_sync_smoke_test() -> bool:
 		if target_amt != mini(cargo, 10000) or target_amt <= 0:
 			push_error("[MarchState] gather smoke: gather_target_amount not from live remaining")
 			failed += 1
-		march["gather_end_unix"] = now - 1
-		_finish_gathering(march)
+
+		# Mid-gather recall: keep partial cargo, return home, credit once.
+		var mid_g: String = str(march.get("march_id", ""))
+		march["gather_started_unix"] = now - 20
+		march["gather_rate_per_sec"] = 50.0
 		active_marches[0] = march
-		var expect_rem: int = 10000 - target_amt
-		if ResourceTileState.get_remaining(tile_id) != expect_rem:
-			push_error("[MarchState] gather smoke: remaining not reduced at gather complete")
+		var expect_partial: int = mini(target_amt, 1000)
+		var recall_g: Dictionary = recall_march(mid_g)
+		if not bool(recall_g.get("ok", false)):
+			push_error("[MarchState] gather smoke: gathering recall failed: %s" % str(recall_g.get("error", "")))
+			failed += 1
+		elif str(active_marches[0].get("status", "")) != STATUS_RETURNING:
+			push_error("[MarchState] gather smoke: gathering recall must RETURNING")
+			failed += 1
+		elif int(active_marches[0].get("gathered_amount", 0)) != expect_partial:
+			push_error("[MarchState] gather smoke: partial cargo wrong (%d vs %d)" % [
+				int(active_marches[0].get("gathered_amount", 0)), expect_partial
+			])
+			failed += 1
+		elif ResourceTileState.get_remaining(tile_id) != 10000 - expect_partial:
+			push_error("[MarchState] gather smoke: tile not reduced by partial recall")
 			failed += 1
 		if has_node("/root/GameState") and int(GameState.food) != food_before:
-			push_error("[MarchState] gather smoke: GameState credited before home return")
+			push_error("[MarchState] gather smoke: credit before return after recall")
 			failed += 1
-		if bool(march.get("tile_amount_applied", false)) != true:
-			push_error("[MarchState] gather smoke: tile_amount_applied missing")
+		active_marches[0]["return_arrival_timestamp"] = now - 1
+		_complete_return(active_marches[0])
+		if has_node("/root/GameState") and int(GameState.food) != food_before + expect_partial:
+			push_error("[MarchState] gather smoke: recall home credit wrong")
 			failed += 1
-		# Idempotent finish
-		_finish_gathering(march)
-		if ResourceTileState.get_remaining(tile_id) != expect_rem:
-			push_error("[MarchState] gather smoke: double reduce on finish")
+		_destroy_visual(mid_g)
+		active_marches.clear()
+		save_marches()
+		if has_node("/root/GameState"):
+			GameState.food = food_before
+
+		# Full natural gather finish (no recall) — fresh tile so remaining resets cleanly.
+		var tile_id_full: String = ResourceTileState.allocate_tile_id("food")
+		ResourceTileState.register_or_update_tile(
+			tile_id_full, "food", 1, 10000, 10000, Vector2(4300, 4100), ResourceTileState.STATUS_AVAILABLE
+		)
+		var target_full: Dictionary = target.duplicate(true)
+		target_full["resource_tile_id"] = tile_id_full
+		target_full["position"] = {"x": 4300.0, "y": 4100.0}
+		target_full["world_position"] = {"x": 4300.0, "y": 4100.0}
+		var d3: Dictionary = dispatch_gather_march(target_full, troops, hero_ids)
+		if not bool(d3.get("ok", false)):
+			push_error("[MarchState] gather smoke: full-finish dispatch failed")
 			failed += 1
-		# Home return credits once
-		march["return_arrival_timestamp"] = now - 1
-		_complete_return(march)
-		active_marches[0] = march
-		if has_node("/root/GameState") and int(GameState.food) != food_before + target_amt:
-			push_error("[MarchState] gather smoke: home credit amount wrong")
-			failed += 1
-		_complete_return(march)
-		if has_node("/root/GameState") and int(GameState.food) != food_before + target_amt:
-			push_error("[MarchState] gather smoke: duplicate credit")
-			failed += 1
+		elif not active_marches.is_empty():
+			march = active_marches[0]
+			now = int(Time.get_unix_time_from_system())
+			march["arrival_timestamp"] = now - 1
+			_begin_gathering(march)
+			active_marches[0] = march
+			target_amt = int(march.get("gather_target_amount", 0))
+			march["gather_end_unix"] = now - 1
+			_finish_gathering(march)
+			active_marches[0] = march
+			var expect_rem: int = 10000 - target_amt
+			if ResourceTileState.get_remaining(tile_id_full) != expect_rem:
+				push_error("[MarchState] gather smoke: remaining not reduced at gather complete")
+				failed += 1
+			if has_node("/root/GameState") and int(GameState.food) != food_before:
+				push_error("[MarchState] gather smoke: GameState credited before home return")
+				failed += 1
+			if bool(march.get("tile_amount_applied", false)) != true:
+				push_error("[MarchState] gather smoke: tile_amount_applied missing")
+				failed += 1
+			_finish_gathering(march)
+			if ResourceTileState.get_remaining(tile_id_full) != expect_rem:
+				push_error("[MarchState] gather smoke: double reduce on finish")
+				failed += 1
+			march["return_arrival_timestamp"] = now - 1
+			_complete_return(march)
+			active_marches[0] = march
+			if has_node("/root/GameState") and int(GameState.food) != food_before + target_amt:
+				push_error("[MarchState] gather smoke: home credit amount wrong")
+				failed += 1
+			_complete_return(march)
+			if has_node("/root/GameState") and int(GameState.food) != food_before + target_amt:
+				push_error("[MarchState] gather smoke: duplicate credit")
+				failed += 1
 
 	# Restore troops / wallet side-effects carefully.
 	if has_node("/root/GameState"):
@@ -1749,6 +2086,139 @@ func run_gather_tile_sync_smoke_test() -> bool:
 
 
 ## Proves stale freed Node2D entries in _visuals do not throw on update.
+func _run_route_intent_smoke() -> bool:
+	var cases: Array[Dictionary] = [
+		{"march_type": "wildling_hunt", "status": STATUS_MARCHING, "expect": ROUTE_FRIENDLY},
+		{"march_type": "gather", "status": STATUS_MARCHING, "expect": ROUTE_FRIENDLY},
+		{"march_type": "gather", "status": STATUS_GATHERING, "expect": ROUTE_FRIENDLY},
+		{"march_type": "join_rally", "status": STATUS_MARCHING, "expect": ROUTE_FRIENDLY},
+		{"march_type": "reinforce", "status": STATUS_MARCHING, "expect": ROUTE_FRIENDLY},
+		{"march_type": "attack_city", "status": STATUS_MARCHING, "expect": ROUTE_HOSTILE},
+		{"march_type": "attack_resource_tile", "status": STATUS_MARCHING, "expect": ROUTE_HOSTILE},
+		{"march_type": "hostile_rally", "status": STATUS_MARCHING, "expect": ROUTE_HOSTILE},
+		{"march_type": "pvp_attack", "status": STATUS_MARCHING, "expect": ROUTE_HOSTILE},
+		# Return always friendly even if outbound was hostile type.
+		{"march_type": "attack_city", "status": STATUS_RETURNING, "expect": ROUTE_FRIENDLY},
+		{"march_type": "wildling_hunt", "status": STATUS_RETURNING, "expect": ROUTE_FRIENDLY},
+	]
+	for c: Dictionary in cases:
+		var got: String = get_route_visual_type(c)
+		if got != str(c.get("expect", "")):
+			push_error("[MarchState] smoke: route intent %s/%s => %s (expected %s)" % [
+				str(c.get("march_type", "")), str(c.get("status", "")), got, str(c.get("expect", ""))
+			])
+			return false
+	if not _run_route_lifecycle_smoke():
+		return false
+	print("[MarchState] route intent smoke PASSED")
+	return true
+
+
+## Route exists only while moving (outbound/return); never while GATHERING/IN_COMBAT.
+func _run_route_lifecycle_smoke() -> bool:
+	var root: Node2D = _get_marches_root()
+	if root == null:
+		print("[MarchState] route lifecycle smoke SKIPPED (no World Marches root)")
+		return true
+	var mid: String = "__smoke_route_life__"
+	var march: Dictionary = {
+		"march_id": mid,
+		"march_type": "gather",
+		"status": STATUS_MARCHING,
+		"start_position": {"x": 100.0, "y": 100.0},
+		"target_position": {"x": 500.0, "y": 500.0},
+		"departure_timestamp": int(Time.get_unix_time_from_system()) - 5,
+		"arrival_timestamp": int(Time.get_unix_time_from_system()) + 30,
+	}
+	_update_march_route_visual(march)
+	if _get_route_line(mid) == null:
+		push_error("[MarchState] smoke: outbound MARCHING must create route")
+		return false
+	march["status"] = STATUS_GATHERING
+	_update_march_route_visual(march)
+	if _get_route_line(mid) != null:
+		push_error("[MarchState] smoke: GATHERING must remove route")
+		_destroy_route_line(mid)
+		return false
+	march["status"] = STATUS_RETURNING
+	_update_march_route_visual(march)
+	if _get_route_line(mid) == null:
+		push_error("[MarchState] smoke: RETURNING must create route")
+		return false
+	march["status"] = STATUS_IN_COMBAT
+	_update_march_route_visual(march)
+	if _get_route_line(mid) != null:
+		push_error("[MarchState] smoke: IN_COMBAT must remove route")
+		_destroy_route_line(mid)
+		return false
+	_destroy_route_line(mid)
+	print("[MarchState] route lifecycle smoke PASSED")
+	return true
+
+
+## Force arrival presentation + single combat resolve (no real-time wait).
+## Uses a synthetic march with no live Wildling so rewards/defeat are skipped.
+func _run_combat_presentation_smoke() -> bool:
+	var ok: bool = true
+	var now: int = int(Time.get_unix_time_from_system())
+	var march: Dictionary = {
+		"march_id": "__smoke_combat_pres__",
+		"march_type": "wildling_hunt",
+		"status": STATUS_MARCHING,
+		"arrival_timestamp": now - 1,
+		"departure_timestamp": now - 30,
+		"return_arrival_timestamp": 0,
+		"battle_resolved": false,
+		"rewards_granted": false,
+		"mail_report_created": false,
+		"wounded_recorded": false,
+		"start_position": {"x": 0.0, "y": 0.0},
+		"target_position": {"x": 100.0, "y": 100.0},
+		"target_data": {"instance_id": 0, "power": 1, "level": 1, "species": "wolf"},
+		"troops": {"infantry": 10, "marksmen": 0, "cavalry": 0},
+		"original_troops": {"infantry": 10, "marksmen": 0, "cavalry": 0},
+		"troop_tiers": {"infantry": {1: 10}, "marksmen": {}, "cavalry": {}},
+		"original_troop_tiers": {"infantry": {1: 10}, "marksmen": {}, "cavalry": {}},
+		"hero_ids": [],
+		"march_power": 10,
+	}
+	_begin_combat_presentation(march)
+	if str(march.get("status", "")) != STATUS_IN_COMBAT:
+		push_error("[MarchState] smoke: arrival must enter IN_COMBAT for presentation")
+		ok = false
+	if bool(march.get("battle_resolved", false)):
+		push_error("[MarchState] smoke: combat must not resolve before presentation ends")
+		ok = false
+	if int(march.get("combat_end_unix", 0)) < now:
+		push_error("[MarchState] smoke: combat_end_unix missing/invalid")
+		ok = false
+	# Simulate presentation elapsed — resolve once, then guard blocks second resolve.
+	march["combat_end_unix"] = now - 1
+	if has_node("/root/MailManager") and MailManager.has_method("begin_smoke_isolation"):
+		MailManager.begin_smoke_isolation()
+	_resolve_battle(march)
+	if not bool(march.get("battle_resolved", false)):
+		push_error("[MarchState] smoke: battle_resolved not set after resolve")
+		ok = false
+	var status_after: String = str(march.get("status", ""))
+	if status_after != STATUS_RETURNING:
+		push_error("[MarchState] smoke: after combat must be RETURNING (got %s)" % status_after)
+		ok = false
+	if get_route_visual_type(march) != ROUTE_FRIENDLY:
+		push_error("[MarchState] smoke: return route must be FRIENDLY/green")
+		ok = false
+	var resolved_once: bool = bool(march.get("battle_resolved", false))
+	_resolve_battle(march) # second call must no-op combat
+	if bool(march.get("battle_resolved", false)) != resolved_once:
+		push_error("[MarchState] smoke: battle_resolved flipped on second resolve")
+		ok = false
+	if has_node("/root/MailManager") and MailManager.has_method("end_smoke_isolation"):
+		MailManager.end_smoke_isolation()
+	if ok:
+		print("[MarchState] combat presentation smoke PASSED")
+	return ok
+
+
 func _run_freed_visual_cache_smoke() -> bool:
 	var probe_id: String = "__smoke_freed_visual__"
 	var orphan := Node2D.new()
@@ -1883,6 +2353,12 @@ func run_wildling_march_smoke_test() -> bool:
 		for hero: Dictionary in HeroState.get_available_heroes():
 			hero_ids.append(str(hero.get("id", "")))
 			break
+	# Route intent resolver (isolated — no PvP gameplay required).
+	if not _run_route_intent_smoke():
+		ok = false
+	if not _run_combat_presentation_smoke():
+		ok = false
+
 	var dispatched: Dictionary = dispatch_wildling_march(target, {"infantry": 10, "marksmen": 5, "cavalry": 0}, hero_ids)
 	if not dispatched.get("ok", false):
 		push_error("[MarchState] smoke: valid dispatch failed: %s" % str(dispatched.get("error", "")))
@@ -1891,6 +2367,17 @@ func run_wildling_march_smoke_test() -> bool:
 		# Visual must be the animated march asset, not the old Polygon2D arrow.
 		if not active_marches.is_empty():
 			var mid: String = str(active_marches[0].get("march_id", ""))
+			# Friendly green route for wildling hunt; route node when World Marches root exists.
+			if get_route_visual_type(active_marches[0]) != ROUTE_FRIENDLY:
+				push_error("[MarchState] smoke: wildling_hunt must be FRIENDLY route")
+				ok = false
+			if get_route_color(active_marches[0]) != ROUTE_COLOR_FRIENDLY:
+				push_error("[MarchState] smoke: wildling route color must be green")
+				ok = false
+			_update_march_route_visual(active_marches[0])
+			if _get_marches_root() != null and _get_route_line(mid) == null:
+				push_error("[MarchState] smoke: route line missing after dispatch update")
+				ok = false
 			var icon: Node2D = _get_visual(mid)
 			if icon != null:
 				if icon.get_node_or_null("Body") is Polygon2D:

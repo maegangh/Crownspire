@@ -173,6 +173,9 @@ func apply_speedup_item(
 		BagState.add_item(iid, qty)
 		return reduce_result
 
+	var remaining_after: float = float(reduce_result.get("remaining", get_remaining_seconds(cat, tid)))
+	# Actual accelerated time (never credit unused overshoot from a larger item).
+	var seconds_actual: int = int(floor(maxi(0.0, remaining_before - remaining_after) + 0.5))
 	var result: Dictionary = {
 		"ok": true,
 		"reason": "",
@@ -180,20 +183,24 @@ func apply_speedup_item(
 		"target_id": tid,
 		"item_id": iid,
 		"quantity": qty,
-		"seconds_applied": total_seconds,
+		"seconds_requested": total_seconds,
+		"seconds_applied": seconds_actual,
+		"seconds_actual": seconds_actual,
 		"remaining_before": remaining_before,
-		"remaining_after": float(reduce_result.get("remaining", get_remaining_seconds(cat, tid))),
+		"remaining_after": remaining_after,
 		"completed": bool(reduce_result.get("completed", false)),
 		"ready": bool(reduce_result.get("ready", false)),
 	}
 	_log(
-		"Applied %s x%d (-%ds) to %s/%s remaining=%.0f→%.0f completed=%s ready=%s" % [
-			iid, qty, total_seconds, cat, tid,
-			remaining_before, float(result.get("remaining_after", 0.0)),
+		"Applied %s x%d (req %ds / actual %ds) to %s/%s remaining=%.0f→%.0f completed=%s ready=%s" % [
+			iid, qty, total_seconds, seconds_actual, cat, tid,
+			remaining_before, remaining_after,
 			str(result.get("completed", false)), str(result.get("ready", false)),
 		]
 	)
 	speedup_applied.emit(cat, tid, result)
+	if has_node("/root/GameEvents") and GameEvents.has_method("emit_speedup_used") and seconds_actual > 0:
+		GameEvents.emit_speedup_used(cat, seconds_actual)
 	return result
 
 
