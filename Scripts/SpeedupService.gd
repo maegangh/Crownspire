@@ -229,7 +229,7 @@ func _reduce_timer(cat: String, target_id: String, seconds: int) -> Dictionary:
 			return {"ok": true, "remaining": rem, "completed": false, "ready": ready}
 		CAT_HEALING:
 			if has_node("/root/HealingState") and HealingState.has_method("speedup_healing"):
-				return HealingState.speedup_healing(seconds)
+				return HealingState.speedup_healing(target_id, seconds)
 			return {"ok": false, "reason": "Healing speedups not wired yet."}
 		_:
 			return {"ok": false, "reason": "Unknown timer category."}

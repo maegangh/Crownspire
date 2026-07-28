@@ -1,0 +1,90 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+[ChatManager] smoke env CHAT= PHASE3=1
+QuestState Loaded: 504 quests
+Buildings Loaded
+Troops Loaded
+Research Loaded
+Heroes Loaded
+Monsters Loaded
+Alliance Loaded
+Alliance Research Loaded: 4 categories
+Hero Skills Loaded
+City Layout Loaded
+World Map Spawns Loaded
+Monster Spawns Loaded
+Items loaded:53
+TroopDatabase Loaded: 36 troops
+[Crownspire UIManager] Fallback buildings loaded.
+[AllianceState] Boot load from user://alliance.cfg (exists=true)
+[AllianceState] Loaded user://alliance.cfg | id=all_1784747492_42730 role=R5 alliances=3 in_alliance=true
+[AllianceState] Saved user://alliance.cfg | id=all_1784747492_42730 role=R5 alliances=3
+[AllianceState] Post-load normalize/repair save result=OK | id=all_1784747492_42730 role=R5 alliances=3
+[TUTORIAL] Ready | started=true completed=true step=ftue_complete missing_save=false gameplay_saves=true path=user://tutorial.cfg
+[Crownspire UIManager] Fallback buildings loaded.
+[MarchSetupScreen] layout v7 built from res://scripts/UI/MarchSetupScreen.gd
+[MailScreen] layout v4 built; header X outside scroll; CloseButton=true
+[WallDefenseScreen] layout v1
+[FTUE EVENT] city_opened
+[Nakama] Connecting to http://127.0.0.1:7350 (device auth)...
+[Phase3Smoke] deferred start — waiting for Nakama/profile
+[GameHUD] Bottom nav OK: Heroes→Wayfinder→Bag→Quest→Alliance→WorldCity (no overlaps).
+[GameHUD] Mail hitbox OK: [P: (624.0, 1004.0), S: (80.0, 80.0)] (bottom-right above nav).
+[FTUE EVENT] alliance_opened
+[FTUE EVENT] mail_opened
+[MailScreen] opened layout v4 | safe top=180.0 bottom=193.0 | window 660x560
+[UIManager] Mail X clear of top HUD (X.y=353.5 > top_bar.bottom=164.0)
+[UIManager] Mail window above bottom HUD (window.bottom=913.5 bot_top=1099.0 insets t=180.0 b=193.0)
+[MailScreen] Close/X pressed — closing via UIManager
+[UIManager] Mail X close OK
+[FTUE EVENT] alliance_opened
+[UIManager] TroopTraining X clear of top HUD
+[UIManager] TroopTraining close OK
+[FTUE EVENT] troop_training_started: Marksmen T1 x5
+[UIManager] Troop training job API OK (Marksmen T1 x5, 25s)
+[FTUE EVENT] troop_training_completed: Marksmen T1 x5
+[UIManager] Troop collect OK
+[FTUE EVENT] troop_training_started: Infantry T2 x8
+[UIManager] Troop promote OK (T1→T2 x8, formula beta_cost_delta_v1)
+[UIManager] HUD navigation smoke test PASSED
+[GameHUD] Skipping Alliance smoke tests (set CROWNSPIR_ALLIANCE_SMOKE=1 for isolated runs).
+[GameHUD] Skipping March smoke tests (set CROWNSPIR_MARCH_SMOKE=1 for isolated runs).
+[GameHUD] Skipping ResourceTile smoke tests (set CROWNSPIR_RESOURCE_TILE_SMOKE=1 for isolated runs).
+[GameHUD] Skipping Hero smoke tests (set CROWNSPIR_HERO_SMOKE=1 for isolated runs).
+[GameHUD] Skipping Event smoke tests (set CROWNSPIR_EVENT_SMOKE=1 for isolated runs).
+[StatResolver] smoke capacity OK [StatResolver] march_capacity base=6000.00 research_flat=0.00 research_pct=0.0% heroes=0.0% alliance=0.0% vip=0.0% temp=0.0% final=6000
+[StatResolver] smoke speed OK [StatResolver] march_speed base=220.00 research_flat=0.00 research_pct=0.0% heroes=0.0% alliance=0.0% vip=0.0% temp=0.0% final=220.0
+[StatResolver] smoke gather OK [StatResolver] gather_rate base=50.00 research_flat=0.00 research_pct=0.0% heroes=0.0% alliance=0.0% vip=0.0% temp=0.0% final=50.0
+[StatResolver] smoke research capacity flat OK (+250)
+[StatResolver] Phase-1 smoke PASSED
+[StatResolver] Phase-2 T1/T2 OK raw_atk 500.0 vs 1000.0
+[StatResolver] Phase-2 type-specific OK infantry_atk_research=+8.0% marksmen_bleed=0
+[StatResolver] Phase-2 hero OK maegan atk_bonus 0.0% → 15.0%
+[StatResolver] Phase-2 mixed-tier OK raw_atk=140.0
+[StatResolver] Phase-2 smoke PASSED
+[WildlingCombat] smoke easy victory OK rounds=1 ratio=0.00
+[WildlingCombat] smoke hard defeat OK
+[WildlingCombat] smoke hero ATK OK 1580.0 -> 1817.0
+[WildlingCombat] Phase-3 smoke PASSED
+[HealingState] smoke queue-full OK
+[HealingState] smoke offline restore OK
+[HealingState] Phase-4 smoke PASSED
+[SanctuaryState] smoke overflow OK hospital=100 sanctuary=125 avail=100
+[SanctuaryState] smoke under-capacity OK
+[SanctuaryState] smoke recovery restore OK
+[SanctuaryState] smoke offline OK
+[SanctuaryState] Phase-5 smoke PASSED
+[Nakama] Authentication successful
+[Nakama] User ID: 843a1acc-1e06-498c-adb0-88370d111b93
+[Nakama] Username: LIzCLccOxx
+[MailScreen] after-layout header y=353.5 close y=353.5..407.5 window y=353.5..913.5 (720x1280 band)
+[AllianceBackend] Profile user=843a1acc-1e06-498c-adb0-88370d111b93 name=Dev_843a1a kingdom=kingdom_dev_001 alliance= tag= rank=
+[Nakama] Realtime socket connected
+[Chat] Joined kingdom room 'kingdom_dev_001' channel_id=2...kingdom_dev_001
+[Phase3Smoke] BEGIN
+[AllianceBackend] Profile user=843a1acc-1e06-498c-adb0-88370d111b93 name=Dev_843a1a kingdom=kingdom_dev_001 alliance=7172b3e2-c978-4fb9-9934-1f093c12a82b tag=P325 rank=R5
+[Chat] Joined alliance group chat group_id=7172b3e2-c978-4fb9-9934-1f093c12a82b channel_id=3.7172b3e2-c978-4fb9-9934-1f093c12a82b..
+[AllianceBackend] Profile user=843a1acc-1e06-498c-adb0-88370d111b93 name=Dev_843a1a kingdom=kingdom_dev_001 alliance=7172b3e2-c978-4fb9-9934-1f093c12a82b tag=P325 rank=R5
+[Chat] Joined kingdom room 'kingdom_dev_001' channel_id=2...kingdom_dev_001
+[AllianceBackend] Profile user=843a1acc-1e06-498c-adb0-88370d111b93 name=Dev_843a1a kingdom=kingdom_dev_001 alliance= tag= rank=
+[Phase3Smoke] PASS

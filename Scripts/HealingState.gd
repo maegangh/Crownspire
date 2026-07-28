@@ -291,6 +291,33 @@ func start_healing(troop_tiers: Dictionary) -> Dictionary:
 	return {"ok": true, "reason": "", "job_id": job_id, "end_unix": now + duration_sec}
 
 
+## Reduce healing batch end_unix by seconds. Completes via canonical path if due.
+## Used by Alliance Help — does not bypass queue rules.
+func speedup_healing(job_id: String, seconds: int) -> Dictionary:
+	if active_job.is_empty():
+		return {"ok": false, "reason": "No active healing job."}
+	var jid: String = job_id.strip_edges()
+	if jid != "" and str(active_job.get("job_id", "")) != jid:
+		return {"ok": false, "reason": "Healing job id mismatch."}
+	var sec: int = maxi(0, seconds)
+	if sec <= 0:
+		return {"ok": false, "reason": "Invalid speedup."}
+	var now: int = int(Time.get_unix_time_from_system())
+	var end_unix: int = int(active_job.get("end_unix", now)) - sec
+	active_job["end_unix"] = end_unix
+	save_healing_state()
+	healing_jobs_changed.emit()
+	if end_unix <= now:
+		return _complete_active_job()
+	return {
+		"ok": true,
+		"reason": "",
+		"job_id": str(active_job.get("job_id", "")),
+		"remaining": maxf(0.0, float(end_unix - now)),
+		"end_unix": end_unix,
+	}
+
+
 ## Instant-complete through canonical restore path (debug / future Finish).
 func finish_healing_now() -> Dictionary:
 	if active_job.is_empty():

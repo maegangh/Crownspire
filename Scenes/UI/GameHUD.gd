@@ -18,9 +18,14 @@ const WorldSearchPanelScene: PackedScene = preload("res://Scenes/UI/WorldSearchP
 
 @onready var portrait_button: TextureButton = $Control/PlayerPortraitButton
 @onready var right_feature_buttons: VBoxContainer = $Control/RightFeatureButtons
+var _profile_screen: Control = null
+const PlayerAvatarCatalog = preload("res://scripts/UI/PlayerAvatarCatalog.gd")
 @onready var shop_button: TextureButton = $Control/RightFeatureButtons/ShopButton
 @onready var events_button: Button = $Control/RightFeatureButtons/EventsButton
 @onready var events_claim_badge: Label = $Control/RightFeatureButtons/EventsButton/ClaimBadge
+var _chat_preview: Control = null
+var _help_button: Button = null
+var _help_count_label: Label = null
 @onready var mail_button: TextureButton = $Control/MailButton
 @onready var mail_unread_badge: Label = $Control/MailButton/UnreadBadge
 
@@ -40,6 +45,7 @@ var _world_search_panel: Control = null
 var _active_marches_hud: Control = null
 
 func _ready():
+	add_to_group("game_hud")
 	_apply_screen_context()
 	_configure_bottom_nav()
 	_setup_queue_status_hud()
@@ -50,6 +56,13 @@ func _ready():
 	update_resources()
 	connect_buttons()
 	_style_events_button()
+	_remove_legacy_chat_button()
+	_ensure_chat_screen()
+	_ensure_chat_preview()
+	_ensure_help_button()
+	_ensure_profile_screen()
+	_bind_profile_avatar()
+	_refresh_portrait_avatar()
 	_refresh_mail_badge()
 	_refresh_events_badge()
 	if has_node("/root/GameState") and not GameState.resources_changed.is_connected(_on_resources_changed):
@@ -77,6 +90,7 @@ func _ready():
 			GameEvents.emit_city_opened()
 	# Ensure tutorial overlay exists even if scene instance omitted it.
 	call_deferred("_ensure_tutorial_overlay")
+	call_deferred("_refresh_portrait_avatar")
 
 
 func _ensure_tutorial_overlay() -> void:
@@ -165,6 +179,7 @@ func _apply_screen_context() -> void:
 	_sync_active_marches_visibility()
 	_sync_world_search_visibility()
 	_sync_right_feature_visibility()
+	_sync_chat_preview_visibility()
 
 
 func _on_resources_changed() -> void:
@@ -186,6 +201,132 @@ func _sync_right_feature_visibility() -> void:
 		if events_claim_badge != null and is_instance_valid(events_claim_badge):
 			events_claim_badge.visible = show_right and events_claim_badge.text != ""
 			events_claim_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+
+func _sync_chat_preview_visibility() -> void:
+	if _chat_preview == null or not is_instance_valid(_chat_preview):
+		return
+	var hide_preview: bool = false
+	var chat_open: bool = false
+	var manager: Node = get_node_or_null("UIManager")
+	if manager != null and manager.has_method("is_screen_open") and bool(manager.is_screen_open()):
+		hide_preview = true
+		if manager.has_method("get_current_screen_name") and str(manager.get_current_screen_name()) == "ChatScreen":
+			chat_open = true
+	elif has_node("/root/GameState") and bool(GameState.popup_open):
+		hide_preview = true
+	elif has_node("/root/TutorialState") and TutorialState.has_method("is_blocking_hud") and bool(TutorialState.is_blocking_hud()):
+		hide_preview = true
+	if _chat_preview.has_method("set_chat_session_open"):
+		_chat_preview.call("set_chat_session_open", chat_open)
+	if _chat_preview.has_method("set_force_hidden"):
+		_chat_preview.call("set_force_hidden", hide_preview and not chat_open)
+	else:
+		_chat_preview.visible = not hide_preview
+		_chat_preview.mouse_filter = Control.MOUSE_FILTER_STOP if not hide_preview else Control.MOUSE_FILTER_IGNORE
+
+
+func _ensure_help_button() -> void:
+	var host: Control = get_node_or_null("Control") as Control
+	if host == null:
+		return
+	_help_button = host.get_node_or_null("AllianceHelpButton") as Button
+	if _help_button == null:
+		_help_button = Button.new()
+		_help_button.name = "AllianceHelpButton"
+		_help_button.focus_mode = Control.FOCUS_NONE
+		_help_button.custom_minimum_size = Vector2(96, 52)
+		_help_button.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+		_help_button.anchor_left = 0.5
+		_help_button.anchor_right = 0.5
+		_help_button.grow_horizontal = Control.GROW_DIRECTION_BOTH
+		_help_button.offset_left = -48.0
+		_help_button.offset_right = 48.0
+		_help_button.offset_top = -300.0
+		_help_button.offset_bottom = -248.0
+		_help_button.z_index = 41
+		host.add_child(_help_button)
+		_help_count_label = Label.new()
+		_help_count_label.name = "HelpCount"
+		_help_count_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		_help_count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_help_count_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		_help_count_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_help_count_label.add_theme_font_size_override("font_size", 16)
+		_help_count_label.add_theme_color_override("font_color", Color(0.96, 0.92, 0.82, 1.0))
+		_help_button.add_child(_help_count_label)
+	else:
+		_help_count_label = _help_button.get_node_or_null("HelpCount") as Label
+	_style_help_button()
+	if not _help_button.pressed.is_connected(_on_help_all_hud_pressed):
+		_help_button.pressed.connect(_on_help_all_hud_pressed)
+	if has_node("/root/AllianceBackend"):
+		var ab: Node = get_node("/root/AllianceBackend")
+		if ab.has_signal("help_eligible_count_changed") and not ab.help_eligible_count_changed.is_connected(_on_help_count_changed):
+			ab.help_eligible_count_changed.connect(_on_help_count_changed)
+		if ab.has_signal("help_requests_changed") and not ab.help_requests_changed.is_connected(_on_help_requests_changed_hud):
+			ab.help_requests_changed.connect(_on_help_requests_changed_hud)
+	_sync_help_button_visibility()
+
+
+func _style_help_button() -> void:
+	if _help_button == null:
+		return
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = Color(0.10, 0.09, 0.12, 0.92)
+	fill.border_color = Color(0.78, 0.66, 0.34, 1.0)
+	fill.set_border_width_all(2)
+	fill.set_corner_radius_all(14)
+	_help_button.add_theme_stylebox_override("normal", fill)
+	_help_button.add_theme_stylebox_override("pressed", fill)
+	_help_button.add_theme_stylebox_override("hover", fill)
+
+
+func _on_help_count_changed(count: int) -> void:
+	if _help_count_label != null:
+		_help_count_label.text = "👍 %d" % count
+	_sync_help_button_visibility()
+
+
+func _on_help_requests_changed_hud(_eligible: Array, _mine: Array) -> void:
+	var count: int = 0
+	if has_node("/root/AllianceBackend"):
+		count = int(get_node("/root/AllianceBackend").get_eligible_help_count())
+	_on_help_count_changed(count)
+
+
+func _sync_help_button_visibility() -> void:
+	if _help_button == null or not is_instance_valid(_help_button):
+		return
+	var count: int = 0
+	var show_help: bool = false
+	if has_node("/root/AllianceBackend"):
+		var ab: Node = get_node("/root/AllianceBackend")
+		count = int(ab.get_eligible_help_count()) if ab.has_method("get_eligible_help_count") else 0
+		show_help = ab.has_method("is_help_authority") and bool(ab.is_help_authority()) and count > 0
+	var manager: Node = get_node_or_null("UIManager")
+	if manager != null and manager.has_method("is_screen_open") and bool(manager.is_screen_open()):
+		show_help = false
+	elif has_node("/root/GameState") and bool(GameState.popup_open):
+		show_help = false
+	if _help_count_label != null:
+		_help_count_label.text = "👍 %d" % count
+	_help_button.visible = show_help
+	_help_button.mouse_filter = Control.MOUSE_FILTER_STOP if show_help else Control.MOUSE_FILTER_IGNORE
+
+
+func _on_help_all_hud_pressed() -> void:
+	if not has_node("/root/AllianceBackend"):
+		return
+	var ab: Node = get_node("/root/AllianceBackend")
+	if not ab.has_method("help_all"):
+		return
+	var result: Dictionary = await ab.help_all(false)
+	_sync_help_button_visibility()
+	if bool(result.get("ok", false)):
+		print("[GameHUD] Help All applied count=%s" % str(result.get("helped_count", 0)))
+	else:
+		print("[GameHUD] Help All failed: %s" % str(result.get("error", "")))
 
 
 func _setup_world_search_ui() -> void:
@@ -469,6 +610,8 @@ func _process(delta):
 	_sync_active_marches_visibility()
 	_sync_world_search_visibility()
 	_sync_right_feature_visibility()
+	_sync_chat_preview_visibility()
+	_sync_help_button_visibility()
 	_tick_event_toast(delta)
 
 
@@ -663,13 +806,164 @@ func connect_buttons():
 		world_city_button.pressed.connect(_on_world_city_pressed)
 
 func _on_portrait_pressed():
-	print("Open Player Profile")
+	open_player_profile()
+
+
+func open_player_profile(user_id: String = "") -> void:
+	_ensure_profile_screen()
+	if _profile_screen == null:
+		return
+	if _chat_preview != null and _chat_preview.has_method("set_force_hidden"):
+		_chat_preview.call("set_force_hidden", true)
+	if user_id.strip_edges() == "":
+		await _profile_screen.open_self()
+	else:
+		await _profile_screen.open_user(user_id)
+	# Profile is a floating modal on ScreenRoot — keep UIManager aware if possible.
+	var manager: Node = get_node_or_null("UIManager")
+	if manager != null and manager.has_method("notify_overlay_opened"):
+		manager.call("notify_overlay_opened", "PlayerProfileScreen")
+
+
+func _ensure_profile_screen() -> void:
+	var root: Control = get_node_or_null("ScreenRoot") as Control
+	if root == null:
+		return
+	_profile_screen = root.get_node_or_null("PlayerProfileScreen") as Control
+	if _profile_screen == null:
+		_profile_screen = Control.new()
+		_profile_screen.name = "PlayerProfileScreen"
+		_profile_screen.visible = false
+		_profile_screen.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		_profile_screen.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_profile_screen.set_script(load("res://scripts/UI/PlayerProfileScreen.gd"))
+		_profile_screen.z_index = 60
+		root.add_child(_profile_screen)
+	if _profile_screen.has_signal("message_requested") and not _profile_screen.is_connected("message_requested", Callable(self, "_on_profile_message_requested")):
+		_profile_screen.connect("message_requested", Callable(self, "_on_profile_message_requested"))
+	if _profile_screen.has_signal("closed") and not _profile_screen.is_connected("closed", Callable(self, "_on_profile_closed")):
+		_profile_screen.connect("closed", Callable(self, "_on_profile_closed"))
+
+
+func _on_profile_message_requested(user_id: String, display_name: String) -> void:
+	open_private_chat(user_id, display_name)
+
+
+func _on_profile_closed() -> void:
+	_sync_chat_preview_visibility()
+	_refresh_portrait_avatar()
+
+
+func open_private_chat(user_id: String, display_name: String = "") -> void:
+	_ensure_chat_screen()
+	var chat: Control = get_node_or_null("ScreenRoot/ChatScreen") as Control
+	if chat != null and chat.has_method("request_open_private"):
+		chat.call("request_open_private", user_id, display_name)
+	if _chat_preview != null and _chat_preview.has_method("set_chat_session_open"):
+		_chat_preview.call("set_chat_session_open", true)
+	$UIManager.open_screen("ChatScreen")
+
+
+func _bind_profile_avatar() -> void:
+	if has_node("/root/AllianceBackend"):
+		var ab: Node = get_node("/root/AllianceBackend")
+		if ab.has_signal("profile_changed") and not ab.profile_changed.is_connected(_on_backend_profile_changed):
+			ab.profile_changed.connect(_on_backend_profile_changed)
+
+
+func _on_backend_profile_changed(_profile: Dictionary) -> void:
+	_refresh_portrait_avatar()
+
+
+func _refresh_portrait_avatar() -> void:
+	if portrait_button == null:
+		return
+	# Replace empty black placeholder with the selected fantasy avatar.
+	portrait_button.ignore_texture_size = true
+	portrait_button.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_COVERED
+	# Keep a square-ish hit target in the top-left band.
+	portrait_button.offset_left = 20.0
+	portrait_button.offset_top = 20.0
+	portrait_button.offset_right = 108.0
+	portrait_button.offset_bottom = 108.0
+	var avatar_id: String = "avatar_01"
+	if has_node("/root/AllianceBackend"):
+		var ab: Node = get_node("/root/AllianceBackend")
+		if ab.has_method("get_avatar_id"):
+			avatar_id = str(ab.get_avatar_id())
+	portrait_button.texture_normal = PlayerAvatarCatalog.get_texture(avatar_id, 128)
+	portrait_button.texture_pressed = portrait_button.texture_normal
+	portrait_button.texture_hover = portrait_button.texture_normal
+	portrait_button.modulate = Color.WHITE
+	portrait_button.tooltip_text = "Player Profile"
 
 func _on_shop_pressed():
 	$UIManager.open_screen("ShopScreen")
 
 func _on_events_pressed():
 	$UIManager.open_screen("EventsScreen")
+
+
+func _on_chat_pressed() -> void:
+	open_chat()
+
+
+func open_chat(preferred_tab: String = "kingdom") -> void:
+	_ensure_chat_screen()
+	var chat: Control = get_node_or_null("ScreenRoot/ChatScreen") as Control
+	if chat != null and chat.has_method("request_open_tab") and preferred_tab != "":
+		chat.call("request_open_tab", preferred_tab)
+	if _chat_preview != null and _chat_preview.has_method("set_chat_session_open"):
+		_chat_preview.call("set_chat_session_open", true)
+	$UIManager.open_screen("ChatScreen")
+
+
+func _remove_legacy_chat_button() -> void:
+	if right_feature_buttons == null:
+		return
+	var legacy: Node = right_feature_buttons.get_node_or_null("ChatButton")
+	if legacy != null:
+		legacy.queue_free()
+	# Restore compact Events/Shop stack height (no vertical Chat button).
+	right_feature_buttons.offset_bottom = 220.0
+
+
+func _ensure_chat_preview() -> void:
+	var host: Control = get_node_or_null("Control") as Control
+	if host == null:
+		return
+	_chat_preview = host.get_node_or_null("ChatPreview") as Control
+	if _chat_preview == null:
+		_chat_preview = Control.new()
+		_chat_preview.name = "ChatPreview"
+		_chat_preview.set_script(load("res://scripts/UI/ChatPreview.gd"))
+		host.add_child(_chat_preview)
+	# Keep preview above bottom nav, below ScreenRoot overlays.
+	_chat_preview.z_index = 40
+	if _chat_preview.has_signal("open_chat_requested"):
+		if not _chat_preview.is_connected("open_chat_requested", Callable(self, "_on_chat_preview_open")):
+			_chat_preview.connect("open_chat_requested", Callable(self, "_on_chat_preview_open"))
+	_sync_chat_preview_visibility()
+
+
+func _on_chat_preview_open() -> void:
+	open_chat("kingdom")
+
+
+func _ensure_chat_screen() -> void:
+	var root: Control = get_node_or_null("ScreenRoot") as Control
+	if root == null:
+		return
+	var existing: Control = root.get_node_or_null("ChatScreen") as Control
+	if existing != null:
+		return
+	var chat := Control.new()
+	chat.name = "ChatScreen"
+	chat.visible = false
+	chat.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	chat.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	chat.set_script(load("res://scripts/UI/ChatScreen.gd"))
+	root.add_child(chat)
 
 
 func _on_mail_pressed():

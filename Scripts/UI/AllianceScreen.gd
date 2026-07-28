@@ -1,7 +1,8 @@
 extends Control
 
-## Alliance Home hub UI refactor.
-## Navigation only — reuses Sprint 1A/1B/1C AllianceState APIs unchanged.
+## Alliance Home hub UI.
+## Phase 4: membership/roster/ranks/applications use AllianceBackend when online.
+## Research/Help remain on local AllianceState (unmigrated) and are labeled accordingly.
 
 const MobileScrollUtil = preload("res://scripts/UI/MobileScroll.gd")
 
@@ -16,6 +17,7 @@ enum ViewMode {
 	APPLICATIONS,
 	RESEARCH,
 	COMING_SOON,
+	INVITES,
 }
 
 var _view: ViewMode = ViewMode.LOBBY
@@ -26,14 +28,30 @@ var _back_button: Button
 var _content: VBoxContainer
 var _name_edit: LineEdit
 var _tag_edit: LineEdit
+var _join_id_edit: LineEdit
+var _invite_user_edit: LineEdit
 var _selected_member_id: String = ""
 var _research_category: String = "Growth"
 var _selected_research_id: String = ""
+var _backend_loading: bool = false
+
+
+func _alliance_backend() -> Node:
+	return get_node_or_null("/root/AllianceBackend")
+
+
+func _chat_manager() -> Node:
+	return get_node_or_null("/root/ChatManager")
+
+
+func _nakama_connection() -> Node:
+	return get_node_or_null("/root/NakamaConnection")
+
 
 const NAV_CARDS: Array[Dictionary] = [
 	{"id": "members", "title": "Members", "subtitle": "Roster & ranks", "live": true},
-	{"id": "help", "title": "Help", "subtitle": "Aid allies", "live": true},
-	{"id": "research", "title": "Research", "subtitle": "Alliance tech", "live": true},
+	{"id": "help", "title": "Help", "subtitle": "Local / Coming Soon", "live": true},
+	{"id": "research", "title": "Research", "subtitle": "Local / Coming Soon", "live": true},
 	{"id": "applications", "title": "Applications", "subtitle": "Review joins", "live": true},
 	{"id": "gifts", "title": "Gifts", "subtitle": "Coming Soon", "live": false},
 	{"id": "territory", "title": "Territory", "subtitle": "Coming Soon", "live": false},
@@ -49,8 +67,33 @@ func _ready() -> void:
 	_build_shell()
 
 	if has_node("/root/AllianceState"):
-		if not AllianceState.alliance_changed.is_connected(_on_alliance_changed):
-			AllianceState.alliance_changed.connect(_on_alliance_changed)
+		if not AllianceState.alliance_changed.is_connected(_on_local_alliance_changed):
+			AllianceState.alliance_changed.connect(_on_local_alliance_changed)
+	if has_node("/root/AllianceBackend"):
+		if not _alliance_backend().alliance_changed.is_connected(_on_backend_alliance_changed):
+			_alliance_backend().alliance_changed.connect(_on_backend_alliance_changed)
+		if not _alliance_backend().roster_changed.is_connected(_on_backend_roster_changed):
+			_alliance_backend().roster_changed.connect(_on_backend_roster_changed)
+		if not _alliance_backend().applications_changed.is_connected(_on_backend_apps_changed):
+			_alliance_backend().applications_changed.connect(_on_backend_apps_changed)
+		if not _alliance_backend().invites_changed.is_connected(_on_backend_invites_changed):
+			_alliance_backend().invites_changed.connect(_on_backend_invites_changed)
+		if not _alliance_backend().help_requests_changed.is_connected(_on_backend_help_changed):
+			_alliance_backend().help_requests_changed.connect(_on_backend_help_changed)
+		if not _alliance_backend().auto_help_status_changed.is_connected(_on_backend_auto_help_changed):
+			_alliance_backend().auto_help_status_changed.connect(_on_backend_auto_help_changed)
+
+
+func _use_backend() -> bool:
+	var ab: Node = _alliance_backend()
+	return ab != null and ab.is_membership_authority()
+
+
+func _is_in_alliance() -> bool:
+	## Backend membership is authoritative when online.
+	if _use_backend():
+		return _alliance_backend().is_in_backend_alliance()
+	return has_node("/root/AllianceState") and AllianceState.is_in_alliance()
 
 
 func on_open() -> void:
@@ -60,7 +103,13 @@ func on_open() -> void:
 	_coming_soon_title = ""
 	_selected_research_id = ""
 	_research_category = "Growth"
-	if AllianceState.is_in_alliance():
+	if _use_backend():
+		await _alliance_backend().refresh_profile()
+		if _alliance_backend().is_in_backend_alliance():
+			await _alliance_backend().refresh_membership_caches()
+		else:
+			await _alliance_backend().list_my_invites()
+	if _is_in_alliance():
 		_view = ViewMode.HOME
 	else:
 		_view = ViewMode.LOBBY
@@ -78,7 +127,10 @@ func on_close() -> void:
 	_selected_research_id = ""
 
 
-func _on_alliance_changed() -> void:
+func _on_local_alliance_changed() -> void:
+	## Ignore local membership churn when backend is authority.
+	if _use_backend():
+		return
 	if not visible:
 		return
 	if not AllianceState.is_in_alliance():
@@ -86,9 +138,35 @@ func _on_alliance_changed() -> void:
 		_selected_member_id = ""
 		_coming_soon_title = ""
 		_selected_research_id = ""
-	elif _view in [ViewMode.LOBBY, ViewMode.CREATE, ViewMode.JOIN]:
+	elif _view in [ViewMode.LOBBY, ViewMode.CREATE, ViewMode.JOIN, ViewMode.INVITES]:
 		_view = ViewMode.HOME
 	_refresh()
+
+
+func _on_backend_alliance_changed(_alliance: Dictionary) -> void:
+	if not visible:
+		return
+	if not _alliance_backend().is_in_backend_alliance():
+		_view = ViewMode.LOBBY
+		_selected_member_id = ""
+	elif _view in [ViewMode.LOBBY, ViewMode.CREATE, ViewMode.JOIN, ViewMode.INVITES]:
+		_view = ViewMode.HOME
+	_refresh()
+
+
+func _on_backend_roster_changed(_members: Array) -> void:
+	if visible and _view in [ViewMode.MEMBERS, ViewMode.MEMBER_DETAIL, ViewMode.HOME]:
+		_refresh()
+
+
+func _on_backend_apps_changed(_apps: Array) -> void:
+	if visible and _view == ViewMode.APPLICATIONS:
+		_refresh()
+
+
+func _on_backend_invites_changed(_invites: Array) -> void:
+	if visible and _view in [ViewMode.LOBBY, ViewMode.INVITES]:
+		_refresh()
 
 
 func _build_shell() -> void:
@@ -177,8 +255,8 @@ func _refresh() -> void:
 	_status_label.text = ""
 	_update_header()
 
-	if not has_node("/root/AllianceState"):
-		_status_label.text = "AllianceState is not loaded."
+	if not _use_backend() and not has_node("/root/AllianceState"):
+		_status_label.text = "Alliance systems are not loaded."
 		return
 
 	match _view:
@@ -186,6 +264,8 @@ func _refresh() -> void:
 			_build_create_view()
 		ViewMode.JOIN:
 			_build_join_view()
+		ViewMode.INVITES:
+			_build_invites_view()
 		ViewMode.HOME:
 			_build_home_view()
 		ViewMode.MEMBERS:
@@ -201,7 +281,7 @@ func _refresh() -> void:
 		ViewMode.COMING_SOON:
 			_build_coming_soon_view()
 		_:
-			if AllianceState.is_in_alliance():
+			if _is_in_alliance():
 				_view = ViewMode.HOME
 				_build_home_view()
 			else:
@@ -219,16 +299,18 @@ func _update_header() -> void:
 			_title_label.text = "CREATE"
 		ViewMode.JOIN:
 			_title_label.text = "JOIN"
+		ViewMode.INVITES:
+			_title_label.text = "INVITES"
 		ViewMode.HOME:
 			_title_label.text = "ALLIANCE HOME"
 		ViewMode.MEMBERS, ViewMode.MEMBER_DETAIL:
 			_title_label.text = "MEMBERS"
 		ViewMode.HELP:
-			_title_label.text = "HELP"
+			_title_label.text = "HELP" if _use_backend() else "HELP (LOCAL)"
 		ViewMode.APPLICATIONS:
 			_title_label.text = "APPLICATIONS"
 		ViewMode.RESEARCH:
-			_title_label.text = "ALLIANCE RESEARCH"
+			_title_label.text = "RESEARCH (LOCAL)"
 		ViewMode.COMING_SOON:
 			_title_label.text = _coming_soon_title.to_upper()
 		_:
@@ -240,14 +322,14 @@ func _on_back_pressed() -> void:
 		ViewMode.MEMBER_DETAIL:
 			_selected_member_id = ""
 			_view = ViewMode.MEMBERS
-		ViewMode.CREATE, ViewMode.JOIN:
+		ViewMode.CREATE, ViewMode.JOIN, ViewMode.INVITES:
 			_view = ViewMode.LOBBY
 		ViewMode.MEMBERS, ViewMode.HELP, ViewMode.APPLICATIONS, ViewMode.RESEARCH, ViewMode.COMING_SOON:
 			_coming_soon_title = ""
 			_selected_research_id = ""
 			_view = ViewMode.HOME
 		_:
-			_view = ViewMode.HOME if AllianceState.is_in_alliance() else ViewMode.LOBBY
+			_view = ViewMode.HOME if _is_in_alliance() else ViewMode.LOBBY
 	_refresh()
 
 
@@ -291,8 +373,12 @@ func _open_nav_card(card_id: String) -> void:
 
 
 func _build_unjoined_view() -> void:
-	_add_banner_panel("No Alliance", "Join a banner or raise your own.")
-	_add_body_label("Create a new Alliance or join one from the local registry.")
+	if _use_backend():
+		_add_banner_panel("No Alliance", "Server-backed membership")
+		_add_body_label("Create a Crownspire Alliance or apply to join one. Local AllianceState is not used for membership.")
+	else:
+		_add_banner_panel("No Alliance", "Offline / local mode")
+		_add_body_label("Nakama offline — local Alliance prototype only. Multiplayer membership requires authentication.")
 
 	var create_btn: Button = Button.new()
 	create_btn.text = "Create Alliance"
@@ -304,7 +390,7 @@ func _build_unjoined_view() -> void:
 	_content.add_child(create_btn)
 
 	var join_btn: Button = Button.new()
-	join_btn.text = "Join Alliance"
+	join_btn.text = "Join / Apply"
 	join_btn.custom_minimum_size = Vector2(0, 64)
 	join_btn.pressed.connect(func() -> void:
 		_view = ViewMode.JOIN
@@ -312,10 +398,24 @@ func _build_unjoined_view() -> void:
 	)
 	_content.add_child(join_btn)
 
+	if _use_backend():
+		var invites_btn: Button = Button.new()
+		invites_btn.text = "Invites"
+		invites_btn.custom_minimum_size = Vector2(0, 56)
+		invites_btn.pressed.connect(func() -> void:
+			_view = ViewMode.INVITES
+			_refresh()
+		)
+		_content.add_child(invites_btn)
+
 	_add_roles_hint()
 
 
 func _build_home_view() -> void:
+	if _use_backend():
+		_build_backend_home_view()
+		return
+
 	var current: Dictionary = AllianceState.get_current_alliance()
 	var tag: String = str(current.get("tag", AllianceState.alliance_tag))
 	var name_text: String = str(current.get("name", AllianceState.alliance_name))
@@ -334,78 +434,102 @@ func _build_home_view() -> void:
 		AllianceState.get_role_display_name(AllianceState.role),
 	])
 	_add_panel_label(meta_box, "Members: %d" % member_count)
+	_add_panel_label(meta_box, "Mode: LOCAL PROTOTYPE", true)
 
-	var announcement: String = AllianceState.get_announcement()
-	if announcement == "":
-		announcement = "No announcement posted."
-	var announce_panel: PanelContainer = _make_info_panel()
-	_content.add_child(announce_panel)
-	var announce_box: VBoxContainer = VBoxContainer.new()
-	announce_box.add_theme_constant_override("separation", 6)
-	announce_panel.add_child(announce_box)
-	_add_panel_label(announce_box, "Announcement", true)
-	_add_panel_label(announce_box, announcement)
+	_build_home_shared_tail(player_pts)
+
+
+func _build_backend_home_view() -> void:
+	var alliance: Dictionary = _alliance_backend().get_cached_alliance()
+	if alliance.is_empty():
+		alliance = {
+			"tag": _alliance_backend().get_alliance_tag(),
+			"name": _alliance_backend().get_alliance_name(),
+			"member_count": _alliance_backend().get_cached_members().size(),
+		}
+	var tag: String = str(alliance.get("tag", _alliance_backend().get_alliance_tag()))
+	var name_text: String = str(alliance.get("name", _alliance_backend().get_alliance_name()))
+	var member_count: int = int(alliance.get("member_count", _alliance_backend().get_cached_members().size()))
+	var rank: String = _alliance_backend().get_crownspire_rank()
+
+	_add_banner_panel("[%s]" % tag, name_text)
+
+	var meta: PanelContainer = _make_info_panel()
+	_content.add_child(meta)
+	var meta_box: VBoxContainer = VBoxContainer.new()
+	meta_box.add_theme_constant_override("separation", 6)
+	meta.add_child(meta_box)
+	_add_panel_label(meta_box, "Your Rank: %s (%s)" % [rank, _alliance_backend().get_role_display_name(rank)])
+	_add_panel_label(meta_box, "Members: %d / %d" % [
+		member_count,
+		int(alliance.get("member_limit", 50)),
+	])
+	_add_panel_label(meta_box, "Join type: %s" % str(alliance.get("join_type", "apply")))
+	var desc: String = str(alliance.get("description", "")).strip_edges()
+	_add_panel_label(meta_box, desc if desc != "" else "No description set.")
+	_add_panel_label(meta_box, "Power: placeholder (not authoritative)")
+	_add_panel_label(meta_box, "Authority: Nakama / AllianceBackend", true)
+
+	var chat_btn: Button = Button.new()
+	chat_btn.text = "Open Alliance Chat"
+	chat_btn.custom_minimum_size = Vector2(0, 56)
+	chat_btn.pressed.connect(func() -> void:
+		var hud := get_tree().root.find_child("GameHUD", true, false)
+		if hud != null and hud.has_method("open_chat"):
+			hud.call("open_chat", "alliance")
+		elif has_node("/root/ChatManager"):
+			_chat_manager().ensure_alliance_joined()
+			_status_label.text = "Alliance Chat joining…"
+	)
+	_content.add_child(chat_btn)
+
+	if _alliance_backend().has_permission("invite"):
+		_invite_user_edit = LineEdit.new()
+		_invite_user_edit.placeholder_text = "Invite Nakama user_id"
+		_invite_user_edit.custom_minimum_size = Vector2(0, 48)
+		_content.add_child(_invite_user_edit)
+		var invite_btn: Button = Button.new()
+		invite_btn.text = "Send Invite"
+		invite_btn.custom_minimum_size = Vector2(0, 48)
+		invite_btn.pressed.connect(_on_invite_pressed)
+		_content.add_child(invite_btn)
+
+	_build_home_shared_tail(0)
+	_add_body_label("Research & Help tabs are LOCAL ONLY until a later migration. They do not bind to this backend Alliance.")
+
+
+func _build_home_shared_tail(player_pts: int) -> void:
+	if has_node("/root/AllianceState") and not _use_backend():
+		var announcement: String = AllianceState.get_announcement()
+		if announcement == "":
+			announcement = "No announcement posted."
+		var announce_panel: PanelContainer = _make_info_panel()
+		_content.add_child(announce_panel)
+		var announce_box: VBoxContainer = VBoxContainer.new()
+		announce_box.add_theme_constant_override("separation", 6)
+		announce_panel.add_child(announce_box)
+		_add_panel_label(announce_box, "Announcement", true)
+		_add_panel_label(announce_box, announcement)
 
 	var research_panel: PanelContainer = _make_info_panel()
 	_content.add_child(research_panel)
 	var research_box: VBoxContainer = VBoxContainer.new()
 	research_box.add_theme_constant_override("separation", 8)
 	research_panel.add_child(research_box)
-	_add_panel_label(research_box, "Alliance Research", true)
-
-	var active_id: String = AllianceState.get_active_research_id()
-	var current_name: String = "None"
-	var progress_text: String = "—"
-	var progress_value: float = 0.0
-	var progress_max: float = 1.0
-	if active_id != "":
-		var def: Dictionary = DataManager.get_alliance_research_def(active_id)
-		var runtime: Dictionary = AllianceState.get_research_node_runtime(active_id)
-		var level: int = int(runtime.get("level", 0))
-		var max_level: int = int(def.get("maxLevel", 1))
-		var target_level: int = mini(level + 1, max_level)
-		current_name = "%s %s" % [str(def.get("name", active_id)), _to_roman(target_level)]
-		if level >= max_level:
-			progress_text = "Complete"
-			progress_value = 1.0
-			progress_max = 1.0
-		else:
-			var cur: int = int(runtime.get("progress", 0))
-			var req: int = AllianceState.get_research_requirement(active_id, level)
-			progress_text = "%s / %s" % [_format_commas(cur), _format_commas(req)]
-			progress_value = float(cur)
-			progress_max = max(1.0, float(req))
-
-	_add_panel_label(research_box, "Current Research")
-	_add_panel_label(research_box, current_name, true)
-	_add_panel_label(research_box, "Progress")
-	_add_panel_label(research_box, progress_text)
-
-	var bar: ProgressBar = ProgressBar.new()
-	bar.min_value = 0
-	bar.max_value = progress_max
-	bar.value = progress_value
-	bar.custom_minimum_size = Vector2(0, 28)
-	bar.show_percentage = false
-	research_box.add_child(bar)
-
-	_add_panel_label(research_box, "Personal Contribution")
-	_add_panel_label(research_box, _format_commas(player_pts), true)
-
-	var attempt_state: Dictionary = AllianceState.get_research_attempt_state()
-	_add_panel_label(research_box, "Research Attempts")
-	_add_panel_label(research_box, "%d / %d" % [
-		int(attempt_state.get("current_attempts", 0)),
-		int(attempt_state.get("max_attempts", 25)),
-	])
+	_add_panel_label(research_box, "Alliance Research (LOCAL)", true)
+	if has_node("/root/AllianceState"):
+		var active_id: String = AllianceState.get_active_research_id()
+		var current_name: String = "None" if active_id == "" else str(DataManager.get_alliance_research_def(active_id).get("name", active_id))
+		_add_panel_label(research_box, "Current: %s" % current_name)
+		_add_panel_label(research_box, "Personal Contribution: %s" % _format_commas(player_pts if player_pts > 0 else AllianceState.get_player_contribution_points()))
+	else:
+		_add_panel_label(research_box, "Local AllianceState unavailable.")
 
 	var open_research: Button = Button.new()
-	open_research.text = "Open Research"
-	open_research.custom_minimum_size = Vector2(0, 72)
+	open_research.text = "Open Research (Local)"
+	open_research.custom_minimum_size = Vector2(0, 56)
 	open_research.pressed.connect(_open_research_screen)
 	research_box.add_child(open_research)
-
-	_add_body_label("Embassy help capacity: %d" % AllianceState.get_embassy_help_capacity())
 
 	_add_section_label("Alliance Hall")
 	var grid: GridContainer = GridContainer.new()
@@ -749,36 +873,25 @@ func _ui_category_for_research(research_id: String) -> String:
 
 
 func _build_help_view() -> void:
+	if _use_backend():
+		_build_backend_help_view()
+		return
+
+	_add_body_label("Backend Alliance Help unavailable. Showing local-only queue (not multiplayer).")
 	_add_body_label("Embassy capacity: %d  |  Active: %d" % [
 		AllianceState.get_embassy_help_capacity(),
 		AllianceState.get_help_requests().size(),
 	])
 
 	var help_all_btn: Button = Button.new()
-	help_all_btn.text = "Help All"
+	help_all_btn.text = "Help All (Local)"
 	help_all_btn.custom_minimum_size = Vector2(0, 56)
 	help_all_btn.pressed.connect(_on_help_all_pressed)
 	_content.add_child(help_all_btn)
 
-	var request_row: HBoxContainer = HBoxContainer.new()
-	request_row.add_theme_constant_override("separation", 6)
-	_content.add_child(request_row)
-	for help_type: String in [
-		AllianceState.HELP_TYPE_CONSTRUCTION,
-		AllianceState.HELP_TYPE_RESEARCH,
-		AllianceState.HELP_TYPE_TRAINING,
-		AllianceState.HELP_TYPE_HEALING,
-	]:
-		var req_btn: Button = Button.new()
-		req_btn.text = "Request\n%s" % help_type.capitalize()
-		req_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		req_btn.custom_minimum_size = Vector2(0, 64)
-		req_btn.pressed.connect(_on_create_help_pressed.bind(help_type))
-		request_row.add_child(req_btn)
-
 	var requests: Array[Dictionary] = AllianceState.get_help_requests()
 	if requests.is_empty():
-		_add_body_label("No help requests in the queue.")
+		_add_body_label("No local help requests.")
 		return
 
 	for req: Dictionary in requests:
@@ -788,7 +901,6 @@ func _build_help_view() -> void:
 		var box: VBoxContainer = VBoxContainer.new()
 		box.add_theme_constant_override("separation", 8)
 		block.add_child(box)
-
 		var info: Label = Label.new()
 		info.text = "%s\n%s · %s left" % [
 			str(req.get("player_name", "?")),
@@ -798,7 +910,6 @@ func _build_help_view() -> void:
 		info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		info.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		box.add_child(info)
-
 		var help_btn: Button = Button.new()
 		help_btn.text = "Help"
 		help_btn.custom_minimum_size = Vector2(0, 48)
@@ -806,37 +917,290 @@ func _build_help_view() -> void:
 		box.add_child(help_btn)
 
 
+func _build_backend_help_view() -> void:
+	var ab: Node = _alliance_backend()
+	if ab == null or not ab.is_authenticated_for_help():
+		_add_body_label("Alliance Help unavailable — reconnect to Nakama.")
+		return
+
+	# Refresh without blocking forever; UI rebuilds on help_requests_changed.
+	ab.refresh_help_requests()
+
+	var auto_status: Dictionary = ab.get_auto_help_status()
+	var auto_title := "Alliance Auto-Help"
+	var auto_label := "Inactive"
+	if bool(auto_status.get("active", false)):
+		# Beta-only copy — never claim Ultra Value Monthly Card.
+		auto_label = str(auto_status.get("ui_label", "Beta Testing Enabled"))
+	_add_body_label("%s\n🧪 %s" % [auto_title, auto_label])
+
+	_add_body_label("Alliance Requests")
+	var eligible: Array = ab.get_eligible_help_requests()
+	if eligible.is_empty():
+		_add_body_label("No eligible requests to help.")
+	else:
+		for req_v in eligible:
+			if typeof(req_v) != TYPE_DICTIONARY:
+				continue
+			var req: Dictionary = req_v
+			var request_id: String = str(req.get("request_id", ""))
+			var block: PanelContainer = _make_info_panel()
+			_content.add_child(block)
+			var box: VBoxContainer = VBoxContainer.new()
+			box.add_theme_constant_override("separation", 6)
+			block.add_child(box)
+			var info: Label = Label.new()
+			info.text = "%s\n%s · %s\nHelp %d / %d · %s left" % [
+				str(req.get("owner_display_name", "?")),
+				str(req.get("project_type", "?")),
+				str(req.get("project_display_name", "?")),
+				int(req.get("help_count", 0)),
+				int(req.get("help_limit", 0)),
+				_format_seconds(int(req.get("remaining_seconds", 0))),
+			]
+			info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			info.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			box.add_child(info)
+			var help_btn: Button = Button.new()
+			help_btn.text = "HELP"
+			help_btn.custom_minimum_size = Vector2(0, 48)
+			help_btn.pressed.connect(_on_backend_help_one_pressed.bind(request_id))
+			box.add_child(help_btn)
+
+	_add_body_label("Your Active Projects")
+	_append_my_help_project_rows(ab)
+
+	var help_all_btn: Button = Button.new()
+	help_all_btn.text = "HELP ALL"
+	help_all_btn.custom_minimum_size = Vector2(0, 64)
+	help_all_btn.pressed.connect(_on_backend_help_all_pressed)
+	_content.add_child(help_all_btn)
+
+
+func _append_my_help_project_rows(ab: Node) -> void:
+	var mine: Array = ab.get_my_active_help_requests()
+	var shown_ids: Dictionary = {}
+	for req_v in mine:
+		if typeof(req_v) != TYPE_DICTIONARY:
+			continue
+		var req: Dictionary = req_v
+		shown_ids[str(req.get("project_type", "")) + "|" + str(req.get("project_id", ""))] = true
+		var block: PanelContainer = _make_info_panel()
+		_content.add_child(block)
+		var box: VBoxContainer = VBoxContainer.new()
+		box.add_theme_constant_override("separation", 6)
+		block.add_child(box)
+		var info: Label = Label.new()
+		var help_count: int = int(req.get("help_count", 0))
+		var help_limit: int = int(req.get("help_limit", 1))
+		info.text = "%s\n%s left · Help %d / %d · Progress %d%%" % [
+			str(req.get("project_display_name", req.get("project_id", "?"))),
+			_format_seconds(int(req.get("remaining_seconds", 0))),
+			help_count,
+			help_limit,
+			int((float(help_count) / float(maxi(1, help_limit))) * 100.0),
+		]
+		info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		info.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		box.add_child(info)
+
+	# Expose Request Help for local active projects without a backend request yet.
+	if has_node("/root/ConstructionState"):
+		for job_v in ConstructionState.get_active_construction_jobs():
+			if typeof(job_v) != TYPE_DICTIONARY:
+				continue
+			var job: Dictionary = job_v
+			var pid: String = str(job.get("building_id", ""))
+			var key: String = "CONSTRUCTION|" + pid
+			if shown_ids.has(key) or pid == "":
+				continue
+			_add_request_help_row("CONSTRUCTION", pid, "Build %s → Lv %s" % [pid, str(job.get("target_level", "?"))], int(job.get("end_unix", 0)))
+	if has_node("/root/ResearchState"):
+		for job_v2 in ResearchState.get_active_research_jobs():
+			if typeof(job_v2) != TYPE_DICTIONARY:
+				continue
+			var rjob: Dictionary = job_v2
+			var rid: String = str(rjob.get("research_id", ""))
+			var rkey: String = "RESEARCH|" + rid
+			if shown_ids.has(rkey) or rid == "":
+				continue
+			var rem: float = float(rjob.get("time_remaining", 0.0))
+			var finish: int = int(Time.get_unix_time_from_system()) + int(ceil(rem))
+			_add_request_help_row("RESEARCH", rid, "Research %s" % rid, finish)
+	if has_node("/root/HealingState") and HealingState.has_active_job():
+		var hjob: Dictionary = HealingState.get_active_job()
+		var hid: String = str(hjob.get("job_id", ""))
+		var hkey: String = "HEALING|" + hid
+		if not shown_ids.has(hkey) and hid != "":
+			_add_request_help_row("HEALING", hid, "Healing batch %s" % hid, int(hjob.get("end_unix", 0)))
+
+
+func _add_request_help_row(project_type: String, project_id: String, display_name: String, finish_unix: int) -> void:
+	var block: PanelContainer = _make_info_panel()
+	_content.add_child(block)
+	var box: VBoxContainer = VBoxContainer.new()
+	box.add_theme_constant_override("separation", 6)
+	block.add_child(box)
+	var info: Label = Label.new()
+	info.text = "%s\nNo Alliance Help requested yet · %s left" % [
+		display_name,
+		_format_seconds(maxi(0, finish_unix - int(Time.get_unix_time_from_system()))),
+	]
+	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	info.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(info)
+	var req_btn: Button = Button.new()
+	req_btn.text = "Request Alliance Help"
+	req_btn.custom_minimum_size = Vector2(0, 48)
+	req_btn.pressed.connect(_on_backend_request_help_pressed.bind(project_type, project_id, display_name, finish_unix))
+	box.add_child(req_btn)
+
+
 func _build_members_view() -> void:
+	if _use_backend():
+		if not _alliance_backend().has_permission("view_members"):
+			_add_body_label("You cannot view the roster.")
+			return
+		var members: Array = _alliance_backend().get_cached_members()
+		if members.is_empty():
+			_add_body_label("No members found (refreshing…)")
+			_alliance_backend().list_members()
+			return
+		for member_v in members:
+			if typeof(member_v) != TYPE_DICTIONARY:
+				continue
+			var member: Dictionary = member_v
+			var member_id: String = str(member.get("user_id", ""))
+			_content.add_child(_make_member_row(member, member_id, true))
+		return
+
 	if not AllianceState.has_permission("view_members"):
 		_add_body_label("You cannot view the roster.")
 		return
 
-	var members: Array[Dictionary] = AllianceState.get_members()
-	if members.is_empty():
+	var local_members: Array[Dictionary] = AllianceState.get_members()
+	if local_members.is_empty():
 		_add_body_label("No members found.")
 		return
 
-	for member: Dictionary in members:
+	for member: Dictionary in local_members:
 		var member_id: String = str(member.get("member_id", member.get("id", "")))
-		var row: Button = Button.new()
-		var online: String = str(member.get("online_status", "offline"))
-		row.text = "%s\n%s · %s · %s" % [
-			str(member.get("player_name", member.get("name", "?"))),
-			AllianceState.get_role_display_name(str(member.get("role", "?"))),
-			_format_power(int(member.get("power", 0))),
-			online.capitalize(),
-		]
-		row.custom_minimum_size = Vector2(0, 72)
-		row.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		row.pressed.connect(func() -> void:
-			_selected_member_id = member_id
-			_view = ViewMode.MEMBER_DETAIL
-			_refresh()
-		)
-		_content.add_child(row)
+		_content.add_child(_make_member_row(member, member_id, false))
+
+
+func _make_member_row(member: Dictionary, member_id: String, backend: bool) -> Control:
+	const PlayerAvatarCatalog = preload("res://scripts/UI/PlayerAvatarCatalog.gd")
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(0, 84)
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.12, 0.10, 0.14, 0.95)
+	style.border_color = Color(0.55, 0.45, 0.28, 0.9)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(10)
+	style.content_margin_left = 10
+	style.content_margin_right = 10
+	style.content_margin_top = 8
+	style.content_margin_bottom = 8
+	panel.add_theme_stylebox_override("panel", style)
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+
+	var wrap := HBoxContainer.new()
+	wrap.add_theme_constant_override("separation", 10)
+	wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_child(wrap)
+
+	var avatar_id: String = str(member.get("avatar_id", "avatar_01"))
+	var avatar := TextureRect.new()
+	avatar.custom_minimum_size = Vector2(56, 56)
+	avatar.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	avatar.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	avatar.texture = PlayerAvatarCatalog.get_texture(avatar_id, 64)
+	avatar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	wrap.add_child(avatar)
+
+	var col := VBoxContainer.new()
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	wrap.add_child(col)
+
+	var name_text: String = str(member.get("display_name", member.get("player_name", member.get("name", "?"))))
+	var rank_text: String = str(member.get("rank", member.get("role", "?")))
+	if backend:
+		rank_text = "%s (%s)" % [rank_text, str(member.get("rank_display", rank_text))]
+	else:
+		rank_text = AllianceState.get_role_display_name(rank_text)
+	var power: int = int(member.get("power", member.get("power_placeholder", 0)))
+	var citadel: int = int(member.get("citadel_level", 1))
+	var online: String = str(member.get("online_status", "offline"))
+	var last_online: int = int(member.get("last_online", 0))
+	var status_line: String = "🟢 Online" if online == "online" else "⚫ Last Online · %s" % _format_relative_time(last_online)
+
+	var title := Label.new()
+	title.text = name_text
+	title.add_theme_font_size_override("font_size", 16)
+	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	col.add_child(title)
+	var meta := Label.new()
+	meta.text = "%s · Power %s · Citadel %d\n%s" % [rank_text, _format_power(power), citadel, status_line]
+	meta.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	meta.add_theme_font_size_override("font_size", 12)
+	meta.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	col.add_child(meta)
+
+	panel.gui_input.connect(func(e: InputEvent) -> void:
+		if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT:
+			if backend:
+				_open_member_profile_or_detail(member_id)
+			else:
+				_selected_member_id = member_id
+				_view = ViewMode.MEMBER_DETAIL
+				_refresh()
+		elif e is InputEventScreenTouch and e.pressed:
+			if backend:
+				_open_member_profile_or_detail(member_id)
+			else:
+				_selected_member_id = member_id
+				_view = ViewMode.MEMBER_DETAIL
+				_refresh()
+	)
+	return panel
+
+
+func _open_member_profile_or_detail(member_id: String) -> void:
+	## Tap opens player profile; management actions remain on Member Detail via long path.
+	var hud := get_tree().get_first_node_in_group("game_hud")
+	if hud != null and hud.has_method("open_player_profile"):
+		hud.open_player_profile(member_id)
+		return
+	_selected_member_id = member_id
+	_view = ViewMode.MEMBER_DETAIL
+	_refresh()
+
+
+func _format_relative_time(unix_ts: int) -> String:
+	if unix_ts <= 0:
+		return "Unknown"
+	var now: int = int(Time.get_unix_time_from_system())
+	var delta: int = maxi(0, now - unix_ts)
+	if delta < 60:
+		return "Just now"
+	if delta < 3600:
+		var mins: int = int(delta / 60.0)
+		return "%d minute%s ago" % [mins, "" if mins == 1 else "s"]
+	if delta < 86400:
+		var hours: int = int(delta / 3600.0)
+		return "%d hour%s ago" % [hours, "" if hours == 1 else "s"]
+	var days: int = int(delta / 86400.0)
+	if days == 1:
+		return "1 day ago"
+	return "%d days ago" % days
 
 
 func _build_member_detail_view() -> void:
+	if _use_backend():
+		_build_backend_member_detail()
+		return
+
 	var member: Dictionary = AllianceState.get_member(_selected_member_id)
 	if member.is_empty():
 		_status_label.text = "Member not found."
@@ -910,17 +1274,165 @@ func _build_member_detail_view() -> void:
 		_add_body_label("This is you. Use Leave Alliance from Alliance Home to leave.")
 
 
+func _build_backend_member_detail() -> void:
+	var member: Dictionary = {}
+	for m in _alliance_backend().get_cached_members():
+		if typeof(m) == TYPE_DICTIONARY and str(m.get("user_id", "")) == _selected_member_id:
+			member = m
+			break
+	if member.is_empty():
+		_status_label.text = "Member not found."
+		_view = ViewMode.MEMBERS
+		_build_members_view()
+		return
+
+	var member_id: String = str(member.get("user_id", ""))
+	var member_role: String = str(member.get("rank", "R1"))
+	var local_uid: String = _nakama_connection().get_user_id() if has_node("/root/NakamaConnection") else ""
+	var is_self: bool = member_id == local_uid
+
+	_add_section_label(str(member.get("display_name", "?")))
+	_add_body_label("Rank: %s (%s)" % [member_role, str(member.get("rank_display", _alliance_backend().get_role_display_name(member_role)))])
+	_add_body_label("Power: %s" % _format_power(int(member.get("power", 0))))
+	_add_body_label("Citadel: %d" % int(member.get("citadel_level", 1)))
+	var online: String = str(member.get("online_status", "offline"))
+	if online == "online":
+		_add_body_label("Status: 🟢 Online")
+	else:
+		_add_body_label("Status: ⚫ Last Online · %s" % _format_relative_time(int(member.get("last_online", 0))))
+
+	if not is_self:
+		var profile_btn: Button = Button.new()
+		profile_btn.text = "View Profile"
+		profile_btn.custom_minimum_size = Vector2(0, 52)
+		profile_btn.pressed.connect(func() -> void:
+			_open_member_profile_or_detail(member_id)
+		)
+		_content.add_child(profile_btn)
+		var msg_btn: Button = Button.new()
+		msg_btn.text = "Message"
+		msg_btn.custom_minimum_size = Vector2(0, 52)
+		msg_btn.pressed.connect(func() -> void:
+			var hud := get_tree().get_first_node_in_group("game_hud")
+			if hud != null and hud.has_method("open_private_chat"):
+				hud.open_private_chat(member_id, str(member.get("display_name", "Player")))
+		)
+		_content.add_child(msg_btn)
+	_add_body_label("Kingdom: %s" % str(member.get("kingdom_id", "")))
+
+	if not is_self and _alliance_backend().has_permission("promote"):
+		var promote_btn: Button = Button.new()
+		promote_btn.text = "Promote"
+		promote_btn.custom_minimum_size = Vector2(0, 52)
+		promote_btn.pressed.connect(func() -> void:
+			var result: Dictionary = await _alliance_backend().promote_member(member_id)
+			_status_label.text = str(result.get("error", "Promoted.")) if not bool(result.get("ok", false)) else "Promoted."
+			_refresh()
+		)
+		_content.add_child(promote_btn)
+
+	if not is_self and _alliance_backend().has_permission("demote"):
+		var demote_btn: Button = Button.new()
+		demote_btn.text = "Demote"
+		demote_btn.custom_minimum_size = Vector2(0, 52)
+		demote_btn.pressed.connect(func() -> void:
+			var result: Dictionary = await _alliance_backend().demote_member(member_id)
+			_status_label.text = str(result.get("error", "Demoted.")) if not bool(result.get("ok", false)) else "Demoted."
+			_refresh()
+		)
+		_content.add_child(demote_btn)
+
+	if not is_self and _alliance_backend().has_permission("kick"):
+		var remove_btn: Button = Button.new()
+		remove_btn.text = "Kick"
+		remove_btn.custom_minimum_size = Vector2(0, 52)
+		remove_btn.pressed.connect(func() -> void:
+			var result: Dictionary = await _alliance_backend().kick_member(member_id)
+			if bool(result.get("ok", false)):
+				_selected_member_id = ""
+				_view = ViewMode.MEMBERS
+				_status_label.text = "Member kicked."
+			else:
+				_status_label.text = str(result.get("error", "Kick failed."))
+			_refresh()
+		)
+		_content.add_child(remove_btn)
+
+	if not is_self and _alliance_backend().has_permission("transfer_leadership"):
+		var transfer_btn: Button = Button.new()
+		transfer_btn.text = "Transfer Leadership"
+		transfer_btn.custom_minimum_size = Vector2(0, 52)
+		transfer_btn.pressed.connect(func() -> void:
+			var result: Dictionary = await _alliance_backend().transfer_leadership(member_id)
+			_status_label.text = str(result.get("error", "Transferred.")) if not bool(result.get("ok", false)) else "Leadership transferred."
+			_refresh()
+		)
+		_content.add_child(transfer_btn)
+
+	if is_self:
+		_add_body_label("This is you. Use Leave Alliance from Alliance Home to leave.")
+
+
 func _build_applications_view() -> void:
+	if _use_backend():
+		if not _alliance_backend().has_permission("view_applications") and not _alliance_backend().has_permission("approve"):
+			_add_body_label("You do not have permission to review applications.")
+			return
+		var apps: Array = _alliance_backend().get_cached_applications()
+		if apps.is_empty():
+			_add_body_label("No pending applications.")
+			_alliance_backend().list_join_requests()
+			return
+		for app_v in apps:
+			if typeof(app_v) != TYPE_DICTIONARY:
+				continue
+			var app: Dictionary = app_v
+			var uid: String = str(app.get("user_id", ""))
+			var block: PanelContainer = _make_info_panel()
+			_content.add_child(block)
+			var box: VBoxContainer = VBoxContainer.new()
+			box.add_theme_constant_override("separation", 8)
+			block.add_child(box)
+			var info: Label = Label.new()
+			info.text = "%s\nPower placeholder" % str(app.get("display_name", uid))
+			info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			info.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			box.add_child(info)
+			var actions: HBoxContainer = HBoxContainer.new()
+			actions.add_theme_constant_override("separation", 8)
+			box.add_child(actions)
+			var accept_btn: Button = Button.new()
+			accept_btn.text = "Accept"
+			accept_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			accept_btn.custom_minimum_size = Vector2(0, 48)
+			accept_btn.pressed.connect(func() -> void:
+				var result: Dictionary = await _alliance_backend().approve_application(uid)
+				_status_label.text = str(result.get("error", "Accepted.")) if not bool(result.get("ok", false)) else "Application accepted."
+				_refresh()
+			)
+			actions.add_child(accept_btn)
+			var reject_btn: Button = Button.new()
+			reject_btn.text = "Reject"
+			reject_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			reject_btn.custom_minimum_size = Vector2(0, 48)
+			reject_btn.pressed.connect(func() -> void:
+				var result: Dictionary = await _alliance_backend().reject_application(uid)
+				_status_label.text = str(result.get("error", "Rejected.")) if not bool(result.get("ok", false)) else "Application rejected."
+				_refresh()
+			)
+			actions.add_child(reject_btn)
+		return
+
 	if not AllianceState.has_permission("review_applications"):
 		_add_body_label("You do not have permission to review applications.")
 		return
 
-	var apps: Array[Dictionary] = AllianceState.get_pending_applications()
-	if apps.is_empty():
+	var local_apps: Array[Dictionary] = AllianceState.get_pending_applications()
+	if local_apps.is_empty():
 		_add_body_label("No pending applications.")
 		return
 
-	for app: Dictionary in apps:
+	for app: Dictionary in local_apps:
 		var app_id: String = str(app.get("application_id", ""))
 		var block: PanelContainer = _make_info_panel()
 		_content.add_child(block)
@@ -1007,8 +1519,59 @@ func _build_create_view() -> void:
 
 
 func _build_join_view() -> void:
+	if _use_backend():
+		_add_section_label("Apply to an Alliance")
+		_add_body_label("Browse Crownspire alliances or paste an Alliance ID. Join creates a pending application.")
+
+		_join_id_edit = LineEdit.new()
+		_join_id_edit.placeholder_text = "Alliance ID (UUID)"
+		_join_id_edit.custom_minimum_size = Vector2(0, 48)
+		_content.add_child(_join_id_edit)
+		var apply_btn: Button = Button.new()
+		apply_btn.text = "Apply by ID"
+		apply_btn.custom_minimum_size = Vector2(0, 52)
+		apply_btn.pressed.connect(func() -> void:
+			var aid: String = _join_id_edit.text if _join_id_edit else ""
+			var result: Dictionary = await _alliance_backend().apply_to_alliance(aid.strip_edges())
+			if bool(result.get("ok", false)):
+				_status_label.text = str(result.get("message", "Application submitted. Awaiting approval."))
+			else:
+				_status_label.text = str(result.get("error", "Apply failed."))
+		)
+		_content.add_child(apply_btn)
+
+		var listed: Dictionary = await _alliance_backend().list_alliances("")
+		var alliances: Array = listed.get("alliances", []) if bool(listed.get("ok", false)) else []
+		if alliances.is_empty():
+			_add_body_label("No public Crownspire alliances listed yet. Use Alliance ID to apply.")
+		else:
+			for entry_v in alliances:
+				if typeof(entry_v) != TYPE_DICTIONARY:
+					continue
+				var entry: Dictionary = entry_v
+				var entry_id: String = str(entry.get("alliance_id", ""))
+				var row: HBoxContainer = HBoxContainer.new()
+				row.add_theme_constant_override("separation", 8)
+				_content.add_child(row)
+				var info: Label = Label.new()
+				info.text = "[%s] %s\n%d members" % [
+					str(entry.get("tag", "")),
+					str(entry.get("name", "")),
+					int(entry.get("member_count", 0)),
+				]
+				info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+				info.mouse_filter = Control.MOUSE_FILTER_IGNORE
+				row.add_child(info)
+				var join_btn: Button = Button.new()
+				join_btn.text = "Apply"
+				join_btn.custom_minimum_size = Vector2(110, 56)
+				join_btn.pressed.connect(_on_join_pressed.bind(entry_id))
+				row.add_child(join_btn)
+		return
+
 	_add_section_label("Join an Alliance")
-	_add_body_label("Select a local Alliance to join.")
+	_add_body_label("Select a local Alliance to join (offline prototype).")
 
 	var joinable: Array[Dictionary] = AllianceState.get_joinable_alliances()
 	if joinable.is_empty():
@@ -1038,19 +1601,86 @@ func _build_join_view() -> void:
 			row.add_child(join_btn)
 
 
+func _build_invites_view() -> void:
+	_add_section_label("Alliance Invites")
+	if not _use_backend():
+		_add_body_label("Invites require Nakama authentication.")
+		return
+	await _alliance_backend().list_my_invites()
+	var invites: Array = _alliance_backend().get_cached_invites()
+	if invites.is_empty():
+		_add_body_label("No pending invites.")
+		return
+	for inv_v in invites:
+		if typeof(inv_v) != TYPE_DICTIONARY:
+			continue
+		var inv: Dictionary = inv_v
+		var invite_id: String = str(inv.get("invite_id", ""))
+		var block: PanelContainer = _make_info_panel()
+		_content.add_child(block)
+		var box: VBoxContainer = VBoxContainer.new()
+		box.add_theme_constant_override("separation", 8)
+		block.add_child(box)
+		_add_panel_label(box, "[%s] %s" % [str(inv.get("alliance_tag", "")), str(inv.get("alliance_name", ""))], true)
+		var actions: HBoxContainer = HBoxContainer.new()
+		actions.add_theme_constant_override("separation", 8)
+		box.add_child(actions)
+		var accept_btn: Button = Button.new()
+		accept_btn.text = "Accept"
+		accept_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		accept_btn.pressed.connect(func() -> void:
+			var result: Dictionary = await _alliance_backend().accept_invite(invite_id)
+			_status_label.text = str(result.get("error", "Joined.")) if not bool(result.get("ok", false)) else "Invite accepted."
+			if bool(result.get("ok", false)):
+				_view = ViewMode.HOME
+			_refresh()
+		)
+		actions.add_child(accept_btn)
+		var reject_btn: Button = Button.new()
+		reject_btn.text = "Reject"
+		reject_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		reject_btn.pressed.connect(func() -> void:
+			var result: Dictionary = await _alliance_backend().reject_invite(invite_id)
+			_status_label.text = str(result.get("error", "Rejected.")) if not bool(result.get("ok", false)) else "Invite rejected."
+			_refresh()
+		)
+		actions.add_child(reject_btn)
+
+
 func _on_create_pressed() -> void:
 	var name_text: String = _name_edit.text if _name_edit else ""
 	var tag_text: String = _tag_edit.text if _tag_edit else ""
+	if _use_backend():
+		var result_b: Dictionary = await _alliance_backend().create_alliance(name_text, tag_text)
+		if not bool(result_b.get("ok", false)):
+			_status_label.text = str(result_b.get("error", "Create failed."))
+			return
+		if has_node("/root/ChatManager"):
+			await _chat_manager().ensure_alliance_joined()
+		_view = ViewMode.HOME
+		_refresh()
+		_status_label.text = "Alliance created (server-backed)."
+		return
+
 	var result: Dictionary = AllianceState.create_alliance(name_text, tag_text)
 	if not result.get("ok", false):
 		_status_label.text = str(result.get("error", "Create failed."))
 		return
 	_view = ViewMode.HOME
 	_refresh()
-	_status_label.text = "Alliance created."
+	_status_label.text = "Alliance created (local)."
 
 
 func _on_join_pressed(target_id: String) -> void:
+	if _use_backend():
+		var result_b: Dictionary = await _alliance_backend().apply_to_alliance(target_id)
+		if not bool(result_b.get("ok", false)):
+			_status_label.text = str(result_b.get("error", "Apply failed."))
+			return
+		_status_label.text = str(result_b.get("message", "Application submitted. Awaiting approval."))
+		_refresh()
+		return
+
 	var result: Dictionary = AllianceState.join_alliance(target_id)
 	if not result.get("ok", false):
 		_status_label.text = str(result.get("error", "Join failed."))
@@ -1061,6 +1691,18 @@ func _on_join_pressed(target_id: String) -> void:
 
 
 func _on_leave_pressed() -> void:
+	if _use_backend():
+		var result_b: Dictionary = await _alliance_backend().leave_alliance()
+		if not bool(result_b.get("ok", false)):
+			_status_label.text = str(result_b.get("error", "Leave failed."))
+			return
+		_selected_member_id = ""
+		_coming_soon_title = ""
+		_view = ViewMode.LOBBY
+		_refresh()
+		_status_label.text = "Left alliance."
+		return
+
 	var result: Dictionary = AllianceState.leave_alliance()
 	if not result.get("ok", false):
 		_status_label.text = str(result.get("error", "Leave failed."))
@@ -1070,6 +1712,14 @@ func _on_leave_pressed() -> void:
 	_view = ViewMode.LOBBY
 	_refresh()
 	_status_label.text = "Left alliance."
+
+
+func _on_invite_pressed() -> void:
+	if not _use_backend() or _invite_user_edit == null:
+		return
+	var uid: String = _invite_user_edit.text.strip_edges()
+	var result: Dictionary = await _alliance_backend().invite_player(uid)
+	_status_label.text = str(result.get("error", "Invite sent.")) if not bool(result.get("ok", false)) else "Invite sent."
 
 
 func _on_set_active_research_pressed(research_id: String) -> void:
@@ -1134,6 +1784,55 @@ func _on_create_help_pressed(help_type: String) -> void:
 		return
 	_refresh()
 	_status_label.text = "Help request posted."
+
+
+func _on_backend_help_one_pressed(request_id: String) -> void:
+	var ab: Node = _alliance_backend()
+	if ab == null:
+		_status_label.text = "Alliance Help unavailable."
+		return
+	var result: Dictionary = await ab.help_one(request_id)
+	if not bool(result.get("ok", false)):
+		_status_label.text = str(result.get("error", "Help failed."))
+		return
+	_status_label.text = "Helped (−%ss)." % str(result.get("seconds_reduced", 0))
+	_refresh()
+
+
+func _on_backend_help_all_pressed() -> void:
+	var ab: Node = _alliance_backend()
+	if ab == null:
+		_status_label.text = "Alliance Help unavailable."
+		return
+	var result: Dictionary = await ab.help_all(false)
+	if not bool(result.get("ok", false)):
+		_status_label.text = str(result.get("error", "Help All failed."))
+		return
+	_status_label.text = "Helped all (%s)." % str(result.get("helped_count", 0))
+	_refresh()
+
+
+func _on_backend_request_help_pressed(project_type: String, project_id: String, display_name: String, finish_unix: int) -> void:
+	var ab: Node = _alliance_backend()
+	if ab == null:
+		_status_label.text = "Alliance Help unavailable."
+		return
+	var result: Dictionary = await ab.create_help_request(project_type, project_id, display_name, finish_unix)
+	if not bool(result.get("ok", false)):
+		_status_label.text = str(result.get("error", "Request failed."))
+		return
+	_status_label.text = "Alliance Help requested."
+	_refresh()
+
+
+func _on_backend_help_changed(_eligible: Array, _mine: Array) -> void:
+	if visible and _view == ViewMode.HELP:
+		_refresh()
+
+
+func _on_backend_auto_help_changed(_status: Dictionary) -> void:
+	if visible and _view == ViewMode.HELP:
+		_refresh()
 
 
 func _add_banner_panel(eyebrow: String, title: String) -> void:

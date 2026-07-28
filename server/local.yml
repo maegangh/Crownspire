@@ -1,0 +1,29 @@
+# Crownspire Nakama LOCAL DEVELOPMENT config only.
+# Do NOT treat default keys as production-safe.
+name: crownspire-local
+data_dir: "./data/"
+
+logger:
+  level: "INFO"
+
+console:
+  port: 7351
+  username: "admin"
+  password: "password"
+  # LOCAL DEVELOPMENT ONLY
+
+session:
+  token_expiry_sec: 7200
+  # encryption keys remain Nakama defaults for local Docker only
+
+socket:
+  server_key: "defaultkey"
+  # LOCAL DEVELOPMENT ONLY — never ship as production
+
+runtime:
+  js_entrypoint: "build/index.js"
+  # LOCAL DEVELOPMENT ONLY
+  http_key: "defaulthttpkey"
+
+metrics:
+  reporting_freq_sec: 60
