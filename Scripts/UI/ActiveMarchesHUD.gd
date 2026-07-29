@@ -308,7 +308,29 @@ func _status_label(status: String) -> String:
 func _content_lines(march: Dictionary, mtype: String, status: String) -> Dictionary:
 	if mtype == "gather":
 		return _gather_lines(march, status)
+	if mtype == "join_rally" or bool(march.get("rally_banner", false)):
+		return _rally_lines(march, status)
 	return _wildling_lines(march, status)
+
+
+func _rally_lines(march: Dictionary, status: String) -> Dictionary:
+	var target: Dictionary = march.get("target_data", {}) as Dictionary
+	if typeof(target) != TYPE_DICTIONARY:
+		target = {}
+	var level: int = int(target.get("level", 1))
+	var title: String = "Lair Lv.%d" % level
+	var banner: String = "⚔ RALLY"
+	if bool(march.get("is_rally_leader", false)):
+		banner = "⚔ RALLY LEADER"
+	match status:
+		MarchState.STATUS_MARCHING:
+			return {"line1": "%s → %s" % [banner, title], "line2": "Alliance March"}
+		MarchState.STATUS_IN_COMBAT:
+			return {"line1": banner, "line2": "Lair Battle"}
+		MarchState.STATUS_RETURNING:
+			return {"line1": "Returning home", "line2": banner}
+		_:
+			return {"line1": banner, "line2": title}
 
 
 func _gather_lines(march: Dictionary, status: String) -> Dictionary:

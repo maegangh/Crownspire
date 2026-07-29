@@ -106,34 +106,46 @@ func _make_card(title: String, press_method: String) -> Dictionary:
 
 	var style := StyleBoxFlat.new()
 	style.bg_color = COL_BG
-	style.set_corner_radius_all(8)
+	style.set_corner_radius_all(10)
 	style.content_margin_left = CARD_PAD
 	style.content_margin_right = CARD_PAD
-	style.content_margin_top = 6
-	style.content_margin_bottom = 6
+	style.content_margin_top = 8
+	style.content_margin_bottom = 8
 	style.border_width_left = 1
 	style.border_width_right = 1
 	style.border_width_top = 1
 	style.border_width_bottom = 1
-	style.border_color = Color(1, 1, 1, 0.12)
+	style.border_color = Color(1, 1, 1, 0.14)
 	panel.add_theme_stylebox_override("panel", style)
 
 	var col := VBoxContainer.new()
 	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	col.add_theme_constant_override("separation", 2)
+	col.add_theme_constant_override("separation", 4)
 	panel.add_child(col)
+
+	var head_row := HBoxContainer.new()
+	head_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	head_row.add_theme_constant_override("separation", 6)
+	col.add_child(head_row)
+
+	var icon := Label.new()
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.text = _icon_for_title(title)
+	icon.add_theme_font_size_override("font_size", 14)
+	head_row.add_child(icon)
 
 	var header := Label.new()
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	header.text = title
+	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_theme_font_size_override("font_size", 13)
 	header.add_theme_color_override("font_color", COL_HEADER)
 	header.autowrap_mode = TextServer.AUTOWRAP_OFF
-	col.add_child(header)
+	head_row.add_child(header)
 
 	var jobs_box := VBoxContainer.new()
 	jobs_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	jobs_box.add_theme_constant_override("separation", 2)
+	jobs_box.add_theme_constant_override("separation", 4)
 	col.add_child(jobs_box)
 
 	var btn := Button.new()
@@ -149,12 +161,27 @@ func _make_card(title: String, press_method: String) -> Dictionary:
 	return {
 		"panel": panel,
 		"header": header,
+		"icon": icon,
 		"jobs_box": jobs_box,
 		"title": title,
 		"kind": title.to_lower(),
-		"job_rows": [], # Array of { target: Label, timer: Label, key: String }
+		"job_rows": [],
 		"fingerprint": "",
 	}
+
+
+func _icon_for_title(title: String) -> String:
+	match title.to_lower():
+		"construction":
+			return "🏗"
+		"research":
+			return "📜"
+		"training":
+			return "⚔"
+		"healing":
+			return "✚"
+		_:
+			return "•"
 
 
 func _connect_signals() -> void:
@@ -239,7 +266,7 @@ func _sync_card_jobs(card: Dictionary, jobs: Array) -> void:
 func _make_job_row_controls(target_text: String, key: String, is_idle: bool) -> Dictionary:
 	var root := VBoxContainer.new()
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_theme_constant_override("separation", 0)
+	root.add_theme_constant_override("separation", 2)
 
 	var target := Label.new()
 	target.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -250,6 +277,23 @@ func _make_job_row_controls(target_text: String, key: String, is_idle: bool) -> 
 	target.clip_text = true
 	root.add_child(target)
 
+	var bar := ProgressBar.new()
+	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bar.custom_minimum_size = Vector2(0, 8)
+	bar.max_value = 1.0
+	bar.value = 0.0
+	bar.show_percentage = false
+	bar.visible = not is_idle
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = Color(0.55, 0.78, 0.42, 0.95)
+	fill.set_corner_radius_all(4)
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(1, 1, 1, 0.08)
+	bg.set_corner_radius_all(4)
+	bar.add_theme_stylebox_override("fill", fill)
+	bar.add_theme_stylebox_override("background", bg)
+	root.add_child(bar)
+
 	var timer := Label.new()
 	timer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	timer.text = ""
@@ -258,7 +302,15 @@ func _make_job_row_controls(target_text: String, key: String, is_idle: bool) -> 
 	timer.add_theme_color_override("font_color", COL_TIMER)
 	root.add_child(timer)
 
-	return {"root": root, "target": target, "timer": timer, "key": key, "idle": is_idle}
+	return {
+		"root": root,
+		"target": target,
+		"timer": timer,
+		"bar": bar,
+		"key": key,
+		"idle": is_idle,
+		"total": 0.0,
+	}
 
 
 func _jobs_fingerprint(jobs: Array) -> String:
@@ -420,6 +472,18 @@ func _update_card_timers(card: Dictionary, jobs: Array) -> void:
 		elif kind == "healing" and has_node("/root/HealingState"):
 			rem = HealingState.get_remaining_seconds()
 		(row["timer"] as Label).text = _format_mmss(rem)
+		var bar: ProgressBar = row.get("bar") as ProgressBar
+		if bar != null:
+			var total: float = float(row.get("total", 0.0))
+			if rem > total:
+				total = rem
+				row["total"] = total
+			if total <= 0.0:
+				total = maxf(rem, 1.0)
+				row["total"] = total
+			bar.max_value = 1.0
+			bar.value = clampf(1.0 - (rem / total), 0.0, 1.0)
+			bar.visible = true
 
 
 # --- Name helpers -------------------------------------------------------------

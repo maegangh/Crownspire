@@ -22,6 +22,8 @@ Nakama="*res://addons/com.heroiclabs.nakama/Nakama.gd"
 NakamaConnection="*res://scripts/Backend/NakamaConnection.gd"
 AllianceBackend="*res://scripts/Backend/AllianceBackend.gd"
 ChatManager="*res://scripts/Backend/ChatManager.gd"
+RallyBackend="*res://scripts/Backend/RallyBackend.gd"
+AllianceLairState="*res://scripts/Backend/AllianceLairState.gd"
 GameState="*uid://bx7qwk4h4du07"
 TroopState="*uid://j4vqc3ybjlj7"
 HeroState="*uid://dtdfqtx3cfn2m"
@@ -56,13 +58,13 @@ window/size/viewport_height=1280
 window/stretch/mode="canvas_items"
 window/handheld/orientation=1
 
-[physics]
-
-3d/physics_engine="Jolt Physics"
-
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/com.heroiclabs.nakama/plugin.cfg")
+
+[physics]
+
+3d/physics_engine="Jolt Physics"
 
 [rendering]
 

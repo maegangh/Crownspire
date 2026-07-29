@@ -155,6 +155,25 @@ func _bind_chat_signals() -> void:
 		cm.alliance_join_failed.connect(_on_alliance_join_failed)
 	if not cm.alliance_joined.is_connected(_on_alliance_joined):
 		cm.alliance_joined.connect(_on_alliance_joined)
+	var nc: Node = get_node_or_null("/root/NakamaConnection")
+	if nc != null and nc.has_signal("connection_state_changed"):
+		if not nc.connection_state_changed.is_connected(_on_conn_state_changed):
+			nc.connection_state_changed.connect(_on_conn_state_changed)
+	if nc != null and nc.has_signal("socket_connected"):
+		if not nc.socket_connected.is_connected(_on_socket_reconnected):
+			nc.socket_connected.connect(_on_socket_reconnected)
+
+
+func _on_conn_state_changed(_state: String) -> void:
+	if visible:
+		_refresh_status()
+
+
+func _on_socket_reconnected() -> void:
+	if not visible:
+		return
+	_refresh_status()
+	_open_active_channel()
 
 
 func _on_message_event(_msg: RefCounted) -> void:
@@ -296,7 +315,7 @@ func _build_ui() -> void:
 
 	_messages_box = VBoxContainer.new()
 	_messages_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_messages_box.add_theme_constant_override("separation", 10)
+	_messages_box.add_theme_constant_override("separation", 14)
 	_scroll.add_child(_messages_box)
 
 	# Composer toolbar + input
@@ -501,7 +520,7 @@ func _make_tab_button(text_value: String) -> Button:
 	var btn := Button.new()
 	btn.text = text_value
 	btn.focus_mode = Control.FOCUS_NONE
-	btn.custom_minimum_size = Vector2(140, 46)
+	btn.custom_minimum_size = Vector2(140, 54)
 	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	return btn
 
@@ -574,47 +593,61 @@ func _style_tab(btn: Button, active: bool) -> void:
 func _refresh_status() -> void:
 	if _status_label == null:
 		return
+	var nc: Node = get_node_or_null("/root/NakamaConnection")
+	var conn_label: String = ""
+	if nc != null and nc.has_method("get_connection_status_label"):
+		conn_label = str(nc.get_connection_status_label())
+
 	if _tab == "private":
 		if not has_node("/root/ChatManager") or not _chat_manager().is_chat_available():
-			_status_label.text = "Private chat unavailable — reconnect to Nakama."
+			_status_label.text = _format_conn_banner(conn_label, "Private chat unavailable")
 			_input.editable = false
 			_send_btn.disabled = true
 			return
 		var peer: String = _chat_manager().get_active_dm_peer()
 		var pname: String = _chat_manager().get_dm_display_name(peer) if peer != "" else "Player"
-		_status_label.text = "Private · %s" % pname
+		_status_label.text = "Private · %s · %s" % [pname, conn_label if conn_label != "" else "Connected"]
 		_input.editable = peer != ""
 		_send_btn.disabled = peer == ""
 		return
 	if _tab == "alliance":
 		if not has_node("/root/ChatManager") or not _chat_manager().is_alliance_chat_available():
-			_status_label.text = _chat_manager().get_alliance_chat_unavailable_reason() if has_node("/root/ChatManager") else "You are not currently in an Alliance."
+			var reason: String = _chat_manager().get_alliance_chat_unavailable_reason() if has_node("/root/ChatManager") else "Join an Alliance to use Alliance Chat."
+			_status_label.text = _format_conn_banner(conn_label, reason)
 			_input.editable = false
 			_send_btn.disabled = true
 			return
 		var tag: String = _alliance_backend().get_alliance_tag() if has_node("/root/AllianceBackend") else ""
 		var aname: String = _alliance_backend().get_alliance_name() if has_node("/root/AllianceBackend") else ""
 		var joined_a: bool = _chat_manager().is_alliance_joined()
-		_status_label.text = "[%s] %s%s" % [
+		_status_label.text = "[%s] %s · %s" % [
 			tag if tag != "" else "???",
 			aname if aname != "" else "Alliance",
-			" • connected" if joined_a else " • joining…",
+			"Connected" if joined_a else (conn_label if conn_label != "" else "Joining…"),
 		]
 		_input.editable = joined_a
 		_send_btn.disabled = not joined_a
 		return
 
 	if not has_node("/root/ChatManager") or not _chat_manager().is_chat_available():
-		_status_label.text = "Disconnected — Kingdom Chat unavailable. Local gameplay still works."
+		_status_label.text = _format_conn_banner(conn_label, "Kingdom Chat unavailable")
 		_input.editable = false
 		_send_btn.disabled = true
 		return
 
 	var kid: String = _chat_manager().get_kingdom_id()
 	var joined: bool = _chat_manager().is_kingdom_joined()
-	_status_label.text = "Kingdom %s%s" % [kid, " • connected" if joined else " • joining…"]
+	_status_label.text = "Kingdom %s · %s" % [
+		kid,
+		"Connected" if joined else (conn_label if conn_label != "" else "Joining…"),
+	]
 	_input.editable = joined
 	_send_btn.disabled = not joined
+
+
+func _format_conn_banner(conn_label: String, detail: String) -> String:
+	var state: String = conn_label if conn_label != "" else "Offline"
+	return "%s — %s" % [state, detail]
 
 
 func _refresh_messages() -> void:
@@ -688,13 +721,13 @@ func _build_message_row(msg: RefCounted, local_id: String) -> Control:
 	var panel := PanelContainer.new()
 	var style := StyleBoxFlat.new()
 	style.bg_color = COL_CARD_SELF if is_self else COL_CARD
-	style.border_color = COL_GOLD if is_self else COL_BORDER
+	style.border_color = Color(COL_GOLD.r, COL_GOLD.g, COL_GOLD.b, 0.35) if is_self else Color(COL_BORDER.r, COL_BORDER.g, COL_BORDER.b, 0.25)
 	style.set_border_width_all(1)
-	style.set_corner_radius_all(12)
-	style.content_margin_left = 10
-	style.content_margin_right = 10
-	style.content_margin_top = 8
-	style.content_margin_bottom = 8
+	style.set_corner_radius_all(14)
+	style.content_margin_left = 12
+	style.content_margin_right = 12
+	style.content_margin_top = 10
+	style.content_margin_bottom = 10
 	panel.add_theme_stylebox_override("panel", style)
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -1003,13 +1036,53 @@ func _build_rally_card(msg: RefCounted) -> Control:
 	row.add_child(view)
 	var join := Button.new()
 	join.text = "JOIN"
-	join.disabled = true
 	join.focus_mode = Control.FOCUS_NONE
 	join.custom_minimum_size = Vector2(100, 44)
-	join.tooltip_text = "Server-authoritative rallies are not connected yet."
-	_style_icon_button(join)
+	join.tooltip_text = "Join this Alliance Rally"
+	_style_primary_button(join)
+	var rally_id: String = str(payload.get("rally_id", ""))
+	join.pressed.connect(func():
+		_on_join_rally_pressed(rally_id, payload)
+	)
 	row.add_child(join)
 	return card
+
+
+func _on_join_rally_pressed(rally_id: String, payload: Dictionary) -> void:
+	if rally_id.strip_edges() == "":
+		if _status_label != null:
+			_status_label.text = "Missing rally id."
+		return
+	if not has_node("/root/RallyBackend"):
+		if _status_label != null:
+			_status_label.text = "Rally backend unavailable."
+		return
+	var fetched: Dictionary = await RallyBackend.get_rally(rally_id)
+	var rally: Dictionary = fetched.get("rally", {}) as Dictionary
+	if not bool(fetched.get("ok", false)) or rally.is_empty():
+		# Fall back to card payload for lobby lookup.
+		rally = {
+			"rally_id": rally_id,
+			"lair_id": str(payload.get("target_id", "")),
+			"lair_level": 1,
+			"world_x": float(payload.get("x", 0.0)),
+			"world_y": float(payload.get("y", 0.0)),
+			"status": "FORMING",
+			"participants": [],
+			"countdown_seconds": 60,
+			"launch_at": int(payload.get("expiry_unix", 0)),
+		}
+	var setup: Node = get_tree().root.find_child("RallySetupScreen", true, false)
+	if setup != null and setup.has_method("open_to_join"):
+		setup.call("open_to_join", rally)
+		if _status_label != null:
+			_status_label.text = "Opening Rally join…"
+	else:
+		var lobby: Node = get_tree().root.find_child("RallyLobbyScreen", true, false)
+		if lobby != null and lobby.has_method("open_for_rally"):
+			lobby.call("open_for_rally", rally)
+		elif _status_label != null:
+			_status_label.text = "Rally UI unavailable."
 
 
 func _format_rally_remaining(payload: Dictionary) -> String:

@@ -1,8 +1,8 @@
 extends RefCounted
 class_name WildlingLairDatabase
 
-## Presentation catalog for Wildling Lairs (Lv.1–10).
-## Backend-safe: load-only JSON. No authoritative rally/combat state.
+## Presentation catalog for Alliance Lairs (Wildling Lair branding retained for assets).
+## Backend-safe: load-only JSON. Runtime instance state is AllianceLairState.
 ## Future: Nakama may own the same schema; Godot keeps this as UI catalog / fallback.
 
 const DATA_PATH := "res://data/wildling_lairs.json"
@@ -72,6 +72,36 @@ static func get_level_def(level: int) -> Dictionary:
 static func is_beta() -> bool:
 	_ensure_loaded()
 	return bool(_cache.get("beta", true))
+
+
+static func schema_version() -> int:
+	_ensure_loaded()
+	return int(_cache.get("schema_version", 1))
+
+
+static func default_respawn_seconds() -> int:
+	_ensure_loaded()
+	return int(_cache.get("default_respawn_seconds", 120))
+
+
+static func beta_spawn_level_min() -> int:
+	_ensure_loaded()
+	return int(_cache.get("betaSpawnLevelMin", level_min()))
+
+
+static func beta_spawn_level_max() -> int:
+	_ensure_loaded()
+	return int(_cache.get("betaSpawnLevelMax", mini(5, level_max())))
+
+
+static func beta_spawn_count() -> int:
+	_ensure_loaded()
+	return int(_cache.get("betaSpawnCount", 10))
+
+
+static func lair_type_default() -> String:
+	_ensure_loaded()
+	return str(_cache.get("lair_type", "alliance_lair"))
 
 
 ## Fallback only when a level def omits visual_variant.

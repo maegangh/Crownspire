@@ -190,11 +190,13 @@ func _rebuild_content() -> void:
 	var avatar_id: String = PlayerAvatarCatalog.normalize_id(str(_profile.get("avatar_id", "avatar_01")))
 	_pending_avatar_id = avatar_id
 
+	_content.add_theme_constant_override("separation", 8)
+
 	_avatar_tex = TextureRect.new()
-	_avatar_tex.custom_minimum_size = Vector2(112, 112)
+	_avatar_tex.custom_minimum_size = Vector2(168, 168)
 	_avatar_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_avatar_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_avatar_tex.texture = PlayerAvatarCatalog.get_texture(avatar_id, 128)
+	_avatar_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	_avatar_tex.texture = PlayerAvatarCatalog.get_texture(avatar_id, 256)
 	_avatar_tex.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_content.add_child(_avatar_tex)
 
@@ -202,50 +204,64 @@ func _rebuild_content() -> void:
 	name_lbl.text = str(_profile.get("display_name", "Player"))
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_lbl.add_theme_color_override("font_color", COL_INK)
-	name_lbl.add_theme_font_size_override("font_size", 24)
+	name_lbl.add_theme_font_size_override("font_size", 26)
 	_content.add_child(name_lbl)
 
 	if _is_self:
 		var rename_btn := Button.new()
 		rename_btn.text = "Rename (Free Beta)"
-		rename_btn.custom_minimum_size = Vector2(0, 48)
+		rename_btn.custom_minimum_size = Vector2(220, 42)
+		rename_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		rename_btn.pressed.connect(_on_rename_pressed)
 		_content.add_child(rename_btn)
 
 		_add_section("Choose Avatar")
 		var grid := GridContainer.new()
 		grid.columns = 4
-		grid.add_theme_constant_override("h_separation", 8)
-		grid.add_theme_constant_override("v_separation", 8)
+		grid.add_theme_constant_override("h_separation", 10)
+		grid.add_theme_constant_override("v_separation", 10)
 		_content.add_child(grid)
 		for aid in PlayerAvatarCatalog.AVATAR_IDS:
+			var cell := VBoxContainer.new()
+			cell.add_theme_constant_override("separation", 2)
 			var btn := TextureButton.new()
-			btn.custom_minimum_size = Vector2(64, 64)
-			btn.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
-			btn.texture_normal = PlayerAvatarCatalog.get_texture(aid, 64)
+			btn.custom_minimum_size = Vector2(72, 72)
+			btn.ignore_texture_size = true
+			btn.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_COVERED
+			btn.texture_normal = PlayerAvatarCatalog.get_texture(aid, 128)
 			btn.tooltip_text = PlayerAvatarCatalog.get_label(aid)
 			if aid == avatar_id:
-				btn.modulate = Color(1.15, 1.1, 0.85)
+				btn.modulate = Color(1.12, 1.08, 0.9)
 			btn.pressed.connect(_on_avatar_picked.bind(aid))
-			grid.add_child(btn)
+			cell.add_child(btn)
+			var cap := Label.new()
+			cap.text = PlayerAvatarCatalog.get_label(aid)
+			cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			cap.add_theme_font_size_override("font_size", 11)
+			cap.add_theme_color_override("font_color", COL_MUTED)
+			cell.add_child(cap)
+			grid.add_child(cell)
 
-	_add_row("Player ID", str(_profile.get("user_id", "—")))
-	_add_row("Kingdom", str(_profile.get("kingdom_id", "—")))
+	_add_section("Commander Info")
+	var stats := VBoxContainer.new()
+	stats.add_theme_constant_override("separation", 6)
+	_content.add_child(stats)
+	_add_stat_row(stats, "⚔", "Power", _format_num(int(_profile.get("power", 0))))
+	_add_stat_row(stats, "🗺", "Kingdom", str(_profile.get("kingdom_id", "—")))
 	var alliance: String = str(_profile.get("alliance_name", "")).strip_edges()
 	var tag: String = str(_profile.get("alliance_tag", "")).strip_edges()
 	if alliance == "":
 		alliance = "None"
 	elif tag != "":
 		alliance = "[%s] %s" % [tag, alliance]
-	_add_row("Alliance", alliance)
-	_add_row("Power", _format_num(int(_profile.get("power", 0))))
-	_add_row("Citadel Level", str(int(_profile.get("citadel_level", 1))))
-	_add_row("VIP Level", str(int(_profile.get("vip_level", 0))))
-	if not _is_self:
-		var online: String = str(_profile.get("online_status", "offline"))
-		_add_row("Status", "🟢 Online" if online == "online" else "⚫ Offline")
+	_add_stat_row(stats, "🛡", "Alliance", alliance)
+	_add_stat_row(stats, "🏛", "Citadel", "Level %d" % int(_profile.get("citadel_level", 1)))
+	_add_stat_row(stats, "✦", "VIP", "Level %d" % int(_profile.get("vip_level", 0)))
+	_add_stat_row(stats, "🆔", "Player ID", str(_profile.get("user_id", "—")))
 
 	if not _is_self:
+		var online: String = str(_profile.get("online_status", "offline"))
+		_add_stat_row(stats, "●", "Status", "Online" if online == "online" else "Offline")
 		var msg_btn := Button.new()
 		msg_btn.text = "Message"
 		msg_btn.custom_minimum_size = Vector2(0, 52)
@@ -254,6 +270,31 @@ func _rebuild_content() -> void:
 			on_close()
 		)
 		_content.add_child(msg_btn)
+
+
+func _add_stat_row(parent: VBoxContainer, icon: String, label: String, value: String) -> void:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	var ic := Label.new()
+	ic.text = icon
+	ic.custom_minimum_size = Vector2(28, 0)
+	ic.add_theme_font_size_override("font_size", 16)
+	row.add_child(ic)
+	var a := Label.new()
+	a.text = label
+	a.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	a.add_theme_color_override("font_color", COL_MUTED)
+	a.add_theme_font_size_override("font_size", 14)
+	row.add_child(a)
+	var b := Label.new()
+	b.text = value
+	b.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	b.add_theme_color_override("font_color", COL_INK)
+	b.add_theme_font_size_override("font_size", 14)
+	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(b)
+	parent.add_child(row)
 
 
 func _add_section(text: String) -> void:

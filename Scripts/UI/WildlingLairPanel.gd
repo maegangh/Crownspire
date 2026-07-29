@@ -1,7 +1,6 @@
 extends Control
 
-## Compact Wildling Lair world popup (720×1280 HUD-safe).
-## CREATE RALLY opens Rally Setup UI shell only — no authoritative rally.
+## Compact Wildling Lair world popup — Scout / Attack / Rally.
 
 const WildlingLairDatabase = preload("res://scripts/World/WildlingLairDatabase.gd")
 
@@ -10,17 +9,20 @@ const BOTTOM_SAFE := 200.0
 const PANEL_W := 640.0
 const PANEL_MAX_H := 820.0
 
-const COL_INK := Color(0.93, 0.88, 0.76, 1.0)
-const COL_MUTED := Color(0.72, 0.66, 0.55, 1.0)
-const COL_GOLD := Color(0.86, 0.70, 0.32, 1.0)
-const COL_GOLD_BRIGHT := Color(1.0, 0.86, 0.42, 1.0)
-const COL_PANEL := Color(0.12, 0.07, 0.09, 0.97)
-const COL_BORDER := Color(0.72, 0.32, 0.28, 0.95)
-const COL_WARN := Color(0.95, 0.55, 0.45, 1.0)
-const COL_BTN := Color(0.42, 0.18, 0.16, 1.0)
+const COL_INK := Color(0.18, 0.16, 0.22, 1.0)
+const COL_MUTED := Color(0.42, 0.40, 0.48, 1.0)
+const COL_GOLD := Color(0.78, 0.62, 0.22, 1.0)
+const COL_GOLD_BRIGHT := Color(0.92, 0.76, 0.28, 1.0)
+const COL_SAPPHIRE := Color(0.22, 0.42, 0.72, 1.0)
+const COL_PANEL := Color(0.96, 0.95, 0.92, 0.98)
+const COL_BORDER := Color(0.78, 0.62, 0.22, 0.95)
+const COL_WARN := Color(0.72, 0.28, 0.22, 1.0)
+const COL_BTN := Color(0.22, 0.42, 0.72, 1.0)
 
 var _payload: Dictionary = {}
 var _lair_node: Node2D = null
+var _scout_mode: bool = false
+var _status_msg: String = ""
 
 var _dim: ColorRect
 var _window: PanelContainer
@@ -29,10 +31,17 @@ var _level_label: Label
 var _creature_label: Label
 var _art_rect: TextureRect
 var _power_label: Label
+var _hp_label: Label
+var _difficulty_label: Label
+var _coords_label: Label
 var _enemies_label: Label
 var _rewards_label: Label
+var _scout_label: Label
 var _beta_label: Label
-var _create_btn: Button
+var _action_status: Label
+var _scout_btn: Button
+var _attack_btn: Button
+var _rally_btn: Button
 var _close_btn: Button
 
 
@@ -47,6 +56,7 @@ func _ready() -> void:
 func open_for_lair(payload: Dictionary, lair_node: Node2D = null) -> void:
 	_payload = payload.duplicate(true)
 	_lair_node = lair_node
+	_scout_mode = false
 	_refresh()
 	visible = true
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -61,6 +71,7 @@ func close_panel() -> void:
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_lair_node = null
+	_scout_mode = false
 	if _dim != null:
 		_dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if _window != null:
@@ -75,7 +86,7 @@ func _build_ui() -> void:
 
 	_dim = ColorRect.new()
 	_dim.name = "DimBackground"
-	_dim.color = Color(0.04, 0.02, 0.03, 0.66)
+	_dim.color = Color(0.08, 0.08, 0.12, 0.55)
 	_dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	_dim.gui_input.connect(_on_dim_gui_input)
@@ -103,7 +114,7 @@ func _build_ui() -> void:
 	outer.add_child(header)
 
 	_title_label = Label.new()
-	_title_label.text = "WILDLING LAIR"
+	_title_label.text = "ALLIANCE LAIR"
 	_title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_title_label.add_theme_font_size_override("font_size", 28)
@@ -147,12 +158,26 @@ func _build_ui() -> void:
 	_power_label = _section_label("", 24, COL_GOLD)
 	col.add_child(_power_label)
 
+	col.add_child(_muted_label("HP"))
+	_hp_label = _section_label("", 22, COL_SAPPHIRE)
+	col.add_child(_hp_label)
+
+	col.add_child(_muted_label("Difficulty"))
+	_difficulty_label = _section_label("", 20, COL_INK)
+	col.add_child(_difficulty_label)
+
+	_coords_label = _muted_label("")
+	_coords_label.add_theme_font_size_override("font_size", 15)
+	col.add_child(_coords_label)
+
 	col.add_child(_muted_label("Enemies"))
 	_enemies_label = _body_label("")
 	col.add_child(_enemies_label)
 
-	var rally_req := _section_label("Rally Required", 22, COL_WARN)
-	col.add_child(rally_req)
+	_scout_label = _body_label("")
+	_scout_label.add_theme_color_override("font_color", COL_SAPPHIRE)
+	_scout_label.visible = false
+	col.add_child(_scout_label)
 
 	col.add_child(_muted_label("Rewards"))
 	_rewards_label = _body_label("")
@@ -162,17 +187,30 @@ func _build_ui() -> void:
 	_beta_label.add_theme_font_size_override("font_size", 14)
 	col.add_child(_beta_label)
 
-	_create_btn = Button.new()
-	_create_btn.text = "CREATE RALLY"
-	_create_btn.custom_minimum_size = Vector2(0, 72)
-	_create_btn.focus_mode = Control.FOCUS_NONE
-	_create_btn.add_theme_font_size_override("font_size", 24)
-	_create_btn.add_theme_color_override("font_color", COL_INK)
-	_create_btn.add_theme_stylebox_override("normal", _button_style(COL_BTN, COL_GOLD))
-	_create_btn.add_theme_stylebox_override("hover", _button_style(Color(0.52, 0.24, 0.20, 1.0), COL_GOLD_BRIGHT))
-	_create_btn.add_theme_stylebox_override("pressed", _button_style(Color(0.32, 0.14, 0.12, 1.0), COL_GOLD))
-	_create_btn.pressed.connect(_on_create_rally)
-	outer.add_child(_create_btn)
+	_action_status = _body_label("")
+	_action_status.add_theme_color_override("font_color", COL_WARN)
+	_action_status.visible = false
+	col.add_child(_action_status)
+
+	var actions := HBoxContainer.new()
+	actions.add_theme_constant_override("separation", 8)
+	outer.add_child(actions)
+
+	_scout_btn = _action_button("SCOUT")
+	_scout_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_scout_btn.pressed.connect(_on_scout)
+	actions.add_child(_scout_btn)
+
+	_attack_btn = _action_button("ATTACK")
+	_attack_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_attack_btn.pressed.connect(_on_attack)
+	actions.add_child(_attack_btn)
+
+	_rally_btn = _action_button("RALLY")
+	_rally_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_rally_btn.add_theme_stylebox_override("normal", _button_style(Color(0.55, 0.42, 0.12, 1.0), COL_GOLD_BRIGHT))
+	_rally_btn.pressed.connect(_on_rally)
+	actions.add_child(_rally_btn)
 
 	_layout_window()
 
@@ -184,8 +222,14 @@ func _refresh() -> void:
 		def = WildlingLairDatabase.get_level_def(level)
 	var power: int = int(_payload.get("recommended_power", def.get("recommended_power", 0)))
 	var creature: String = str(_payload.get("creature_title", WildlingLairDatabase.creature_title(def)))
+	var max_hp: int = int(_payload.get("max_hp", def.get("max_hp", 0)))
+	var cur_hp: int = int(_payload.get("current_hp", max_hp))
+	var difficulty: String = str(_payload.get("difficulty", def.get("difficulty", "Normal")))
+	var wx: float = float(_payload.get("world_x", _payload.get("world_position", {}).get("x", 0.0)))
+	var wy: float = float(_payload.get("world_y", _payload.get("world_position", {}).get("y", 0.0)))
+	var active: bool = bool(_payload.get("active", true))
 	if _title_label != null:
-		_title_label.text = "WILDLING LAIR"
+		_title_label.text = str(_payload.get("display_name", "ALLIANCE LAIR")).to_upper()
 	if _level_label != null:
 		_level_label.text = "Lv. %d" % level
 	if _creature_label != null:
@@ -195,26 +239,127 @@ func _refresh() -> void:
 		_art_rect.texture = WildlingLairDatabase.get_texture_for_level_def(def)
 	if _power_label != null:
 		_power_label.text = WildlingLairDatabase.format_power(power)
+	if _hp_label != null:
+		_hp_label.text = "%s / %s" % [
+			WildlingLairDatabase.format_power(cur_hp),
+			WildlingLairDatabase.format_power(max_hp),
+		]
+	if _difficulty_label != null:
+		_difficulty_label.text = difficulty
+	if _coords_label != null:
+		_coords_label.text = "Coords  X:%.0f  Y:%.0f" % [wx, wy]
 	if _enemies_label != null:
-		_enemies_label.text = str(def.get("enemy_description", "Elite lair creatures. Rally required."))
+		_enemies_label.text = str(def.get("enemy_description", "Elite lair creatures."))
 	if _rewards_label != null:
 		var rewards: Dictionary = def.get("reward_preview", {}) as Dictionary
 		_rewards_label.text = WildlingLairDatabase.format_reward_preview(rewards)
 	if _beta_label != null:
 		_beta_label.visible = WildlingLairDatabase.is_beta()
+	if _scout_label != null:
+		_scout_label.visible = _scout_mode
+		if _scout_mode:
+			var rally_note: String = "Rally required." if bool(_payload.get("rally_required", def.get("rally_required", true))) else "Solo Attack allowed."
+			_scout_label.text = "Scout Report (beta — no scout march yet)\nLevel: %d\nHP: %s / %s\nRecommended Power: %s\nDifficulty: %s\nExpected strength: %s\nRewards:\n%s\n%s\n(Scout travel march: future work)" % [
+				level,
+				WildlingLairDatabase.format_power(cur_hp),
+				WildlingLairDatabase.format_power(max_hp),
+				WildlingLairDatabase.format_power(power),
+				difficulty,
+				creature if creature != "" else "Unknown",
+				WildlingLairDatabase.format_reward_preview(def.get("reward_preview", {})),
+				rally_note,
+			]
+	if _action_status != null:
+		if _status_msg != "":
+			_action_status.text = _status_msg
+			_action_status.visible = true
+		elif not active:
+			_action_status.text = "This Alliance Lair is defeated and respawning."
+			_action_status.visible = true
+		else:
+			_action_status.visible = false
+	if _attack_btn != null:
+		_attack_btn.disabled = not active
+	if _rally_btn != null:
+		_rally_btn.disabled = not active
 	_layout_window()
 
 
-func _on_create_rally() -> void:
+func _on_scout() -> void:
+	_scout_mode = true
+	_status_msg = ""
+	_refresh()
+
+
+func _on_attack() -> void:
+	_status_msg = ""
+	var lid: String = str(_payload.get("lair_id", ""))
+	if has_node("/root/AllianceLairState"):
+		var check: Dictionary = AllianceLairState.validate_solo_attack(lid)
+		if not bool(check.get("ok", false)):
+			_status_msg = str(check.get("error", "Cannot attack."))
+			_refresh()
+			return
+	elif bool(_payload.get("rally_required", true)):
+		_status_msg = "This Alliance Lair must be attacked by a Rally."
+		_refresh()
+		return
+	close_panel()
+	var setup: Node = _find_march_setup()
+	if setup == null or not setup.has_method("open_for_target"):
+		push_error("[AllianceLair] MarchSetupScreen missing")
+		return
+	var pos: Dictionary = _payload.get("world_position", {}) as Dictionary
+	if pos.is_empty():
+		pos = {"x": float(_payload.get("world_x", 0.0)), "y": float(_payload.get("world_y", 0.0))}
+	var target: Dictionary = {
+		"target_type": "wildling_lair",
+		"target_id": lid,
+		"lair_id": lid,
+		"lair_level": int(_payload.get("lair_level", 1)),
+		"level": int(_payload.get("lair_level", 1)),
+		"species": str(_payload.get("species", "")),
+		"recommended_power": int(_payload.get("recommended_power", 0)),
+		"visual_variant": str(_payload.get("visual_variant", "")),
+		"max_hp": int(_payload.get("max_hp", 0)),
+		"current_hp": int(_payload.get("current_hp", 0)),
+		"difficulty": str(_payload.get("difficulty", "")),
+		"world_position": pos.duplicate(true),
+		"position": pos.duplicate(true),
+		"display_name": str(_payload.get("target_name", "Alliance Lair Lv.%d" % int(_payload.get("lair_level", 1)))),
+		"level_def": _payload.get("level_def", {}),
+		"kingdom_id": str(_payload.get("kingdom_id", "")),
+	}
+	setup.call("open_for_target", target)
+
+
+func _on_rally() -> void:
+	_status_msg = ""
+	var lid: String = str(_payload.get("lair_id", ""))
+	if has_node("/root/AllianceLairState"):
+		var check: Dictionary = AllianceLairState.validate_rally_target(lid)
+		if not bool(check.get("ok", false)):
+			_status_msg = str(check.get("error", "Cannot rally."))
+			_refresh()
+			return
+	if has_node("/root/AllianceBackend") and not AllianceBackend.is_membership_authority():
+		_status_msg = "Join an Alliance to create a Rally."
+		_refresh()
+		return
 	close_panel()
 	var screen: Node = _find_rally_setup()
 	if screen == null:
-		push_error("[WildlingLair] RallySetupScreen not found")
+		push_error("[AllianceLair] RallySetupScreen not found")
 		return
+	var payload: Dictionary = _payload.duplicate(true)
+	if has_node("/root/AllianceLairState") and lid != "":
+		var fresh: Dictionary = AllianceLairState.build_ui_payload(lid)
+		if not fresh.is_empty():
+			payload = fresh
 	if screen.has_method("open_for_lair"):
-		screen.call("open_for_lair", _payload.duplicate(true))
+		screen.call("open_for_lair", payload)
 	else:
-		push_error("[WildlingLair] RallySetupScreen missing open_for_lair()")
+		push_error("[AllianceLair] RallySetupScreen missing open_for_lair()")
 
 
 func _find_rally_setup() -> Node:
@@ -224,6 +369,15 @@ func _find_rally_setup() -> Node:
 		if via_hud != null:
 			return via_hud
 	return get_tree().root.find_child("RallySetupScreen", true, false)
+
+
+func _find_march_setup() -> Node:
+	var scene: Node = get_tree().current_scene
+	if scene != null:
+		var via_hud: Node = scene.get_node_or_null("GameHUD/ScreenRoot/MarchSetupScreen")
+		if via_hud != null:
+			return via_hud
+	return get_tree().root.find_child("MarchSetupScreen", true, false)
 
 
 func _on_dim_gui_input(event: InputEvent) -> void:
@@ -291,9 +445,22 @@ func _chrome_button(text: String, min_size: Vector2) -> Button:
 	btn.focus_mode = Control.FOCUS_NONE
 	btn.add_theme_font_size_override("font_size", 22)
 	btn.add_theme_color_override("font_color", COL_INK)
-	btn.add_theme_stylebox_override("normal", _button_style(Color(0.16, 0.10, 0.11, 1.0), COL_BORDER))
-	btn.add_theme_stylebox_override("hover", _button_style(Color(0.24, 0.14, 0.14, 1.0), COL_GOLD))
-	btn.add_theme_stylebox_override("pressed", _button_style(Color(0.12, 0.08, 0.08, 1.0), COL_GOLD))
+	btn.add_theme_stylebox_override("normal", _button_style(Color(0.92, 0.91, 0.88, 1.0), COL_BORDER))
+	btn.add_theme_stylebox_override("hover", _button_style(Color(0.97, 0.95, 0.90, 1.0), COL_GOLD))
+	btn.add_theme_stylebox_override("pressed", _button_style(Color(0.86, 0.85, 0.82, 1.0), COL_GOLD))
+	return btn
+
+
+func _action_button(text: String) -> Button:
+	var btn := Button.new()
+	btn.text = text
+	btn.custom_minimum_size = Vector2(0, 68)
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.add_theme_font_size_override("font_size", 20)
+	btn.add_theme_color_override("font_color", Color(0.98, 0.96, 0.92, 1.0))
+	btn.add_theme_stylebox_override("normal", _button_style(COL_BTN, COL_GOLD))
+	btn.add_theme_stylebox_override("hover", _button_style(Color(0.28, 0.50, 0.80, 1.0), COL_GOLD_BRIGHT))
+	btn.add_theme_stylebox_override("pressed", _button_style(Color(0.16, 0.32, 0.56, 1.0), COL_GOLD))
 	return btn
 
 

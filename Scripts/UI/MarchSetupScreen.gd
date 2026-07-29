@@ -923,6 +923,22 @@ func _on_march_pressed() -> void:
 		_close_to_map()
 		return
 
+	if str(_target.get("target_type", "")) == "wildling_lair":
+		if not MarchState.has_method("dispatch_lair_attack_march"):
+			_status_label.text = "Lair attack unavailable."
+			_status_label.add_theme_color_override("font_color", COL_WARN)
+			return
+		var lair_result: Dictionary = MarchState.dispatch_lair_attack_march(
+			_target, _troop_dict(), _selected_heroes
+		)
+		if not bool(lair_result.get("ok", false)):
+			_status_label.text = str(lair_result.get("error", "Lair attack failed."))
+			_status_label.add_theme_color_override("font_color", COL_WARN)
+			_refresh_summary()
+			return
+		_close_to_map()
+		return
+
 	var result: Dictionary = MarchState.dispatch_wildling_march(_target, _troop_dict(), _selected_heroes)
 	if not result.get("ok", false):
 		_status_label.text = str(result.get("error", "Dispatch failed."))

@@ -1,34 +1,34 @@
 extends Control
 
-## Rally Setup UI shell for Wildling Lairs.
-## UI / contract only — does NOT create authoritative rallies, lock troops,
-## consume march slots, or call MarchState / WildlingCombatResolver.
+## Rally Setup — create a new Alliance Rally or join an existing one.
 
 const MobileScrollUtil = preload("res://scripts/UI/MobileScroll.gd")
 const WildlingLairDatabase = preload("res://scripts/World/WildlingLairDatabase.gd")
 
 const TOP_SAFE_MARGIN: float = 188.0
 const BOTTOM_SAFE_MARGIN: float = 200.0
+const COUNTDOWN_OPTIONS: Array[int] = [60, 300, 600]
 
-const COL_INK := Color(0.93, 0.88, 0.76, 1.0)
-const COL_MUTED := Color(0.72, 0.66, 0.55, 1.0)
-const COL_GOLD := Color(0.86, 0.70, 0.32, 1.0)
-const COL_OK := Color(0.55, 0.82, 0.58, 1.0)
-const COL_WARN := Color(1.0, 0.58, 0.40, 1.0)
-const COL_PANEL := Color(0.10, 0.08, 0.13, 0.96)
-const COL_CARD := Color(0.14, 0.11, 0.17, 0.94)
-const COL_BORDER := Color(0.72, 0.32, 0.28, 0.90)
-const COL_SLOT := Color(0.08, 0.07, 0.10, 0.95)
-
-## Future Nakama RPC payload shape (not sent this phase).
-## See build_rally_create_contract().
+const COL_INK := Color(0.18, 0.16, 0.22, 1.0)
+const COL_MUTED := Color(0.42, 0.40, 0.48, 1.0)
+const COL_GOLD := Color(0.78, 0.62, 0.22, 1.0)
+const COL_OK := Color(0.22, 0.55, 0.36, 1.0)
+const COL_WARN := Color(0.72, 0.28, 0.22, 1.0)
+const COL_PANEL := Color(0.96, 0.95, 0.92, 0.98)
+const COL_CARD := Color(0.91, 0.90, 0.87, 0.96)
+const COL_BORDER := Color(0.78, 0.62, 0.22, 0.95)
+const COL_SLOT := Color(0.88, 0.87, 0.84, 0.98)
+const COL_SAPPHIRE := Color(0.22, 0.42, 0.72, 1.0)
 
 var _lair: Dictionary = {}
+var _join_rally: Dictionary = {}
+var _mode_join: bool = false
 var _selected_heroes: Array[String] = []
 var _infantry: int = 0
 var _marksmen: int = 0
 var _cavalry: int = 0
-var _countdown_sec: int = 300
+var _countdown_sec: int = 60
+var _busy: bool = false
 
 var _target_name_label: Label
 var _power_label: Label
@@ -62,19 +62,18 @@ func on_close() -> void:
 
 
 func open_for_lair(lair_payload: Dictionary) -> void:
+	_mode_join = false
+	_join_rally = {}
 	_lair = lair_payload.duplicate(true)
 	_selected_heroes.clear()
 	_infantry = 0
 	_marksmen = 0
 	_cavalry = 0
-	_countdown_sec = 300
+	_countdown_sec = 60
 	var def: Dictionary = _lair.get("level_def", {}) as Dictionary
 	if def.is_empty():
 		def = WildlingLairDatabase.get_level_def(int(_lair.get("lair_level", _lair.get("den_level", 1))))
 		_lair["level_def"] = def
-	var opts: Array = def.get("countdown_options_sec", [300, 600, 1800]) as Array
-	if not opts.is_empty():
-		_countdown_sec = int(opts[0])
 	_auto_pick_first_hero()
 	_build_ui()
 	var manager: Node = get_node_or_null("../../UIManager")
@@ -84,18 +83,38 @@ func open_for_lair(lair_payload: Dictionary) -> void:
 		on_open()
 
 
-## Proposed future Nakama contract (local preview only — never sent yet).
+func open_to_join(rally: Dictionary) -> void:
+	_mode_join = true
+	_join_rally = rally.duplicate(true)
+	_lair = {
+		"lair_id": str(rally.get("lair_id", "")),
+		"lair_level": int(rally.get("lair_level", 1)),
+		"species": str(rally.get("species", "")),
+		"visual_variant": str(rally.get("visual_variant", "")),
+		"recommended_power": int(rally.get("recommended_power", 0)),
+		"world_position": {"x": float(rally.get("world_x", 0.0)), "y": float(rally.get("world_y", 0.0))},
+		"level_def": WildlingLairDatabase.get_level_def(int(rally.get("lair_level", 1))),
+	}
+	_selected_heroes.clear()
+	_infantry = 0
+	_marksmen = 0
+	_cavalry = 0
+	_countdown_sec = int(rally.get("countdown_seconds", 60))
+	_auto_pick_first_hero()
+	_build_ui()
+	var manager: Node = get_node_or_null("../../UIManager")
+	if manager != null and manager.has_method("open_screen"):
+		manager.open_screen("RallySetupScreen")
+	else:
+		on_open()
+
+
 func build_rally_create_contract() -> Dictionary:
 	var pos: Dictionary = _lair.get("world_position", {}) as Dictionary
 	var def: Dictionary = _lair.get("level_def", {}) as Dictionary
-	# Prefer any existing player id facade when present; else schema placeholder.
-	var leader_id := "local_dev_player"
-	if has_node("/root/GameState"):
-		if GameState.has_method("get_player_id"):
-			leader_id = str(GameState.call("get_player_id"))
-		elif "player_id" in GameState:
-			leader_id = str(GameState.player_id)
-
+	var power: int = 0
+	if has_node("/root/MarchState"):
+		power = MarchState.calculate_march_power(_troop_dict(), _selected_heroes)
 	var troop_tiers: Dictionary = {}
 	if has_node("/root/MarchState") and MarchState.has_method("build_troop_tier_composition"):
 		troop_tiers = MarchState.build_troop_tier_composition(_troop_dict())
@@ -105,31 +124,40 @@ func build_rally_create_contract() -> Dictionary:
 			"marksmen": {1: _marksmen},
 			"cavalry": {1: _cavalry},
 		}
-
+	var wx: float = float(_lair.get("world_x", pos.get("x", 0.0)))
+	var wy: float = float(_lair.get("world_y", pos.get("y", 0.0)))
+	var lid: String = str(_lair.get("lair_id", _lair.get("target_id", _lair.get("den_id", ""))))
 	return {
-		"rpc": "crownspire_rally_create",
-		"lair_id": str(_lair.get("lair_id", _lair.get("den_id", ""))),
+		"lair_id": lid,
+		"target_id": lid,
+		"target_type": "wildling_lair",
+		"target_name": str(_lair.get("target_name", "Alliance Lair Lv.%d" % int(_lair.get("lair_level", 1)))),
 		"lair_level": int(_lair.get("lair_level", _lair.get("den_level", 1))),
+		"level": int(_lair.get("lair_level", _lair.get("den_level", 1))),
 		"lair_catalog_id": str(def.get("id", "")),
 		"species": str(_lair.get("species", def.get("species", ""))),
 		"visual_variant": str(_lair.get("visual_variant", def.get("visual_variant", ""))),
-		"leader_player_id": leader_id,
+		"difficulty": str(_lair.get("difficulty", def.get("difficulty", ""))),
+		"max_hp": int(_lair.get("max_hp", def.get("max_hp", 0))),
+		"current_hp": int(_lair.get("current_hp", _lair.get("max_hp", def.get("max_hp", 0)))),
+		"kingdom_id": str(_lair.get("kingdom_id", "")),
 		"countdown_seconds": _countdown_sec,
 		"hero_ids": _selected_heroes.duplicate(),
 		"troop_counts": {
-			"Infantry": _infantry,
-			"Marksmen": _marksmen,
-			"Cavalry": _cavalry,
+			"infantry": _infantry,
+			"marksmen": _marksmen,
+			"cavalry": _cavalry,
 		},
 		"troop_tiers": troop_tiers,
-		"world_position": {
-			"x": float(pos.get("x", 0.0)),
-			"y": float(pos.get("y", 0.0)),
-		},
+		"power": power,
+		"world_x": wx,
+		"world_y": wy,
+		"x": wx,
+		"y": wy,
+		"world_position": {"x": wx, "y": wy},
 		"recommended_power": int(_lair.get("recommended_power", def.get("recommended_power", 0))),
-		"max_participants_hint": int(def.get("max_participants_hint", 5)),
-		"client_phase": "ui_shell_only",
 	}
+
 
 
 func get_last_contract_preview() -> Dictionary:
@@ -224,13 +252,21 @@ func _build_ui() -> void:
 	timer_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	timer_row.add_theme_constant_override("separation", 8)
 	col.add_child(timer_row)
-	for sec: int in [300, 600, 1800]:
+	for sec: int in COUNTDOWN_OPTIONS:
 		var label := _timer_label(sec)
 		var btn := _chrome_button(label, Vector2(0, 56))
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		btn.pressed.connect(_on_timer_pressed.bind(sec))
 		timer_row.add_child(btn)
 		_timer_buttons[sec] = btn
+	if _mode_join:
+		timer_row.visible = false
+		# Hide the section title immediately above timer_row.
+		var title_idx: int = timer_row.get_index() - 1
+		if title_idx >= 0:
+			var title_node: Node = col.get_child(title_idx)
+			if title_node is Label:
+				(title_node as Label).visible = false
 
 	col.add_child(_section_title("MY MARCH"))
 	col.add_child(_muted("Heroes"))
@@ -293,17 +329,17 @@ func _build_ui() -> void:
 	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_status_label.add_theme_font_size_override("font_size", 16)
-	_status_label.add_theme_color_override("font_color", COL_WARN)
-	_status_label.text = "UI shell only — multiplayer rally connection pending."
+	_status_label.add_theme_color_override("font_color", COL_MUTED)
+	_status_label.text = "Join an Alliance Rally against this Lair." if _mode_join else "Create a Rally — alliance members can join before launch."
 	col.add_child(_status_label)
 
 	_create_btn = Button.new()
-	_create_btn.text = "CREATE RALLY"
+	_create_btn.text = "JOIN RALLY" if _mode_join else "CREATE RALLY"
 	_create_btn.custom_minimum_size = Vector2(0, 72)
 	_create_btn.focus_mode = Control.FOCUS_NONE
 	_create_btn.add_theme_font_size_override("font_size", 24)
-	_create_btn.add_theme_color_override("font_color", COL_INK)
-	_create_btn.add_theme_stylebox_override("normal", _panel_style(Color(0.42, 0.18, 0.16, 1.0), COL_GOLD))
+	_create_btn.add_theme_color_override("font_color", Color(0.98, 0.96, 0.92, 1.0))
+	_create_btn.add_theme_stylebox_override("normal", _panel_style(COL_SAPPHIRE, COL_GOLD))
 	_create_btn.pressed.connect(_on_create_rally_pressed)
 	root_col.add_child(_create_btn)
 
@@ -488,12 +524,87 @@ func _on_hero_slot_pressed(index: int) -> void:
 
 
 func _on_create_rally_pressed() -> void:
-	# Contract preview only — no backend send, no troop lock, no MarchState.
+	if _busy:
+		return
+	if not has_node("/root/RallyBackend") or not has_node("/root/MarchState"):
+		_set_status("Rally systems unavailable.", true)
+		return
+	if has_node("/root/AllianceBackend") and not AllianceBackend.is_membership_authority():
+		_set_status("Join an Alliance to Rally.", true)
+		return
+	if not _mode_join and has_node("/root/AllianceLairState"):
+		var lid_check: String = str(_lair.get("lair_id", _lair.get("target_id", "")))
+		var target_ok: Dictionary = AllianceLairState.validate_rally_target(lid_check)
+		if not bool(target_ok.get("ok", false)):
+			_set_status(str(target_ok.get("error", "Invalid Alliance Lair target.")), true)
+			return
+	if MarchState.get_active_march_count() >= MarchState.MAX_ACTIVE_MARCHES:
+		_set_status("Cannot join while marching elsewhere (no free slots).", true)
+		return
+	if _selected_heroes.is_empty():
+		_set_status("Select at least one hero.", true)
+		return
+	if _infantry + _marksmen + _cavalry <= 0:
+		_set_status("Select troops.", true)
+		return
+
+	_busy = true
+	_create_btn.disabled = true
+	_set_status("Reserving troops…", false)
+	var pending_id: String = "pending_%d" % Time.get_ticks_msec()
+	var reserved: Dictionary = MarchState.reserve_for_rally(pending_id, _troop_dict(), _selected_heroes)
+	if not bool(reserved.get("ok", false)):
+		_busy = false
+		_create_btn.disabled = false
+		_set_status(str(reserved.get("error", "Reserve failed")), true)
+		return
+
 	_last_contract = build_rally_create_contract()
-	print("[WildlingLair] Rally create contract (NOT SENT): ", JSON.stringify(_last_contract))
-	if _status_label != null:
-		_status_label.text = "Multiplayer rally connection pending.\nContract prepared locally — troops unchanged."
-		_status_label.add_theme_color_override("font_color", COL_OK)
+	_last_contract["troop_tiers"] = reserved.get("troop_tiers", {})
+	_last_contract["power"] = int(reserved.get("power", _last_contract.get("power", 0)))
+
+	var result: Dictionary = {}
+	if _mode_join:
+		_set_status("Joining Rally…", false)
+		result = await RallyBackend.join_rally(str(_join_rally.get("rally_id", "")), {
+			"hero_ids": _selected_heroes.duplicate(),
+			"troop_counts": _troop_dict(),
+			"troop_tiers": reserved.get("troop_tiers", {}),
+			"power": int(reserved.get("power", 0)),
+		})
+	else:
+		_set_status("Creating Rally…", false)
+		result = await RallyBackend.create_rally(_last_contract)
+
+	if not bool(result.get("ok", false)):
+		MarchState.refund_rally_reservation(pending_id)
+		_busy = false
+		_create_btn.disabled = false
+		_set_status(str(result.get("error", "Rally request failed")), true)
+		return
+
+	var rally: Dictionary = result.get("rally", {}) as Dictionary
+	var rid: String = str(rally.get("rally_id", ""))
+	if rid != "":
+		MarchState.rekey_rally_reservation(pending_id, rid)
+	_busy = false
+	_set_status("Rally ready.", false)
+	_open_lobby(rally)
+
+
+func _set_status(text: String, warn: bool) -> void:
+	if _status_label == null:
+		return
+	_status_label.text = text
+	_status_label.add_theme_color_override("font_color", COL_WARN if warn else COL_OK)
+
+
+func _open_lobby(rally: Dictionary) -> void:
+	var lobby: Node = get_tree().root.find_child("RallyLobbyScreen", true, false)
+	if lobby != null and lobby.has_method("open_for_rally"):
+		lobby.call("open_for_rally", rally.duplicate(true))
+	else:
+		_on_close_pressed()
 
 
 func _on_close_pressed() -> void:

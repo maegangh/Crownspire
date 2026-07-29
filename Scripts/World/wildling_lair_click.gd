@@ -1,6 +1,6 @@
 extends Area2D
 
-## Wildling Lair click area — TAP opens Lair popup; drag still pans MapCamera.
+## Alliance Lair click area — TAP opens Lair popup; drag still pans MapCamera.
 ## Uses WorldGesture (same contract as resource tiles). Do not use press-to-open.
 
 const WorldGestureUtil = preload("res://scripts/World/WorldGesture.gd")
@@ -40,32 +40,41 @@ func _input_event(_viewport: Viewport, event: InputEvent, _shape_idx: int) -> vo
 func _open_panel() -> void:
 	var panel: Node = _find_lair_panel()
 	if panel == null:
-		push_error("[WildlingLair] WildlingLairPanel not found under HUD/")
+		push_error("[AllianceLair] WildlingLairPanel not found under HUD/")
 		return
 	if not panel.has_method("open_for_lair"):
-		push_error("[WildlingLair] WildlingLairPanel missing open_for_lair()")
+		push_error("[AllianceLair] WildlingLairPanel missing open_for_lair()")
 		return
 	var node: Node2D = lair_node if lair_node != null else get_parent() as Node2D
-	var payload: Dictionary = {
-		"lair_id": lair_id,
-		"lair_level": lair_level,
-		"recommended_power": recommended_power,
-		"species": species,
-		"visual_variant": visual_variant,
-		"world_position": {
-			"x": node.global_position.x if node != null else 0.0,
-			"y": node.global_position.y if node != null else 0.0,
-		},
-	}
-	if node != null and node.has_method("get_level_def"):
-		payload["level_def"] = node.call("get_level_def")
-	if node != null and "display_name" in node:
-		payload["display_name"] = str(node.get("display_name"))
-	if node != null and "creature_title" in node:
-		payload["creature_title"] = str(node.get("creature_title"))
+	var payload: Dictionary = {}
+	var lid: String = lair_id
+	if node != null and "lair_id" in node:
+		lid = str(node.get("lair_id"))
+	if has_node("/root/AllianceLairState") and lid != "":
+		payload = AllianceLairState.build_ui_payload(lid)
+	if payload.is_empty():
+		payload = {
+			"lair_id": lid,
+			"lair_level": lair_level,
+			"recommended_power": recommended_power,
+			"species": species,
+			"visual_variant": visual_variant,
+			"world_position": {
+				"x": node.global_position.x if node != null else 0.0,
+				"y": node.global_position.y if node != null else 0.0,
+			},
+			"target_type": "wildling_lair",
+			"target_id": lid,
+		}
+		if node != null and node.has_method("get_level_def"):
+			payload["level_def"] = node.call("get_level_def")
+		if node != null and "display_name" in node:
+			payload["display_name"] = str(node.get("display_name"))
+		if node != null and "creature_title" in node:
+			payload["creature_title"] = str(node.get("creature_title"))
 	panel.call("open_for_lair", payload, node)
 	if has_node("/root/GameEvents"):
-		var wid: String = lair_id.strip_edges()
+		var wid: String = lid.strip_edges()
 		if wid.is_empty():
 			wid = "lair_%s_L%d" % [species.strip_edges().to_lower(), lair_level]
 		GameEvents.emit_wildling_selected(wid)

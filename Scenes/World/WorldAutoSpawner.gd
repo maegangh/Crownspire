@@ -28,7 +28,7 @@ const WildlingLairDatabase = preload("res://scripts/World/WildlingLairDatabase.g
 
 @export var resource_count: int = 40
 @export var wildling_count: int = 30
-## Conservative beta count — one lair per level band (Lv.1–10).
+## Conservative beta count — Alliance Lairs Lv.1–5 band (see wildling_lairs.json).
 @export var wildling_lair_count: int = 10
 @export var map_size: Vector2 = Vector2(8192, 8192)
 @export var edge_margin: float = 300.0
@@ -36,6 +36,8 @@ const WildlingLairDatabase = preload("res://scripts/World/WildlingLairDatabase.g
 ## Raised from 280 → 360 for larger dedicated Lair art footprint.
 @export var lair_min_distance: float = 360.0
 @export var castle_exclusion_radius: float = 500.0
+## When true, kingdom-seeded RNG so all clients share the same Alliance Lair IDs/positions.
+@export var use_deterministic_lair_seed: bool = true
 
 @onready var resource_spawns: Node2D = $ResourceSpawns
 @onready var wildling_spawns: Node2D = $WildlingSpawns
@@ -262,8 +264,8 @@ func _ensure_wildling_lair_spawns_root() -> void:
 	add_child(wildling_lair_spawns)
 
 
-## Session-local Wildling Lairs (presentation). Not multiplayer-persisted.
-## Stable IDs encode level + grid cell so UI/search/future RPC can key lairs.
+## Deterministic kingdom-seeded Alliance Lairs for multiplayer rally targets.
+## Stable IDs are kingdom + level + sequence (not random-position based).
 func spawn_wildling_lairs() -> void:
 	_ensure_wildling_lair_spawns_root()
 	while wildling_lair_spawns.get_child_count() > 0:
@@ -272,34 +274,77 @@ func spawn_wildling_lairs() -> void:
 		child.free()
 
 	if wildling_lair_node_scene == null:
-		push_warning("[WildlingLair] wildling_lair_node_scene not assigned")
+		push_warning("[AllianceLair] wildling_lair_node_scene not assigned")
 		return
 
-	var level_min: int = WildlingLairDatabase.level_min()
-	var level_max: int = WildlingLairDatabase.level_max()
+	if has_node("/root/AllianceLairState"):
+		AllianceLairState.clear_spawn_registry()
+
+	var lair_rng := RandomNumberGenerator.new()
+	if use_deterministic_lair_seed and has_node("/root/AllianceLairState"):
+		lair_rng.seed = AllianceLairState.kingdom_spawn_seed()
+	else:
+		lair_rng.randomize()
+
+	var level_min: int = WildlingLairDatabase.beta_spawn_level_min()
+	var level_max: int = WildlingLairDatabase.beta_spawn_level_max()
+	var spawn_count: int = WildlingLairDatabase.beta_spawn_count()
+	if wildling_lair_count > 0:
+		spawn_count = wildling_lair_count
+	# Prefer beta band (1–5) even if export still says 10.
+	spawn_count = clampi(spawn_count, 4, 20)
+	var band: int = maxi(1, level_max - level_min + 1)
+	var kingdom_id: String = "kingdom_dev_001"
+	if has_node("/root/AllianceLairState"):
+		kingdom_id = AllianceLairState.get_kingdom_id()
+
 	var spawned: int = 0
 	var variant_counts := {"beast": 0, "horror": 0, "ancient": 0}
-	for i: int in range(wildling_lair_count):
-		# Spread levels across 1–10 for beta search coverage.
-		var level: int = level_min + (i % (level_max - level_min + 1))
+	for i: int in range(spawn_count):
+		var level: int = level_min + (i % band)
 		var def: Dictionary = WildlingLairDatabase.get_level_def(level)
 		if def.is_empty():
 			continue
-		var pos: Vector2 = _find_clear_lair_position()
-		var lair_id: String = _make_stable_lair_id(level, pos, i)
+		var pos: Vector2 = _find_clear_lair_position_seeded(lair_rng)
+		var lair_id: String = _make_stable_lair_id(kingdom_id, level, i)
 		var node: Node2D = wildling_lair_node_scene.instantiate()
 		wildling_lair_spawns.add_child(node)
 		node.position = pos
 		node.scale = Vector2.ONE
-		node.z_index = 105
+		node.z_index = 110
 		if node.has_method("setup_from_def"):
 			node.call("setup_from_def", def, lair_id)
+		if has_node("/root/AllianceLairState"):
+			var registered: Dictionary = AllianceLairState.register_spawned_lair({
+				"lair_id": lair_id,
+				"lair_type": str(def.get("lair_type", "alliance_lair")),
+				"lair_level": level,
+				"level": level,
+				"display_name": str(def.get("display_name", "Alliance Lair")),
+				"kingdom_id": kingdom_id,
+				"world_x": pos.x,
+				"world_y": pos.y,
+				"world_position": {"x": pos.x, "y": pos.y},
+				"max_hp": int(def.get("max_hp", 5000)),
+				"recommended_power": int(def.get("recommended_power", 0)),
+				"difficulty": str(def.get("difficulty", "Normal")),
+				"rally_required": bool(def.get("rally_required", true)),
+				"reward_table_id": str(def.get("reward_table_id", "")),
+				"respawn_seconds": int(def.get("respawn_seconds", WildlingLairDatabase.default_respawn_seconds())),
+				"species": str(def.get("species", "")),
+				"visual_variant": str(def.get("visual_variant", "")),
+				"level_def": def,
+			})
+			if node.has_method("apply_runtime_state") and bool(registered.get("ok", false)):
+				node.call("apply_runtime_state", registered.get("lair", {}))
 		var variant: String = str(def.get("visual_variant", "beast"))
 		if variant_counts.has(variant):
 			variant_counts[variant] = int(variant_counts[variant]) + 1
 		spawned += 1
-	print("[WildlingLair] Spawned %d lairs (beta session-local) variants=%s" % [
+	print("[AllianceLair] Spawned %d lairs kingdom=%s seed=%s variants=%s" % [
 		spawned,
+		kingdom_id,
+		str(lair_rng.seed),
 		str(variant_counts),
 	])
 	_smoke_wildling_lairs()
@@ -307,11 +352,11 @@ func spawn_wildling_lairs() -> void:
 
 func _smoke_wildling_lairs() -> void:
 	if wildling_lair_spawns == null:
-		push_warning("[WildlingLair] smoke FAILED: no WildlingLairSpawns root")
+		push_warning("[AllianceLair] smoke FAILED: no WildlingLairSpawns root")
 		return
 	var count: int = wildling_lair_spawns.get_child_count()
 	if count <= 0:
-		push_warning("[WildlingLair] smoke FAILED: zero lairs")
+		push_warning("[AllianceLair] smoke FAILED: zero lairs")
 		return
 	var min_d: float = INF
 	var nodes: Array = wildling_lair_spawns.get_children()
@@ -320,40 +365,51 @@ func _smoke_wildling_lairs() -> void:
 		if a == null:
 			continue
 		if is_near_player_castle(a.global_position):
-			push_warning("[WildlingLair] smoke WARN: lair near castle %s" % a.name)
+			push_warning("[AllianceLair] smoke WARN: lair near castle %s" % a.name)
 		for j: int in range(i + 1, nodes.size()):
 			var b: Node2D = nodes[j] as Node2D
 			if b == null:
 				continue
 			min_d = minf(min_d, a.global_position.distance_to(b.global_position))
 	if min_d < lair_min_distance * 0.5:
-		push_warning("[WildlingLair] smoke WARN: lairs closer than expected (%.1f)" % min_d)
-	# WorldAutoSpawner is attached to WorldRoot — look up HUD on self, not parent.
+		push_warning("[AllianceLair] smoke WARN: lairs closer than expected (%.1f)" % min_d)
 	var panel: Node = get_node_or_null("HUD/WildlingLairPanel")
 	if panel == null:
-		push_warning("[WildlingLair] smoke WARN: WildlingLairPanel missing under HUD")
-	print("[WildlingLair] smoke OK lairs=%d min_pair_dist=%.1f panel=%s" % [
+		push_warning("[AllianceLair] smoke WARN: WildlingLairPanel missing under HUD")
+	print("[AllianceLair] smoke OK lairs=%d min_pair_dist=%.1f panel=%s" % [
 		count,
 		min_d if min_d < INF else -1.0,
 		str(panel != null),
 	])
 
 
-func _make_stable_lair_id(level: int, pos: Vector2, seq: int) -> String:
-	var gx: int = int(floor(pos.x / 32.0))
-	var gy: int = int(floor(pos.y / 32.0))
-	return "lair_L%d_x%d_y%d_s%02d" % [level, gx, gy, seq]
+func _make_stable_lair_id(kingdom_id: String, level: int, seq: int) -> String:
+	var kid: String = kingdom_id.strip_edges().replace(" ", "_")
+	if kid.length() > 24:
+		kid = kid.substr(0, 24)
+	return "alair_%s_L%d_%02d" % [kid, level, seq]
 
 
-func _find_clear_lair_position() -> Vector2:
-	var pos: Vector2 = random_map_position()
-	for _attempt: int in range(64):
-		pos = random_map_position()
+func _find_clear_lair_position_seeded(lair_rng: RandomNumberGenerator) -> Vector2:
+	var pos: Vector2 = _random_map_position_seeded(lair_rng)
+	for _attempt: int in range(80):
+		pos = _random_map_position_seeded(lair_rng)
 		if is_near_player_castle(pos):
 			continue
 		if is_position_clear(pos, lair_min_distance):
 			return pos
 	return pos
+
+
+func _random_map_position_seeded(lair_rng: RandomNumberGenerator) -> Vector2:
+	return Vector2(
+		lair_rng.randf_range(edge_margin, map_size.x - edge_margin),
+		lair_rng.randf_range(edge_margin, map_size.y - edge_margin)
+	)
+
+
+func _find_clear_lair_position() -> Vector2:
+	return _find_clear_lair_position_seeded(rng)
 
 
 func get_resource_texture(resource_type: String) -> Texture2D:

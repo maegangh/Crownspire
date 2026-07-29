@@ -853,9 +853,15 @@ func _on_socket_connected() -> void:
 	availability_changed.emit(true)
 	_bind_socket_message_handler()
 	_sync_kingdom_from_profile()
-	## Soft auto-join kingdom room for beta; failures are non-fatal.
-	if not _joined_kingdom:
-		join_kingdom_chat()
+	## Rejoin after connect/reconnect — channel IDs can go stale when the socket drops.
+	_joined_kingdom = false
+	_kingdom_channel_id = ""
+	join_kingdom_chat()
+	var ab: Node = _alliance_backend()
+	if ab != null and ab.has_method("is_in_backend_alliance") and ab.is_in_backend_alliance():
+		_joined_alliance = false
+		_alliance_channel_id = ""
+		join_alliance_chat()
 
 
 func _on_connection_failed(_reason: String) -> void:

@@ -11,6 +11,8 @@
 [ext_resource type="Script" path="res://scripts/UI/ShopScreen.gd" id="7_shop"]
 [ext_resource type="Script" path="res://scripts/UI/MarchSetupScreen.gd" id="7_march"]
 [ext_resource type="Script" path="res://scripts/UI/RallySetupScreen.gd" id="7_rally"]
+[ext_resource type="Script" path="res://scripts/UI/RallyLobbyScreen.gd" id="7_rally_lobby"]
+[ext_resource type="Script" path="res://scripts/UI/RallyReportScreen.gd" id="7_rally_report"]
 [ext_resource type="Script" path="res://scripts/UI/MailScreen.gd" id="7_mail"]
 [ext_resource type="Script" path="res://scripts/UI/TroopTrainingScreen.gd" id="7_train"]
 [ext_resource type="Script" path="res://scripts/UI/HospitalScreen.gd" id="7_hospital"]
@@ -396,6 +398,28 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("7_rally")
+
+[node name="RallyLobbyScreen" type="Control" parent="ScreenRoot"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("7_rally_lobby")
+
+[node name="RallyReportScreen" type="Control" parent="ScreenRoot"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("7_rally_report")
 
 [node name="QuestScreen" type="Control" parent="ScreenRoot" unique_id=538321268]
 visible = false

@@ -255,10 +255,7 @@ func _refresh() -> void:
 	_status_label.text = ""
 	_update_header()
 
-	if not _use_backend() and not has_node("/root/AllianceState"):
-		_status_label.text = "Alliance systems are not loaded."
-		return
-
+	# Never expose internal debug copy. Always show a usable lobby when offline / not joined.
 	match _view:
 		ViewMode.CREATE:
 			_build_create_view()
@@ -267,15 +264,31 @@ func _refresh() -> void:
 		ViewMode.INVITES:
 			_build_invites_view()
 		ViewMode.HOME:
-			_build_home_view()
+			if _is_in_alliance():
+				_build_home_view()
+			else:
+				_view = ViewMode.LOBBY
+				_build_unjoined_view()
 		ViewMode.MEMBERS:
-			_build_members_view()
+			if _is_in_alliance():
+				_build_members_view()
+			else:
+				_view = ViewMode.LOBBY
+				_build_unjoined_view()
 		ViewMode.MEMBER_DETAIL:
-			_build_member_detail_view()
+			if _is_in_alliance():
+				_build_member_detail_view()
+			else:
+				_view = ViewMode.LOBBY
+				_build_unjoined_view()
 		ViewMode.HELP:
 			_build_help_view()
 		ViewMode.APPLICATIONS:
-			_build_applications_view()
+			if _is_in_alliance():
+				_build_applications_view()
+			else:
+				_view = ViewMode.LOBBY
+				_build_unjoined_view()
 		ViewMode.RESEARCH:
 			_build_research_view()
 		ViewMode.COMING_SOON:
@@ -373,16 +386,33 @@ func _open_nav_card(card_id: String) -> void:
 
 
 func _build_unjoined_view() -> void:
-	if _use_backend():
-		_add_banner_panel("No Alliance", "Server-backed membership")
-		_add_body_label("Create a Crownspire Alliance or apply to join one. Local AllianceState is not used for membership.")
+	var nc: Node = _nakama_connection()
+	var online: bool = _use_backend()
+	var connecting: bool = false
+	if nc != null and nc.has_method("get_connection_state"):
+		var st: String = str(nc.get_connection_state())
+		connecting = st == "connecting" or st == "reconnecting"
+
+	if online:
+		_add_banner_panel("Join the Realms", "Create or join an Alliance")
+		_add_body_label("Build with allies — create a new Alliance, search existing ones, or check your invitations.")
+	elif connecting:
+		_add_banner_panel("Connecting…", "Multiplayer")
+		_add_body_label("Connecting to Crownspire servers. Alliance Create / Join will unlock when online.")
 	else:
-		_add_banner_panel("No Alliance", "Offline / local mode")
-		_add_body_label("Nakama offline — local Alliance prototype only. Multiplayer membership requires authentication.")
+		_add_banner_panel("Alliance", "Offline")
+		var reason: String = ""
+		if nc != null and nc.has_method("get_last_fail_reason"):
+			reason = str(nc.get_last_fail_reason()).strip_edges()
+		if reason != "":
+			_add_body_label("Can't reach multiplayer right now. Check your connection and try again.")
+		else:
+			_add_body_label("Multiplayer is offline. You can still browse Alliance options once connected.")
 
 	var create_btn: Button = Button.new()
 	create_btn.text = "Create Alliance"
 	create_btn.custom_minimum_size = Vector2(0, 64)
+	create_btn.disabled = not online and not has_node("/root/AllianceState")
 	create_btn.pressed.connect(func() -> void:
 		_view = ViewMode.CREATE
 		_refresh()
@@ -390,7 +420,7 @@ func _build_unjoined_view() -> void:
 	_content.add_child(create_btn)
 
 	var join_btn: Button = Button.new()
-	join_btn.text = "Join / Apply"
+	join_btn.text = "Join Alliance"
 	join_btn.custom_minimum_size = Vector2(0, 64)
 	join_btn.pressed.connect(func() -> void:
 		_view = ViewMode.JOIN
@@ -398,15 +428,33 @@ func _build_unjoined_view() -> void:
 	)
 	_content.add_child(join_btn)
 
-	if _use_backend():
-		var invites_btn: Button = Button.new()
-		invites_btn.text = "Invites"
-		invites_btn.custom_minimum_size = Vector2(0, 56)
-		invites_btn.pressed.connect(func() -> void:
-			_view = ViewMode.INVITES
-			_refresh()
+	var search_btn: Button = Button.new()
+	search_btn.text = "Search Alliances"
+	search_btn.custom_minimum_size = Vector2(0, 56)
+	search_btn.pressed.connect(func() -> void:
+		_view = ViewMode.JOIN
+		_refresh()
+	)
+	_content.add_child(search_btn)
+
+	var invites_btn: Button = Button.new()
+	invites_btn.text = "Invitations"
+	invites_btn.custom_minimum_size = Vector2(0, 56)
+	invites_btn.pressed.connect(func() -> void:
+		_view = ViewMode.INVITES
+		_refresh()
+	)
+	_content.add_child(invites_btn)
+
+	if not online and nc != null and nc.has_method("reconnect_now"):
+		var retry: Button = Button.new()
+		retry.text = "Retry Connection"
+		retry.custom_minimum_size = Vector2(0, 52)
+		retry.pressed.connect(func() -> void:
+			nc.reconnect_now()
+			_status_label.text = "Connecting…"
 		)
-		_content.add_child(invites_btn)
+		_content.add_child(retry)
 
 	_add_roles_hint()
 

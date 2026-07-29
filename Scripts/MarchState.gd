@@ -52,6 +52,8 @@ var _route_lines: Dictionary = {} # march_id -> Node2D (dotted route)
 var _save_path_override: String = ""
 var _rewards_table: Dictionary = {}
 var _march_icon_scene: PackedScene = null
+var _rally_reservations: Dictionary = {} ## rally_id -> {troop_tiers, hero_ids, troop_counts}
+var _dispatched_rally_marches: Dictionary = {} ## rally_id -> true
 
 
 ## Canonical route intent for world-map dotted lines.
@@ -140,6 +142,8 @@ func get_active_march_count() -> int:
 		var status: String = str(march.get("status", ""))
 		if status in [STATUS_MARCHING, STATUS_IN_COMBAT, STATUS_GATHERING, STATUS_RETURNING]:
 			count += 1
+	# Forming-rally reservations occupy a march slot until launch/cancel.
+	count += _rally_reservations.size()
 	return count
 
 
@@ -361,9 +365,27 @@ func _tick_marches() -> void:
 				if now >= int(march.get("arrival_timestamp", 0)):
 					if mtype == "gather":
 						_begin_gathering(march)
+					elif mtype == "join_rally":
+						_begin_combat_presentation(march)
+						# Resolve via rally path on next combat tick / immediately after presentation.
+						march["rally_pending_resolve"] = true
 					else:
 						# Wildling / combat marches: present arrival attack, then resolve once.
 						_begin_combat_presentation(march)
+					active_marches[i] = march
+					changed = true
+			STATUS_IN_COMBAT:
+				_update_visual_progress(march, now_f)
+				if mtype == "join_rally" and bool(march.get("rally_waiting_result", false)):
+					_try_apply_shared_rally_result(march)
+					active_marches[i] = march
+					changed = true
+				elif now >= int(march.get("combat_end_unix", 0)):
+					if mtype == "join_rally" or bool(march.get("rally_pending_resolve", false)):
+						march["rally_pending_resolve"] = false
+						_resolve_rally_battle(march)
+					elif not bool(march.get("battle_resolved", false)):
+						_resolve_battle(march)
 					active_marches[i] = march
 					changed = true
 			STATUS_GATHERING:
@@ -377,12 +399,6 @@ func _tick_marches() -> void:
 				if now >= int(march.get("return_arrival_timestamp", 0)):
 					_complete_return(march)
 					finished_ids.append(str(march.get("march_id", "")))
-					changed = true
-			STATUS_IN_COMBAT:
-				_update_visual_progress(march, now_f)
-				if now >= int(march.get("combat_end_unix", 0)):
-					_resolve_battle(march)
-					active_marches[i] = march
 					changed = true
 
 	if not finished_ids.is_empty():
@@ -422,8 +438,9 @@ func _resolve_battle(march: Dictionary) -> void:
 
 	march["status"] = STATUS_IN_COMBAT
 	var target: Dictionary = march.get("target_data", {})
-	var wildling: Node2D = _resolve_wildling_node(target)
-	var wildling_alive: bool = wildling != null and is_instance_valid(wildling) and wildling.visible
+	var is_lair: bool = str(march.get("target_type", "")) == "wildling_lair" or target.has("lair_id")
+	var wildling: Node2D = null if is_lair else _resolve_wildling_node(target)
+	var wildling_alive: bool = is_lair or (wildling != null and is_instance_valid(wildling) and wildling.visible)
 	var hero_ids: Array = march.get("hero_ids", []) as Array
 	var tiers: Dictionary = march.get("original_troop_tiers", march.get("troop_tiers", {})) as Dictionary
 	if typeof(tiers) != TYPE_DICTIONARY or tiers.is_empty():
@@ -471,12 +488,19 @@ func _resolve_battle(march: Dictionary) -> void:
 	_record_wounded_from_march(march)
 
 	if result.get("victory", false) and wildling_alive:
-		_defeat_wildling(wildling, target)
+		if not is_lair:
+			_defeat_wildling(wildling, target)
 		if not bool(march.get("rewards_granted", false)):
-			var rewards: Dictionary = _grant_wildling_rewards(target)
+			var rewards: Dictionary = {}
+			if is_lair and has_node("/root/AllianceLairState"):
+				var claim: String = "solo_%s" % str(march.get("march_id", ""))
+				var grant: Dictionary = AllianceLairState.grant_lair_rewards_once(claim, target)
+				rewards = grant.get("rewards", {})
+			else:
+				rewards = _grant_wildling_rewards(target)
 			march["rewards_granted"] = true
 			result["rewards"] = rewards
-			if has_node("/root/GameEvents"):
+			if has_node("/root/GameEvents") and not is_lair:
 				var wid: String = str(target.get("instance_id", ""))
 				if wid.is_empty():
 					wid = "%s_L%d" % [
@@ -484,6 +508,10 @@ func _resolve_battle(march: Dictionary) -> void:
 						int(target.get("level", 1)),
 					]
 				GameEvents.emit_wildling_defeated(wid)
+		if is_lair and has_node("/root/AllianceLairState"):
+			AllianceLairState.apply_battle_outcome(str(target.get("lair_id", march.get("target_id", ""))), true)
+	elif is_lair and has_node("/root/AllianceLairState"):
+		AllianceLairState.apply_battle_outcome(str(target.get("lair_id", march.get("target_id", ""))), false)
 
 	_create_battle_mail_report(march, result)
 	march_battle_resolved.emit(str(march.get("march_id", "")), result)
@@ -2491,7 +2519,452 @@ func run_wildling_march_smoke_test() -> bool:
 		TroopState.marksmen = bak_mar
 		TroopState.cavalry = bak_cav
 
-	if ok:
-		print("[MarchState] Wildling march smoke test PASSED")
 	end_smoke_isolation()
+	if ok:
+		print("[MarchState] wildling march smoke PASSED")
 	return ok
+
+
+## Reserve troops/heroes for a forming Rally (deployed until launch/cancel/complete).
+func reserve_for_rally(rally_id: String, troops: Dictionary, hero_ids: Array) -> Dictionary:
+	var rid: String = rally_id.strip_edges()
+	if rid == "":
+		return {"ok": false, "error": "Missing rally id"}
+	if get_active_march_count() >= MAX_ACTIVE_MARCHES:
+		return {"ok": false, "error": "No free march slots."}
+	var hero_payload: Array = []
+	for hid in hero_ids:
+		var h: String = str(hid)
+		if h == "":
+			continue
+		if has_node("/root/HeroState") and HeroState.is_hero_on_march(h):
+			return {"ok": false, "error": "Hero already marching."}
+		hero_payload.append(h)
+	if hero_payload.is_empty():
+		return {"ok": false, "error": "Select at least one hero."}
+	var flat := {
+		"infantry": int(troops.get("infantry", troops.get("Infantry", 0))),
+		"marksmen": int(troops.get("marksmen", troops.get("Marksmen", 0))),
+		"cavalry": int(troops.get("cavalry", troops.get("Cavalry", 0))),
+	}
+	if flat.infantry + flat.marksmen + flat.cavalry <= 0:
+		return {"ok": false, "error": "Select troops."}
+	var cap: int = get_march_capacity(hero_payload)
+	if flat.infantry + flat.marksmen + flat.cavalry > cap:
+		return {"ok": false, "error": "Exceeds march capacity."}
+	var composition: Dictionary = build_troop_tier_composition(flat)
+	if composition.is_empty():
+		return {"ok": false, "error": "Could not allocate troop tiers."}
+	if not TroopState.deploy_troops_by_tiers(composition):
+		return {"ok": false, "error": "Failed to deploy troops."}
+	for hid2 in hero_payload:
+		HeroState.set_hero_on_march(str(hid2), true)
+	_rally_reservations[rid] = {
+		"troop_tiers": composition.duplicate(true),
+		"hero_ids": hero_payload.duplicate(),
+		"troop_counts": flat.duplicate(true),
+	}
+	marches_changed.emit()
+	return {"ok": true, "troop_tiers": composition, "hero_ids": hero_payload, "troop_counts": flat, "power": calculate_march_power(flat, hero_payload)}
+
+
+func refund_rally_reservation(rally_id: String) -> void:
+	var rid: String = rally_id.strip_edges()
+	if not _rally_reservations.has(rid):
+		return
+	var res: Dictionary = _rally_reservations[rid]
+	var tiers: Dictionary = res.get("troop_tiers", {})
+	if has_node("/root/TroopState") and not tiers.is_empty():
+		TroopState.return_troops_by_tiers(tiers)
+	for hid in res.get("hero_ids", []):
+		if has_node("/root/HeroState"):
+			HeroState.set_hero_on_march(str(hid), false)
+	_rally_reservations.erase(rid)
+	marches_changed.emit()
+
+
+func rekey_rally_reservation(from_id: String, to_id: String) -> void:
+	var src: String = from_id.strip_edges()
+	var dst: String = to_id.strip_edges()
+	if src == "" or dst == "" or src == dst:
+		return
+	if not _rally_reservations.has(src):
+		return
+	_rally_reservations[dst] = _rally_reservations[src]
+	_rally_reservations.erase(src)
+
+
+func has_rally_reservation(rally_id: String = "") -> bool:
+	var rid: String = rally_id.strip_edges()
+	if rid == "":
+		return not _rally_reservations.is_empty()
+	return _rally_reservations.has(rid)
+
+
+func has_active_rally_march(rally_id: String) -> bool:
+	var rid: String = rally_id.strip_edges()
+	for march in active_marches:
+		if str(march.get("rally_id", "")) == rid and str(march.get("march_type", "")) == "join_rally":
+			return true
+	return false
+
+
+## Solo Attack against a Wildling Lair (no WildlingNode required).
+func dispatch_lair_attack_march(lair: Dictionary, troops: Dictionary, hero_ids: Array) -> Dictionary:
+	if get_active_march_count() >= MAX_ACTIVE_MARCHES:
+		return {"ok": false, "error": "Active march limit reached."}
+	var flat := {
+		"infantry": int(troops.get("infantry", troops.get("Infantry", 0))),
+		"marksmen": int(troops.get("marksmen", troops.get("Marksmen", 0))),
+		"cavalry": int(troops.get("cavalry", troops.get("Cavalry", 0))),
+	}
+	if flat.infantry + flat.marksmen + flat.cavalry <= 0:
+		return {"ok": false, "error": "Select at least one troop."}
+	var hero_payload: Array = []
+	for hid in hero_ids:
+		var h: String = str(hid)
+		if h == "":
+			continue
+		if has_node("/root/HeroState") and HeroState.is_hero_on_march(h):
+			return {"ok": false, "error": "Hero already on a march."}
+		hero_payload.append(h)
+	if hero_payload.is_empty():
+		return {"ok": false, "error": "Select at least one hero."}
+	var cap: int = get_march_capacity(hero_payload)
+	if flat.infantry + flat.marksmen + flat.cavalry > cap:
+		return {"ok": false, "error": "Troops exceed march capacity (%d)." % cap}
+	var composition: Dictionary = build_troop_tier_composition(flat)
+	if composition.is_empty():
+		return {"ok": false, "error": "Could not allocate troop tiers."}
+	if not TroopState.deploy_troops_by_tiers(composition):
+		return {"ok": false, "error": "Failed to deploy troops."}
+	for hid2 in hero_payload:
+		HeroState.set_hero_on_march(str(hid2), true)
+
+	var start_pos: Vector2 = get_castle_world_position()
+	var pos: Dictionary = lair.get("world_position", lair.get("position", {})) as Dictionary
+	var target_pos := Vector2(float(pos.get("x", 0.0)), float(pos.get("y", 0.0)))
+	var travel_sec: int = estimate_travel_seconds(start_pos, target_pos, hero_payload)
+	var now: int = int(Time.get_unix_time_from_system())
+	var level: int = int(lair.get("lair_level", lair.get("level", 1)))
+	var march_id: String = "lair_%d_%d" % [now, randi() % 100000]
+	var march: Dictionary = {
+		"march_id": march_id,
+		"march_type": "wildling_hunt",
+		"owner_id": "local_player",
+		"target_id": str(lair.get("lair_id", "")),
+		"target_type": "wildling_lair",
+		"target_data": {
+			"lair_id": str(lair.get("lair_id", "")),
+			"level": level,
+			"species": str(lair.get("species", "")),
+			"power": int(lair.get("recommended_power", 0)),
+			"position": {"x": target_pos.x, "y": target_pos.y},
+			"instance_id": str(lair.get("lair_id", "")),
+		},
+		"start_position": {"x": start_pos.x, "y": start_pos.y},
+		"target_position": {"x": target_pos.x, "y": target_pos.y},
+		"departure_timestamp": now,
+		"arrival_timestamp": now + travel_sec,
+		"return_arrival_timestamp": 0,
+		"status": STATUS_MARCHING,
+		"hero_ids": hero_payload,
+		"troops": flat.duplicate(true),
+		"original_troops": flat.duplicate(true),
+		"troop_tiers": composition.duplicate(true),
+		"original_troop_tiers": composition.duplicate(true),
+		"surviving_troops": flat.duplicate(true),
+		"surviving_troop_tiers": composition.duplicate(true),
+		"wounded_troop_tiers": {"infantry": {}, "marksmen": {}, "cavalry": {}},
+		"wounded_recorded": false,
+		"march_power": calculate_march_power(flat, hero_payload),
+		"battle_resolved": false,
+		"battle_result": {},
+		"rewards_granted": false,
+		"mail_report_created": false,
+	}
+	active_marches.append(march)
+	save_marches()
+	_ensure_visual(march)
+	_update_march_route_visual(march)
+	marches_changed.emit()
+	return {"ok": true, "march_id": march_id, "travel_seconds": travel_sec}
+
+
+## After Rally launch — convert reservation into a join_rally march to the lair.
+func dispatch_rally_march(rally: Dictionary) -> Dictionary:
+	var rid: String = str(rally.get("rally_id", "")).strip_edges()
+	if rid == "":
+		return {"ok": false, "error": "Missing rally"}
+	if has_active_rally_march(rid):
+		return {"ok": true, "already": true}
+	var nc: Node = get_node_or_null("/root/NakamaConnection")
+	var uid: String = nc.get_user_id() if nc != null else ""
+	var my_part: Dictionary = {}
+	for p in rally.get("participants", []):
+		if typeof(p) == TYPE_DICTIONARY and str(p.get("user_id", "")) == uid:
+			my_part = p
+			break
+	if my_part.is_empty():
+		return {"ok": false, "error": "Not a rally participant"}
+
+	# Prefer local reservation; fall back to server participant payload.
+	var composition: Dictionary = {}
+	var hero_payload: Array = []
+	var troop_payload: Dictionary = {"infantry": 0, "marksmen": 0, "cavalry": 0}
+	if _rally_reservations.has(rid):
+		var res: Dictionary = _rally_reservations[rid]
+		composition = res.get("troop_tiers", {})
+		hero_payload = res.get("hero_ids", [])
+		troop_payload = res.get("troop_counts", troop_payload)
+		_rally_reservations.erase(rid) ## ownership transfers to march
+	else:
+		composition = my_part.get("troop_tiers", {})
+		hero_payload = my_part.get("hero_ids", [])
+		troop_payload = {
+			"infantry": int(my_part.get("troop_counts", {}).get("infantry", 0)),
+			"marksmen": int(my_part.get("troop_counts", {}).get("marksmen", 0)),
+			"cavalry": int(my_part.get("troop_counts", {}).get("cavalry", 0)),
+		}
+		# Troops should already be deployed from join — do not redeploy.
+
+	var has_troops := false
+	for v in troop_payload.values():
+		if int(v) > 0:
+			has_troops = true
+			break
+	if composition.is_empty() and has_troops:
+		composition = build_troop_tier_composition(troop_payload)
+
+	var start_pos: Vector2 = get_castle_world_position()
+	var target_pos := Vector2(float(rally.get("world_x", 0.0)), float(rally.get("world_y", 0.0)))
+	var travel_sec: int = estimate_travel_seconds(start_pos, target_pos, hero_payload)
+	var now: int = int(Time.get_unix_time_from_system())
+	var is_leader: bool = str(rally.get("leader_user_id", "")) == uid
+
+	# Leader carries aggregated army for combat presentation.
+	var combat_tiers: Dictionary = composition.duplicate(true)
+	var combat_heroes: Array = hero_payload.duplicate()
+	if is_leader:
+		combat_tiers = _aggregate_rally_tiers(rally)
+		combat_heroes = _aggregate_rally_heroes(rally)
+
+	var march_id: String = "rally_%s_%d" % [rid.substr(0, 8), now % 100000]
+	var march: Dictionary = {
+		"march_id": march_id,
+		"march_type": "join_rally",
+		"owner_id": uid if uid != "" else "local_player",
+		"rally_id": rid,
+		"is_rally_leader": is_leader,
+		"target_id": str(rally.get("lair_id", "")),
+		"target_type": "wildling_lair",
+		"target_data": {
+			"lair_id": str(rally.get("lair_id", "")),
+			"level": int(rally.get("lair_level", 1)),
+			"species": str(rally.get("species", "")),
+			"power": int(rally.get("recommended_power", 0)),
+			"position": {"x": target_pos.x, "y": target_pos.y},
+			"rally_id": rid,
+		},
+		"start_position": {"x": start_pos.x, "y": start_pos.y},
+		"target_position": {"x": target_pos.x, "y": target_pos.y},
+		"departure_timestamp": now,
+		"arrival_timestamp": now + travel_sec,
+		"return_arrival_timestamp": 0,
+		"status": STATUS_MARCHING,
+		"hero_ids": hero_payload,
+		"troops": troop_payload.duplicate(true),
+		"original_troops": troop_payload.duplicate(true),
+		"troop_tiers": composition.duplicate(true),
+		"original_troop_tiers": composition.duplicate(true),
+		"combat_troop_tiers": combat_tiers,
+		"combat_hero_ids": combat_heroes,
+		"surviving_troops": troop_payload.duplicate(true),
+		"surviving_troop_tiers": composition.duplicate(true),
+		"wounded_troop_tiers": {"infantry": {}, "marksmen": {}, "cavalry": {}},
+		"wounded_recorded": false,
+		"march_power": calculate_march_power(troop_payload, hero_payload),
+		"battle_resolved": false,
+		"battle_result": {},
+		"rewards_granted": false,
+		"mail_report_created": false,
+		"rally_banner": true,
+	}
+	active_marches.append(march)
+	save_marches()
+	_ensure_visual(march)
+	_update_march_route_visual(march)
+	marches_changed.emit()
+	return {"ok": true, "march_id": march_id, "travel_seconds": travel_sec}
+
+
+func _aggregate_rally_tiers(rally: Dictionary) -> Dictionary:
+	var out := {"infantry": {}, "marksmen": {}, "cavalry": {}}
+	for p in rally.get("participants", []):
+		if typeof(p) != TYPE_DICTIONARY:
+			continue
+		var tiers: Dictionary = p.get("troop_tiers", {})
+		for kind in ["infantry", "marksmen", "cavalry"]:
+			var src: Dictionary = tiers.get(kind, {}) if typeof(tiers.get(kind, {})) == TYPE_DICTIONARY else {}
+			if not out.has(kind):
+				out[kind] = {}
+			for tier_k in src.keys():
+				var t: String = str(tier_k)
+				out[kind][t] = int(out[kind].get(t, 0)) + int(src[tier_k])
+	return out
+
+
+func _aggregate_rally_heroes(rally: Dictionary) -> Array:
+	var out: Array = []
+	for p in rally.get("participants", []):
+		if typeof(p) != TYPE_DICTIONARY:
+			continue
+		for hid in p.get("hero_ids", []):
+			var h: String = str(hid)
+			if h != "" and not out.has(h):
+				out.append(h)
+	return out
+
+
+func _resolve_rally_battle(march: Dictionary) -> void:
+	if bool(march.get("battle_resolved", false)):
+		_begin_return(march)
+		return
+	march["status"] = STATUS_IN_COMBAT
+	# Non-leaders wait for the authoritative rally result from Nakama.
+	if not bool(march.get("is_rally_leader", false)):
+		march["rally_waiting_result"] = true
+		marches_changed.emit()
+		_try_apply_shared_rally_result(march)
+		return
+
+	var target: Dictionary = march.get("target_data", {})
+	var tiers: Dictionary = march.get("combat_troop_tiers", march.get("troop_tiers", {}))
+	var heroes: Array = march.get("combat_hero_ids", march.get("hero_ids", []))
+	var result: Dictionary = {}
+	if has_node("/root/WildlingCombatResolver") and has_node("/root/StatResolver"):
+		var player_stats: Dictionary = StatResolver.resolve_march_combat_stats(tiers, heroes)
+		var wstats: Dictionary = WildlingCombatResolver.get_wildling_combat_stats(
+			int(target.get("level", 1)),
+			str(target.get("species", ""))
+		)
+		result = WildlingCombatResolver.resolve_battle(player_stats, wstats, tiers)
+		result["player_march_stats"] = player_stats
+		var wh: Dictionary = result.get("wildling_stats", {})
+		result["damage_dealt"] = maxi(0, int(wstats.get("health", 0)) - int(wh.get("health_remaining", 0)))
+		result["remaining_hp"] = int(wh.get("health_remaining", 0))
+	else:
+		result = {"victory": false, "summary": "Combat resolver missing", "rounds": 0}
+
+	_apply_rally_personal_casualties(march, float(result.get("casualty_ratio", 0.0)))
+	march["battle_result"] = result
+	march["battle_resolved"] = true
+	_record_wounded_from_march(march)
+
+	if bool(result.get("victory", false)):
+		if not bool(march.get("rewards_granted", false)):
+			var rewards: Dictionary = {}
+			if has_node("/root/AllianceLairState"):
+				var claim: String = "rally_%s_%s" % [str(march.get("rally_id", "")), str(march.get("owner_id", "local"))]
+				var grant: Dictionary = AllianceLairState.grant_lair_rewards_once(claim, target)
+				rewards = grant.get("rewards", {})
+			else:
+				rewards = _grant_wildling_rewards(target)
+			march["rewards_granted"] = true
+			result["rewards"] = rewards
+		if has_node("/root/AllianceLairState"):
+			AllianceLairState.apply_battle_outcome(str(target.get("lair_id", march.get("target_id", ""))), true, int(result.get("damage_dealt", 0)))
+	else:
+		if has_node("/root/AllianceLairState"):
+			AllianceLairState.apply_battle_outcome(str(target.get("lair_id", march.get("target_id", ""))), false, int(result.get("damage_dealt", 0)))
+
+	_create_battle_mail_report(march, result)
+	march_battle_resolved.emit(str(march.get("march_id", "")), result)
+
+	if has_node("/root/RallyBackend"):
+		RallyBackend.complete_rally(str(march.get("rally_id", "")), {
+			"victory": bool(result.get("victory", false)),
+			"summary": str(result.get("summary", "")),
+			"damage_dealt": int(result.get("damage_dealt", 0)),
+			"remaining_hp": 0 if bool(result.get("victory", false)) else int(result.get("remaining_hp", target.get("max_hp", 0))),
+			"casualty_ratio": float(result.get("casualty_ratio", 0.0)),
+			"rewards": result.get("rewards", {}),
+			"rounds": int(result.get("rounds", 0)),
+		})
+
+	_begin_return(march)
+
+
+func _apply_rally_personal_casualties(march: Dictionary, ratio: float) -> void:
+	var personal: Dictionary = march.get("original_troop_tiers", {})
+	if has_node("/root/WildlingCombatResolver") and WildlingCombatResolver.has_method("distribute_casualties"):
+		var split: Dictionary = WildlingCombatResolver.distribute_casualties(personal, ratio)
+		march["surviving_troop_tiers"] = split.get("surviving_troop_tiers", personal)
+		march["wounded_troop_tiers"] = split.get("wounded_troop_tiers", {})
+		march["surviving_troops"] = split.get("surviving_troops", march.get("original_troops", {}))
+	else:
+		march["surviving_troop_tiers"] = personal
+		march["surviving_troops"] = march.get("original_troops", {})
+
+
+func apply_shared_rally_result(rally: Dictionary) -> void:
+	var rid: String = str(rally.get("rally_id", ""))
+	var result: Dictionary = rally.get("result", {}) as Dictionary
+	if rid == "" or result.is_empty():
+		return
+	for i: int in range(active_marches.size()):
+		var march: Dictionary = active_marches[i]
+		if str(march.get("rally_id", "")) != rid:
+			continue
+		if bool(march.get("battle_resolved", false)):
+			continue
+		if not bool(march.get("rally_waiting_result", false)) and not bool(march.get("is_rally_leader", false)):
+			if str(march.get("status", "")) != STATUS_IN_COMBAT:
+				continue
+		_finish_joiner_rally_battle(march, result)
+		active_marches[i] = march
+	marches_changed.emit()
+
+
+func _try_apply_shared_rally_result(march: Dictionary) -> void:
+	if not has_node("/root/RallyBackend"):
+		return
+	var focused: Dictionary = RallyBackend.get_focused_rally()
+	if str(focused.get("rally_id", "")) != str(march.get("rally_id", "")):
+		for r in RallyBackend.get_active_rallies():
+			if typeof(r) == TYPE_DICTIONARY and str(r.get("rally_id", "")) == str(march.get("rally_id", "")):
+				focused = r
+				break
+	if str(focused.get("status", "")) != "COMPLETED":
+		return
+	var result: Dictionary = focused.get("result", {}) as Dictionary
+	if result.is_empty():
+		return
+	_finish_joiner_rally_battle(march, result)
+
+
+func _finish_joiner_rally_battle(march: Dictionary, result: Dictionary) -> void:
+	if bool(march.get("battle_resolved", false)):
+		return
+	var ratio: float = float(result.get("casualty_ratio", 0.25 if not bool(result.get("victory", false)) else 0.1))
+	_apply_rally_personal_casualties(march, ratio)
+	march["battle_result"] = result.duplicate(true)
+	march["battle_resolved"] = true
+	march["rally_waiting_result"] = false
+	_record_wounded_from_march(march)
+	if bool(result.get("victory", false)) and not bool(march.get("rewards_granted", false)):
+		var rewards: Dictionary = {}
+		if has_node("/root/AllianceLairState"):
+			var claim: String = "rally_%s_%s" % [str(march.get("rally_id", "")), str(march.get("owner_id", "local"))]
+			var grant: Dictionary = AllianceLairState.grant_lair_rewards_once(claim, march.get("target_data", {}))
+			rewards = grant.get("rewards", {})
+			if not bool(grant.get("duplicate", false)):
+				march["rewards_granted"] = true
+				result["rewards"] = rewards
+		else:
+			var shared: Dictionary = result.get("rewards", {})
+			if typeof(shared) == TYPE_DICTIONARY and not shared.is_empty():
+				march["rewards_granted"] = true
+	_create_battle_mail_report(march, result)
+	march_battle_resolved.emit(str(march.get("march_id", "")), result)
+	_begin_return(march)

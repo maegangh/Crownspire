@@ -115,7 +115,17 @@ function InitModule(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkrunt
   initializer.registerRpc("crownspire_update_player_identity", rpcUpdatePlayerIdentity);
   initializer.registerRpc("crownspire_presence_heartbeat", rpcPresenceHeartbeat);
 
-  logger.info("Crownspire runtime loaded (Phase 3+4+5+5.1 identity/alliance/help/social). LOCAL DEVELOPMENT ONLY.");
+  // Phase 5.3 — Alliance Rallies (Wildling Lair).
+  initializer.registerRpc("crownspire_rally_create", rpcRallyCreate);
+  initializer.registerRpc("crownspire_rally_join", rpcRallyJoin);
+  initializer.registerRpc("crownspire_rally_leave", rpcRallyLeave);
+  initializer.registerRpc("crownspire_rally_cancel", rpcRallyCancel);
+  initializer.registerRpc("crownspire_rally_launch", rpcRallyLaunch);
+  initializer.registerRpc("crownspire_rally_get", rpcRallyGet);
+  initializer.registerRpc("crownspire_rally_list_active", rpcRallyListActive);
+  initializer.registerRpc("crownspire_rally_complete", rpcRallyComplete);
+
+  logger.info("Crownspire runtime loaded (Phase 3+4+5+5.1+5.3 identity/alliance/help/social/rallies). LOCAL DEVELOPMENT ONLY.");
 }
 
 // ---------------------------------------------------------------------------
