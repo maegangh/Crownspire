@@ -66,6 +66,7 @@ function rpcUpdatePlayerIdentity(ctx: nkruntime.Context, logger: nkruntime.Logge
   profile.last_online = nowUnix();
   profile.updated_at = nowUnix();
   writeProfile(nk, profile);
+  upsertKingdomCastleEntry(nk, profile);
   return JSON.stringify({ ok: true, profile: publicProfile(profile) });
 }
 
@@ -100,6 +101,7 @@ function rpcPresenceHeartbeat(ctx: nkruntime.Context, logger: nkruntime.Logger, 
   profile.last_online = nowUnix();
   profile.updated_at = nowUnix();
   writeProfile(nk, profile);
+  upsertKingdomCastleEntry(nk, profile);
   return JSON.stringify({
     ok: true,
     last_online: profile.last_online,

@@ -48,6 +48,7 @@ var rng := RandomNumberGenerator.new()
 func _ready() -> void:
 	rng.randomize()
 	_ensure_wildling_lair_spawns_root()
+	await _ensure_and_refresh_castles()
 	if has_node("/root/ResourceTileState"):
 		ResourceTileState.clear_live_nodes()
 		ResourceTileState.process_respawns()
@@ -57,6 +58,22 @@ func _ready() -> void:
 	if has_node("/root/ResourceTileState"):
 		# After live nodes exist + marches already loaded by autoload order.
 		ResourceTileState.repair_stale_reservations()
+
+
+func _ensure_and_refresh_castles() -> void:
+	var parent_map: Node = get_parent()
+	if parent_map == null:
+		return
+	var layer: Node = parent_map.get_node_or_null("WorldCastleLayer")
+	if layer == null:
+		layer = Node2D.new()
+		layer.name = "WorldCastleLayer"
+		layer.set_script(load("res://scripts/World/WorldCastleLayer.gd"))
+		parent_map.add_child(layer)
+		# Keep castles above terrain, below HUD.
+		parent_map.move_child(layer, parent_map.get_child_count() - 1)
+	if layer.has_method("refresh_castles"):
+		await layer.refresh_castles()
 
 
 func _exit_tree() -> void:
@@ -205,6 +222,14 @@ func _find_clear_resource_position() -> Vector2:
 
 
 func is_near_player_castle(pos: Vector2) -> bool:
+	var parent_map: Node = get_parent()
+	if parent_map != null:
+		var layer: Node = parent_map.get_node_or_null("WorldCastleLayer")
+		if layer != null and layer.has_method("get_reserved_castle_positions"):
+			var reserved: Array = layer.call("get_reserved_castle_positions")
+			for p_v in reserved:
+				if typeof(p_v) == TYPE_VECTOR2 and pos.distance_to(p_v) < castle_exclusion_radius:
+					return true
 	var castle: Node2D = get_parent().get_node_or_null("PlayerCastleMarker") as Node2D
 	if castle == null:
 		return false

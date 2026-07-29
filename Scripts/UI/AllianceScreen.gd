@@ -18,6 +18,7 @@ enum ViewMode {
 	RESEARCH,
 	COMING_SOON,
 	INVITES,
+	SETTINGS,
 }
 
 var _view: ViewMode = ViewMode.LOBBY
@@ -28,12 +29,34 @@ var _back_button: Button
 var _content: VBoxContainer
 var _name_edit: LineEdit
 var _tag_edit: LineEdit
+var _desc_edit: TextEdit
+var _lang_option: OptionButton
+var _join_type_option: OptionButton
+var _min_citadel_spin: SpinBox
+var _create_button: Button
+var _create_error_label: Label
+var _settings_announce_edit: TextEdit
 var _join_id_edit: LineEdit
 var _invite_user_edit: LineEdit
 var _selected_member_id: String = ""
 var _research_category: String = "Growth"
 var _selected_research_id: String = ""
 var _backend_loading: bool = false
+var _flash_status: String = ""
+var _search_query_edit: LineEdit
+var _search_query: String = ""
+
+const CREATE_LANGS: Array[Dictionary] = [
+	{"id": "en", "label": "English"},
+	{"id": "es", "label": "Spanish"},
+	{"id": "fr", "label": "French"},
+	{"id": "de", "label": "German"},
+	{"id": "pt", "label": "Portuguese"},
+	{"id": "ru", "label": "Russian"},
+	{"id": "zh", "label": "Chinese"},
+	{"id": "ja", "label": "Japanese"},
+	{"id": "ko", "label": "Korean"},
+]
 
 
 func _alliance_backend() -> Node:
@@ -57,7 +80,7 @@ const NAV_CARDS: Array[Dictionary] = [
 	{"id": "territory", "title": "Territory", "subtitle": "Coming Soon", "live": false},
 	{"id": "shop", "title": "Shop", "subtitle": "Coming Soon", "live": false},
 	{"id": "rankings", "title": "Rankings", "subtitle": "Coming Soon", "live": false},
-	{"id": "settings", "title": "Settings", "subtitle": "Coming Soon", "live": false},
+	{"id": "settings", "title": "Settings", "subtitle": "Banner & rules", "live": true},
 ]
 
 
@@ -82,6 +105,20 @@ func _ready() -> void:
 			_alliance_backend().help_requests_changed.connect(_on_backend_help_changed)
 		if not _alliance_backend().auto_help_status_changed.is_connected(_on_backend_auto_help_changed):
 			_alliance_backend().auto_help_status_changed.connect(_on_backend_auto_help_changed)
+		if not _alliance_backend().operation_failed.is_connected(_on_backend_operation_failed):
+			_alliance_backend().operation_failed.connect(_on_backend_operation_failed)
+
+
+func _on_backend_operation_failed(reason: String) -> void:
+	if not visible or _status_label == null:
+		return
+	var msg: String = str(reason).strip_edges()
+	if msg != "":
+		_status_label.text = msg
+
+
+func _set_flash_status(text: String) -> void:
+	_flash_status = text.strip_edges()
 
 
 func _use_backend() -> bool:
@@ -103,7 +140,8 @@ func on_open() -> void:
 	_coming_soon_title = ""
 	_selected_research_id = ""
 	_research_category = "Growth"
-	if _use_backend():
+	var nc: Node = _nakama_connection()
+	if has_node("/root/AllianceBackend") and nc != null and nc.is_authenticated():
 		await _alliance_backend().refresh_profile()
 		if _alliance_backend().is_in_backend_alliance():
 			await _alliance_backend().refresh_membership_caches()
@@ -289,6 +327,12 @@ func _refresh() -> void:
 			else:
 				_view = ViewMode.LOBBY
 				_build_unjoined_view()
+		ViewMode.SETTINGS:
+			if _is_in_alliance():
+				_build_settings_view()
+			else:
+				_view = ViewMode.LOBBY
+				_build_unjoined_view()
 		ViewMode.RESEARCH:
 			_build_research_view()
 		ViewMode.COMING_SOON:
@@ -299,6 +343,10 @@ func _refresh() -> void:
 				_build_home_view()
 			else:
 				_build_unjoined_view()
+
+	if _flash_status != "":
+		_status_label.text = _flash_status
+		_flash_status = ""
 
 
 func _update_header() -> void:
@@ -322,6 +370,8 @@ func _update_header() -> void:
 			_title_label.text = "HELP" if _use_backend() else "HELP (LOCAL)"
 		ViewMode.APPLICATIONS:
 			_title_label.text = "APPLICATIONS"
+		ViewMode.SETTINGS:
+			_title_label.text = "SETTINGS"
 		ViewMode.RESEARCH:
 			_title_label.text = "RESEARCH (LOCAL)"
 		ViewMode.COMING_SOON:
@@ -337,7 +387,7 @@ func _on_back_pressed() -> void:
 			_view = ViewMode.MEMBERS
 		ViewMode.CREATE, ViewMode.JOIN, ViewMode.INVITES:
 			_view = ViewMode.LOBBY
-		ViewMode.MEMBERS, ViewMode.HELP, ViewMode.APPLICATIONS, ViewMode.RESEARCH, ViewMode.COMING_SOON:
+		ViewMode.MEMBERS, ViewMode.HELP, ViewMode.APPLICATIONS, ViewMode.RESEARCH, ViewMode.COMING_SOON, ViewMode.SETTINGS:
 			_coming_soon_title = ""
 			_selected_research_id = ""
 			_view = ViewMode.HOME
@@ -378,8 +428,7 @@ func _open_nav_card(card_id: String) -> void:
 			_coming_soon_title = "Rankings"
 			_view = ViewMode.COMING_SOON
 		"settings":
-			_coming_soon_title = "Settings"
-			_view = ViewMode.COMING_SOON
+			_view = ViewMode.SETTINGS
 		_:
 			return
 	_refresh()
@@ -412,7 +461,8 @@ func _build_unjoined_view() -> void:
 	var create_btn: Button = Button.new()
 	create_btn.text = "Create Alliance"
 	create_btn.custom_minimum_size = Vector2(0, 64)
-	create_btn.disabled = not online and not has_node("/root/AllianceState")
+	## Beta: Create requires multiplayer authority (no silent local create while online).
+	create_btn.disabled = not online
 	create_btn.pressed.connect(func() -> void:
 		_view = ViewMode.CREATE
 		_refresh()
@@ -510,13 +560,22 @@ func _build_backend_home_view() -> void:
 	_add_panel_label(meta_box, "Your Rank: %s (%s)" % [rank, _alliance_backend().get_role_display_name(rank)])
 	_add_panel_label(meta_box, "Members: %d / %d" % [
 		member_count,
-		int(alliance.get("member_limit", 50)),
+		int(alliance.get("member_limit", 100)),
 	])
-	_add_panel_label(meta_box, "Join type: %s" % str(alliance.get("join_type", "apply")))
+	var jt: String = str(alliance.get("join_type", "apply"))
+	_add_panel_label(meta_box, "Join: %s" % ("Open" if jt == "open" else "Approval Required" if jt == "apply" else "Invite Only"))
+	_add_panel_label(meta_box, "Language: %s" % str(alliance.get("language", "en")).to_upper())
+	var min_cit: int = int(alliance.get("min_citadel_level", 0))
+	if min_cit > 0:
+		_add_panel_label(meta_box, "Min Citadel: %d" % min_cit)
 	var desc: String = str(alliance.get("description", "")).strip_edges()
 	_add_panel_label(meta_box, desc if desc != "" else "No description set.")
-	_add_panel_label(meta_box, "Power: placeholder (not authoritative)")
-	_add_panel_label(meta_box, "Authority: Nakama / AllianceBackend", true)
+	var announce: String = str(alliance.get("announcement", "")).strip_edges()
+	if announce != "":
+		_add_panel_label(meta_box, "Announcement: %s" % announce)
+	var power: int = int(alliance.get("alliance_power_placeholder", 0))
+	if power > 0:
+		_add_panel_label(meta_box, "Power: %d" % power)
 
 	var chat_btn: Button = Button.new()
 	chat_btn.text = "Open Alliance Chat"
@@ -527,13 +586,14 @@ func _build_backend_home_view() -> void:
 			hud.call("open_chat", "alliance")
 		elif has_node("/root/ChatManager"):
 			_chat_manager().ensure_alliance_joined()
-			_status_label.text = "Alliance Chat joining…"
+			_set_flash_status("Alliance Chat joining…")
+			_refresh()
 	)
 	_content.add_child(chat_btn)
 
 	if _alliance_backend().has_permission("invite"):
 		_invite_user_edit = LineEdit.new()
-		_invite_user_edit.placeholder_text = "Invite Nakama user_id"
+		_invite_user_edit.placeholder_text = "Invite player user ID"
 		_invite_user_edit.custom_minimum_size = Vector2(0, 48)
 		_content.add_child(_invite_user_edit)
 		var invite_btn: Button = Button.new()
@@ -543,7 +603,6 @@ func _build_backend_home_view() -> void:
 		_content.add_child(invite_btn)
 
 	_build_home_shared_tail(0)
-	_add_body_label("Research & Help tabs are LOCAL ONLY until a later migration. They do not bind to this backend Alliance.")
 
 
 func _build_home_shared_tail(player_pts: int) -> void:
@@ -1374,7 +1433,7 @@ func _build_backend_member_detail() -> void:
 		promote_btn.custom_minimum_size = Vector2(0, 52)
 		promote_btn.pressed.connect(func() -> void:
 			var result: Dictionary = await _alliance_backend().promote_member(member_id)
-			_status_label.text = str(result.get("error", "Promoted.")) if not bool(result.get("ok", false)) else "Promoted."
+			_set_flash_status("Promoted." if bool(result.get("ok", false)) else str(result.get("error", "Promote failed.")))
 			_refresh()
 		)
 		_content.add_child(promote_btn)
@@ -1385,7 +1444,7 @@ func _build_backend_member_detail() -> void:
 		demote_btn.custom_minimum_size = Vector2(0, 52)
 		demote_btn.pressed.connect(func() -> void:
 			var result: Dictionary = await _alliance_backend().demote_member(member_id)
-			_status_label.text = str(result.get("error", "Demoted.")) if not bool(result.get("ok", false)) else "Demoted."
+			_set_flash_status("Demoted." if bool(result.get("ok", false)) else str(result.get("error", "Demote failed.")))
 			_refresh()
 		)
 		_content.add_child(demote_btn)
@@ -1412,7 +1471,7 @@ func _build_backend_member_detail() -> void:
 		transfer_btn.custom_minimum_size = Vector2(0, 52)
 		transfer_btn.pressed.connect(func() -> void:
 			var result: Dictionary = await _alliance_backend().transfer_leadership(member_id)
-			_status_label.text = str(result.get("error", "Transferred.")) if not bool(result.get("ok", false)) else "Leadership transferred."
+			_set_flash_status("Leadership transferred." if bool(result.get("ok", false)) else str(result.get("error", "Transfer failed.")))
 			_refresh()
 		)
 		_content.add_child(transfer_btn)
@@ -1426,10 +1485,11 @@ func _build_applications_view() -> void:
 		if not _alliance_backend().has_permission("view_applications") and not _alliance_backend().has_permission("approve"):
 			_add_body_label("You do not have permission to review applications.")
 			return
+		_add_section_label("Pending Applications")
+		await _alliance_backend().list_join_requests()
 		var apps: Array = _alliance_backend().get_cached_applications()
 		if apps.is_empty():
 			_add_body_label("No pending applications.")
-			_alliance_backend().list_join_requests()
 			return
 		for app_v in apps:
 			if typeof(app_v) != TYPE_DICTIONARY:
@@ -1441,21 +1501,22 @@ func _build_applications_view() -> void:
 			var box: VBoxContainer = VBoxContainer.new()
 			box.add_theme_constant_override("separation", 8)
 			block.add_child(box)
-			var info: Label = Label.new()
-			info.text = "%s\nPower placeholder" % str(app.get("display_name", uid))
-			info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			info.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			box.add_child(info)
+			var display: String = str(app.get("display_name", uid)).strip_edges()
+			if display == "":
+				display = uid
+			_add_panel_label(box, display, true)
+			_add_panel_label(box, "Power: %d" % int(app.get("power", app.get("power_placeholder", 0))))
+			_add_panel_label(box, "Citadel: %d" % int(app.get("citadel_level", 1)))
 			var actions: HBoxContainer = HBoxContainer.new()
 			actions.add_theme_constant_override("separation", 8)
 			box.add_child(actions)
 			var accept_btn: Button = Button.new()
-			accept_btn.text = "Accept"
+			accept_btn.text = "Approve"
 			accept_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			accept_btn.custom_minimum_size = Vector2(0, 48)
 			accept_btn.pressed.connect(func() -> void:
 				var result: Dictionary = await _alliance_backend().approve_application(uid)
-				_status_label.text = str(result.get("error", "Accepted.")) if not bool(result.get("ok", false)) else "Application accepted."
+				_set_flash_status("Application approved." if bool(result.get("ok", false)) else str(result.get("error", "Approve failed.")))
 				_refresh()
 			)
 			actions.add_child(accept_btn)
@@ -1465,7 +1526,7 @@ func _build_applications_view() -> void:
 			reject_btn.custom_minimum_size = Vector2(0, 48)
 			reject_btn.pressed.connect(func() -> void:
 				var result: Dictionary = await _alliance_backend().reject_application(uid)
-				_status_label.text = str(result.get("error", "Rejected.")) if not bool(result.get("ok", false)) else "Application rejected."
+				_set_flash_status("Application rejected." if bool(result.get("ok", false)) else str(result.get("error", "Reject failed.")))
 				_refresh()
 			)
 			actions.add_child(reject_btn)
@@ -1524,129 +1585,384 @@ func _build_applications_view() -> void:
 		actions.add_child(reject_btn)
 
 
-func _build_create_view() -> void:
-	_add_section_label("Raise a New Banner")
+func _build_settings_view() -> void:
+	_add_section_label("Alliance Settings")
+	if not _use_backend():
+		_add_body_label("Settings require a live multiplayer Alliance.")
+		return
+	if not _alliance_backend().has_permission("edit_profile"):
+		_add_body_label("Only the Leader can edit Alliance settings.")
+		return
+
+	var alliance: Dictionary = _alliance_backend().get_cached_alliance()
+	_add_body_label("Changes sync immediately for all members.")
 
 	var name_row: HBoxContainer = HBoxContainer.new()
 	name_row.add_theme_constant_override("separation", 8)
 	_content.add_child(name_row)
-
 	var name_caption: Label = Label.new()
 	name_caption.text = "Name"
-	name_caption.custom_minimum_size = Vector2(80, 0)
+	name_caption.custom_minimum_size = Vector2(110, 0)
+	name_row.add_child(name_caption)
+	_name_edit = LineEdit.new()
+	_name_edit.text = str(alliance.get("name", _alliance_backend().get_alliance_name()))
+	_name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_name_edit.max_length = 24
+	name_row.add_child(_name_edit)
+
+	var desc_caption: Label = Label.new()
+	desc_caption.text = "Description"
+	_content.add_child(desc_caption)
+	_desc_edit = TextEdit.new()
+	_desc_edit.text = str(alliance.get("description", ""))
+	_desc_edit.custom_minimum_size = Vector2(0, 88)
+	_desc_edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+	_content.add_child(_desc_edit)
+
+	var announce_caption: Label = Label.new()
+	announce_caption.text = "Announcement"
+	_content.add_child(announce_caption)
+	_settings_announce_edit = TextEdit.new()
+	_settings_announce_edit.text = str(alliance.get("announcement", ""))
+	_settings_announce_edit.custom_minimum_size = Vector2(0, 72)
+	_settings_announce_edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+	_content.add_child(_settings_announce_edit)
+
+	var lang_row: HBoxContainer = HBoxContainer.new()
+	lang_row.add_theme_constant_override("separation", 8)
+	_content.add_child(lang_row)
+	var lang_caption: Label = Label.new()
+	lang_caption.text = "Language"
+	lang_caption.custom_minimum_size = Vector2(110, 0)
+	lang_row.add_child(lang_caption)
+	_lang_option = OptionButton.new()
+	_lang_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_lang_option.custom_minimum_size = Vector2(0, 44)
+	var cur_lang: String = str(alliance.get("language", "en"))
+	var lang_sel: int = 0
+	for i in range(CREATE_LANGS.size()):
+		var lang_v: Dictionary = CREATE_LANGS[i]
+		_lang_option.add_item(str(lang_v.get("label", "")), i)
+		_lang_option.set_item_metadata(i, str(lang_v.get("id", "en")))
+		if str(lang_v.get("id", "")) == cur_lang:
+			lang_sel = i
+	_lang_option.select(lang_sel)
+	lang_row.add_child(_lang_option)
+
+	var join_row: HBoxContainer = HBoxContainer.new()
+	join_row.add_theme_constant_override("separation", 8)
+	_content.add_child(join_row)
+	var join_caption: Label = Label.new()
+	join_caption.text = "Join Type"
+	join_caption.custom_minimum_size = Vector2(110, 0)
+	join_row.add_child(join_caption)
+	_join_type_option = OptionButton.new()
+	_join_type_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_join_type_option.custom_minimum_size = Vector2(0, 44)
+	_join_type_option.add_item("Open", 0)
+	_join_type_option.set_item_metadata(0, "open")
+	_join_type_option.add_item("Approval Required", 1)
+	_join_type_option.set_item_metadata(1, "apply")
+	var cur_jt: String = str(alliance.get("join_type", "apply"))
+	_join_type_option.select(0 if cur_jt == "open" else 1)
+	join_row.add_child(_join_type_option)
+
+	var cit_row: HBoxContainer = HBoxContainer.new()
+	cit_row.add_theme_constant_override("separation", 8)
+	_content.add_child(cit_row)
+	var cit_caption: Label = Label.new()
+	cit_caption.text = "Min Citadel"
+	cit_caption.custom_minimum_size = Vector2(110, 0)
+	cit_row.add_child(cit_caption)
+	_min_citadel_spin = SpinBox.new()
+	_min_citadel_spin.min_value = 0
+	_min_citadel_spin.max_value = 100
+	_min_citadel_spin.value = int(alliance.get("min_citadel_level", 0))
+	_min_citadel_spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cit_row.add_child(_min_citadel_spin)
+
+	_add_body_label("Alliance emblem — Coming Soon")
+
+	var save_btn: Button = Button.new()
+	save_btn.text = "Save Settings"
+	save_btn.custom_minimum_size = Vector2(0, 56)
+	save_btn.pressed.connect(_on_save_settings_pressed)
+	_content.add_child(save_btn)
+
+
+func _on_save_settings_pressed() -> void:
+	if not _use_backend():
+		return
+	var language: String = "en"
+	if _lang_option != null and _lang_option.selected >= 0:
+		language = str(_lang_option.get_item_metadata(_lang_option.selected))
+	var join_type: String = "apply"
+	if _join_type_option != null and _join_type_option.selected >= 0:
+		join_type = str(_join_type_option.get_item_metadata(_join_type_option.selected))
+	var fields: Dictionary = {
+		"name": _name_edit.text.strip_edges() if _name_edit else "",
+		"description": _desc_edit.text.strip_edges() if _desc_edit else "",
+		"announcement": _settings_announce_edit.text.strip_edges() if _settings_announce_edit else "",
+		"language": language,
+		"join_type": join_type,
+		"min_citadel_level": int(_min_citadel_spin.value) if _min_citadel_spin else 0,
+	}
+	var result: Dictionary = await _alliance_backend().update_alliance_profile(fields)
+	if bool(result.get("ok", false)):
+		_set_flash_status("Settings saved.")
+	else:
+		_set_flash_status(str(result.get("error", "Save failed.")))
+	_refresh()
+
+
+func _build_create_view() -> void:
+	_add_section_label("Raise a New Banner")
+	_add_body_label("Choose a name and tag for your Alliance. You become Leader (R5) on creation.")
+
+	if not _use_backend():
+		var nc: Node = _nakama_connection()
+		if nc != null and nc.is_authenticated():
+			_add_body_label("Loading your profile… Create unlocks once multiplayer is ready.")
+			var wait_btn: Button = Button.new()
+			wait_btn.text = "Retry"
+			wait_btn.custom_minimum_size = Vector2(0, 48)
+			wait_btn.pressed.connect(func() -> void:
+				await _alliance_backend().refresh_profile()
+				_refresh()
+			)
+			_content.add_child(wait_btn)
+			return
+		_add_body_label("Connect to multiplayer to create a real Alliance.")
+		return
+
+	var name_row: HBoxContainer = HBoxContainer.new()
+	name_row.add_theme_constant_override("separation", 8)
+	_content.add_child(name_row)
+	var name_caption: Label = Label.new()
+	name_caption.text = "Name"
+	name_caption.custom_minimum_size = Vector2(110, 0)
 	name_caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	name_row.add_child(name_caption)
-
 	_name_edit = LineEdit.new()
-	_name_edit.placeholder_text = "Alliance name"
+	_name_edit.placeholder_text = "Alliance name (3–24)"
 	_name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_name_edit.max_length = AllianceState.MAX_NAME_LENGTH
+	_name_edit.max_length = 24
+	_name_edit.text_changed.connect(func(_t: String) -> void: _update_create_form_validity())
 	name_row.add_child(_name_edit)
 
 	var tag_row: HBoxContainer = HBoxContainer.new()
 	tag_row.add_theme_constant_override("separation", 8)
 	_content.add_child(tag_row)
-
 	var tag_caption: Label = Label.new()
 	tag_caption.text = "Tag"
-	tag_caption.custom_minimum_size = Vector2(80, 0)
+	tag_caption.custom_minimum_size = Vector2(110, 0)
 	tag_caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	tag_row.add_child(tag_caption)
-
 	_tag_edit = LineEdit.new()
-	_tag_edit.placeholder_text = "TAG"
+	_tag_edit.placeholder_text = "3–4 letters/numbers"
 	_tag_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_tag_edit.max_length = AllianceState.MAX_TAG_LENGTH
+	_tag_edit.max_length = 4
+	_tag_edit.text_changed.connect(func(_t: String) -> void: _update_create_form_validity())
 	tag_row.add_child(_tag_edit)
 
-	var confirm: Button = Button.new()
-	confirm.text = "Confirm Create"
-	confirm.custom_minimum_size = Vector2(0, 56)
-	confirm.pressed.connect(_on_create_pressed)
-	_content.add_child(confirm)
+	var desc_caption: Label = Label.new()
+	desc_caption.text = "Description (optional)"
+	desc_caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_content.add_child(desc_caption)
+	_desc_edit = TextEdit.new()
+	_desc_edit.custom_minimum_size = Vector2(0, 88)
+	_desc_edit.placeholder_text = "Tell knights what your banner stands for…"
+	_desc_edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+	_content.add_child(_desc_edit)
+
+	var lang_row: HBoxContainer = HBoxContainer.new()
+	lang_row.add_theme_constant_override("separation", 8)
+	_content.add_child(lang_row)
+	var lang_caption: Label = Label.new()
+	lang_caption.text = "Language"
+	lang_caption.custom_minimum_size = Vector2(110, 0)
+	lang_caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	lang_row.add_child(lang_caption)
+	_lang_option = OptionButton.new()
+	_lang_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_lang_option.custom_minimum_size = Vector2(0, 44)
+	for lang_v in CREATE_LANGS:
+		_lang_option.add_item(str(lang_v.get("label", "")), _lang_option.item_count)
+		_lang_option.set_item_metadata(_lang_option.item_count - 1, str(lang_v.get("id", "en")))
+	_lang_option.select(0)
+	lang_row.add_child(_lang_option)
+
+	var join_row: HBoxContainer = HBoxContainer.new()
+	join_row.add_theme_constant_override("separation", 8)
+	_content.add_child(join_row)
+	var join_caption: Label = Label.new()
+	join_caption.text = "Join Type"
+	join_caption.custom_minimum_size = Vector2(110, 0)
+	join_caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	join_row.add_child(join_caption)
+	_join_type_option = OptionButton.new()
+	_join_type_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_join_type_option.custom_minimum_size = Vector2(0, 44)
+	_join_type_option.add_item("Open — anyone meeting requirements joins", 0)
+	_join_type_option.set_item_metadata(0, "open")
+	_join_type_option.add_item("Approval Required — apply to join", 1)
+	_join_type_option.set_item_metadata(1, "apply")
+	_join_type_option.select(1)
+	join_row.add_child(_join_type_option)
+
+	var cit_row: HBoxContainer = HBoxContainer.new()
+	cit_row.add_theme_constant_override("separation", 8)
+	_content.add_child(cit_row)
+	var cit_caption: Label = Label.new()
+	cit_caption.text = "Min Citadel"
+	cit_caption.custom_minimum_size = Vector2(110, 0)
+	cit_caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cit_row.add_child(cit_caption)
+	_min_citadel_spin = SpinBox.new()
+	_min_citadel_spin.min_value = 0
+	_min_citadel_spin.max_value = 100
+	_min_citadel_spin.value = 0
+	_min_citadel_spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_min_citadel_spin.custom_minimum_size = Vector2(0, 44)
+	cit_row.add_child(_min_citadel_spin)
+
+	_create_error_label = Label.new()
+	_create_error_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_create_error_label.modulate = Color(1.0, 0.55, 0.45)
+	_create_error_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_content.add_child(_create_error_label)
+
+	var actions: HBoxContainer = HBoxContainer.new()
+	actions.add_theme_constant_override("separation", 8)
+	_content.add_child(actions)
+	var cancel_btn: Button = Button.new()
+	cancel_btn.text = "Cancel"
+	cancel_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cancel_btn.custom_minimum_size = Vector2(0, 56)
+	cancel_btn.pressed.connect(func() -> void:
+		_view = ViewMode.LOBBY
+		_refresh()
+	)
+	actions.add_child(cancel_btn)
+	_create_button = Button.new()
+	_create_button.text = "Create Alliance"
+	_create_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_create_button.custom_minimum_size = Vector2(0, 56)
+	_create_button.pressed.connect(_on_create_pressed)
+	actions.add_child(_create_button)
+	_update_create_form_validity()
+
+
+func _update_create_form_validity() -> void:
+	if _create_button == null:
+		return
+	var err: String = _validate_create_fields()
+	if _create_error_label:
+		_create_error_label.text = err
+	_create_button.disabled = err != ""
+
+
+func _validate_create_fields() -> String:
+	var name_text: String = _name_edit.text.strip_edges() if _name_edit else ""
+	var tag_text: String = _tag_edit.text.strip_edges().to_upper() if _tag_edit else ""
+	if name_text.length() < 3 or name_text.length() > 24:
+		return "Alliance name must be 3–24 characters."
+	if RegEx.create_from_string("[<>{}\\\\`]").search(name_text) != null:
+		return "Alliance name contains illegal characters."
+	if tag_text.length() < 3 or tag_text.length() > 4:
+		return "Tag must be 3–4 characters."
+	if RegEx.create_from_string("^[A-Z0-9]+$").search(tag_text) == null:
+		return "Tag may only use letters and numbers."
+	return ""
 
 
 func _build_join_view() -> void:
 	if _use_backend():
-		_add_section_label("Apply to an Alliance")
-		_add_body_label("Browse Crownspire alliances or paste an Alliance ID. Join creates a pending application.")
+		_add_section_label("Find an Alliance")
+		_add_body_label("Open alliances join instantly. Approval Required alliances need an application.")
 
-		_join_id_edit = LineEdit.new()
-		_join_id_edit.placeholder_text = "Alliance ID (UUID)"
-		_join_id_edit.custom_minimum_size = Vector2(0, 48)
-		_content.add_child(_join_id_edit)
-		var apply_btn: Button = Button.new()
-		apply_btn.text = "Apply by ID"
-		apply_btn.custom_minimum_size = Vector2(0, 52)
-		apply_btn.pressed.connect(func() -> void:
-			var aid: String = _join_id_edit.text if _join_id_edit else ""
-			var result: Dictionary = await _alliance_backend().apply_to_alliance(aid.strip_edges())
-			if bool(result.get("ok", false)):
-				_status_label.text = str(result.get("message", "Application submitted. Awaiting approval."))
-			else:
-				_status_label.text = str(result.get("error", "Apply failed."))
+		var search_row: HBoxContainer = HBoxContainer.new()
+		search_row.add_theme_constant_override("separation", 8)
+		_content.add_child(search_row)
+		_search_query_edit = LineEdit.new()
+		_search_query_edit.placeholder_text = "Search by name or tag…"
+		_search_query_edit.text = _search_query
+		_search_query_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_search_query_edit.custom_minimum_size = Vector2(0, 48)
+		search_row.add_child(_search_query_edit)
+		var search_btn: Button = Button.new()
+		search_btn.text = "Search"
+		search_btn.custom_minimum_size = Vector2(110, 48)
+		search_btn.pressed.connect(func() -> void:
+			_search_query = _search_query_edit.text.strip_edges() if _search_query_edit else ""
+			_refresh()
 		)
-		_content.add_child(apply_btn)
+		search_row.add_child(search_btn)
 
-		var listed: Dictionary = await _alliance_backend().list_alliances("")
+		if OS.is_debug_build():
+			_join_id_edit = LineEdit.new()
+			_join_id_edit.placeholder_text = "Dev: Alliance ID"
+			_join_id_edit.custom_minimum_size = Vector2(0, 44)
+			_content.add_child(_join_id_edit)
+			var apply_btn: Button = Button.new()
+			apply_btn.text = "Join / Apply by ID"
+			apply_btn.custom_minimum_size = Vector2(0, 48)
+			apply_btn.pressed.connect(func() -> void:
+				var aid: String = _join_id_edit.text if _join_id_edit else ""
+				await _on_join_pressed(aid.strip_edges())
+			)
+			_content.add_child(apply_btn)
+
+		var query: String = _search_query
+		var listed: Dictionary = await _alliance_backend().list_alliances(query)
 		var alliances: Array = listed.get("alliances", []) if bool(listed.get("ok", false)) else []
 		if alliances.is_empty():
-			_add_body_label("No public Crownspire alliances listed yet. Use Alliance ID to apply.")
+			_add_body_label("No alliances found. Create one to raise the first banner.")
 		else:
 			for entry_v in alliances:
 				if typeof(entry_v) != TYPE_DICTIONARY:
 					continue
-				var entry: Dictionary = entry_v
-				var entry_id: String = str(entry.get("alliance_id", ""))
-				var row: HBoxContainer = HBoxContainer.new()
-				row.add_theme_constant_override("separation", 8)
-				_content.add_child(row)
-				var info: Label = Label.new()
-				info.text = "[%s] %s\n%d members" % [
-					str(entry.get("tag", "")),
-					str(entry.get("name", "")),
-					int(entry.get("member_count", 0)),
-				]
-				info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-				info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-				info.mouse_filter = Control.MOUSE_FILTER_IGNORE
-				row.add_child(info)
-				var join_btn: Button = Button.new()
-				join_btn.text = "Apply"
-				join_btn.custom_minimum_size = Vector2(110, 56)
-				join_btn.pressed.connect(_on_join_pressed.bind(entry_id))
-				row.add_child(join_btn)
+				_add_alliance_search_card(entry_v)
 		return
 
 	_add_section_label("Join an Alliance")
-	_add_body_label("Select a local Alliance to join (offline prototype).")
+	_add_body_label("Connect to multiplayer to browse live alliances.")
 
-	var joinable: Array[Dictionary] = AllianceState.get_joinable_alliances()
-	if joinable.is_empty():
-		_add_body_label("No alliances available. Create one instead.")
-	else:
-		for entry: Dictionary in joinable:
-			var entry_id: String = str(entry.get("id", ""))
-			var row: HBoxContainer = HBoxContainer.new()
-			row.add_theme_constant_override("separation", 8)
-			_content.add_child(row)
 
-			var info: Label = Label.new()
-			info.text = "[%s] %s\n%d members" % [
-				str(entry.get("tag", "")),
-				str(entry.get("name", "")),
-				int(entry.get("member_count", 0)),
-			]
-			info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			info.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			row.add_child(info)
+func _add_alliance_search_card(entry: Dictionary) -> void:
+	var entry_id: String = str(entry.get("alliance_id", ""))
+	var name_text: String = str(entry.get("name", "")).strip_edges()
+	var tag: String = str(entry.get("tag", "")).strip_edges()
+	if name_text == "" or name_text.to_lower().begins_with("placeholder"):
+		if not OS.is_debug_build():
+			return
+	var join_type: String = str(entry.get("join_type", "apply"))
+	var is_open: bool = join_type == "open" or bool(entry.get("open", false))
+	var members: int = int(entry.get("member_count", 0))
+	var limit: int = int(entry.get("member_limit", 100))
+	var lang: String = str(entry.get("language", "en")).to_upper()
+	var min_cit: int = int(entry.get("min_citadel_level", 0))
+	var preview: String = str(entry.get("description_preview", entry.get("description", ""))).strip_edges()
+	var power: int = int(entry.get("alliance_power_placeholder", 0))
 
-			var join_btn: Button = Button.new()
-			join_btn.text = "Join"
-			join_btn.custom_minimum_size = Vector2(110, 56)
-			join_btn.pressed.connect(_on_join_pressed.bind(entry_id))
-			row.add_child(join_btn)
+	var block: PanelContainer = _make_info_panel()
+	_content.add_child(block)
+	var box: VBoxContainer = VBoxContainer.new()
+	box.add_theme_constant_override("separation", 8)
+	block.add_child(box)
+	_add_panel_label(box, "[%s] %s" % [tag, name_text], true)
+	_add_panel_label(box, "Members: %d/%d" % [members, limit])
+	_add_panel_label(box, ("%s OPEN" % "🌍") if is_open else ("%s Approval Required" % "🔒"))
+	_add_panel_label(box, "Language: %s · Min Citadel: %d" % [lang, min_cit])
+	if power > 0:
+		_add_panel_label(box, "Power: %d" % power)
+	if preview != "":
+		_add_panel_label(box, preview)
+	var action_btn: Button = Button.new()
+	action_btn.text = "Join" if is_open else "Apply"
+	action_btn.custom_minimum_size = Vector2(0, 52)
+	action_btn.pressed.connect(_on_join_pressed.bind(entry_id))
+	box.add_child(action_btn)
 
 
 func _build_invites_view() -> void:
@@ -1696,59 +2012,98 @@ func _build_invites_view() -> void:
 
 
 func _on_create_pressed() -> void:
-	var name_text: String = _name_edit.text if _name_edit else ""
-	var tag_text: String = _tag_edit.text if _tag_edit else ""
-	if _use_backend():
-		var result_b: Dictionary = await _alliance_backend().create_alliance(name_text, tag_text)
+	var err: String = _validate_create_fields()
+	if err != "":
+		if _create_error_label:
+			_create_error_label.text = err
+		_set_flash_status(err)
+		_status_label.text = err
+		return
+
+	var name_text: String = _name_edit.text.strip_edges() if _name_edit else ""
+	var tag_text: String = _tag_edit.text.strip_edges().to_upper() if _tag_edit else ""
+	var description: String = _desc_edit.text.strip_edges() if _desc_edit else ""
+	var language: String = "en"
+	if _lang_option != null and _lang_option.selected >= 0:
+		language = str(_lang_option.get_item_metadata(_lang_option.selected))
+	var join_type: String = "apply"
+	if _join_type_option != null and _join_type_option.selected >= 0:
+		join_type = str(_join_type_option.get_item_metadata(_join_type_option.selected))
+	var min_citadel: int = int(_min_citadel_spin.value) if _min_citadel_spin else 0
+
+	if _create_button:
+		_create_button.disabled = true
+	_set_flash_status("Creating alliance…")
+	_status_label.text = "Creating alliance…"
+
+	var nc: Node = _nakama_connection()
+	if nc != null and nc.is_authenticated():
+		var result_b: Dictionary = await _alliance_backend().create_alliance(name_text, tag_text, {
+			"description": description,
+			"language": language,
+			"join_type": join_type,
+			"min_citadel_level": min_citadel,
+		})
 		if not bool(result_b.get("ok", false)):
-			_status_label.text = str(result_b.get("error", "Create failed."))
+			var fail: String = str(result_b.get("error", "Create failed."))
+			if _create_error_label:
+				_create_error_label.text = fail
+			_set_flash_status(fail)
+			_status_label.text = fail
+			if _create_button:
+				_update_create_form_validity()
 			return
 		if has_node("/root/ChatManager"):
 			await _chat_manager().ensure_alliance_joined()
 		_view = ViewMode.HOME
+		_set_flash_status("Alliance created. You are Leader (R5).")
 		_refresh()
-		_status_label.text = "Alliance created (server-backed)."
 		return
 
-	var result: Dictionary = AllianceState.create_alliance(name_text, tag_text)
-	if not result.get("ok", false):
-		_status_label.text = str(result.get("error", "Create failed."))
-		return
-	_view = ViewMode.HOME
-	_refresh()
-	_status_label.text = "Alliance created (local)."
+	_set_flash_status("Connect to multiplayer to create an Alliance.")
+	_status_label.text = "Connect to multiplayer to create an Alliance."
+	if _create_button:
+		_update_create_form_validity()
 
 
 func _on_join_pressed(target_id: String) -> void:
-	if _use_backend():
-		var result_b: Dictionary = await _alliance_backend().apply_to_alliance(target_id)
+	if target_id.strip_edges() == "":
+		_set_flash_status("Select an alliance to join.")
+		_status_label.text = "Select an alliance to join."
+		return
+	if _use_backend() or (_nakama_connection() != null and _nakama_connection().is_authenticated()):
+		var result_b: Dictionary = await _alliance_backend().join_alliance(target_id)
 		if not bool(result_b.get("ok", false)):
-			_status_label.text = str(result_b.get("error", "Apply failed."))
+			_set_flash_status(str(result_b.get("error", "Join failed.")))
+			_status_label.text = str(result_b.get("error", "Join failed."))
 			return
-		_status_label.text = str(result_b.get("message", "Application submitted. Awaiting approval."))
+		if bool(result_b.get("pending", false)):
+			_set_flash_status(str(result_b.get("message", "Application sent.")))
+			_refresh()
+			return
+		if has_node("/root/ChatManager"):
+			await _chat_manager().ensure_alliance_joined()
+		_view = ViewMode.HOME
+		_set_flash_status(str(result_b.get("message", "Joined alliance.")))
 		_refresh()
 		return
 
-	var result: Dictionary = AllianceState.join_alliance(target_id)
-	if not result.get("ok", false):
-		_status_label.text = str(result.get("error", "Join failed."))
-		return
-	_view = ViewMode.HOME
-	_refresh()
-	_status_label.text = "Joined alliance."
+	_set_flash_status("Connect to multiplayer to join an Alliance.")
+	_status_label.text = "Connect to multiplayer to join an Alliance."
 
 
 func _on_leave_pressed() -> void:
 	if _use_backend():
 		var result_b: Dictionary = await _alliance_backend().leave_alliance()
 		if not bool(result_b.get("ok", false)):
+			_set_flash_status(str(result_b.get("error", "Leave failed.")))
 			_status_label.text = str(result_b.get("error", "Leave failed."))
 			return
 		_selected_member_id = ""
 		_coming_soon_title = ""
 		_view = ViewMode.LOBBY
+		_set_flash_status("Left alliance.")
 		_refresh()
-		_status_label.text = "Left alliance."
 		return
 
 	var result: Dictionary = AllianceState.leave_alliance()
@@ -1758,8 +2113,8 @@ func _on_leave_pressed() -> void:
 	_selected_member_id = ""
 	_coming_soon_title = ""
 	_view = ViewMode.LOBBY
+	_set_flash_status("Left alliance.")
 	_refresh()
-	_status_label.text = "Left alliance."
 
 
 func _on_invite_pressed() -> void:

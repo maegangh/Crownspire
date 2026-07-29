@@ -971,8 +971,11 @@ func _build_map_card(msg: RefCounted) -> Control:
 	_style_primary_button(view)
 	view.pressed.connect(func():
 		if has_node("/root/ChatManager"):
-			var result: Dictionary = _chat_manager().navigate_to_map_location(payload)
-			_status_label.text = "Location opened." if bool(result.get("navigated", false)) else str(result.get("note", "Location ready."))
+			var result: Dictionary = await _chat_manager().navigate_to_map_location(payload)
+			if bool(result.get("navigated", false)):
+				_status_label.text = "Navigating to location…"
+			else:
+				_status_label.text = str(result.get("error", result.get("note", "Could not open location.")))
 	)
 	box.add_child(view)
 	return card
@@ -1274,10 +1277,19 @@ func _on_share_location() -> void:
 		return
 	var cm: Node = _chat_manager()
 	var kid: String = cm.get_kingdom_id()
+	var share_pos := Vector2(4096, 4096)
+	if has_node("/root/MarchState") and MarchState.has_method("get_castle_world_position"):
+		share_pos = MarchState.get_castle_world_position()
+	# Prefer live world camera center when already on the map.
+	var tree := get_tree()
+	if tree != null and tree.current_scene != null:
+		var cam: Camera2D = tree.current_scene.get_node_or_null("Camera2D") as Camera2D
+		if cam != null and str(tree.current_scene.name) == "KingdomMap":
+			share_pos = cam.global_position
 	var payload := {
 		"kingdom_id": kid,
-		"x": 428.0,
-		"y": 719.0,
+		"x": share_pos.x,
+		"y": share_pos.y,
 		"label": "Shared Location",
 		"target_type": "coord",
 		"target_id": "",

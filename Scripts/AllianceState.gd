@@ -26,9 +26,9 @@ const STATUS_REJECTED: String = "rejected"
 const ROLE_DISPLAY_NAMES: Dictionary = {
 	"R1": "Recruit",
 	"R2": "Member",
-	"R3": "Officer",
-	"R4": "Marshal",
-	"R5": "Lord Paramount",
+	"R3": "Veteran",
+	"R4": "Officer",
+	"R5": "Leader",
 }
 
 ## Sprint 1C — configurable donation presets and contribution rate.

@@ -64,6 +64,9 @@ interface CrownspireProfile {
   vip_level: number;
   /** Unix seconds — updated by presence heartbeat while online. */
   last_online: number;
+  /** Stable world-map castle coordinates (kingdom map). */
+  world_x?: number;
+  world_y?: number;
   created_at: number;
   updated_at: number;
   profile_version: number;
@@ -115,6 +118,9 @@ function InitModule(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkrunt
   initializer.registerRpc("crownspire_update_player_identity", rpcUpdatePlayerIdentity);
   initializer.registerRpc("crownspire_presence_heartbeat", rpcPresenceHeartbeat);
 
+  // Kingdom world castles (stable positions for multiplayer map).
+  initializer.registerRpc("crownspire_list_kingdom_castles", rpcListKingdomCastles);
+
   // Phase 5.3 — Alliance Rallies (Wildling Lair).
   initializer.registerRpc("crownspire_rally_create", rpcRallyCreate);
   initializer.registerRpc("crownspire_rally_join", rpcRallyJoin);
@@ -125,7 +131,7 @@ function InitModule(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkrunt
   initializer.registerRpc("crownspire_rally_list_active", rpcRallyListActive);
   initializer.registerRpc("crownspire_rally_complete", rpcRallyComplete);
 
-  logger.info("Crownspire runtime loaded (Phase 3+4+5+5.1+5.3 identity/alliance/help/social/rallies). LOCAL DEVELOPMENT ONLY.");
+  logger.info("Crownspire runtime loaded (Phase 3+4+5+5.1+5.3+castles identity/alliance/help/social/rallies). LOCAL DEVELOPMENT ONLY.");
 }
 
 // ---------------------------------------------------------------------------
@@ -184,8 +190,10 @@ function ensureProfile(nk: nkruntime.Nakama, logger: nkruntime.Logger, userId: s
   const existing = readProfile(nk, userId);
   if (existing) {
     const normalized = normalizeIdentityFields(nk, existing);
-    // Refresh alliance fields from live group membership.
-    return syncAllianceFields(nk, logger, normalized);
+    const withCastle = ensureCastleCoords(nk, normalized);
+    const synced = syncAllianceFields(nk, logger, withCastle);
+    upsertKingdomCastleEntry(nk, synced);
+    return synced;
   }
 
   const created: CrownspireProfile = {
@@ -205,9 +213,11 @@ function ensureProfile(nk: nkruntime.Nakama, logger: nkruntime.Logger, userId: s
     updated_at: nowUnix(),
     profile_version: PROFILE_VERSION,
   };
-  writeProfile(nk, created);
+  const withCoords = ensureCastleCoords(nk, created);
+  writeProfile(nk, withCoords);
+  upsertKingdomCastleEntry(nk, withCoords);
   logger.info("Created Crownspire profile for %s kingdom=%s", userId, DEV_KINGDOM_ID);
-  return created;
+  return withCoords;
 }
 
 /** Backfill Phase 5.1 identity fields on older profiles. */
@@ -373,6 +383,8 @@ function publicProfile(profile: CrownspireProfile): any {
     vip_level: typeof profile.vip_level === "number" ? profile.vip_level : 0,
     last_online: lastOnline,
     online_status: online ? "online" : "offline",
+    world_x: typeof (profile as any).world_x === "number" ? (profile as any).world_x : 0,
+    world_y: typeof (profile as any).world_y === "number" ? (profile as any).world_y : 0,
     created_at: profile.created_at,
     updated_at: profile.updated_at,
     profile_version: profile.profile_version,
@@ -397,33 +409,60 @@ function rpcCreateAlliance(ctx: nkruntime.Context, logger: nkruntime.Logger, nk:
   const data = parsePayload(payload);
   const name = sanitizeAllianceName(String(data["name"] || ""));
   const tag = sanitizeAllianceTag(String(data["tag"] || ""));
+  assertAllianceTagUnique(nk, tag);
 
-  const description = "Crownspire development alliance";
-  // Private group: join requires approval (join request workflow).
+  let description = String(data["description"] || "").trim();
+  description = description.replace(/[\u0000-\u001F\u007F]/g, "").substring(0, 280);
+  if (description === "") {
+    description = "A Crownspire alliance.";
+  }
+  const language = String(data["language"] || "en").trim().substring(0, 8) || "en";
+  let joinType = String(data["join_type"] || "apply").trim().toLowerCase();
+  if (joinType !== "open" && joinType !== "apply") {
+    throw Err("join_type must be open or apply");
+  }
+  let minCitadel = Math.floor(Number(data["min_citadel_level"] !== undefined ? data["min_citadel_level"] : 0));
+  if (isNaN(minCitadel) || minCitadel < 0 || minCitadel > 100) {
+    throw Err("Invalid min_citadel_level");
+  }
+
+  const isOpen = joinType === "open";
   const metadata: { [key: string]: any } = {
     alliance_tag: tag,
     kingdom_id: profile.kingdom_id || DEV_KINGDOM_ID,
     crownspire: true,
   };
-  const group = nk.groupCreate(
-    ctx.userId,
-    name,
-    ctx.userId,
-    null,
-    description,
-    null,
-    false, // open = false (private) — join creates a request
-    metadata,
-    50
-  );
+
+  let group: nkruntime.Group;
+  try {
+    group = nk.groupCreate(
+      ctx.userId,
+      name,
+      ctx.userId,
+      language,
+      description,
+      null,
+      isOpen,
+      metadata,
+      100
+    );
+  } catch (e) {
+    const msg = String(e);
+    if (msg.toLowerCase().indexOf("name") >= 0 || msg.toLowerCase().indexOf("unique") >= 0) {
+      throw Err("Alliance name already taken");
+    }
+    throw Err("Could not create alliance");
+  }
 
   writeRank(nk, group.id, ctx.userId, "R5");
   writeAllianceMeta(nk, {
     alliance_id: group.id,
     description: description,
-    language: "en",
-    join_type: "apply",
+    language: language,
+    join_type: joinType,
     min_join_power_placeholder: 0,
+    min_citadel_level: minCitadel,
+    announcement: "",
     emblem_placeholder: "",
     banner_placeholder: "",
     alliance_power_placeholder: 0,
@@ -437,7 +476,15 @@ function rpcCreateAlliance(ctx: nkruntime.Context, logger: nkruntime.Logger, nk:
   profile.updated_at = nowUnix();
   writeProfile(nk, profile);
 
-  logger.info("Alliance created group=%s tag=%s by %s", group.id, tag, ctx.userId);
+  sendAllianceSystemMessage(
+    nk,
+    logger,
+    group.id,
+    (profile.display_name || "The Leader") + " raised the banner of [" + tag + "] " + name + ".",
+    "created"
+  );
+
+  logger.info("Alliance created group=%s tag=%s join_type=%s by %s", group.id, tag, joinType, ctx.userId);
   return JSON.stringify({
     ok: true,
     alliance: buildAllianceProfile(nk, logger, group),
@@ -459,7 +506,6 @@ function rpcJoinAlliance(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: n
     throw Err("alliance_id required");
   }
 
-  // Validate group exists and is a Crownspire alliance.
   const groups = nk.groupsGetId([groupId]);
   if (!groups || groups.length === 0) {
     throw Err("Alliance not found");
@@ -470,14 +516,100 @@ function rpcJoinAlliance(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: n
     throw Err("Not a Crownspire alliance group");
   }
 
-  // Private group -> creates join request. Does NOT grant chat access until approved.
-  nk.groupUserJoin(groupId, ctx.userId, ctx.username || "");
+  const stored = readAllianceMeta(nk, groupId);
+  const joinType = stored.join_type || (group.open ? "open" : "apply");
+  const minCitadel = typeof stored.min_citadel_level === "number" ? stored.min_citadel_level : 0;
+  const citadel = typeof profile.citadel_level === "number" ? profile.citadel_level : 1;
+  if (citadel < minCitadel) {
+    throw Err("Citadel level " + minCitadel + " required to join");
+  }
+  if (joinType === "invite_only") {
+    throw Err("This alliance is invite only");
+  }
+
+  // Capacity check (edgeCount includes requests; prefer active members when listing).
+  const memberLimit = Number(group.maxCount || 100);
+  if (Number(group.edgeCount || 0) >= memberLimit && joinType === "open") {
+    throw Err("Alliance is full");
+  }
+
+  if (joinType === "open") {
+    try {
+      nk.groupUserJoin(groupId, ctx.userId, ctx.username || "");
+    } catch (e) {
+      throw Err("Could not join alliance");
+    }
+    // Ensure membership for alliances that may still be private in Nakama but marked open in meta.
+    const stateAfter = getNakamaGroupState(nk, groupId, ctx.userId);
+    if (stateAfter < 0 || stateAfter > 2) {
+      try {
+        nk.groupUsersAdd(groupId, [ctx.userId]);
+      } catch (e2) {
+        throw Err("Could not join open alliance");
+      }
+    }
+    writeRank(nk, groupId, ctx.userId, "R1");
+    syncAllianceFields(nk, logger, profile);
+    const refreshed = ensureProfile(nk, logger, ctx.userId);
+    sendAllianceSystemMessage(
+      nk,
+      logger,
+      groupId,
+      (refreshed.display_name || "A player") + " joined the Alliance.",
+      "joined"
+    );
+    logger.info("Alliance open join group=%s user=%s", groupId, ctx.userId);
+    return JSON.stringify({
+      ok: true,
+      pending: false,
+      alliance_id: groupId,
+      alliance: buildAllianceProfile(nk, logger, groups[0]),
+      profile: publicProfile(refreshed),
+      message: "Joined alliance.",
+    });
+  }
+
+  // Approval-required: create join request. Check duplicate pending.
+  const pendingUsers = nk.groupUsersList(groupId, 100, 3);
+  const pendingList = pendingUsers.groupUsers || [];
+  for (let i = 0; i < pendingList.length; i++) {
+    const gu = pendingList[i];
+    if (!gu.user) continue;
+    const uid = String(gu.user.userId || (gu.user as any).id || "");
+    if (uid === ctx.userId) {
+      return JSON.stringify({
+        ok: true,
+        pending: true,
+        alliance_id: groupId,
+        message: "Application already sent.",
+      });
+    }
+  }
+
+  try {
+    nk.groupUserJoin(groupId, ctx.userId, ctx.username || "");
+  } catch (e) {
+    throw Err("Could not submit application");
+  }
+  notifyAllianceOfficers(
+    nk,
+    logger,
+    groupId,
+    "Alliance Application",
+    {
+      event: "application_received",
+      alliance_id: groupId,
+      applicant_user_id: ctx.userId,
+      applicant_name: profile.display_name || ctx.username || "",
+    },
+    ctx.userId
+  );
   logger.info("Alliance join requested group=%s user=%s", groupId, ctx.userId);
   return JSON.stringify({
     ok: true,
     pending: true,
     alliance_id: groupId,
-    message: "Join request submitted. Awaiting approval.",
+    message: "Application sent.",
   });
 }
 
@@ -506,7 +638,9 @@ function rpcListJoinRequests(ctx: nkruntime.Context, logger: nkruntime.Logger, n
       user_id: uid,
       username: u.username,
       display_name: applicant.display_name || u.displayName || "",
-      power_placeholder: 0,
+      power: typeof applicant.power === "number" ? applicant.power : 0,
+      power_placeholder: typeof applicant.power === "number" ? applicant.power : 0,
+      citadel_level: typeof applicant.citadel_level === "number" ? applicant.citadel_level : 1,
       message: "",
       status: "pending",
       created_at: nowUnix(),

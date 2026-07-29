@@ -143,7 +143,11 @@ func show_error(message: String) -> void:
 
 const HUD_CHROME_Z: int = 100
 const SCREEN_ROOT_Z: int = 0
+const SCREEN_ROOT_OVERLAY_Z: int = 220
 const BOTTOM_SAFE_MARGIN: float = 190.0
+
+var _overlay_name: String = ""
+
 
 func _init_screen_navigation() -> void:
 	var hud := get_parent()
@@ -224,6 +228,7 @@ func open_screen(screen_name: String) -> void:
 		_screen_root.move_child(screen, _screen_root.get_child_count() - 1)
 		if screen.has_method("on_open"):
 			screen.on_open()
+		_raise_screen_root(true)
 		_notify_secondary_hud(false)
 		return
 
@@ -239,6 +244,7 @@ func open_screen(screen_name: String) -> void:
 
 	if screen.has_method("on_open"):
 		screen.on_open()
+	_raise_screen_root(true)
 	_notify_secondary_hud(false)
 
 
@@ -249,17 +255,48 @@ func close_current_screen() -> void:
 
 	_hide_all_screens()
 	_set_popup_background_active(false)
-	_notify_secondary_hud(true)
+	if _overlay_name == "":
+		_raise_screen_root(false)
+		_notify_secondary_hud(true)
+
+
+func notify_overlay_opened(overlay_name: String) -> void:
+	## Full-screen overlays (Player Profile) that are not ordinary open_screen targets.
+	_overlay_name = overlay_name.strip_edges()
+	_raise_screen_root(true)
+	_notify_secondary_hud(false)
+	var hud: Node = get_parent()
+	if hud != null and hud.has_method("set_gameplay_hud_visible"):
+		hud.call("set_gameplay_hud_visible", false)
+
+
+func notify_overlay_closed() -> void:
+	_overlay_name = ""
+	if _current_screen == null:
+		_raise_screen_root(false)
+		_notify_secondary_hud(true)
+		var hud: Node = get_parent()
+		if hud != null and hud.has_method("set_gameplay_hud_visible"):
+			hud.call("set_gameplay_hud_visible", true)
+
+
+func _raise_screen_root(raised: bool) -> void:
+	if _screen_root == null:
+		return
+	_screen_root.z_index = SCREEN_ROOT_OVERLAY_Z if raised else SCREEN_ROOT_Z
 
 
 func _notify_secondary_hud(is_visible: bool) -> void:
 	var hud: Node = get_parent()
 	if hud != null and hud.has_method("set_secondary_hud_visible"):
 		hud.set_secondary_hud_visible(is_visible)
+	if hud != null and hud.has_method("set_gameplay_hud_visible") and is_visible and _overlay_name == "" and _current_screen == null:
+		# Only restore full chrome when nothing is open.
+		pass
 
 
 func is_screen_open() -> bool:
-	return _current_screen != null
+	return _current_screen != null or _overlay_name != ""
 
 
 func get_current_screen_name() -> String:

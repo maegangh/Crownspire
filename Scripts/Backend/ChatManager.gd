@@ -712,21 +712,150 @@ func navigate_to_map_location(payload_value: Dictionary) -> Dictionary:
 	if not bool(validated.get("ok", false)):
 		return validated
 	var payload: Dictionary = validated.get("payload", {})
+	var msg_kingdom: String = str(payload.get("kingdom_id", "")).strip_edges()
+	if msg_kingdom != "" and _kingdom_id != "" and msg_kingdom != _kingdom_id:
+		return {
+			"ok": false,
+			"error": "That location is in another kingdom.",
+			"navigated": false,
+		}
+
 	var world_pos := Vector2(float(payload.get("x")), float(payload.get("y")))
+	world_pos = _clamp_world_map_pos(world_pos)
+
+	# Close chat / clear UIManager screen so world input works.
+	var hud: Node = _find_game_hud()
+	if hud != null:
+		var mgr: Node = hud.get_node_or_null("UIManager")
+		if mgr != null and mgr.has_method("close_current_screen"):
+			mgr.call("close_current_screen")
+
+	# Ensure World Map is active.
+	if not _is_on_world_map():
+		if get_tree() == null:
+			return {"ok": false, "error": "Unable to open World Map.", "navigated": false}
+		get_tree().change_scene_to_file("res://Scenes/World/KingdomMap.tscn")
+		var ready: bool = await _wait_for_world_camera(6.0)
+		if not ready:
+			return {"ok": false, "error": "World Map is still loading. Try again.", "navigated": false}
+
 	var camera := _find_map_camera()
-	if camera != null and camera.has_method("focus_world_position"):
-		camera.call("focus_world_position", world_pos)
-		return {"ok": true, "navigated": true, "world_pos": world_pos}
-	## Hook only — World Map rewrite is out of scope.
-	print("[Chat] MAP_LOCATION navigation hook: no MapCamera.focus_world_position in tree (x=%.1f y=%.1f)" % [
-		world_pos.x, world_pos.y
+	if camera == null or not camera.has_method("focus_world_position"):
+		return {
+			"ok": false,
+			"error": "World Map camera unavailable.",
+			"navigated": false,
+			"world_pos": world_pos,
+		}
+	camera.call("focus_world_position", world_pos)
+	_spawn_location_ping(world_pos)
+	return {"ok": true, "navigated": true, "world_pos": world_pos}
+
+
+func _clamp_world_map_pos(pos: Vector2) -> Vector2:
+	const MARGIN := 64.0
+	const SIZE := 8192.0
+	return Vector2(clampf(pos.x, MARGIN, SIZE - MARGIN), clampf(pos.y, MARGIN, SIZE - MARGIN))
+
+
+func _is_on_world_map() -> bool:
+	var tree := get_tree()
+	if tree == null:
+		return false
+	var scene := tree.current_scene
+	if scene == null:
+		return false
+	return str(scene.name) == "KingdomMap" or scene.get_node_or_null("PlayerCastleMarker") != null
+
+
+func _wait_for_world_camera(timeout_sec: float) -> bool:
+	var elapsed: float = 0.0
+	while elapsed < timeout_sec:
+		if not is_inside_tree():
+			return false
+		if _find_map_camera() != null:
+			# Allow MapCamera _ready clamp to finish.
+			await get_tree().process_frame
+			await get_tree().process_frame
+			return true
+		await get_tree().create_timer(0.1).timeout
+		elapsed += 0.1
+	return false
+
+
+func _find_game_hud() -> Node:
+	var tree := get_tree()
+	if tree == null:
+		return null
+	var group := tree.get_nodes_in_group("game_hud")
+	if not group.is_empty():
+		return group[0]
+	return tree.root.find_child("GameHUD", true, false)
+
+
+func _spawn_location_ping(world_pos: Vector2) -> void:
+	var tree := get_tree()
+	if tree == null or tree.current_scene == null:
+		return
+	var scene: Node = tree.current_scene
+	var existing: Node = scene.get_node_or_null("LocationPing")
+	if existing != null:
+		existing.queue_free()
+	var ping := Node2D.new()
+	ping.name = "LocationPing"
+	ping.z_index = 40
+	ping.global_position = world_pos
+	scene.add_child(ping)
+	var ring := Polygon2D.new()
+	ring.color = Color(0.35, 0.75, 1.0, 0.55)
+	ring.polygon = PackedVector2Array([
+		Vector2(-28, 0), Vector2(0, -28), Vector2(28, 0), Vector2(0, 28),
 	])
-	return {
-		"ok": true,
-		"navigated": false,
-		"world_pos": world_pos,
-		"note": "Navigation hook ready; open World Map to focus when camera is present.",
-	}
+	ping.add_child(ring)
+	var tween := ping.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(ring, "scale", Vector2(2.2, 2.2), 1.1)
+	tween.tween_property(ring, "modulate:a", 0.0, 1.1)
+	tween.chain().tween_callback(ping.queue_free)
+
+
+func _find_map_camera() -> Node:
+	var tree := get_tree()
+	if tree == null:
+		return null
+	var scene: Node = tree.current_scene
+	if scene != null:
+		var cam: Node = scene.get_node_or_null("Camera2D")
+		if cam != null and cam.has_method("focus_world_position"):
+			return cam
+		var named: Node = scene.get_node_or_null("MapCamera")
+		if named != null and named.has_method("focus_world_position"):
+			return named
+	var root := tree.get_root()
+	if root == null:
+		return null
+	# Prefer live KingdomMap Camera2D over any leftover city camera.
+	var cameras: Array[Node] = []
+	_collect_cameras(root, cameras)
+	for c in cameras:
+		if c.has_method("focus_world_position") and str(c.get_path()).find("KingdomMap") >= 0:
+			return c
+	for c in cameras:
+		if c.has_method("focus_world_position") and str(c.name) in ["Camera2D", "MapCamera"]:
+			# Prefer map-sized limit cameras.
+			if "map_size" in c or c.get("limit_right") == 8192:
+				return c
+	for c in cameras:
+		if c.has_method("focus_world_position"):
+			return c
+	return root.find_child("MapCamera", true, false)
+
+
+func _collect_cameras(node: Node, out: Array[Node]) -> void:
+	if node is Camera2D:
+		out.append(node)
+	for child in node.get_children():
+		_collect_cameras(child, out)
 
 
 ## Debug helper: second identity uses CROWNSPIR_NAKAMA_DEVICE_SLOT=2 (see NakamaConnection).
@@ -1046,16 +1175,6 @@ func _persist_pending_report(report: Dictionary) -> void:
 	cfg.set_value("reports", "pending_json", JSON.stringify(list))
 	cfg.set_value("reports", "backend_todo", "crownspire_chat_report RPC")
 	cfg.save(REPORTS_PATH)
-
-
-func _find_map_camera() -> Node:
-	var tree := get_tree()
-	if tree == null:
-		return null
-	var root := tree.get_root()
-	if root == null:
-		return null
-	return root.find_child("MapCamera", true, false)
 
 
 func _ready_smoke_maybe() -> void:

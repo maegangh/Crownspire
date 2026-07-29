@@ -48,6 +48,7 @@ func _ready():
 	add_to_group("game_hud")
 	_apply_screen_context()
 	_configure_bottom_nav()
+	call_deferred("_apply_safe_area_insets")
 	_setup_queue_status_hud()
 	# Search before ActiveMarches so a marches HUD fault cannot skip the SEARCH button.
 	_setup_world_search_ui()
@@ -627,6 +628,55 @@ func set_secondary_hud_visible(is_visible: bool) -> void:
 		mail_unread_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
+## Hide / restore gameplay-only HUD while full-screen profile / major modals are open.
+func set_gameplay_hud_visible(is_visible: bool) -> void:
+	var chrome: Control = get_node_or_null("Control") as Control
+	if chrome != null:
+		chrome.visible = is_visible
+		chrome.mouse_filter = Control.MOUSE_FILTER_IGNORE if is_visible else Control.MOUSE_FILTER_IGNORE
+	if _queue_status_hud != null and is_instance_valid(_queue_status_hud):
+		if not is_visible:
+			_queue_status_hud.visible = false
+	if events_button != null and is_instance_valid(events_button) and not is_visible:
+		events_button.visible = false
+	if right_feature_buttons != null and is_instance_valid(right_feature_buttons):
+		right_feature_buttons.visible = is_visible
+	if _chat_preview != null and is_instance_valid(_chat_preview):
+		if _chat_preview.has_method("set_force_hidden"):
+			_chat_preview.call("set_force_hidden", not is_visible)
+		else:
+			_chat_preview.visible = is_visible
+	if _help_button != null and is_instance_valid(_help_button) and not is_visible:
+		_help_button.visible = false
+	if is_visible:
+		_sync_queue_status_visibility()
+		_sync_chat_preview_visibility()
+		_sync_help_button_visibility()
+		_sync_right_feature_visibility()
+
+
+func _apply_safe_area_insets() -> void:
+	## Align top HUD / bottom nav with device safe areas (notches / home indicators).
+	var chrome: Control = get_node_or_null("Control") as Control
+	if chrome == null:
+		return
+	var safe: Rect2 = DisplayServer.get_display_safe_area()
+	var win: Vector2i = DisplayServer.window_get_size()
+	if win.x <= 0 or win.y <= 0:
+		return
+	var vp_size: Vector2 = get_viewport().get_visible_rect().size
+	var top_inset: float = maxf(0.0, float(safe.position.y) * (vp_size.y / float(win.y)))
+	var bottom_inset: float = maxf(0.0, float(win.y - (safe.position.y + safe.size.y)) * (vp_size.y / float(win.y)))
+	# Keep at least a few px on modern phones; ignore tiny values on desktop.
+	if top_inset < 8.0 and bottom_inset < 8.0 and OS.get_name() != "Android":
+		return
+	chrome.offset_top = top_inset
+	chrome.offset_bottom = -bottom_inset
+	if portrait_button != null:
+		portrait_button.offset_top = 20.0 + minf(top_inset, 24.0)
+		portrait_button.offset_bottom = 108.0 + minf(top_inset, 24.0)
+
+
 func _sync_secondary_hud_visibility() -> void:
 	var show_secondary: bool = true
 	var manager: Node = get_node_or_null("UIManager")
@@ -815,14 +865,16 @@ func open_player_profile(user_id: String = "") -> void:
 		return
 	if _chat_preview != null and _chat_preview.has_method("set_force_hidden"):
 		_chat_preview.call("set_force_hidden", true)
+	if has_node("/root/GameState"):
+		GameState.popup_open = true
+	var manager: Node = get_node_or_null("UIManager")
+	if manager != null and manager.has_method("notify_overlay_opened"):
+		manager.call("notify_overlay_opened", "PlayerProfileScreen")
+	set_gameplay_hud_visible(false)
 	if user_id.strip_edges() == "":
 		await _profile_screen.open_self()
 	else:
 		await _profile_screen.open_user(user_id)
-	# Profile is a floating modal on ScreenRoot — keep UIManager aware if possible.
-	var manager: Node = get_node_or_null("UIManager")
-	if manager != null and manager.has_method("notify_overlay_opened"):
-		manager.call("notify_overlay_opened", "PlayerProfileScreen")
 
 
 func _ensure_profile_screen() -> void:
@@ -837,7 +889,7 @@ func _ensure_profile_screen() -> void:
 		_profile_screen.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		_profile_screen.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_profile_screen.set_script(load("res://scripts/UI/PlayerProfileScreen.gd"))
-		_profile_screen.z_index = 60
+		_profile_screen.z_index = 80
 		root.add_child(_profile_screen)
 	if _profile_screen.has_signal("message_requested") and not _profile_screen.is_connected("message_requested", Callable(self, "_on_profile_message_requested")):
 		_profile_screen.connect("message_requested", Callable(self, "_on_profile_message_requested"))
@@ -850,6 +902,12 @@ func _on_profile_message_requested(user_id: String, display_name: String) -> voi
 
 
 func _on_profile_closed() -> void:
+	if has_node("/root/GameState"):
+		GameState.popup_open = false
+	var manager: Node = get_node_or_null("UIManager")
+	if manager != null and manager.has_method("notify_overlay_closed"):
+		manager.call("notify_overlay_closed")
+	set_gameplay_hud_visible(true)
 	_sync_chat_preview_visibility()
 	_refresh_portrait_avatar()
 

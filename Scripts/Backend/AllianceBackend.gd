@@ -56,7 +56,8 @@ const RPC_LIST_MY_HELP := "crownspire_list_my_active_help_requests"
 const RPC_COMPLETE_CANCEL_HELP := "crownspire_complete_or_cancel_help_request"
 const RPC_GET_MY_ENTITLEMENTS := "crownspire_get_my_entitlements"
 const RPC_UPDATE_PLAYER_IDENTITY := "crownspire_update_player_identity"
-const RPC_PRESENCE_HEARTBEAT := "crownspire_presence_heartbeat"
+	const RPC_PRESENCE_HEARTBEAT := "crownspire_presence_heartbeat"
+	const RPC_LIST_KINGDOM_CASTLES := "crownspire_list_kingdom_castles"
 
 ## TODO (Production): Replace beta_alliance_auto_help with production
 ## alliance_auto_help entitlement verified through Google Play Billing.
@@ -82,9 +83,9 @@ const REPORT_REASONS: Array[String] = [
 ]
 
 const ROLE_DISPLAY_NAMES := {
-	"R5": "Lord Paramount",
-	"R4": "Marshal",
-	"R3": "Officer",
+	"R5": "Leader",
+	"R4": "Officer",
+	"R3": "Veteran",
 	"R2": "Member",
 	"R1": "Recruit",
 }
@@ -358,16 +359,37 @@ func list_alliances(query: String = "") -> Dictionary:
 	return await _rpc(RPC_LIST_ALLIANCES, {"query": query})
 
 
+func list_kingdom_castles() -> Dictionary:
+	## Returns real kingdom player castles with stable world coordinates.
+	return await _rpc(RPC_LIST_KINGDOM_CASTLES, {})
+
+
 func update_alliance_profile(fields: Dictionary) -> Dictionary:
 	var result: Dictionary = await _rpc(RPC_UPDATE_PROFILE, fields)
-	if bool(result.get("ok", false)) and typeof(result.get("alliance")) == TYPE_DICTIONARY:
-		_alliance = result.get("alliance", {})
-		alliance_changed.emit(_alliance.duplicate(true))
+	if bool(result.get("ok", false)):
+		if typeof(result.get("alliance")) == TYPE_DICTIONARY:
+			_alliance = result.get("alliance", {})
+			alliance_changed.emit(_alliance.duplicate(true))
+		if typeof(result.get("profile")) == TYPE_DICTIONARY:
+			_set_profile(result.get("profile", {}))
+		await refresh_membership_caches()
 	return result
 
 
-func create_alliance(name_text: String, tag_text: String) -> Dictionary:
-	var result: Dictionary = await _rpc(RPC_CREATE_ALLIANCE, {"name": name_text, "tag": tag_text})
+func create_alliance(name_text: String, tag_text: String, options: Dictionary = {}) -> Dictionary:
+	## Create a Nakama-backed alliance. Requires authenticated profile.
+	var ready: Dictionary = await ensure_ready_for_alliance_ops()
+	if not bool(ready.get("ok", false)):
+		return ready
+	var payload: Dictionary = {
+		"name": name_text,
+		"tag": tag_text,
+		"description": str(options.get("description", "")),
+		"language": str(options.get("language", "en")),
+		"join_type": str(options.get("join_type", "apply")),
+		"min_citadel_level": int(options.get("min_citadel_level", 0)),
+	}
+	var result: Dictionary = await _rpc(RPC_CREATE_ALLIANCE, payload)
 	if bool(result.get("ok", false)):
 		if typeof(result.get("profile")) == TYPE_DICTIONARY:
 			_set_profile(result.get("profile", {}))
@@ -379,16 +401,39 @@ func create_alliance(name_text: String, tag_text: String) -> Dictionary:
 
 
 func apply_to_alliance(alliance_id: String, message: String = "") -> Dictionary:
-	## Alias for join request workflow.
+	## Alias for join request / open join workflow.
 	return await join_alliance(alliance_id, message)
 
 
 func join_alliance(alliance_id: String, message: String = "") -> Dictionary:
-	## Private-group workflow: returns pending=true until approved.
+	## Open alliances join immediately (pending=false). Apply alliances return pending=true.
+	var ready: Dictionary = await ensure_ready_for_alliance_ops()
+	if not bool(ready.get("ok", false)):
+		return ready
 	var payload: Dictionary = {"alliance_id": alliance_id}
 	if message.strip_edges() != "":
 		payload["message"] = message.strip_edges()
-	return await _rpc(RPC_JOIN_ALLIANCE, payload)
+	var result: Dictionary = await _rpc(RPC_JOIN_ALLIANCE, payload)
+	if bool(result.get("ok", false)) and not bool(result.get("pending", true)):
+		if typeof(result.get("profile")) == TYPE_DICTIONARY:
+			_set_profile(result.get("profile", {}))
+		if typeof(result.get("alliance")) == TYPE_DICTIONARY:
+			_alliance = result.get("alliance", {})
+			alliance_changed.emit(_alliance.duplicate(true))
+		await refresh_membership_caches()
+	return result
+
+
+func ensure_ready_for_alliance_ops() -> Dictionary:
+	## Ensures Nakama auth + Crownspire profile before alliance mutations.
+	var nc: Node = _nakama_connection()
+	if nc == null or not nc.is_authenticated():
+		return _fail("Connect to multiplayer before creating or joining an Alliance.")
+	if not has_profile():
+		await refresh_profile()
+	if not has_profile():
+		return _fail("Still loading your profile. Try again in a moment.")
+	return {"ok": true}
 
 
 func leave_alliance() -> Dictionary:

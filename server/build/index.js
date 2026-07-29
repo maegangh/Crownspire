@@ -79,6 +79,8 @@ function InitModule(ctx, logger, nk, initializer) {
     // Phase 5.1 — player identity, presence, social polish.
     initializer.registerRpc("crownspire_update_player_identity", rpcUpdatePlayerIdentity);
     initializer.registerRpc("crownspire_presence_heartbeat", rpcPresenceHeartbeat);
+    // Kingdom world castles (stable positions for multiplayer map).
+    initializer.registerRpc("crownspire_list_kingdom_castles", rpcListKingdomCastles);
     // Phase 5.3 — Alliance Rallies (Wildling Lair).
     initializer.registerRpc("crownspire_rally_create", rpcRallyCreate);
     initializer.registerRpc("crownspire_rally_join", rpcRallyJoin);
@@ -88,7 +90,7 @@ function InitModule(ctx, logger, nk, initializer) {
     initializer.registerRpc("crownspire_rally_get", rpcRallyGet);
     initializer.registerRpc("crownspire_rally_list_active", rpcRallyListActive);
     initializer.registerRpc("crownspire_rally_complete", rpcRallyComplete);
-    logger.info("Crownspire runtime loaded (Phase 3+4+5+5.1+5.3 identity/alliance/help/social/rallies). LOCAL DEVELOPMENT ONLY.");
+    logger.info("Crownspire runtime loaded (Phase 3+4+5+5.1+5.3+castles identity/alliance/help/social/rallies). LOCAL DEVELOPMENT ONLY.");
 }
 // ---------------------------------------------------------------------------
 // Profile
@@ -140,8 +142,10 @@ function ensureProfile(nk, logger, userId) {
     var existing = readProfile(nk, userId);
     if (existing) {
         var normalized = normalizeIdentityFields(nk, existing);
-        // Refresh alliance fields from live group membership.
-        return syncAllianceFields(nk, logger, normalized);
+        var withCastle = ensureCastleCoords(nk, normalized);
+        var synced = syncAllianceFields(nk, logger, withCastle);
+        upsertKingdomCastleEntry(nk, synced);
+        return synced;
     }
     var created = {
         user_id: userId,
@@ -160,9 +164,11 @@ function ensureProfile(nk, logger, userId) {
         updated_at: nowUnix(),
         profile_version: PROFILE_VERSION,
     };
-    writeProfile(nk, created);
+    var withCoords = ensureCastleCoords(nk, created);
+    writeProfile(nk, withCoords);
+    upsertKingdomCastleEntry(nk, withCoords);
     logger.info("Created Crownspire profile for %s kingdom=%s", userId, DEV_KINGDOM_ID);
-    return created;
+    return withCoords;
 }
 /** Backfill Phase 5.1 identity fields on older profiles. */
 function normalizeIdentityFields(nk, profile) {
@@ -318,6 +324,8 @@ function publicProfile(profile) {
         vip_level: typeof profile.vip_level === "number" ? profile.vip_level : 0,
         last_online: lastOnline,
         online_status: online ? "online" : "offline",
+        world_x: typeof profile.world_x === "number" ? profile.world_x : 0,
+        world_y: typeof profile.world_y === "number" ? profile.world_y : 0,
         created_at: profile.created_at,
         updated_at: profile.updated_at,
         profile_version: profile.profile_version,
@@ -338,22 +346,47 @@ function rpcCreateAlliance(ctx, logger, nk, payload) {
     var data = parsePayload(payload);
     var name = sanitizeAllianceName(String(data["name"] || ""));
     var tag = sanitizeAllianceTag(String(data["tag"] || ""));
-    var description = "Crownspire development alliance";
-    // Private group: join requires approval (join request workflow).
+    assertAllianceTagUnique(nk, tag);
+    var description = String(data["description"] || "").trim();
+    description = description.replace(/[\u0000-\u001F\u007F]/g, "").substring(0, 280);
+    if (description === "") {
+        description = "A Crownspire alliance.";
+    }
+    var language = String(data["language"] || "en").trim().substring(0, 8) || "en";
+    var joinType = String(data["join_type"] || "apply").trim().toLowerCase();
+    if (joinType !== "open" && joinType !== "apply") {
+        throw Err("join_type must be open or apply");
+    }
+    var minCitadel = Math.floor(Number(data["min_citadel_level"] !== undefined ? data["min_citadel_level"] : 0));
+    if (isNaN(minCitadel) || minCitadel < 0 || minCitadel > 100) {
+        throw Err("Invalid min_citadel_level");
+    }
+    var isOpen = joinType === "open";
     var metadata = {
         alliance_tag: tag,
         kingdom_id: profile.kingdom_id || DEV_KINGDOM_ID,
         crownspire: true,
     };
-    var group = nk.groupCreate(ctx.userId, name, ctx.userId, null, description, null, false, // open = false (private) — join creates a request
-    metadata, 50);
+    var group;
+    try {
+        group = nk.groupCreate(ctx.userId, name, ctx.userId, language, description, null, isOpen, metadata, 100);
+    }
+    catch (e) {
+        var msg = String(e);
+        if (msg.toLowerCase().indexOf("name") >= 0 || msg.toLowerCase().indexOf("unique") >= 0) {
+            throw Err("Alliance name already taken");
+        }
+        throw Err("Could not create alliance");
+    }
     writeRank(nk, group.id, ctx.userId, "R5");
     writeAllianceMeta(nk, {
         alliance_id: group.id,
         description: description,
-        language: "en",
-        join_type: "apply",
+        language: language,
+        join_type: joinType,
         min_join_power_placeholder: 0,
+        min_citadel_level: minCitadel,
+        announcement: "",
         emblem_placeholder: "",
         banner_placeholder: "",
         alliance_power_placeholder: 0,
@@ -366,7 +399,8 @@ function rpcCreateAlliance(ctx, logger, nk, payload) {
     profile.crownspire_rank = "R5";
     profile.updated_at = nowUnix();
     writeProfile(nk, profile);
-    logger.info("Alliance created group=%s tag=%s by %s", group.id, tag, ctx.userId);
+    sendAllianceSystemMessage(nk, logger, group.id, (profile.display_name || "The Leader") + " raised the banner of [" + tag + "] " + name + ".", "created");
+    logger.info("Alliance created group=%s tag=%s join_type=%s by %s", group.id, tag, joinType, ctx.userId);
     return JSON.stringify({
         ok: true,
         alliance: buildAllianceProfile(nk, logger, group),
@@ -386,7 +420,6 @@ function rpcJoinAlliance(ctx, logger, nk, payload) {
     if (!groupId) {
         throw Err("alliance_id required");
     }
-    // Validate group exists and is a Crownspire alliance.
     var groups = nk.groupsGetId([groupId]);
     if (!groups || groups.length === 0) {
         throw Err("Alliance not found");
@@ -396,14 +429,87 @@ function rpcJoinAlliance(ctx, logger, nk, payload) {
     if (!meta["crownspire"] && !meta["alliance_tag"]) {
         throw Err("Not a Crownspire alliance group");
     }
-    // Private group -> creates join request. Does NOT grant chat access until approved.
-    nk.groupUserJoin(groupId, ctx.userId, ctx.username || "");
+    var stored = readAllianceMeta(nk, groupId);
+    var joinType = stored.join_type || (group.open ? "open" : "apply");
+    var minCitadel = typeof stored.min_citadel_level === "number" ? stored.min_citadel_level : 0;
+    var citadel = typeof profile.citadel_level === "number" ? profile.citadel_level : 1;
+    if (citadel < minCitadel) {
+        throw Err("Citadel level " + minCitadel + " required to join");
+    }
+    if (joinType === "invite_only") {
+        throw Err("This alliance is invite only");
+    }
+    // Capacity check (edgeCount includes requests; prefer active members when listing).
+    var memberLimit = Number(group.maxCount || 100);
+    if (Number(group.edgeCount || 0) >= memberLimit && joinType === "open") {
+        throw Err("Alliance is full");
+    }
+    if (joinType === "open") {
+        try {
+            nk.groupUserJoin(groupId, ctx.userId, ctx.username || "");
+        }
+        catch (e) {
+            throw Err("Could not join alliance");
+        }
+        // Ensure membership for alliances that may still be private in Nakama but marked open in meta.
+        var stateAfter = getNakamaGroupState(nk, groupId, ctx.userId);
+        if (stateAfter < 0 || stateAfter > 2) {
+            try {
+                nk.groupUsersAdd(groupId, [ctx.userId]);
+            }
+            catch (e2) {
+                throw Err("Could not join open alliance");
+            }
+        }
+        writeRank(nk, groupId, ctx.userId, "R1");
+        syncAllianceFields(nk, logger, profile);
+        var refreshed = ensureProfile(nk, logger, ctx.userId);
+        sendAllianceSystemMessage(nk, logger, groupId, (refreshed.display_name || "A player") + " joined the Alliance.", "joined");
+        logger.info("Alliance open join group=%s user=%s", groupId, ctx.userId);
+        return JSON.stringify({
+            ok: true,
+            pending: false,
+            alliance_id: groupId,
+            alliance: buildAllianceProfile(nk, logger, groups[0]),
+            profile: publicProfile(refreshed),
+            message: "Joined alliance.",
+        });
+    }
+    // Approval-required: create join request. Check duplicate pending.
+    var pendingUsers = nk.groupUsersList(groupId, 100, 3);
+    var pendingList = pendingUsers.groupUsers || [];
+    for (var i = 0; i < pendingList.length; i++) {
+        var gu = pendingList[i];
+        if (!gu.user)
+            continue;
+        var uid = String(gu.user.userId || gu.user.id || "");
+        if (uid === ctx.userId) {
+            return JSON.stringify({
+                ok: true,
+                pending: true,
+                alliance_id: groupId,
+                message: "Application already sent.",
+            });
+        }
+    }
+    try {
+        nk.groupUserJoin(groupId, ctx.userId, ctx.username || "");
+    }
+    catch (e) {
+        throw Err("Could not submit application");
+    }
+    notifyAllianceOfficers(nk, logger, groupId, "Alliance Application", {
+        event: "application_received",
+        alliance_id: groupId,
+        applicant_user_id: ctx.userId,
+        applicant_name: profile.display_name || ctx.username || "",
+    }, ctx.userId);
     logger.info("Alliance join requested group=%s user=%s", groupId, ctx.userId);
     return JSON.stringify({
         ok: true,
         pending: true,
         alliance_id: groupId,
-        message: "Join request submitted. Awaiting approval.",
+        message: "Application sent.",
     });
 }
 function rpcListJoinRequests(ctx, logger, nk, payload) {
@@ -430,7 +536,9 @@ function rpcListJoinRequests(ctx, logger, nk, payload) {
             user_id: uid,
             username: u.username,
             display_name: applicant.display_name || u.displayName || "",
-            power_placeholder: 0,
+            power: typeof applicant.power === "number" ? applicant.power : 0,
+            power_placeholder: typeof applicant.power === "number" ? applicant.power : 0,
+            citadel_level: typeof applicant.citadel_level === "number" ? applicant.citadel_level : 1,
             message: "",
             status: "pending",
             created_at: nowUnix(),
@@ -661,12 +769,13 @@ var RANK_ORDER = {
     R5: 5,
 };
 var ROLE_DISPLAY = {
-    R5: "Lord Paramount",
-    R4: "Marshal",
-    R3: "Officer",
+    R5: "Leader",
+    R4: "Officer",
+    R3: "Veteran",
     R2: "Member",
     R1: "Recruit",
 };
+var ALLIANCE_NOTIF_CODE = 5003;
 /** Configurable Phase-4 permission policy (server-authoritative). */
 var RANK_PERMISSIONS = {
     R5: {
@@ -770,21 +879,38 @@ function readAllianceMeta(nk, allianceId) {
     var objects = nk.storageRead([
         { collection: ALLIANCE_META_COLLECTION, key: allianceId, userId: SYSTEM_USER },
     ]);
-    if (objects && objects.length > 0 && objects[0].value) {
-        return objects[0].value;
-    }
-    return {
+    var defaults = {
         alliance_id: allianceId,
         description: "",
         language: "en",
         join_type: "apply",
         min_join_power_placeholder: 0,
+        min_citadel_level: 0,
+        announcement: "",
         emblem_placeholder: "",
         banner_placeholder: "",
         alliance_power_placeholder: 0,
         alliance_level_placeholder: 1,
         updated_at: nowUnix(),
     };
+    if (objects && objects.length > 0 && objects[0].value) {
+        var stored = objects[0].value;
+        return {
+            alliance_id: allianceId,
+            description: stored.description || "",
+            language: stored.language || "en",
+            join_type: stored.join_type || "apply",
+            min_join_power_placeholder: stored.min_join_power_placeholder || 0,
+            min_citadel_level: typeof stored.min_citadel_level === "number" ? stored.min_citadel_level : 0,
+            announcement: stored.announcement || "",
+            emblem_placeholder: stored.emblem_placeholder || "",
+            banner_placeholder: stored.banner_placeholder || "",
+            alliance_power_placeholder: stored.alliance_power_placeholder || 0,
+            alliance_level_placeholder: stored.alliance_level_placeholder || 1,
+            updated_at: stored.updated_at || nowUnix(),
+        };
+    }
+    return defaults;
 }
 function writeAllianceMeta(nk, meta) {
     meta.updated_at = nowUnix();
@@ -830,14 +956,18 @@ function buildAllianceProfile(nk, logger, group) {
             }
         }
     }
+    var joinType = stored.join_type || (group.open ? "open" : "apply");
     return {
         alliance_id: String(group.id),
         name: String(group.name || ""),
         tag: String(meta["alliance_tag"] || ""),
         description: stored.description || String(group.description || ""),
         language: stored.language || "en",
-        join_type: stored.join_type || "apply",
+        join_type: joinType,
+        open: joinType === "open" || !!group.open,
         min_join_power_placeholder: stored.min_join_power_placeholder || 0,
+        min_citadel_level: typeof stored.min_citadel_level === "number" ? stored.min_citadel_level : 0,
+        announcement: stored.announcement || "",
         member_count: memberCount,
         member_limit: Number(group.maxCount || DEFAULT_MEMBER_LIMIT),
         leader_user_id: leaderId,
@@ -850,6 +980,69 @@ function buildAllianceProfile(nk, logger, group) {
         power_authority: "placeholder",
         level_authority: "placeholder",
     };
+}
+function assertAllianceTagUnique(nk, tag, excludeGroupId) {
+    if (excludeGroupId === void 0) { excludeGroupId = ""; }
+    var result = nk.groupsList(undefined, undefined, undefined, undefined, 100, undefined);
+    var groups = result.groups || [];
+    var needle = String(tag || "").toUpperCase();
+    for (var i = 0; i < groups.length; i++) {
+        var g = groups[i];
+        if (excludeGroupId && String(g.id) === excludeGroupId)
+            continue;
+        var meta = safeJson(g.metadata || {});
+        if (!meta["crownspire"] && !meta["alliance_tag"])
+            continue;
+        var existing = String(meta["alliance_tag"] || "").toUpperCase();
+        if (existing === needle) {
+            throw Err("Alliance tag already taken");
+        }
+    }
+}
+function notifyAllianceUser(nk, logger, userId, subject, content) {
+    try {
+        nk.notificationSend(userId, subject, content, ALLIANCE_NOTIF_CODE, null, true);
+    }
+    catch (e) {
+        logger.warn("Alliance notification failed user=%s err=%s", userId, String(e));
+    }
+}
+function notifyAllianceOfficers(nk, logger, groupId, subject, content, excludeUserId) {
+    if (excludeUserId === void 0) { excludeUserId = ""; }
+    try {
+        var users = nk.groupUsersList(groupId, 100);
+        var list = users.groupUsers || [];
+        var ids = [];
+        for (var i = 0; i < list.length; i++) {
+            var gu = list[i];
+            var state = Number(gu.state);
+            if (state !== 0 && state !== 1 && state !== 2)
+                continue;
+            if (!gu.user)
+                continue;
+            var uid = String(gu.user.userId || gu.user.id || "");
+            if (!uid || uid === excludeUserId)
+                continue;
+            var rank = resolveCrownspireRank(nk, groupId, uid, state);
+            if (rank === "R5" || rank === "R4") {
+                ids.push(uid);
+            }
+        }
+        if (ids.length === 0)
+            return;
+        nk.notificationsSend(ids.map(function (uid) {
+            return {
+                code: ALLIANCE_NOTIF_CODE,
+                content: content,
+                persistent: true,
+                subject: subject,
+                userId: uid,
+            };
+        }));
+    }
+    catch (e) {
+        logger.warn("Alliance officer notify failed group=%s err=%s", groupId, String(e));
+    }
 }
 function sendAllianceSystemMessage(nk, logger, groupId, text, eventType) {
     try {
@@ -931,9 +1124,9 @@ function rpcListAlliances(ctx, logger, nk, payload) {
     if (!ctx.userId)
         throw Err("Unauthenticated");
     var data = parsePayload(payload);
-    var query = String(data["query"] || "").trim();
+    var query = String(data["query"] || "").trim().toLowerCase();
     // groupsList(name?, langTag?, open?, members?, limit?, cursor?)
-    var result = nk.groupsList(query !== "" ? query : undefined, undefined, undefined, undefined, 20, undefined);
+    var result = nk.groupsList(undefined, undefined, undefined, undefined, 50, undefined);
     var groups = result.groups || [];
     var out = [];
     for (var i = 0; i < groups.length; i++) {
@@ -941,15 +1134,30 @@ function rpcListAlliances(ctx, logger, nk, payload) {
         var meta = safeJson(g.metadata || {});
         if (!meta["crownspire"] && !meta["alliance_tag"])
             continue;
+        var stored = readAllianceMeta(nk, String(g.id));
+        var name = String(g.name || "");
+        var tag = String(meta["alliance_tag"] || "");
+        if (query !== "") {
+            var hay = (name + " " + tag).toLowerCase();
+            if (hay.indexOf(query) < 0)
+                continue;
+        }
+        var joinType = stored.join_type || (g.open ? "open" : "apply");
+        var desc = stored.description || String(g.description || "");
         out.push({
             alliance_id: String(g.id),
-            name: String(g.name || ""),
-            tag: String(meta["alliance_tag"] || ""),
+            name: name,
+            tag: tag,
+            description: desc,
+            description_preview: desc.length > 80 ? desc.substring(0, 77) + "..." : desc,
+            language: stored.language || "en",
             member_count: Number(g.edgeCount || 0),
             member_limit: Number(g.maxCount || DEFAULT_MEMBER_LIMIT),
-            join_type: "apply",
+            join_type: joinType,
+            open: joinType === "open",
+            min_citadel_level: typeof stored.min_citadel_level === "number" ? stored.min_citadel_level : 0,
+            alliance_power_placeholder: stored.alliance_power_placeholder || 0,
             kingdom_id: String(meta["kingdom_id"] || DEV_KINGDOM_ID),
-            open: !!g.open,
         });
     }
     return JSON.stringify({ ok: true, alliances: out });
@@ -963,30 +1171,52 @@ function rpcUpdateAllianceProfile(ctx, logger, nk, payload) {
     requirePerm(nk, logger, profile.alliance_id, ctx.userId, "edit_profile");
     var data = parsePayload(payload);
     var meta = readAllianceMeta(nk, profile.alliance_id);
+    var nameUpdate = null;
+    if (data["name"] !== undefined) {
+        nameUpdate = sanitizeAllianceName(String(data["name"] || ""));
+    }
     if (data["description"] !== undefined) {
         meta.description = String(data["description"] || "").substring(0, 280).replace(/[\u0000-\u001F\u007F]/g, "");
     }
     if (data["language"] !== undefined) {
         meta.language = String(data["language"] || "en").substring(0, 8);
     }
+    if (data["announcement"] !== undefined) {
+        meta.announcement = String(data["announcement"] || "").substring(0, 280).replace(/[\u0000-\u001F\u007F]/g, "");
+    }
+    if (data["min_citadel_level"] !== undefined) {
+        var lvl = Math.floor(Number(data["min_citadel_level"]));
+        if (isNaN(lvl) || lvl < 0 || lvl > 100)
+            throw Err("Invalid min_citadel_level");
+        meta.min_citadel_level = lvl;
+    }
+    var openFlag = null;
     if (data["join_type"] !== undefined) {
         var jt = String(data["join_type"] || "apply");
-        if (jt !== "apply" && jt !== "invite_only")
+        if (jt !== "open" && jt !== "apply" && jt !== "invite_only")
             throw Err("Invalid join_type");
         meta.join_type = jt;
+        openFlag = jt === "open";
     }
     writeAllianceMeta(nk, meta);
-    // Optional description mirror onto Nakama group.
     try {
-        nk.groupUpdate(profile.alliance_id, ctx.userId, null, null, meta.description || null, null, null, null, null);
+        nk.groupUpdate(profile.alliance_id, ctx.userId, nameUpdate, null, meta.language || null, meta.description || null, null, openFlag, null, null);
     }
     catch (e) {
-        logger.warn("groupUpdate description failed: %s", String(e));
+        logger.warn("groupUpdate failed: %s", String(e));
+        throw Err("Could not update alliance settings");
+    }
+    if (nameUpdate) {
+        // Keep member profile alliance_name in sync for the editor at least.
+        profile.alliance_name = nameUpdate;
+        profile.updated_at = nowUnix();
+        writeProfile(nk, profile);
     }
     var groups = nk.groupsGetId([profile.alliance_id]);
     return JSON.stringify({
         ok: true,
         alliance: groups && groups.length ? buildAllianceProfile(nk, logger, groups[0]) : meta,
+        profile: publicProfile(profile),
     });
 }
 function rpcRejectJoin(ctx, logger, nk, payload) {
@@ -1001,6 +1231,13 @@ function rpcRejectJoin(ctx, logger, nk, payload) {
     if (!targetId)
         throw Err("user_id required");
     nk.groupUsersKick(profile.alliance_id, [targetId]); // removes join request
+    notifyAllianceUser(nk, logger, targetId, "Alliance Application", {
+        event: "application_rejected",
+        alliance_id: profile.alliance_id,
+        alliance_name: profile.alliance_name || "",
+        alliance_tag: profile.alliance_tag || "",
+    });
+    sendAllianceSystemMessage(nk, logger, profile.alliance_id, "An application was declined.", "application_rejected");
     logger.info("Alliance join rejected group=%s user=%s by %s", profile.alliance_id, targetId, ctx.userId);
     return JSON.stringify({ ok: true });
 }
@@ -1352,6 +1589,12 @@ function approveJoinPhase4(ctx, logger, nk, profile, targetId) {
     var targetProfile = ensureProfile(nk, logger, targetId);
     syncAllianceFields(nk, logger, targetProfile);
     sendAllianceSystemMessage(nk, logger, groupId, (targetProfile.display_name || "A player") + " joined the Alliance.", "joined");
+    notifyAllianceUser(nk, logger, targetId, "Alliance Application", {
+        event: "application_approved",
+        alliance_id: groupId,
+        alliance_name: profile.alliance_name || "",
+        alliance_tag: profile.alliance_tag || "",
+    });
     logger.info("Alliance join approved group=%s user=%s by %s", groupId, targetId, userId);
     return JSON.stringify({ ok: true, alliance_id: groupId, user_id: targetId, rank: "R1" });
 }
@@ -2120,6 +2363,7 @@ function rpcUpdatePlayerIdentity(ctx, logger, nk, payload) {
     profile.last_online = nowUnix();
     profile.updated_at = nowUnix();
     writeProfile(nk, profile);
+    upsertKingdomCastleEntry(nk, profile);
     return JSON.stringify({ ok: true, profile: publicProfile(profile) });
 }
 /** Heartbeat while socket connected — marks player online for roster. */
@@ -2153,6 +2397,7 @@ function rpcPresenceHeartbeat(ctx, logger, nk, payload) {
     profile.last_online = nowUnix();
     profile.updated_at = nowUnix();
     writeProfile(nk, profile);
+    upsertKingdomCastleEntry(nk, profile);
     return JSON.stringify({
         ok: true,
         last_online: profile.last_online,
@@ -2657,4 +2902,122 @@ function sendRallyChatCard(nk, logger, rally) {
     catch (e) {
         logger.warn("Rally chat card failed: %s", String(e));
     }
+}
+/**
+ * Crownspire — Kingdom world castles (beta)
+ * LOCAL DEVELOPMENT ONLY. Concatenated into build/index.js.
+ *
+ * Assigns stable world_x/world_y per profile and maintains a kingdom registry
+ * so clients can spawn real player castles on the world map.
+ */
+var KINGDOM_CASTLE_COLLECTION = "crownspire_kingdom_castles";
+var WORLD_MAP_SIZE = 8192;
+var CASTLE_EDGE_MARGIN = 900;
+function hashUserToUnit(userId) {
+    var h = 2166136261;
+    var s = String(userId || "");
+    for (var i = 0; i < s.length; i++) {
+        h ^= s.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+    }
+    return (h >>> 0) / 4294967295;
+}
+function assignDeterministicCastleCoords(userId) {
+    var u1 = hashUserToUnit(userId + ":x");
+    var u2 = hashUserToUnit(userId + ":y");
+    var span = WORLD_MAP_SIZE - CASTLE_EDGE_MARGIN * 2;
+    return {
+        x: Math.floor(CASTLE_EDGE_MARGIN + u1 * span),
+        y: Math.floor(CASTLE_EDGE_MARGIN + u2 * span),
+    };
+}
+function ensureCastleCoords(nk, profile) {
+    var hasX = typeof profile.world_x === "number" && isFinite(profile.world_x);
+    var hasY = typeof profile.world_y === "number" && isFinite(profile.world_y);
+    if (hasX && hasY) {
+        return profile;
+    }
+    var coords = assignDeterministicCastleCoords(profile.user_id);
+    profile.world_x = coords.x;
+    profile.world_y = coords.y;
+    profile.updated_at = nowUnix();
+    writeProfile(nk, profile);
+    return profile;
+}
+function readKingdomCastleRegistry(nk, kingdomId) {
+    var objects = nk.storageRead([
+        { collection: KINGDOM_CASTLE_COLLECTION, key: kingdomId, userId: SYSTEM_USER },
+    ]);
+    if (objects && objects.length > 0 && objects[0].value) {
+        var v = objects[0].value;
+        return { castles: Array.isArray(v.castles) ? v.castles : [] };
+    }
+    return { castles: [] };
+}
+function writeKingdomCastleRegistry(nk, kingdomId, castles) {
+    nk.storageWrite([
+        {
+            collection: KINGDOM_CASTLE_COLLECTION,
+            key: kingdomId,
+            userId: SYSTEM_USER,
+            value: { kingdom_id: kingdomId, castles: castles, updated_at: nowUnix() },
+            permissionRead: 2,
+            permissionWrite: 0,
+        },
+    ]);
+}
+function upsertKingdomCastleEntry(nk, profile) {
+    var kingdomId = String(profile.kingdom_id || DEV_KINGDOM_ID);
+    ensureCastleCoords(nk, profile);
+    var reg = readKingdomCastleRegistry(nk, kingdomId);
+    var entry = {
+        user_id: profile.user_id,
+        display_name: profile.display_name || "",
+        alliance_tag: profile.alliance_tag || "",
+        alliance_name: profile.alliance_name || "",
+        avatar_id: profile.avatar_id || "avatar_01",
+        world_x: Number(profile.world_x),
+        world_y: Number(profile.world_y),
+        citadel_level: typeof profile.citadel_level === "number" ? profile.citadel_level : 1,
+        power: typeof profile.power === "number" ? profile.power : 0,
+        updated_at: nowUnix(),
+    };
+    var found = false;
+    for (var i = 0; i < reg.castles.length; i++) {
+        if (String(reg.castles[i].user_id) === profile.user_id) {
+            reg.castles[i] = entry;
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        reg.castles.push(entry);
+    }
+    // Soft cap for beta — keep most recently updated.
+    if (reg.castles.length > 200) {
+        reg.castles.sort(function (a, b) {
+            return Number(b.updated_at || 0) - Number(a.updated_at || 0);
+        });
+        reg.castles = reg.castles.slice(0, 200);
+    }
+    writeKingdomCastleRegistry(nk, kingdomId, reg.castles);
+}
+function rpcListKingdomCastles(ctx, logger, nk, payload) {
+    if (!ctx.userId)
+        throw Err("Unauthenticated");
+    var profile = ensureProfile(nk, logger, ctx.userId);
+    ensureCastleCoords(nk, profile);
+    upsertKingdomCastleEntry(nk, profile);
+    var kingdomId = String(profile.kingdom_id || DEV_KINGDOM_ID);
+    var reg = readKingdomCastleRegistry(nk, kingdomId);
+    return JSON.stringify({
+        ok: true,
+        kingdom_id: kingdomId,
+        castles: reg.castles,
+        self: {
+            user_id: profile.user_id,
+            world_x: Number(profile.world_x),
+            world_y: Number(profile.world_y),
+        },
+    });
 }
