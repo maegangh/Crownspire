@@ -60,11 +60,29 @@ func _ready() -> void:
 		ResourceTileState.repair_stale_reservations()
 
 
+func _map_root() -> Node:
+	## KingdomMap attaches this script to WorldRoot itself. Using get_parent() here
+	## parented WorldCastleLayer under /root, so local PlayerCastleMarker never got a ClickArea.
+	if get_node_or_null("PlayerCastleMarker") != null or get_node_or_null("Camera2D") != null:
+		return self
+	return get_parent()
+
+
 func _ensure_and_refresh_castles() -> void:
-	var parent_map: Node = get_parent()
+	var parent_map: Node = _map_root()
 	if parent_map == null:
 		return
 	var layer: Node = parent_map.get_node_or_null("WorldCastleLayer")
+	# Migrate a layer that was incorrectly parented under the scene tree root.
+	if layer == null and get_tree() != null:
+		var misplaced: Node = get_tree().root.get_node_or_null("WorldCastleLayer")
+		if misplaced != null and misplaced.get_parent() != parent_map:
+			var old_parent: Node = misplaced.get_parent()
+			if old_parent != null:
+				old_parent.remove_child(misplaced)
+			parent_map.add_child(misplaced)
+			layer = misplaced
+			print("[WorldCastle] reparented WorldCastleLayer under %s" % str(parent_map.get_path()))
 	if layer == null:
 		layer = Node2D.new()
 		layer.name = "WorldCastleLayer"
@@ -222,7 +240,7 @@ func _find_clear_resource_position() -> Vector2:
 
 
 func is_near_player_castle(pos: Vector2) -> bool:
-	var parent_map: Node = get_parent()
+	var parent_map: Node = _map_root()
 	if parent_map != null:
 		var layer: Node = parent_map.get_node_or_null("WorldCastleLayer")
 		if layer != null and layer.has_method("get_reserved_castle_positions"):
@@ -230,10 +248,10 @@ func is_near_player_castle(pos: Vector2) -> bool:
 			for p_v in reserved:
 				if typeof(p_v) == TYPE_VECTOR2 and pos.distance_to(p_v) < castle_exclusion_radius:
 					return true
-	var castle: Node2D = get_parent().get_node_or_null("PlayerCastleMarker") as Node2D
-	if castle == null:
-		return false
-	return pos.distance_to(castle.global_position) < castle_exclusion_radius
+		var castle: Node2D = parent_map.get_node_or_null("PlayerCastleMarker") as Node2D
+		if castle != null:
+			return pos.distance_to(castle.global_position) < castle_exclusion_radius
+	return false
 
 
 func get_wildling_card(level: int) -> Texture2D:

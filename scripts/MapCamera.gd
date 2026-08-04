@@ -22,6 +22,10 @@ func _ready() -> void:
 
 	zoom = Vector2(1.5, 1.5)
 	make_current()
+	# Required for Area2D castle/resource/lair taps (City camera already enables this).
+	var vp: Viewport = get_viewport()
+	if vp != null:
+		vp.physics_object_picking = true
 
 	# Wait until the castle and world have finished loading.
 	# City↔World change_scene can free this node mid-await; never touch get_tree() blindly.

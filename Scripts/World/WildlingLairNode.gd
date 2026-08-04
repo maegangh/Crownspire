@@ -65,10 +65,11 @@ func setup_from_def(def: Dictionary, stable_id: String) -> void:
 		sprite.modulate = Color.WHITE
 		sprite.centered = true
 		sprite.position = Vector2.ZERO
-		sprite.scale = Vector2(
-			WildlingLairDatabase.WORLD_SPRITE_SCALE,
-			WildlingLairDatabase.WORLD_SPRITE_SCALE
-		)
+		
+		# Keep Alliance Lairs proportional to castles and other world objects.
+		var lair_scale: float = WildlingLairDatabase.WORLD_SPRITE_SCALE * 0.55
+		sprite.scale = Vector2(lair_scale, lair_scale)
+		
 
 	var ring: Node = get_node_or_null("DenRing")
 	if ring != null:

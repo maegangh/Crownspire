@@ -1011,6 +1011,7 @@ script = ExtResource("31_pc42l")
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=247409057]
 
 [node name="Panel" type="Panel" parent="CanvasLayer" unique_id=1080261904]
+visible = false
 anchors_preset = 10
 anchor_right = 1.0
 offset_left = 6.0
@@ -1128,3 +1129,4 @@ visible = false
 [node name="TavernWindow" parent="." unique_id=548129524 instance=ExtResource("42_tavern")]
 
 [node name="GameHUD" parent="." unique_id=1833121157 instance=ExtResource("41_osohf")]
+layer = 100

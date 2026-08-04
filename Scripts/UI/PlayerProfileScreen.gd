@@ -16,6 +16,7 @@ const COL_OK := Color(0.55, 0.82, 0.58, 1.0)
 const COL_SLOT := Color(0.14, 0.16, 0.28, 0.92)
 
 signal message_requested(user_id: String, display_name: String)
+signal share_location_requested(profile: Dictionary)
 signal closed
 
 var _target_user_id: String = ""
@@ -47,6 +48,10 @@ func _alliance_backend() -> Node:
 
 func _nakama_connection() -> Node:
 	return get_node_or_null("/root/NakamaConnection")
+
+
+func _friends_backend() -> Node:
+	return get_node_or_null("/root/FriendsBackend")
 
 
 func _ready() -> void:
@@ -82,6 +87,10 @@ func _open_async() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	_status.text = "Loading…"
 	await _load_profile()
+	if not _is_self:
+		var fb: Node = _friends_backend()
+		if fb != null and fb.has_method("refresh_friends"):
+			await fb.refresh_friends()
 	_rebuild_content()
 
 
@@ -235,22 +244,38 @@ func _load_profile() -> void:
 		_profile = ab.get_profile()
 		if _profile.is_empty():
 			_profile = _local_fallback_profile()
+		# Phase 0B2-C: local self profile Citadel always from canonical castle (not stale mirror/server lag).
+		# Remote profiles keep their supplied citadel_level unchanged.
+		_profile["citadel_level"] = _local_canonical_castle_level()
 		_status.text = ""
+		print("[PlayerProfile] loaded user=%s power=%s (self)" % [
+			str(_profile.get("user_id", "")), str(_profile.get("power", 0)),
+		])
 	else:
+		print("[PlayerProfile] requesting public profile user=%s" % _target_user_id)
 		var res: Dictionary = await ab.get_public_profile(_target_user_id)
 		if bool(res.get("ok", false)) and typeof(res.get("profile")) == TYPE_DICTIONARY:
 			_profile = res.get("profile", {})
 			_status.text = ""
+			print("[PlayerProfile] loaded user=%s power=%s" % [
+				str(_profile.get("user_id", "")), str(_profile.get("power", 0)),
+			])
 		else:
 			_profile = {"user_id": _target_user_id, "display_name": "Unknown"}
 			_status.text = str(res.get("error", "Profile unavailable"))
+
+
+func _local_canonical_castle_level() -> int:
+	# Phase 0B2-C: local player Citadel/Castle completed level.
+	if has_node("/root/ConstructionState") and ConstructionState.has_method("get_canonical_building_level"):
+		return maxi(1, int(ConstructionState.get_canonical_building_level("castle")))
+	return 1
 
 
 func _local_fallback_profile() -> Dictionary:
 	var nc: Node = _nakama_connection()
 	var uid: String = nc.get_user_id() if nc != null else "local"
 	var power: int = int(GameState.power) if has_node("/root/GameState") else 0
-	var citadel: int = int(GameState.castle_level) if has_node("/root/GameState") else 1
 	var vip: int = int(GameState.vip_level) if has_node("/root/GameState") else 0
 	return {
 		"user_id": uid,
@@ -260,7 +285,7 @@ func _local_fallback_profile() -> Dictionary:
 		"alliance_name": "",
 		"alliance_tag": "",
 		"power": power,
-		"citadel_level": citadel,
+		"citadel_level": _local_canonical_castle_level(),
 		"vip_level": vip,
 		"online_status": "offline",
 	}
@@ -307,8 +332,10 @@ func _rebuild_content() -> void:
 		rename_btn.pressed.connect(_on_rename_pressed)
 		id_col.add_child(rename_btn)
 
-	_add_stat_row(_content, "Player ID", str(_profile.get("user_id", "—")))
 	_add_stat_row(_content, "Power", _format_num(int(_profile.get("power", 0))))
+	var highest: int = int(_profile.get("highest_power", _profile.get("power", 0)))
+	_add_stat_row(_content, "Highest Power", _format_num(highest))
+	_add_stat_row(_content, "Kills", _format_num(int(_profile.get("kills", 0))))
 	_add_stat_row(_content, "Kingdom", str(_profile.get("kingdom_id", "—")))
 	var alliance: String = str(_profile.get("alliance_name", "")).strip_edges()
 	if alliance == "":
@@ -320,6 +347,9 @@ func _rebuild_content() -> void:
 	_add_stat_row(_content, "VIP", "Level %d" % int(_profile.get("vip_level", 0)))
 	var online: String = str(_profile.get("online_status", "offline"))
 	_add_stat_row(_content, "Status", "Online" if online == "online" else "Offline")
+	# Explicitly omit scout/military secrets (troops, resources, garrison, marches).
+
+	_add_public_gear_section()
 
 	var actions := HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 8)
@@ -332,6 +362,12 @@ func _rebuild_content() -> void:
 		avatar_btn.custom_minimum_size = Vector2(0, 52)
 		avatar_btn.pressed.connect(_show_avatar_picker)
 		actions.add_child(avatar_btn)
+		var share_self := Button.new()
+		share_self.text = "Share Location"
+		share_self.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		share_self.custom_minimum_size = Vector2(0, 52)
+		share_self.pressed.connect(_on_share_location)
+		actions.add_child(share_self)
 	else:
 		var view_all := Button.new()
 		view_all.text = "View Alliance"
@@ -350,24 +386,30 @@ func _rebuild_content() -> void:
 		actions.add_child(msg_btn)
 
 	if not _is_self:
+		_add_friend_action_row()
+		var share_other := Button.new()
+		share_other.text = "Share Location"
+		share_other.custom_minimum_size = Vector2(0, 48)
+		share_other.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		share_other.pressed.connect(_on_share_location)
+		_content.add_child(share_other)
 		var mod_row := HBoxContainer.new()
 		mod_row.add_theme_constant_override("separation", 8)
 		_content.add_child(mod_row)
+		var uid: String = str(_profile.get("user_id", ""))
+		var fb_block: Node = _friends_backend()
+		var blocked: bool = fb_block != null and fb_block.has_method("is_blocked") and bool(fb_block.is_blocked(uid))
 		var block_btn := Button.new()
-		block_btn.text = "Block"
+		block_btn.text = "Unblock" if blocked else "Block"
 		block_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		block_btn.custom_minimum_size = Vector2(0, 48)
-		block_btn.pressed.connect(func():
-			_status.text = "Block queued for moderation review."
-		)
+		block_btn.pressed.connect(func(): await _on_block_pressed())
 		mod_row.add_child(block_btn)
 		var report_btn := Button.new()
 		report_btn.text = "Report"
 		report_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		report_btn.custom_minimum_size = Vector2(0, 48)
-		report_btn.pressed.connect(func():
-			_status.text = "Report submitted for review."
-		)
+		report_btn.pressed.connect(_on_report_pressed)
 		mod_row.add_child(report_btn)
 
 
@@ -402,6 +444,228 @@ func _on_view_alliance() -> void:
 		var mgr: Node = hud.get_node_or_null("UIManager")
 		if mgr != null and mgr.has_method("open_screen"):
 			mgr.call("open_screen", "AllianceScreen")
+
+
+func _add_friend_action_row() -> void:
+	var uid: String = str(_profile.get("user_id", "")).strip_edges()
+	var fb: Node = _friends_backend()
+	if uid == "" or fb == null or not fb.has_method("get_relationship"):
+		return
+	var rel: String = str(fb.get_relationship(uid))
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	_content.add_child(row)
+
+	match rel:
+		"friend":
+			var friends_lbl := Button.new()
+			friends_lbl.text = "Friends"
+			friends_lbl.disabled = true
+			friends_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			friends_lbl.custom_minimum_size = Vector2(0, 48)
+			row.add_child(friends_lbl)
+			var remove_btn := Button.new()
+			remove_btn.text = "Remove Friend"
+			remove_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			remove_btn.custom_minimum_size = Vector2(0, 48)
+			remove_btn.pressed.connect(func(): await _friend_op("remove"))
+			row.add_child(remove_btn)
+		"invite_sent":
+			var pending := Button.new()
+			pending.text = "Pending"
+			pending.disabled = true
+			pending.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			pending.custom_minimum_size = Vector2(0, 48)
+			row.add_child(pending)
+			var cancel_btn := Button.new()
+			cancel_btn.text = "Cancel Request"
+			cancel_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			cancel_btn.custom_minimum_size = Vector2(0, 48)
+			cancel_btn.pressed.connect(func(): await _friend_op("cancel"))
+			row.add_child(cancel_btn)
+		"invite_received":
+			var accept_btn := Button.new()
+			accept_btn.text = "Accept Friend"
+			accept_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			accept_btn.custom_minimum_size = Vector2(0, 48)
+			accept_btn.pressed.connect(func(): await _friend_op("accept"))
+			row.add_child(accept_btn)
+			var decline_btn := Button.new()
+			decline_btn.text = "Decline"
+			decline_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			decline_btn.custom_minimum_size = Vector2(0, 48)
+			decline_btn.pressed.connect(func(): await _friend_op("decline"))
+			row.add_child(decline_btn)
+		"blocked":
+			var blocked_lbl := Button.new()
+			blocked_lbl.text = "Blocked"
+			blocked_lbl.disabled = true
+			blocked_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			blocked_lbl.custom_minimum_size = Vector2(0, 48)
+			row.add_child(blocked_lbl)
+		_:
+			var add_btn := Button.new()
+			add_btn.text = "Add Friend"
+			add_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			add_btn.custom_minimum_size = Vector2(0, 48)
+			add_btn.pressed.connect(func(): await _friend_op("add"))
+			row.add_child(add_btn)
+
+
+func _friend_op(op: String) -> void:
+	var uid: String = str(_profile.get("user_id", "")).strip_edges()
+	var fb: Node = _friends_backend()
+	if uid == "" or fb == null:
+		return
+	var result: Dictionary = {}
+	match op:
+		"add":
+			result = await fb.send_friend_request(uid)
+		"accept":
+			result = await fb.accept_friend_request(uid)
+		"decline":
+			result = await fb.decline_friend_request(uid)
+		"cancel":
+			result = await fb.cancel_friend_request(uid)
+		"remove":
+			result = await fb.remove_friend(uid)
+		_:
+			return
+	if bool(result.get("ok", false)):
+		_status.text = "Friends updated."
+		await _open_async()
+	else:
+		_status.text = str(result.get("error", "Friends action failed."))
+
+
+func _on_block_pressed() -> void:
+	var uid: String = str(_profile.get("user_id", "")).strip_edges()
+	var fb: Node = _friends_backend()
+	if uid == "" or fb == null:
+		_status.text = "Block unavailable."
+		return
+	var result: Dictionary
+	if bool(fb.is_blocked(uid)):
+		result = await fb.unblock_player(uid)
+		_status.text = "Player unblocked." if bool(result.get("ok", false)) else str(result.get("error", "Unblock failed."))
+	else:
+		result = await fb.block_player(uid)
+		_status.text = "Player blocked." if bool(result.get("ok", false)) else str(result.get("error", "Block failed."))
+	if bool(result.get("ok", false)):
+		await _open_async()
+
+
+func _on_report_pressed() -> void:
+	## Profile report uses chat_report evidence path with synthetic message/channel ids.
+	var uid: String = str(_profile.get("user_id", "")).strip_edges()
+	if uid == "" or not has_node("/root/AllianceBackend"):
+		_status.text = "Report unavailable."
+		return
+	var ab: Node = _alliance_backend()
+	var reasons: Array = ab.REPORT_REASONS.duplicate() if ab != null else ["spam", "harassment", "other"]
+	_add_section("Report reason")
+	var grid := VBoxContainer.new()
+	grid.add_theme_constant_override("separation", 6)
+	_content.add_child(grid)
+	for reason_v in reasons:
+		var reason: String = str(reason_v)
+		var btn := Button.new()
+		btn.text = reason.replace("_", " ").capitalize()
+		btn.custom_minimum_size = Vector2(0, 44)
+		btn.pressed.connect(func(): await _submit_profile_report(uid, reason))
+		grid.add_child(btn)
+
+
+func _submit_profile_report(user_id: String, reason: String) -> void:
+	if not has_node("/root/AllianceBackend"):
+		return
+	var payload := {
+		"reported_user_id": user_id,
+		"message_id": "profile_%s_%d" % [user_id, int(Time.get_unix_time_from_system())],
+		"channel_id": "player_profile",
+		"message_type": "PROFILE",
+		"message_text": "Profile report: %s" % str(_profile.get("display_name", "Player")),
+		"create_time": Time.get_datetime_string_from_system(true),
+		"reason": reason,
+	}
+	var result: Dictionary = await _alliance_backend().submit_chat_report(payload)
+	if bool(result.get("ok", false)):
+		_status.text = "Report submitted for review."
+	else:
+		_status.text = str(result.get("error", "Report failed."))
+
+
+func _add_public_gear_section() -> void:
+	_add_section("Public Gear")
+	var gear: Array = []
+	if typeof(_profile.get("public_equipment")) == TYPE_ARRAY:
+		gear = _profile.get("public_equipment", [])
+	if gear.is_empty():
+		var empty := Label.new()
+		empty.text = "No public gear published."
+		empty.add_theme_color_override("font_color", COL_MUTED)
+		empty.add_theme_font_size_override("font_size", 13)
+		_content.add_child(empty)
+		return
+	for item_v in gear:
+		if typeof(item_v) != TYPE_DICTIONARY:
+			continue
+		var item: Dictionary = item_v
+		var slot: String = str(item.get("slot", item.get("gear_slot", "Gear")))
+		var item_name: String = str(item.get("name", item.get("display_name", "Item")))
+		var rarity: String = str(item.get("rarity", ""))
+		var level: int = int(item.get("level", 0))
+		var enhance: int = int(item.get("enhancement", item.get("refine", 0)))
+		var line := "%s — %s" % [slot.capitalize(), item_name]
+		if rarity != "":
+			line += " · %s" % rarity
+		if level > 0:
+			line += " · Lv.%d" % level
+		if enhance > 0:
+			line += " · +%d" % enhance
+		var row := Label.new()
+		row.text = line
+		row.add_theme_color_override("font_color", COL_INK)
+		row.add_theme_font_size_override("font_size", 13)
+		row.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_content.add_child(row)
+
+
+func _on_share_location() -> void:
+	var uid: String = str(_profile.get("user_id", "")).strip_edges()
+	var x: float = float(_profile.get("world_x", 0))
+	var y: float = float(_profile.get("world_y", 0))
+	if x == 0.0 and y == 0.0 and has_node("/root/MarchState") and MarchState.has_method("get_castle_world_position"):
+		var pos: Vector2 = MarchState.get_castle_world_position()
+		x = pos.x
+		y = pos.y
+	if not has_node("/root/ChatManager"):
+		_status.text = "Chat unavailable."
+		return
+	var cm: Node = get_node("/root/ChatManager")
+	var kid: String = str(_profile.get("kingdom_id", ""))
+	if kid == "" and cm.has_method("get_kingdom_id"):
+		kid = str(cm.get_kingdom_id())
+	var name_text: String = str(_profile.get("display_name", "Lord"))
+	var payload := {
+		"kingdom_id": kid,
+		"x": x,
+		"y": y,
+		"label": "[Castle] %s" % name_text,
+		"target_type": "player_castle",
+		"target_id": uid,
+		"owner_user_id": uid,
+		"display_name": name_text,
+	}
+	print("[CastlePopup] share requested user=%s kingdom=%s x=%s y=%s" % [uid, kid, str(x), str(y)])
+	_status.text = "Sharing to Kingdom Chat…"
+	var result: Dictionary = await cm.send_map_location(payload, "kingdom")
+	if bool(result.get("ok", false)):
+		_status.text = "Castle location shared to Kingdom Chat."
+		_status.add_theme_color_override("font_color", COL_OK)
+	else:
+		_status.add_theme_color_override("font_color", Color(1.0, 0.5, 0.4))
+		_status.text = str(result.get("error", "Share failed."))
 
 
 func _add_stat_row(parent: VBoxContainer, label: String, value: String) -> void:

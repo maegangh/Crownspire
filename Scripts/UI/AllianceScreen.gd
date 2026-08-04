@@ -107,6 +107,12 @@ func _ready() -> void:
 			_alliance_backend().auto_help_status_changed.connect(_on_backend_auto_help_changed)
 		if not _alliance_backend().operation_failed.is_connected(_on_backend_operation_failed):
 			_alliance_backend().operation_failed.connect(_on_backend_operation_failed)
+		if not _alliance_backend().profile_changed.is_connected(_on_backend_profile_changed):
+			_alliance_backend().profile_changed.connect(_on_backend_profile_changed)
+	var nc_bind: Node = _nakama_connection()
+	if nc_bind != null and nc_bind.has_signal("connection_state_changed"):
+		if not nc_bind.connection_state_changed.is_connected(_on_nakama_connection_state_changed):
+			nc_bind.connection_state_changed.connect(_on_nakama_connection_state_changed)
 
 
 func _on_backend_operation_failed(reason: String) -> void:
@@ -121,13 +127,40 @@ func _set_flash_status(text: String) -> void:
 	_flash_status = text.strip_edges()
 
 
+func _is_multiplayer_online() -> bool:
+	## Network connectivity only — never requires Crownspire profile.
+	var nc: Node = _nakama_connection()
+	return (
+		nc != null
+		and nc.has_method("is_authenticated")
+		and nc.has_method("is_socket_connected")
+		and nc.is_authenticated()
+		and nc.is_socket_connected()
+	)
+
+
 func _use_backend() -> bool:
+	## Server-backed Alliance membership/profile readiness (not connectivity).
 	var ab: Node = _alliance_backend()
 	return ab != null and ab.is_membership_authority()
 
 
+func _log_alliance_ui_state(context: String = "") -> void:
+	var nc: Node = _nakama_connection()
+	var ab: Node = _alliance_backend()
+	var authenticated: bool = nc != null and nc.has_method("is_authenticated") and nc.is_authenticated()
+	var socket: bool = nc != null and nc.has_method("is_socket_connected") and nc.is_socket_connected()
+	var has_profile: bool = ab != null and ab.has_method("has_profile") and ab.has_profile()
+	var membership_authority: bool = ab != null and ab.has_method("is_membership_authority") and ab.is_membership_authority()
+	var suffix: String = (" context=%s" % context) if context.strip_edges() != "" else ""
+	print(
+		"[AllianceUI] authenticated=%s socket=%s has_profile=%s membership_authority=%s%s"
+		% [authenticated, socket, has_profile, membership_authority, suffix]
+	)
+
+
 func _is_in_alliance() -> bool:
-	## Backend membership is authoritative when online.
+	## Backend membership is authoritative when profile/membership authority is ready.
 	if _use_backend():
 		return _alliance_backend().is_in_backend_alliance()
 	return has_node("/root/AllianceState") and AllianceState.is_in_alliance()
@@ -140,9 +173,12 @@ func on_open() -> void:
 	_coming_soon_title = ""
 	_selected_research_id = ""
 	_research_category = "Growth"
+	_log_alliance_ui_state("on_open_start")
 	var nc: Node = _nakama_connection()
 	if has_node("/root/AllianceBackend") and nc != null and nc.is_authenticated():
-		await _alliance_backend().refresh_profile()
+		var result: Dictionary = await _alliance_backend().refresh_profile()
+		if not bool(result.get("ok", false)):
+			print("[AllianceUI] refresh_profile failed: %s" % str(result.get("error", "unknown")))
 		if _alliance_backend().is_in_backend_alliance():
 			await _alliance_backend().refresh_membership_caches()
 		else:
@@ -151,6 +187,7 @@ func on_open() -> void:
 		_view = ViewMode.HOME
 	else:
 		_view = ViewMode.LOBBY
+	_log_alliance_ui_state("on_open_ready")
 	_refresh()
 	if has_node("/root/GameEvents"):
 		GameEvents.emit_alliance_opened()
@@ -190,6 +227,24 @@ func _on_backend_alliance_changed(_alliance: Dictionary) -> void:
 	elif _view in [ViewMode.LOBBY, ViewMode.CREATE, ViewMode.JOIN, ViewMode.INVITES]:
 		_view = ViewMode.HOME
 	_refresh()
+
+
+func _on_backend_profile_changed(_profile: Dictionary) -> void:
+	## Profile arrival flips membership_authority — refresh lobby so UI leaves "loading profile".
+	if not visible:
+		return
+	_log_alliance_ui_state("profile_changed")
+	if _is_in_alliance() and _view in [ViewMode.LOBBY, ViewMode.CREATE, ViewMode.JOIN, ViewMode.INVITES]:
+		_view = ViewMode.HOME
+	_refresh()
+
+
+func _on_nakama_connection_state_changed(_state: String = "") -> void:
+	if not visible:
+		return
+	_log_alliance_ui_state("connection_state")
+	if _view == ViewMode.LOBBY or not _is_in_alliance():
+		_refresh()
 
 
 func _on_backend_roster_changed(_members: Array) -> void:
@@ -436,19 +491,28 @@ func _open_nav_card(card_id: String) -> void:
 
 func _build_unjoined_view() -> void:
 	var nc: Node = _nakama_connection()
-	var online: bool = _use_backend()
+	var mp_online: bool = _is_multiplayer_online()
+	var membership_ready: bool = _use_backend()
 	var connecting: bool = false
 	if nc != null and nc.has_method("get_connection_state"):
 		var st: String = str(nc.get_connection_state())
 		connecting = st == "connecting" or st == "reconnecting"
+	_log_alliance_ui_state("unjoined_view")
 
-	if online:
+	if connecting and not mp_online:
+		# A — Nakama connecting / reconnecting
+		_add_banner_panel("Connecting…", "Multiplayer")
+		_add_body_label("Connecting to Crownspire servers. Alliance Create / Join will unlock when ready.")
+	elif mp_online and membership_ready:
+		# B — authenticated + socket + profile/membership ready
 		_add_banner_panel("Join the Realms", "Create or join an Alliance")
 		_add_body_label("Build with allies — create a new Alliance, search existing ones, or check your invitations.")
-	elif connecting:
-		_add_banner_panel("Connecting…", "Multiplayer")
-		_add_body_label("Connecting to Crownspire servers. Alliance Create / Join will unlock when online.")
+	elif mp_online:
+		# C — connected, but Crownspire profile not loaded yet
+		_add_banner_panel("Connected", "Multiplayer")
+		_add_body_label("Connected · Loading player profile… Create / Join unlock once your profile is ready.")
 	else:
+		# D — actually disconnected / offline
 		_add_banner_panel("Alliance", "Offline")
 		var reason: String = ""
 		if nc != null and nc.has_method("get_last_fail_reason"):
@@ -461,8 +525,8 @@ func _build_unjoined_view() -> void:
 	var create_btn: Button = Button.new()
 	create_btn.text = "Create Alliance"
 	create_btn.custom_minimum_size = Vector2(0, 64)
-	## Beta: Create requires multiplayer authority (no silent local create while online).
-	create_btn.disabled = not online
+	## Mutations require membership authority (profile ready). Never equate this with offline.
+	create_btn.disabled = not membership_ready
 	create_btn.pressed.connect(func() -> void:
 		_view = ViewMode.CREATE
 		_refresh()
@@ -472,6 +536,7 @@ func _build_unjoined_view() -> void:
 	var join_btn: Button = Button.new()
 	join_btn.text = "Join Alliance"
 	join_btn.custom_minimum_size = Vector2(0, 64)
+	join_btn.disabled = not membership_ready
 	join_btn.pressed.connect(func() -> void:
 		_view = ViewMode.JOIN
 		_refresh()
@@ -481,6 +546,7 @@ func _build_unjoined_view() -> void:
 	var search_btn: Button = Button.new()
 	search_btn.text = "Search Alliances"
 	search_btn.custom_minimum_size = Vector2(0, 56)
+	search_btn.disabled = not membership_ready
 	search_btn.pressed.connect(func() -> void:
 		_view = ViewMode.JOIN
 		_refresh()
@@ -490,13 +556,27 @@ func _build_unjoined_view() -> void:
 	var invites_btn: Button = Button.new()
 	invites_btn.text = "Invitations"
 	invites_btn.custom_minimum_size = Vector2(0, 56)
+	invites_btn.disabled = not membership_ready
 	invites_btn.pressed.connect(func() -> void:
 		_view = ViewMode.INVITES
 		_refresh()
 	)
 	_content.add_child(invites_btn)
 
-	if not online and nc != null and nc.has_method("reconnect_now"):
+	if mp_online and not membership_ready:
+		var retry_profile: Button = Button.new()
+		retry_profile.text = "Retry Profile Load"
+		retry_profile.custom_minimum_size = Vector2(0, 52)
+		retry_profile.pressed.connect(func() -> void:
+			_status_label.text = "Loading profile…"
+			if has_node("/root/AllianceBackend"):
+				await _alliance_backend().refresh_profile()
+			_log_alliance_ui_state("retry_profile")
+			_refresh()
+		)
+		_content.add_child(retry_profile)
+
+	if not mp_online and not connecting and nc != null and nc.has_method("reconnect_now"):
 		var retry: Button = Button.new()
 		retry.text = "Retry Connection"
 		retry.custom_minimum_size = Vector2(0, 52)
