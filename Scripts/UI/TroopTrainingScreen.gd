@@ -163,10 +163,9 @@ func _apply_troop_context(
 ) -> void:
 	_troop_type = _canonicalize_troop_type(troop_type)
 	_building_id = building_id if building_id != "" else TroopState.building_id_for_troop_type(_troop_type)
-	if building_level >= 1:
-		_building_level = building_level
-	else:
-		_building_level = _lookup_training_building_level(_troop_type, _building_id)
+	# Phase 0B2-B: always resolve completed building level from ConstructionState authority.
+	# Ignore caller/scene-local/GameState values (including QueueStatusHUD's old hardcoded 1).
+	_building_level = _lookup_training_building_level(_troop_type, _building_id)
 	if reset_mode_amount:
 		_mode = "train"
 		_status_label_text_clear()
@@ -243,24 +242,30 @@ func _building_titles() -> Dictionary:
 			return {"title": "TRAINING", "subtitle": _troop_type}
 
 
+func _canonical_training_building_id(troop_type: String, building_id: String) -> String:
+	var bid: String = building_id.strip_edges()
+	if not bid.is_empty():
+		if has_node("/root/ConstructionState") and ConstructionState.has_method("normalize_building_id"):
+			return ConstructionState.normalize_building_id(bid)
+		return bid.to_lower()
+	match _canonicalize_troop_type(troop_type):
+		"Infantry":
+			return "infantry_barracks"
+		"Marksmen":
+			return "marksmen_camp"
+		"Cavalry":
+			return "cavalry_stable"
+		_:
+			return ""
+
+
 func _lookup_training_building_level(troop_type: String, building_id: String) -> int:
-	var node: Node = _find_training_building_node(troop_type, building_id)
-	if node != null and "building_level" in node:
-		return maxi(1, int(node.get("building_level")))
-	# Fallback: same buildings.cfg keys ResourceManager uses (building_name).
-	var save := ConfigFile.new()
-	if save.load("user://buildings.cfg") == OK:
-		var names: PackedStringArray = PackedStringArray()
-		match _canonicalize_troop_type(troop_type):
-			"Infantry":
-				names = PackedStringArray(["Infantry Barracks", "InfantryBarracks"])
-			"Marksmen":
-				names = PackedStringArray(["Marksmen Camp", "MarksmenCamp"])
-			"Cavalry":
-				names = PackedStringArray(["Cavalry Stable", "CavalryStable"])
-		for key: String in names:
-			if save.has_section_key(key, "level"):
-				return maxi(1, int(save.get_value(key, "level", 1)))
+	# Phase 0B2-B: ConstructionState canonical authority only (no scene-local / display cfg).
+	var id_key: String = _canonical_training_building_id(troop_type, building_id)
+	if id_key.is_empty():
+		return 1
+	if has_node("/root/ConstructionState") and ConstructionState.has_method("get_canonical_building_level"):
+		return maxi(1, int(ConstructionState.get_canonical_building_level(id_key)))
 	return 1
 
 

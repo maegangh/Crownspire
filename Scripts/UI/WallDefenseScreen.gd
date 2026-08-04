@@ -360,14 +360,9 @@ func _on_edit_pressed() -> void:
 
 
 func _get_wall_level() -> int:
-	var scene: Node = get_tree().current_scene
-	if scene == null:
-		return 1
-	var wall: Node = scene.get_node_or_null("Buildings/Wall")
-	if wall == null:
-		wall = scene.find_child("Wall", true, false)
-	if wall != null and "building_level" in wall:
-		return maxi(1, int(wall.get("building_level")))
+	# Phase 0B2-B: non-catalog wall completed level from ConstructionState authority.
+	if has_node("/root/ConstructionState") and ConstructionState.has_method("get_canonical_building_level"):
+		return maxi(1, int(ConstructionState.get_canonical_building_level("wall")))
 	return 1
 
 

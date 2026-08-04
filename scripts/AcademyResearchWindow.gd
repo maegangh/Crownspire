@@ -198,9 +198,7 @@ func open_research() -> void:
 	_update_resources_display()
 	_load_persistent_state()
 	if academy_level_badge:
-		var academy = _get_academy_building_ref()
-		var lvl = int(academy.get("level", 1))
-		academy_level_badge.text = "Hall Lv %d" % maxi(1, lvl)
+		academy_level_badge.text = "Hall Lv %d" % _get_canonical_academy_level()
 	_setup_mobile_shell()
 	_mobile_show_home()
 
@@ -377,6 +375,13 @@ func _get_academy_building_ref() -> Dictionary:
 	if ui and ui.has_method("get_building"):
 		return ui.call("get_building", "academy")
 	return {}
+
+
+## Phase 0B2-B: Academy completed building level from ConstructionState authority only.
+func _get_canonical_academy_level() -> int:
+	if has_node("/root/ConstructionState") and ConstructionState.has_method("get_canonical_building_level"):
+		return maxi(1, int(ConstructionState.get_canonical_building_level("academy")))
+	return 1
 
 func get_research_levels() -> Dictionary:
 	if has_node("/root/ResearchState"):
@@ -1508,9 +1513,7 @@ func _update_resources_display() -> void:
 	if valor_label: valor_label.text = format_num(get_resource("valor"))
 	
 	if academy_level_badge:
-		var academy = _get_academy_building_ref()
-		var lvl = int(academy.get("level", 15))
-		academy_level_badge.text = "Sovereign Lvl %d" % lvl
+		academy_level_badge.text = "Sovereign Lvl %d" % _get_canonical_academy_level()
 
 func _on_global_currency_changed(_id: String, _val: float) -> void:
 	_update_resources_display()

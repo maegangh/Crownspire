@@ -139,13 +139,13 @@ func looks_like_fresh_player() -> bool:
 					return false
 	if has_node("/root/ConstructionState") and not ConstructionState.active_jobs.is_empty():
 		return false
-	# Any building above level 1 means progressed city.
-	if FileAccess.file_exists("user://buildings.cfg"):
-		var cfg := ConfigFile.new()
-		if cfg.load("user://buildings.cfg") == OK:
-			for section: String in cfg.get_sections():
-				if int(cfg.get_value(section, "level", 1)) > 1:
-					return false
+	# Phase 0B2-C: any canonical completed building level > 1 means progressed city.
+	# Uses ConstructionState authority only (never display-name sections or job target levels).
+	if has_node("/root/ConstructionState") and ConstructionState.has_method("get_known_building_ids") \
+			and ConstructionState.has_method("get_canonical_building_level"):
+		for bid: String in ConstructionState.get_known_building_ids():
+			if int(ConstructionState.get_canonical_building_level(bid)) > 1:
+				return false
 	return true
 
 

@@ -236,7 +236,11 @@ func _local_identity_snapshot() -> Dictionary:
 	var payload: Dictionary = {}
 	if has_node("/root/GameState"):
 		payload["power"] = int(GameState.power)
-		payload["citadel_level"] = maxi(1, int(GameState.castle_level))
+		# Phase 0B2-C: local citadel from ConstructionState castle authority (not GameState mirror).
+		var citadel: int = 1
+		if has_node("/root/ConstructionState") and ConstructionState.has_method("get_canonical_building_level"):
+			citadel = maxi(1, int(ConstructionState.get_canonical_building_level("castle")))
+		payload["citadel_level"] = citadel
 		payload["vip_level"] = maxi(0, int(GameState.vip_level))
 	if _profile.has("avatar_id"):
 		payload["avatar_id"] = get_avatar_id()

@@ -66,9 +66,10 @@ func calculate_gather_seconds(gather_amount: int, resource_type: String = "", he
 ## Breakdown dictionaries for tests / debugging (not player UI).
 func resolve_march_capacity(hero_ids: Array = []) -> Dictionary:
 	_ensure_research_cache()
+	# Phase 0B2-B: citadel/castle completed level from ConstructionState authority.
 	var castle_level: int = 1
-	if has_node("/root/GameState"):
-		castle_level = maxi(1, int(GameState.castle_level))
+	if has_node("/root/ConstructionState") and ConstructionState.has_method("get_canonical_building_level"):
+		castle_level = maxi(1, int(ConstructionState.get_canonical_building_level("castle")))
 	var base: float = float(BASE_MARCH_CAPACITY + castle_level * CAPACITY_PER_CASTLE_LEVEL)
 
 	var research_flat: float = _research_flat_for_effect("March Capacity")

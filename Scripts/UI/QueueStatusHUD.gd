@@ -592,7 +592,9 @@ func _on_training_pressed() -> void:
 		var building_id := ""
 		if has_node("/root/TroopState"):
 			building_id = TroopState.building_id_for_troop_type(troop_type)
-		screen.call("open_for_building", troop_type, building_id, 1)
+		# Phase 0B2-B: do not pass a hardcoded completed building level.
+		# TroopTrainingScreen resolves level from ConstructionState authority.
+		screen.call("open_for_building", troop_type, building_id, -1)
 	if manager != null and manager.has_method("open_screen"):
 		manager.call("open_screen", "TroopTrainingScreen")
 

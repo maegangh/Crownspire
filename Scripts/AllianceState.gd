@@ -1249,9 +1249,10 @@ func contribute_to_research(research_id: String, use_diamond_bypass: bool = fals
 
 
 func get_embassy_help_capacity() -> int:
+	# Phase 0B2-C: player-owned Embassy completed level from ConstructionState authority.
 	var level: int = 1
-	if has_node("/root/GameState"):
-		level = max(1, int(GameState.embassy_level))
+	if has_node("/root/ConstructionState") and ConstructionState.has_method("get_canonical_building_level"):
+		level = max(1, int(ConstructionState.get_canonical_building_level("embassy")))
 
 	var level_data: Dictionary = DataManager.get_building_level_data("embassy", level)
 	var effect: String = str(level_data.get("buildingEffect", ""))

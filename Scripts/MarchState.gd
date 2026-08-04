@@ -129,9 +129,10 @@ func finish_march() -> void:
 func get_march_capacity(hero_ids: Array = []) -> int:
 	if has_node("/root/StatResolver") and StatResolver.has_method("get_march_capacity"):
 		return int(StatResolver.get_march_capacity(hero_ids))
+	# Phase 0B2-B fallback: ConstructionState castle authority (not GameState mirror).
 	var castle_level: int = 1
-	if has_node("/root/GameState"):
-		castle_level = max(1, int(GameState.castle_level))
+	if has_node("/root/ConstructionState") and ConstructionState.has_method("get_canonical_building_level"):
+		castle_level = max(1, int(ConstructionState.get_canonical_building_level("castle")))
 	# Fallback if StatResolver unavailable (should not happen in production).
 	return BASE_MARCH_CAPACITY + (castle_level * CAPACITY_PER_CASTLE_LEVEL)
 

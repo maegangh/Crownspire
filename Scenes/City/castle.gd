@@ -130,13 +130,13 @@ func refresh_level_display() -> void:
 
 
 func _load_saved_level() -> int:
-	var save := ConfigFile.new()
-	var load_error := save.load("user://buildings.cfg")
-
-	if load_error != OK:
-		return 1
-
-	return int(save.get_value(building_id, "level", 1))
+	# Phase 0B2-A: read completed castle level from ConstructionState authority only.
+	var id_key: String = building_id.strip_edges()
+	if id_key.is_empty():
+		id_key = "castle"
+	if has_node("/root/ConstructionState") and ConstructionState.has_method("get_canonical_building_level"):
+		return maxi(1, int(ConstructionState.get_canonical_building_level(id_key)))
+	return 1
 
 
 func _find_level_label() -> Label:

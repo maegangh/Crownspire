@@ -74,12 +74,10 @@ func end_smoke_isolation() -> void:
 # --- Capacity -----------------------------------------------------------------
 
 func get_hospital_level() -> int:
-	var save := ConfigFile.new()
-	if save.load(BUILDINGS_CFG) != OK:
-		if has_node("/root/GameState"):
-			return maxi(1, int(GameState.hospital_level))
-		return 1
-	return maxi(1, int(save.get_value("hospital", "level", 1)))
+	# Phase 0B2-B: completed hospital level from ConstructionState authority only.
+	if has_node("/root/ConstructionState") and ConstructionState.has_method("get_canonical_building_level"):
+		return maxi(1, int(ConstructionState.get_canonical_building_level("hospital")))
+	return 1
 
 
 ## Canonical Hospital Capacity: Sacred Hospital level × 1000 (buildings.json text).
