@@ -3,7 +3,6 @@
 # Godot 4.6 / GDScript 2.0 Clickable Resource Node for Map Exploration
 # ==============================================================================
 
-class_name ResourceNode
 extends Node2D
 
 signal clicked(node: ResourceNode)

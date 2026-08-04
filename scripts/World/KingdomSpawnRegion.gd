@@ -3,7 +3,6 @@
 # Godot 4.6 / GDScript 2.0 Reusable Area2D region-based bounding box/polygon validator
 # ==============================================================================
 
-class_name KingdomSpawnRegion
 extends Area2D
 
 @export_enum("Resource", "Wildling", "Buildable", "Restricted") var region_type: String = "Resource"

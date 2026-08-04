@@ -1,0 +1,17 @@
+{
+  "name": "crownspire-nakama-runtime",
+  "version": "0.4.0",
+  "private": true,
+  "description": "Crownspire Nakama JS/TS runtime — LOCAL DEVELOPMENT",
+  "main": "build/index.js",
+  "scripts": {
+    "build": "tsc",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "nakama-runtime": "github:heroiclabs/nakama-common#master"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

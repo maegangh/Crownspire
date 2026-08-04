@@ -17,3 +17,7 @@ Desktop.ini
 *.tmp
 *.import
 .godot/*
+
+# Local Godot verification logs (repo root)
+*_parse.log
+*_smoke.log

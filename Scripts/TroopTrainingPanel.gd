@@ -34,6 +34,24 @@ func _process(_delta: float) -> void:
 
 
 func open_for_troop(type: String, tier: int = 1) -> void:
+	# Legacy City popup — redirect to production ScreenRoot training UI.
+	var hud: Node = get_tree().current_scene.get_node_or_null("GameHUD")
+	if hud == null:
+		hud = get_tree().root.find_child("GameHUD", true, false)
+	var screen: Node = hud.get_node_or_null("ScreenRoot/TroopTrainingScreen") if hud else null
+	if screen != null and screen.has_method("open_for_building"):
+		var level: int = 1
+		# Prefer live building level from city nodes when available.
+		var building: Node = get_tree().current_scene.find_child(
+			_legacy_building_node_name(type), true, false
+		)
+		if building != null and "building_level" in building:
+			level = int(building.get("building_level"))
+		screen.call("open_for_building", type, "", level)
+		hide()
+		return
+
+	# Fallback: keep old debug panel only if production screen is missing.
 	GameState.popup_open = true
 	troop_type = type
 	selected_tier = tier
@@ -41,6 +59,18 @@ func open_for_troop(type: String, tier: int = 1) -> void:
 	amount_slider.value = 1
 	update_panel()
 	show()
+
+
+func _legacy_building_node_name(type: String) -> String:
+	match type.to_lower():
+		"infantry":
+			return "InfantryBarracks"
+		"marksmen", "marksman":
+			return "MarksmenCamp"
+		"cavalry":
+			return "CavalryStable"
+		_:
+			return ""
 
 
 func update_panel() -> void:

@@ -31,3 +31,10 @@ func _open_wildling_panel() -> void:
 		return
 
 	panel.open_panel(card_texture, level, power, wildling_node, species)
+	if has_node("/root/GameEvents"):
+		var wid: String = ""
+		if wildling_node != null and "instance_id" in wildling_node:
+			wid = str(wildling_node.get("instance_id"))
+		if wid.is_empty():
+			wid = "%s_L%d" % [species.strip_edges().to_lower(), level]
+		GameEvents.emit_wildling_selected(wid)

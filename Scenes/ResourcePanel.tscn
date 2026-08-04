@@ -1,0 +1,105 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Scenes/resource_panel.gd" id="1_respanel"]
+
+[node name="ResourcePanel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_respanel")
+
+[node name="DimBackground" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0.04, 0.03, 0.06, 0.72)
+
+[node name="CardRoot" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 80.0
+offset_top = 160.0
+offset_right = 500.0
+offset_bottom = 780.0
+mouse_filter = 0
+
+[node name="CardMargin" type="MarginContainer" parent="CardRoot"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 14
+
+[node name="CardColumn" type="VBoxContainer" parent="CardRoot/CardMargin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="HeaderRow" type="HBoxContainer" parent="CardRoot/CardMargin/CardColumn"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HeaderSpacer" type="Control" parent="CardRoot/CardMargin/CardColumn/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="CloseButton" type="Button" parent="CardRoot/CardMargin/CardColumn/HeaderRow"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "X"
+
+[node name="Portrait" type="TextureRect" parent="CardRoot/CardMargin/CardColumn"]
+custom_minimum_size = Vector2(0, 220)
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="CardRoot/CardMargin/CardColumn"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "Resource"
+horizontal_alignment = 1
+
+[node name="LevelLabel" type="Label" parent="CardRoot/CardMargin/CardColumn"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Lv. 1"
+horizontal_alignment = 1
+
+[node name="TypeLabel" type="Label" parent="CardRoot/CardMargin/CardColumn"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Resource type:
+Food"
+horizontal_alignment = 1
+
+[node name="AvailableLabel" type="Label" parent="CardRoot/CardMargin/CardColumn"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Available:
+10,000"
+horizontal_alignment = 1
+
+[node name="ErrorLabel" type="Label" parent="CardRoot/CardMargin/CardColumn"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.55, 0.4, 1)
+theme_override_font_sizes/font_size = 15
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="GatherButton" type="Button" parent="CardRoot/CardMargin/CardColumn"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "GATHER"

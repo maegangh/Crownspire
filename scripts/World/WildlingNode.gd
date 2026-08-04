@@ -3,7 +3,6 @@
 # Godot 4.6 / GDScript 2.0 Clickable Enemy Monster Node for World Map
 # ==============================================================================
 
-class_name WildlingNode
 extends Node2D
 
 signal clicked(node: WildlingNode)

@@ -7,11 +7,25 @@
 [ext_resource type="Script" uid="uid://bivi5t74hwfx3" path="res://scripts/UI/UIManager.gd" id="4_7a7ko"]
 [ext_resource type="PackedScene" uid="uid://d1cuopqbf8q1h" path="res://Scenes/UI/BagScreen.tscn" id="5_nbojb"]
 [ext_resource type="Script" uid="uid://brh2wuhf3uofu" path="res://scripts/UI/QuestScreen.gd" id="6_dqvwb"]
-[ext_resource type="PackedScene" uid="uid://mp0werxddrlg" path="res://UI/building_upgrade/BuildingUpgradeWindow (2).tscn" id="8_0quiv"]
+[ext_resource type="Script" uid="uid://b0yxiasupigm7" path="res://scripts/UI/AllianceScreen.gd" id="7_alliance"]
+[ext_resource type="Script" uid="uid://th43bh1xo5x2" path="res://scripts/UI/EventsScreen.gd" id="7_events"]
+[ext_resource type="Script" uid="uid://c612ien663353" path="res://scripts/UI/HospitalScreen.gd" id="7_hospital"]
+[ext_resource type="Script" uid="uid://nn4pggysxua5" path="res://scripts/UI/MailScreen.gd" id="7_mail"]
+[ext_resource type="Script" uid="uid://t83rt3x7fr66" path="res://scripts/UI/MarchSetupScreen.gd" id="7_march"]
+[ext_resource type="Script" uid="uid://x1w1jh8etvjg" path="res://scripts/UI/RallySetupScreen.gd" id="7_rally"]
+[ext_resource type="Script" uid="uid://etovwigvsaoq" path="res://scripts/UI/RallyLobbyScreen.gd" id="7_rally_lobby"]
+[ext_resource type="Script" uid="uid://jp5esa3rc3x2" path="res://scripts/UI/RallyReportScreen.gd" id="7_rally_report"]
+[ext_resource type="Script" uid="uid://dyiu350cki67r" path="res://scripts/UI/SanctuaryScreen.gd" id="7_sanctuary"]
+[ext_resource type="Script" uid="uid://dxltaylhfdp2" path="res://scripts/UI/ShopScreen.gd" id="7_shop"]
+[ext_resource type="Script" uid="uid://cr10d6e37m8j6" path="res://scripts/UI/TroopTrainingScreen.gd" id="7_train"]
+[ext_resource type="Script" uid="uid://c64sxmyua0f8r" path="res://scripts/UI/WallDefenseScreen.gd" id="7_wall_defense"]
+[ext_resource type="PackedScene" uid="uid://bcj1wm45rrorc" path="res://UI/building_upgrade/BuildingUpgradeWindow (2).tscn" id="8_0quiv"]
+[ext_resource type="Texture2D" uid="uid://bvv8cbd6yuh5i" path="res://Art/UI/Placeholder/mail_envelope.png" id="9_mail_icon"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/QueueStatusHUD.tscn" id="9_queue"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/TutorialOverlay.tscn" id="10_tutorial"]
 
 [node name="GameHUD" type="CanvasLayer" unique_id=1833121157]
 script = ExtResource("1_8yvrw")
-is_world_screen = true
 bottom_bar_home = ExtResource("2_663bt")
 bottom_bar_world = ExtResource("2_8yvrw")
 
@@ -19,6 +33,7 @@ bottom_bar_world = ExtResource("2_8yvrw")
 script = ExtResource("4_7a7ko")
 
 [node name="Control" type="Control" parent="." unique_id=1062250038]
+z_index = 100
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -146,14 +161,71 @@ offset_top = 27.0
 offset_right = 138.0
 offset_bottom = 90.0
 
-[node name="ShopButton" type="TextureButton" parent="Control" unique_id=1744101377]
-modulate = Color(1, 1, 1, 0)
-layout_mode = 0
-offset_left = 625.0
-offset_top = 108.0
-offset_right = 698.0
-offset_bottom = 152.0
+[node name="RightFeatureButtons" type="VBoxContainer" parent="Control" unique_id=637068380]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -110.0
+offset_top = 100.0
+offset_right = -14.0
+offset_bottom = 220.0
+grow_horizontal = 0
 mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="ShopButton" type="TextureButton" parent="Control/RightFeatureButtons" unique_id=1744101377]
+modulate = Color(1, 1, 1, 0)
+custom_minimum_size = Vector2(96, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="EventsButton" type="Button" parent="Control/RightFeatureButtons" unique_id=658204232]
+custom_minimum_size = Vector2(96, 52)
+layout_mode = 2
+size_flags_horizontal = 4
+focus_mode = 0
+text = "EVENTS"
+
+[node name="ClaimBadge" type="Label" parent="Control/RightFeatureButtons/EventsButton" unique_id=379873162]
+layout_mode = 0
+offset_left = 64.0
+offset_top = -2.0
+offset_right = 96.0
+offset_bottom = 24.0
+theme_override_colors/font_color = Color(0.95, 0.35, 0.32, 1)
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 2
+
+[node name="MailButton" type="TextureButton" parent="Control" unique_id=1980551260]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -96.0
+offset_top = -276.0
+offset_right = -16.0
+offset_bottom = -196.0
+grow_horizontal = 0
+grow_vertical = 0
+texture_normal = ExtResource("9_mail_icon")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="UnreadBadge" type="Label" parent="Control/MailButton" unique_id=989504153]
+layout_mode = 0
+offset_left = 40.0
+offset_top = -2.0
+offset_right = 80.0
+offset_bottom = 24.0
+theme_override_colors/font_color = Color(0.95, 0.78, 0.32, 1)
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 2
+
+[node name="QueueStatusHUD" parent="Control" unique_id=728984486 instance=ExtResource("9_queue")]
+layout_mode = 1
 
 [node name="BottomBarTexture" type="TextureRect" parent="Control" unique_id=355547201]
 layout_mode = 1
@@ -166,60 +238,68 @@ offset_top = -179.0
 offset_bottom = 5.0
 grow_horizontal = 2
 grow_vertical = 0
-mouse_filter = 2
+mouse_filter = 0
 texture = ExtResource("2_8yvrw")
 expand_mode = 1
 stretch_mode = 5
 metadata/_edit_use_anchors_ = true
 
 [node name="BottomButtons" type="HBoxContainer" parent="Control/BottomBarTexture" unique_id=272526963]
-modulate = Color(0, 0, 0, 0)
+modulate = Color(1, 1, 1, 0)
 layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.010243278
-anchor_top = 1.0949721
-anchor_right = 0.9390608
-anchor_bottom = 1.0970855
-offset_left = 24.0
-offset_top = -25.0
-offset_right = -601.45514
-offset_bottom = -15.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 28.0
+offset_top = 42.0
+offset_right = -28.0
+offset_bottom = -10.0
 grow_horizontal = 2
-grow_vertical = 0
-scale = Vector2(7.213506, -12.565689)
-theme_override_constants/separation = 1
+grow_vertical = 2
+theme_override_constants/separation = 2
 alignment = 1
-metadata/_edit_use_anchors_ = true
 
 [node name="HeroesButton" type="Button" parent="Control/BottomBarTexture/BottomButtons" unique_id=1678010487]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.53
+size_flags_vertical = 3
+focus_mode = 0
+flat = true
 
 [node name="WayfinderButton" type="Button" parent="Control/BottomBarTexture/BottomButtons" unique_id=771244005]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.5
+size_flags_vertical = 3
+focus_mode = 0
+flat = true
 
 [node name="BagButton" type="Button" parent="Control/BottomBarTexture/BottomButtons" unique_id=2103624579]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.53
+size_flags_vertical = 3
+focus_mode = 0
+flat = true
 
 [node name="QuestButton" type="Button" parent="Control/BottomBarTexture/BottomButtons" unique_id=1462513827]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.55
+size_flags_vertical = 3
+focus_mode = 0
+flat = true
 
 [node name="AllianceButton" type="Button" parent="Control/BottomBarTexture/BottomButtons" unique_id=1907953245]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.5
+size_flags_vertical = 3
+focus_mode = 0
+flat = true
 
 [node name="WorldCityButton" type="Button" parent="Control/BottomBarTexture/BottomButtons" unique_id=926194786]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.5
+size_flags_vertical = 3
+focus_mode = 0
+flat = true
 
 [node name="ScreenRoot" type="Control" parent="." unique_id=1380928209]
 layout_mode = 3
@@ -230,23 +310,20 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="BagScreen" parent="ScreenRoot" unique_id=876701432 instance=ExtResource("5_nbojb")]
-layout_mode = 1
-offset_left = 2.0
-offset_top = -6.0
-offset_right = 2.0
-offset_bottom = -6.0
-
 [node name="PopupBackground" type="ColorRect" parent="ScreenRoot" unique_id=2063645878]
 visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_bottom = -190.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0, 0, 0, 0)
+color = Color(0, 0, 0, 0.45)
+
+[node name="BagScreen" parent="ScreenRoot" unique_id=876701432 instance=ExtResource("5_nbojb")]
+layout_mode = 1
 
 [node name="ShopScreen" type="Control" parent="ScreenRoot" unique_id=1466696446]
 visible = false
@@ -256,17 +333,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="Panel" type="Panel" parent="ScreenRoot/ShopScreen" unique_id=1009182091]
-layout_mode = 0
-offset_right = 500.0
-offset_bottom = 700.0
-
-[node name="Label" type="Label" parent="ScreenRoot/ShopScreen/Panel" unique_id=346382024]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 23.0
-text = "Shop Screen"
+script = ExtResource("7_shop")
 
 [node name="AllianceScreen" type="Control" parent="ScreenRoot" unique_id=1667708560]
 visible = false
@@ -276,17 +343,51 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("7_alliance")
 
-[node name="Panel" type="Panel" parent="ScreenRoot/AllianceScreen" unique_id=972853581]
-layout_mode = 0
-offset_right = 500.0
-offset_bottom = 700.0
+[node name="MarchSetupScreen" type="Control" parent="ScreenRoot" unique_id=1070084933]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("7_march")
 
-[node name="Label" type="Label" parent="ScreenRoot/AllianceScreen/Panel" unique_id=836182485]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 23.0
-text = "Alliance Screen"
+[node name="RallySetupScreen" type="Control" parent="ScreenRoot" unique_id=1274003123]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("7_rally")
+
+[node name="RallyLobbyScreen" type="Control" parent="ScreenRoot" unique_id=427324136]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("7_rally_lobby")
+
+[node name="RallyReportScreen" type="Control" parent="ScreenRoot" unique_id=1182217585]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("7_rally_report")
 
 [node name="QuestScreen" type="Control" parent="ScreenRoot" unique_id=538321268]
 visible = false
@@ -317,17 +418,52 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("7_mail")
 
-[node name="Panel" type="Panel" parent="ScreenRoot/MailScreen" unique_id=774193648]
-layout_mode = 0
-offset_right = 500.0
-offset_bottom = 700.0
+[node name="TroopTrainingScreen" type="Control" parent="ScreenRoot" unique_id=1689206322]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("7_train")
 
-[node name="Label" type="Label" parent="ScreenRoot/MailScreen/Panel" unique_id=47959380]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 23.0
-text = "Mail Screen"
+[node name="HospitalScreen" type="Control" parent="ScreenRoot" unique_id=1558848911]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("7_hospital")
+
+[node name="SanctuaryScreen" type="Control" parent="ScreenRoot" unique_id=433041708]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("7_sanctuary")
+
+[node name="WallDefenseScreen" type="Control" parent="ScreenRoot" unique_id=471133186]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("7_wall_defense")
 
 [node name="EventsScreen" type="Control" parent="ScreenRoot" unique_id=129498655]
 visible = false
@@ -337,17 +473,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="Panel" type="Panel" parent="ScreenRoot/EventsScreen" unique_id=996834845]
-layout_mode = 0
-offset_right = 500.0
-offset_bottom = 700.0
-
-[node name="Label" type="Label" parent="ScreenRoot/EventsScreen/Panel" unique_id=1617604170]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 23.0
-text = "Event Screen"
+mouse_filter = 2
+script = ExtResource("7_events")
 
 [node name="HeroScreen" type="Control" parent="ScreenRoot" unique_id=656269289]
 visible = false
@@ -490,4 +617,6 @@ offset_bottom = 23.0
 text = "Tooltip Popup"
 
 [node name="BuildingUpgradeWindow" parent="." unique_id=949679645 instance=ExtResource("8_0quiv")]
-building_id = "castle"
+
+[node name="TutorialOverlay" parent="." unique_id=474906922 instance=ExtResource("10_tutorial")]
+visible = false

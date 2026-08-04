@@ -1,0 +1,13 @@
+{
+  "files": ["./src/index.ts", "./src/phase4_alliance.ts", "./src/phase5_help.ts", "./src/phase51_identity.ts", "./src/phase53_rally.ts", "./src/phase54_world_castles.ts"],
+  "compilerOptions": {
+    "target": "es5",
+    "typeRoots": ["./node_modules"],
+    "outFile": "./build/index.js",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "lib": ["es2015", "es2016", "es2017"]
+  }
+}

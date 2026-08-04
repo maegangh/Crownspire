@@ -1,0 +1,17 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/UI/QueueStatusHUD.gd" id="1_queue"]
+
+[node name="QueueStatusHUD" type="Control"]
+layout_mode = 3
+anchors_preset = 9
+anchor_right = 0.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 210.0
+offset_right = 178.0
+offset_bottom = -150.0
+grow_horizontal = 0
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_queue")

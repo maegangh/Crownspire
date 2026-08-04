@@ -41,6 +41,7 @@
 [ext_resource type="PackedScene" uid="uid://ctk6wysgpgpy0" path="res://Scenes/TroopTrainingPanel.tscn" id="39_77fxs"]
 [ext_resource type="PackedScene" uid="uid://cwv4qoci1ev5k" path="res://Scenes/HeroRosterPanel.tscn" id="40_17ggg"]
 [ext_resource type="PackedScene" uid="uid://dospbliics87u" path="res://Scenes/UI/GameHUD.tscn" id="41_osohf"]
+[ext_resource type="PackedScene" uid="uid://d1pohlr283vp7" path="res://Scenes/UI/TavernWindow.tscn" id="42_tavern"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_cbwl0"]
 size = Vector2(170, 167.80911)
@@ -209,6 +210,7 @@ text = "1"
 
 [node name="HallOfHeroes" type="Node2D" parent="Buildings" unique_id=539941802]
 script = ExtResource("19_o46t0")
+building_level = 0
 building_name = "Hall of Heroes"
 ready_to_collect = false
 collect_amount = 0
@@ -499,8 +501,9 @@ text = "1"
 [node name="WatchTower" type="Node2D" parent="Buildings" unique_id=408103327]
 script = ExtResource("19_o46t0")
 building_name = "Watch Tower"
+ready_to_collect = false
 collect_amount = 0
-building_id = "watch_tower"
+building_id = "watchtower"
 
 [node name="Sprite2D" type="Sprite2D" parent="Buildings/WatchTower" unique_id=2117737780]
 position = Vector2(724.99994, 509.99997)
@@ -1008,6 +1011,7 @@ script = ExtResource("31_pc42l")
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=247409057]
 
 [node name="Panel" type="Panel" parent="CanvasLayer" unique_id=1080261904]
+visible = false
 anchors_preset = 10
 anchor_right = 1.0
 offset_left = 6.0
@@ -1015,6 +1019,7 @@ offset_top = 2.0
 offset_right = 6.0
 offset_bottom = 56.0
 grow_horizontal = 2
+mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_17ggg")
 
 [node name="ResourceBar" type="Control" parent="CanvasLayer" unique_id=898577541]
@@ -1121,5 +1126,7 @@ text = "0"
 [node name="HeroRosterPanel" parent="." unique_id=1091484568 instance=ExtResource("40_17ggg")]
 visible = false
 
+[node name="TavernWindow" parent="." unique_id=548129524 instance=ExtResource("42_tavern")]
+
 [node name="GameHUD" parent="." unique_id=1833121157 instance=ExtResource("41_osohf")]
-is_world_screen = false
+layer = 100

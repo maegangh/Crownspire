@@ -11,13 +11,20 @@ config_version=5
 [application]
 
 config/name="Crownspire"
-run/main_scene="uid://cx62g7x8d3"
+run/main_scene="uid://dx5ri22ocwrao"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 config/main_scene="uid://77p42eque6ex"
 
 [autoload]
 
+Nakama="*res://addons/com.heroiclabs.nakama/Nakama.gd"
+NakamaConnection="*res://scripts/Backend/NakamaConnection.gd"
+AllianceBackend="*res://scripts/Backend/AllianceBackend.gd"
+ChatManager="*res://scripts/Backend/ChatManager.gd"
+FriendsBackend="*res://scripts/Backend/FriendsBackend.gd"
+RallyBackend="*res://scripts/Backend/RallyBackend.gd"
+AllianceLairState="*res://scripts/Backend/AllianceLairState.gd"
 GameState="*uid://bx7qwk4h4du07"
 TroopState="*uid://j4vqc3ybjlj7"
 HeroState="*uid://dtdfqtx3cfn2m"
@@ -27,19 +34,35 @@ ResearchState="*uid://rt7h2cgb656t"
 CampaignManager1="*uid://dbpy2m2mjhsgt"
 DataManager="*uid://cqs7opgpocfv7"
 InventoryState="*uid://ccm434wq7yfhf"
+ResourceTileState="*res://Scripts/ResourceTileState.gd"
+StatResolver="*res://Scripts/StatResolver.gd"
+WildlingCombatResolver="*res://Scripts/WildlingCombatResolver.gd"
 MarchState="*uid://dode3xwoljw4e"
 BagState="*uid://bomv0lqviqnrv"
 ItemDatabase="*uid://o053iu3nf15a"
 TroopDatabase="*uid://c7har7inlmxag"
 GameEvents="*uid://bnud8tmp66a7o"
 UIManager="*uid://dwj0bsgdfw377"
+AllianceState="*res://Scripts/AllianceState.gd"
+MailManager="*res://Scripts/MailManager.gd"
+ConstructionState="*res://Scripts/ConstructionState.gd"
+HealingState="*res://Scripts/HealingState.gd"
+SanctuaryState="*res://Scripts/SanctuaryState.gd"
+TutorialState="*res://Scripts/TutorialState.gd"
+SpeedupService="*res://scripts/SpeedupService.gd"
+EventState="*res://scripts/EventState.gd"
 
 [display]
 
 window/size/viewport_width=720
 window/size/viewport_height=1280
 window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
 window/handheld/orientation=1
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/com.heroiclabs.nakama/plugin.cfg")
 
 [physics]
 

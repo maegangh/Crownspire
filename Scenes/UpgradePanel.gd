@@ -65,25 +65,20 @@ func update_panel():
 		missing_label.text = "Missing Iron"
 
 func _on_upgrade_pressed():
-	if current_building.upgrading:
+	# Phase 0B3-B: residual UpgradePanel must not spend, start timers, or create jobs.
+	# Active City upgrades use BuildingUpgradeWindow → ConstructionState.
+	if current_building != null and bool(current_building.get("upgrading")):
 		return
-
-	var lvl = current_building.building_level
-
-	var food_cost = lvl * 100
-	var wood_cost = lvl * 75
-	var stone_cost = lvl * 50
-	var iron_cost = lvl * 25
-
-	if GameState.food < food_cost or GameState.wood < wood_cost or GameState.stone < stone_cost or GameState.iron < iron_cost:
-		update_panel()
-		return
-
-	GameState.spend_resources(food_cost, wood_cost, stone_cost, iron_cost)
-
-	current_building.start_upgrade_timer()
-
-	update_panel()
+	push_warning(
+		"UpgradePanel: obsolete legacy upgrade path disabled (0B3-B); "
+		+ "refusing spend/timer/job. Use BuildingUpgradeWindow."
+	)
+	if missing_label != null:
+		missing_label.text = "Upgrade unavailable — use City Building Upgrade window"
+	if upgrade_button != null:
+		upgrade_button.disabled = true
+		upgrade_button.text = "UNAVAILABLE"
+	return
 
 func _on_close_pressed():
 	GameState.popup_open = false

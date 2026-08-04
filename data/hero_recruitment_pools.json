@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "status": "first_drop_active",
+  "notes": "Crownspire first hero release. Animals/future heroes stay in master DB but are not recruitable here. Hero selection uses weights_by_rarity; shard quantity is a separate weighted roll.",
+  "unlock_shards_required": 10,
+  "shard_rewards": [
+    {
+      "amount": 1,
+      "weight": 80
+    },
+    {
+      "amount": 5,
+      "weight": 15
+    },
+    {
+      "amount": 10,
+      "weight": 5
+    }
+  ],
+  "first_drop_heroes": [
+    "maegan",
+    "lorelai",
+    "allanna",
+    "myshla",
+    "lumi",
+    "tisha",
+    "makenzi",
+    "jas",
+    "josh",
+    "paul",
+    "brady"
+  ],
+  "tiers": {
+    "royal": {
+      "id": "royal",
+      "display_name": "Royal Recruitment",
+      "ticket_key": "royal_tickets",
+      "free_cooldown_seconds": 20880,
+      "active_hero_ids": [
+        "allanna",
+        "tisha",
+        "makenzi",
+        "jas",
+        "josh",
+        "paul",
+        "brady"
+      ],
+      "featured_hero_id": "allanna",
+      "weights_by_rarity": {
+        "Mythic": 0,
+        "Legendary": 20,
+        "Epic": 40,
+        "Rare": 40
+      }
+    },
+    "mythic": {
+      "id": "mythic",
+      "display_name": "Mythic Recruitment",
+      "ticket_key": "mythic_tickets",
+      "free_cooldown_seconds": 79200,
+      "active_hero_ids": [
+        "maegan",
+        "lorelai",
+        "myshla",
+        "lumi"
+      ],
+      "featured_hero_id": "maegan",
+      "weights_by_rarity": {
+        "Mythic": 100,
+        "Legendary": 0,
+        "Epic": 0,
+        "Rare": 0
+      }
+    }
+  }
+}

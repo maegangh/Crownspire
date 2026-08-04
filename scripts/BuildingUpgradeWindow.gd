@@ -22,6 +22,7 @@ const REQUIREMENT_ROW_SCENE = preload("res://UI/building_upgrade/RequirementRow.
 @onready var finish_button: Button = %FinishButton
 @onready var upgrade_button: Button = %UpgradeButton
 @onready var close_button: TextureButton = %CloseButton
+var speedup_button: Button = null
 
 @onready var celebration_panel: PanelContainer = %CelebrationPanel
 @onready var celebration_title: Label = %CelebrationTitle
@@ -41,6 +42,7 @@ var _local_resources := {
 }
 
 var _local_buildings_cache: Dictionary = {}
+var _building_name_to_id: Dictionary = {}
 var _ui_manager: Node = null
 
 
@@ -58,12 +60,36 @@ func _ready() -> void:
 		upgrade_button.pressed.connect(_on_upgrade_button_pressed)
 	if finish_button:
 		finish_button.pressed.connect(_on_finish_button_pressed)
+	_ensure_speedup_button()
 
 	load_building_data()
 
 	var ui = _get_ui_manager()
 	if ui and ui.has_signal("currency_changed"):
 		ui.currency_changed.connect(_on_currency_changed)
+
+	if has_node("/root/ConstructionState"):
+		if not ConstructionState.construction_jobs_changed.is_connected(_on_construction_jobs_changed):
+			ConstructionState.construction_jobs_changed.connect(_on_construction_jobs_changed)
+		if not ConstructionState.construction_completed.is_connected(_on_construction_completed):
+			ConstructionState.construction_completed.connect(_on_construction_completed)
+
+
+func _process(_delta: float) -> void:
+	if visible and has_node("/root/ConstructionState"):
+		if ConstructionState.is_building_upgrading(building_id) or not ConstructionState.has_free_construction_queue():
+			refresh_requirements_and_buttons()
+
+
+func _on_construction_jobs_changed() -> void:
+	if visible:
+		refresh_requirements_and_buttons()
+
+
+func _on_construction_completed(completed_id: String, _new_level: int) -> void:
+	if visible and (completed_id == building_id or true):
+		load_building_data()
+		_notify_city_buildings()
 
 
 func open_for_building(building_reference: Variant) -> void:
@@ -142,7 +168,7 @@ func _get_ui_manager() -> Node:
 
 func _on_currency_changed(_currency_id: String, _new_amount: float) -> void:
 	refresh_requirements_and_buttons()
-
+							 
 
 func load_building_data() -> void:
 	building_data = _get_local_building(building_id)
@@ -160,22 +186,34 @@ func load_building_data() -> void:
 
 	var lvl := int(building_data.get("level", 1))
 	var max_lvl := int(building_data.get("max_level", 40))
+	var job: Dictionary = {}
+	if has_node("/root/ConstructionState"):
+		job = ConstructionState.get_job_for(building_id)
 
-	current_level_label.text = "Lv. %d" % lvl
-
-	if lvl >= max_lvl:
-		next_level_label.text = "MAX"
+	if not job.is_empty():
+		var from_lv: int = int(job.get("from_level", lvl))
+		var to_lv: int = int(job.get("target_level", lvl + 1))
+		current_level_label.text = "Lv. %d" % from_lv
+		next_level_label.text = "Lv. %d" % to_lv
+		if level_arrow:
+			level_arrow.text = "UPGRADING"
 	else:
-		next_level_label.text = "Lv. %d" % (lvl + 1)
+		current_level_label.text = "Lv. %d" % lvl
+		if lvl >= max_lvl:
+			next_level_label.text = "MAX"
+		else:
+			next_level_label.text = "Lv. %d" % (lvl + 1)
+		if level_arrow:
+			level_arrow.text = "→"
 
 	if building_image:
 		var art_path := "res://assets/buildings/%s.png" % building_id
-
 		if ResourceLoader.exists(art_path):
 			building_image.texture = load(art_path)
 
 	_populate_bonuses(lvl, max_lvl)
 	_populate_requirements(lvl, max_lvl)
+	refresh_requirements_and_buttons()
 
 
 func _populate_bonuses(lvl: int, max_lvl: int) -> void:
@@ -308,6 +346,17 @@ func _populate_requirements(lvl: int, max_lvl: int) -> void:
 	if req_iron > 0:
 		_add_resource_row("Iron", "iron", req_iron, "res://assets/ui/icons/res_iron.png")
 
+	var target_level: int = mini(lvl + 1, max_lvl)
+	if _normalize_building_id(building_id) != "castle":
+		_add_castle_cap_prerequisite_row(target_level)
+
+	var building_prereqs: Array = building_data.get("prerequisites", [])
+	for prereq_entry: Variant in building_prereqs:
+		var parsed: Dictionary = _parse_prerequisite_entry(prereq_entry)
+		if bool(parsed.get("ok", false)) and str(parsed.get("building_id", "")) == "castle":
+			continue
+		_add_building_prerequisite_row(prereq_entry)
+
 	refresh_requirements_and_buttons()
 
 
@@ -332,6 +381,7 @@ func _add_resource_row(display_name: String, resource_id: String, req_amount: in
 		var cost: int = int(max(1, int(ceil(float(missing) / float(rate)))))
 		missing_resources_crystal_cost += cost
 
+	# Both sides use the same formatter on absolute units (affordability uses these ints).
 	row.setup(
 		display_name,
 		icon_path,
@@ -346,6 +396,63 @@ func _add_resource_row(display_name: String, resource_id: String, req_amount: in
 		row.action_pressed.connect(func(): _on_obtain_pressed(resource_id))
 
 
+func _add_castle_cap_prerequisite_row(required_castle_level: int) -> void:
+	var have_lvl: int = _get_prerequisite_building_level("castle")
+	var is_met: bool = have_lvl >= required_castle_level
+	var missing_str := ""
+	if not is_met:
+		missing_str = "Lv. %d" % required_castle_level
+
+	var row = REQUIREMENT_ROW_SCENE.instantiate()
+	requirements_container.add_child(row)
+	row.setup(
+		"Citadel Keep",
+		"res://assets/ui/icons/hud_power.png",
+		"Lv. %d" % have_lvl,
+		"Lv. %d" % required_castle_level,
+		missing_str,
+		is_met,
+		""
+	)
+
+
+func _add_building_prerequisite_row(prereq_entry: Variant) -> void:
+	var parsed: Dictionary = _parse_prerequisite_entry(prereq_entry)
+	var row = REQUIREMENT_ROW_SCENE.instantiate()
+	requirements_container.add_child(row)
+
+	if not bool(parsed.get("ok", false)):
+		row.setup(
+			"Building Requirement",
+			"res://assets/ui/icons/category_featured.png",
+			"—",
+			str(parsed.get("display", "Invalid")),
+			"Invalid",
+			false,
+			""
+		)
+		return
+
+	var bid: String = str(parsed.get("building_id", ""))
+	var need_lvl: int = int(parsed.get("required_level", 1))
+	var have_lvl: int = _get_prerequisite_building_level(bid)
+	var is_met: bool = have_lvl >= need_lvl
+	var display_name: String = str(parsed.get("building_name", bid))
+	var missing_str := ""
+	if not is_met:
+		missing_str = "Lv. %d" % need_lvl
+
+	row.setup(
+		display_name,
+		"res://assets/ui/icons/category_featured.png",
+		"Lv. %d" % have_lvl,
+		"Lv. %d" % need_lvl,
+		missing_str,
+		is_met,
+		""
+	)
+
+
 func refresh_requirements_and_buttons() -> void:
 	var lvl := int(building_data.get("level", 1))
 	var max_lvl := int(building_data.get("max_level", 30))
@@ -355,6 +462,7 @@ func refresh_requirements_and_buttons() -> void:
 			finish_button.disabled = true
 		if upgrade_button:
 			upgrade_button.disabled = true
+			upgrade_button.text = "MAX LEVEL"
 		return
 
 	var all_met := true
@@ -362,13 +470,35 @@ func refresh_requirements_and_buttons() -> void:
 
 	for res_key in reqs.keys():
 		var required_amount := int(reqs[res_key])
-
 		if _get_player_resource(res_key) < required_amount:
 			all_met = false
 			break
 
+	var prereq_gate: Dictionary = _evaluate_upgrade_prerequisites(
+		building_id,
+		lvl,
+		building_data.get("prerequisites", [])
+	)
+	var prereqs_met: bool = bool(prereq_gate.get("ok", true))
+
+	var this_upgrading := false
+	var queue_full := false
+	if has_node("/root/ConstructionState"):
+		this_upgrading = ConstructionState.is_building_upgrading(building_id)
+		queue_full = not ConstructionState.has_free_construction_queue() and not this_upgrading
+
 	if upgrade_button:
-		upgrade_button.disabled = not all_met
+		if this_upgrading:
+			var job: Dictionary = ConstructionState.get_job_for(building_id)
+			var rem: float = float(job.get("time_remaining", 0.0))
+			upgrade_button.text = "Upgrading… %s" % _format_secs(rem)
+			upgrade_button.disabled = true
+		elif queue_full:
+			upgrade_button.text = "Construction Queue Full"
+			upgrade_button.disabled = true
+		else:
+			upgrade_button.text = "Upgrade"
+			upgrade_button.disabled = not all_met or not prereqs_met
 
 	if finish_button:
 		if missing_resources_crystal_cost > 0:
@@ -376,8 +506,116 @@ func refresh_requirements_and_buttons() -> void:
 		else:
 			var base_speed_cost := int(float(building_data.get("upgrade_time_seconds", 300)) / 60.0)
 			finish_button.text = "Finish Now (%d 💎)" % max(5, base_speed_cost)
+		# Finish Now blocked when another building occupies the only queue slot.
+		finish_button.disabled = (queue_full and not this_upgrading) or not prereqs_met
+
+	if speedup_button:
+		# Enabled whenever a real construction timer is running — even with 0 bag speedups.
+		var rem: float = 0.0
+		if this_upgrading and has_node("/root/ConstructionState"):
+			rem = ConstructionState.get_remaining_seconds(building_id)
+		var can_speedup: bool = this_upgrading and rem > 0.0
+		speedup_button.visible = this_upgrading
+		speedup_button.disabled = not can_speedup
+		_apply_speedup_button_visuals(can_speedup)
+
+
+func _ensure_speedup_button() -> void:
+	if speedup_button != null and is_instance_valid(speedup_button):
+		return
+	var footer: Node = null
+	if finish_button != null:
+		footer = finish_button.get_parent()
+	elif upgrade_button != null:
+		footer = upgrade_button.get_parent()
+	if footer == null:
+		return
+	speedup_button = Button.new()
+	speedup_button.name = "SpeedUpButton"
+	speedup_button.text = "SPEED UP"
+	speedup_button.custom_minimum_size = Vector2(0, 48)
+	speedup_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	speedup_button.visible = false
+	speedup_button.pressed.connect(_on_speedup_button_pressed)
+	_apply_speedup_button_visuals(true)
+	# Insert before Finish so SPEED UP is the primary action while upgrading.
+	if finish_button != null and finish_button.get_index() >= 0:
+		footer.add_child(speedup_button)
+		footer.move_child(speedup_button, finish_button.get_index())
+	else:
+		footer.add_child(speedup_button)
+
+
+func _apply_speedup_button_visuals(active: bool) -> void:
+	## Active = Crownspire sapphire/blue (same family as Upgrade). Disabled = muted gray.
+	if speedup_button == null:
+		return
+	var normal := StyleBoxFlat.new()
+	var hover := StyleBoxFlat.new()
+	var pressed := StyleBoxFlat.new()
+	var disabled := StyleBoxFlat.new()
+	for sb: StyleBoxFlat in [normal, hover, pressed, disabled]:
+		sb.content_margin_left = 16
+		sb.content_margin_right = 16
+		sb.content_margin_top = 10
+		sb.content_margin_bottom = 10
+		sb.set_corner_radius_all(6)
+		sb.border_width_bottom = 3
+	if active:
+		normal.bg_color = Color(0.13, 0.26, 0.46, 1)
+		normal.border_color = Color(0.08, 0.18, 0.32, 1)
+		hover.bg_color = Color(0.18, 0.35, 0.6, 1)
+		hover.border_color = Color(0.1, 0.23, 0.42, 1)
+		pressed.bg_color = Color(0.10, 0.20, 0.38, 1)
+		pressed.border_color = Color(0.06, 0.14, 0.28, 1)
+		speedup_button.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+		speedup_button.add_theme_color_override("font_hover_color", Color(1, 1, 1, 1))
+		speedup_button.add_theme_color_override("font_pressed_color", Color(0.95, 0.95, 1, 1))
+	else:
+		normal.bg_color = Color(0.55, 0.58, 0.62, 1)
+		normal.border_color = Color(0.42, 0.45, 0.48, 1)
+		hover.bg_color = normal.bg_color
+		hover.border_color = normal.border_color
+		pressed.bg_color = normal.bg_color
+		pressed.border_color = normal.border_color
+		speedup_button.add_theme_color_override("font_color", Color(0.85, 0.85, 0.88, 1))
+	disabled.bg_color = Color(0.70, 0.73, 0.76, 1)
+	disabled.border_color = Color(0.55, 0.58, 0.61, 1)
+	speedup_button.add_theme_stylebox_override("normal", normal)
+	speedup_button.add_theme_stylebox_override("hover", hover)
+	speedup_button.add_theme_stylebox_override("pressed", pressed)
+	speedup_button.add_theme_stylebox_override("disabled", disabled)
+	speedup_button.add_theme_color_override("font_disabled_color", Color(0.78, 0.80, 0.82, 1))
+
+
+func _on_speedup_button_pressed() -> void:
+	if not has_node("/root/SpeedupService"):
+		return
+	if not ConstructionState.is_building_upgrading(building_id):
+		return
+	# Always open — popup shows empty state + debug grants when bag has no speedups.
+	SpeedupService.open_speedup_popup(SpeedupService.CAT_CONSTRUCTION, building_id)
+
+
+func _format_secs(seconds: float) -> String:
+	var s: int = maxi(0, int(ceil(seconds)))
+	var m: int = s / 60
+	var r: int = s % 60
+	if m > 0:
+		return "%dm %02ds" % [m, r]
+	return "%ds" % r
 
 func _get_player_resource(res_id: String) -> int:
+	# Canonical Food/Wood/Stone/Iron live on GameState (same as Top HUD).
+	match res_id:
+		"food":
+			return int(GameState.food)
+		"wood":
+			return int(GameState.wood)
+		"stone":
+			return int(GameState.stone)
+		"iron":
+			return int(GameState.iron)
 	var ui = _get_ui_manager()
 	if ui:
 		var value = ui.get(res_id)
@@ -403,16 +641,25 @@ func _on_obtain_pressed(resource_id: String) -> void:
 	print("[Crownspire UI] Obtain clicked for: " + resource_id)
 
 	var mock_batch := 50000
-	var ui = _get_ui_manager()
-
-	if ui:
-		var current = ui.get(resource_id)
-		if current != null:
-			ui.set(resource_id, int(current) + mock_batch)
-			if ui.has_method("show_toast"):
-				ui.call("show_toast", "+50K %s" % resource_id.capitalize())
-	else:
-		_local_resources[resource_id] = int(_local_resources.get(resource_id, 0)) + mock_batch
+	match resource_id:
+		"food":
+			GameState.add_food(mock_batch)
+		"wood":
+			GameState.add_wood(mock_batch)
+		"stone":
+			GameState.add_stone(mock_batch)
+		"iron":
+			GameState.add_iron(mock_batch)
+		_:
+			var ui = _get_ui_manager()
+			if ui:
+				var current = ui.get(resource_id)
+				if current != null:
+					ui.set(resource_id, int(current) + mock_batch)
+					if ui.has_method("show_toast"):
+						ui.call("show_toast", "+50K %s" % resource_id.capitalize())
+			else:
+				_local_resources[resource_id] = int(_local_resources.get(resource_id, 0)) + mock_batch
 
 	load_building_data()
 
@@ -422,91 +669,147 @@ func _on_close_button_pressed() -> void:
 	hide()
 
 
+func _pulse_construction_queue_hud() -> void:
+	var hud: Node = get_tree().root.find_child("GameHUD", true, false)
+	if hud != null and hud.has_method("pulse_queue_status"):
+		hud.call("pulse_queue_status", "construction")
+
+
 func _on_upgrade_button_pressed() -> void:
-	var result := _local_upgrade_building(building_id)
+	# Timed start only — never apply target level here.
+	var result := _start_timed_construction(building_id)
 
 	if result.get("success", false):
-		var new_level := int(result.get("new_level", 1))
-
 		_show_celebration_overlay(
-			"STRUCTURE UPGRADED",
-			"%s has reached Level %d." % [
+			"CONSTRUCTION STARTED",
+			"%s remains Lv. %d while upgrading to Lv. %d.\nRemaining: %s" % [
 				building_data.get("name", "Building"),
-				new_level
+				int(result.get("from_level", 1)),
+				int(result.get("target_level", 1)),
+				_format_secs(float(result.get("duration", 0.0))),
 			]
 		)
-
 		load_building_data()
-		_notify_city_buildings()
 	else:
-		push_warning(
-			"[Crownspire UpgradeWindow] Upgrade failed: "
-			+ str(result.get("error", "Unknown error"))
-		)
-
+		var err: String = str(result.get("error", "Unknown error"))
+		push_warning("[Crownspire UpgradeWindow] Upgrade failed: " + err)
+		if _is_prerequisite_failure_message(err):
+			_show_celebration_overlay("REQUIREMENTS NOT MET", err)
+		if upgrade_button and err == "Construction Queue Full":
+			upgrade_button.text = "Construction Queue Full"
+			upgrade_button.disabled = true
+			_pulse_construction_queue_hud()
 		if animation_player and animation_player.has_animation("error_shake"):
 			animation_player.play("error_shake")
 
 
 func _on_finish_button_pressed() -> void:
-	var cost := missing_resources_crystal_cost
+	# Finish must complete through ConstructionState only (no direct level += 1).
+	if not has_node("/root/ConstructionState"):
+		push_warning("[Crownspire UpgradeWindow] ConstructionState missing.")
+		return
 
-	if cost <= 0:
-		cost = max(
-			5,
-			int(
-				float(building_data.get("upgrade_time_seconds", 300))
-				/ 60.0
+	# Case 1: active job for this building → finish it now (beta free instant complete).
+	if ConstructionState.is_building_upgrading(building_id):
+		var cost := missing_resources_crystal_cost
+		if cost <= 0:
+			cost = max(5, int(float(building_data.get("upgrade_time_seconds", 300)) / 60.0))
+		if not _try_spend_crystals(cost):
+			if animation_player and animation_player.has_animation("error_shake"):
+				animation_player.play("error_shake")
+			return
+		var finished: Dictionary = ConstructionState.finish_construction_now(building_id)
+		if bool(finished.get("ok", false)):
+			_show_celebration_overlay(
+				"IMMEDIATE UPGRADE COMPLETE",
+				"%s has reached Level %d." % [
+					building_data.get("name", "Building"),
+					int(finished.get("new_level", 1))
+				]
 			)
-		)
+			load_building_data()
+			_notify_city_buildings()
+		return
 
-	var ui := _get_ui_manager()
-	var current_crystals := int(
-		_local_resources.get("royal_crystals", 0)
-	)
-
-	if ui:
-		var value = ui.get("royal_crystals")
-		if value != null:
-			current_crystals = int(value)
-
-	if current_crystals < cost:
+	# Case 2: no job — queue must be free, then start + immediately complete via CS.
+	var gate: Dictionary = ConstructionState.can_start_construction(building_id)
+	if not bool(gate.get("ok", false)):
+		if upgrade_button:
+			upgrade_button.text = "Construction Queue Full"
+			upgrade_button.disabled = true
 		if animation_player and animation_player.has_animation("error_shake"):
 			animation_player.play("error_shake")
 		return
 
-	if ui and ui.get("royal_crystals") != null:
-		ui.set("royal_crystals", current_crystals - cost)
-	else:
-		_local_resources["royal_crystals"] = current_crystals - cost
+	var cost2 := missing_resources_crystal_cost
+	if cost2 <= 0:
+		cost2 = max(5, int(float(building_data.get("upgrade_time_seconds", 300)) / 60.0))
+	var crystals_before := _get_player_resource("royal_crystals")
+	if not _try_spend_crystals(cost2):
+		if animation_player and animation_player.has_animation("error_shake"):
+			animation_player.play("error_shake")
+		return
 
-	var result := _local_upgrade_building(building_id)
+	var started: Dictionary = _start_timed_construction(building_id)
+	if not started.get("success", false):
+		_set_player_resource("royal_crystals", crystals_before)
+		var start_err: String = str(started.get("error", ""))
+		push_warning("[Crownspire UpgradeWindow] Finish start failed: " + start_err)
+		if _is_prerequisite_failure_message(start_err):
+			_show_celebration_overlay("REQUIREMENTS NOT MET", start_err)
+		return
 
-	if result.get("success", false):
+	var finished2: Dictionary = ConstructionState.finish_construction_now(building_id)
+	if bool(finished2.get("ok", false)):
 		_show_celebration_overlay(
 			"IMMEDIATE UPGRADE COMPLETE",
 			"%s has reached Level %d." % [
 				building_data.get("name", "Building"),
-				int(result.get("new_level", 1))
+				int(finished2.get("new_level", 1))
 			]
 		)
-
 		load_building_data()
 		_notify_city_buildings()
 	else:
-		# Refund crystals when the building upgrade itself fails.
-		if ui and ui.get("royal_crystals") != null:
-			ui.set("royal_crystals", current_crystals)
-		else:
-			_local_resources["royal_crystals"] = current_crystals
+		_set_player_resource("royal_crystals", crystals_before)
 
-		push_warning(
-			"[Crownspire UpgradeWindow] Immediate upgrade failed: "
-			+ str(result.get("error", "Unknown error"))
-		)
 
-		if animation_player and animation_player.has_animation("error_shake"):
-			animation_player.play("error_shake")
+func _try_spend_crystals(cost: int) -> bool:
+	var current_crystals := _get_player_resource("royal_crystals")
+	if current_crystals < cost:
+		return false
+	_set_player_resource("royal_crystals", current_crystals - cost)
+	return true
+
+
+func _set_player_resource(res_id: String, amount: int) -> void:
+	# Prefer GameState for basic resources so Top HUD stays in sync.
+	match res_id:
+		"food":
+			GameState.food = maxi(0, amount)
+			GameState.save_resources()
+			GameState.resources_changed.emit()
+			return
+		"wood":
+			GameState.wood = maxi(0, amount)
+			GameState.save_resources()
+			GameState.resources_changed.emit()
+			return
+		"stone":
+			GameState.stone = maxi(0, amount)
+			GameState.save_resources()
+			GameState.resources_changed.emit()
+			return
+		"iron":
+			GameState.iron = maxi(0, amount)
+			GameState.save_resources()
+			GameState.resources_changed.emit()
+			return
+	var ui := _get_ui_manager()
+	if ui and ui.get(res_id) != null:
+		ui.set(res_id, amount)
+	else:
+		_local_resources[res_id] = amount
 
 
 func _notify_city_buildings() -> void:
@@ -536,9 +839,18 @@ func _on_celebration_close_pressed() -> void:
 
 
 func _format_amount(amt: int) -> String:
+	## Canonical compact formatter — same rules as GameHUD.format_number.
+	## Uses absolute resource units from buildings.json / GameState (NOT implied-thousands).
+	## Example: cost 68 → "68"; owned 46000 → "46.0K".
+	var hud: Node = get_tree().root.find_child("GameHUD", true, false) if get_tree() else null
+	if hud != null and hud.has_method("format_number"):
+		return str(hud.call("format_number", amt))
+	# Fallback mirrors GameHUD (incl. billions).
+	if amt >= 1000000000:
+		return "%.1fB" % (float(amt) / 1000000000.0)
 	if amt >= 1000000:
 		return "%.1fM" % (float(amt) / 1000000.0)
-	elif amt >= 1000:
+	if amt >= 1000:
 		return "%.1fK" % (float(amt) / 1000.0)
 	return str(amt)
 
@@ -641,89 +953,312 @@ func _get_local_building(b_id: String) -> Dictionary:
 		"description": str(next_data.get("description", ""))
 	}
 
+func _ensure_building_name_map() -> void:
+	if not _building_name_to_id.is_empty():
+		return
+	_ensure_buildings_cache_loaded()
+	for raw_id: Variant in _local_buildings_cache.keys():
+		var bid: String = str(raw_id)
+		var template: Dictionary = _local_buildings_cache[bid] as Dictionary
+		var display_name: String = str(template.get("name", "")).strip_edges().to_lower()
+		if not display_name.is_empty():
+			_building_name_to_id[display_name] = bid
+	# Common prerequisite spellings from buildings.json.
+	_building_name_to_id["citadel keep"] = "castle"
+	_building_name_to_id["citadel"] = "castle"
+	_building_name_to_id["wanderers farm"] = "farm"
+	_building_name_to_id["timber woodmill"] = "lumber_mill"
+	_building_name_to_id["slate quarry"] = "quarry"
+	_building_name_to_id["deep iron shaft"] = "iron_mine"
+	_building_name_to_id["vault warehouse"] = "warehouse"
+	_building_name_to_id["research hall"] = "academy"
+	_building_name_to_id["sacred hospital"] = "hospital"
+	_building_name_to_id["imperial embassy"] = "embassy"
+	_building_name_to_id["sentry watchtower"] = "watchtower"
+
+
+func _ensure_buildings_cache_loaded() -> void:
+	if not _local_buildings_cache.is_empty():
+		return
+	var path := "res://data/buildings.json"
+	if not FileAccess.file_exists(path):
+		return
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return
+	var parsed: Variant = JSON.parse_string(file.get_as_text())
+	if parsed is Dictionary:
+		_local_buildings_cache = parsed as Dictionary
+
+
+func _parse_prerequisite_entry(raw: Variant) -> Dictionary:
+	if typeof(raw) != TYPE_STRING:
+		return {"ok": false, "display": "Invalid prerequisite", "error": "not_string"}
+	var text: String = str(raw).strip_edges()
+	if text.is_empty():
+		return {"ok": false, "display": "Empty prerequisite", "error": "empty"}
+
+	var re := RegEx.new()
+	if re.compile("(?i)^(.+?)\\s+(?:lvl|level)\\.?\\s*(\\d+)\\s*$") != OK:
+		return {"ok": false, "display": text, "error": "regex_failed"}
+	var match: RegExMatch = re.search(text)
+	if match == null:
+		return {"ok": false, "display": text, "error": "unrecognized_format"}
+
+	var name_part: String = match.get_string(1).strip_edges()
+	var req_level: int = int(match.get_string(2))
+	if req_level <= 0:
+		return {"ok": false, "display": text, "error": "invalid_level"}
+
+	var bid: String = _resolve_prerequisite_building_id(name_part)
+	if bid.is_empty():
+		return {"ok": false, "display": text, "error": "unknown_building"}
+
+	return {
+		"ok": true,
+		"building_id": bid,
+		"required_level": req_level,
+		"building_name": name_part,
+		"display": text,
+	}
+
+
+func _resolve_prerequisite_building_id(name_part: String) -> String:
+	_ensure_building_name_map()
+	var key: String = name_part.strip_edges().to_lower()
+	if _building_name_to_id.has(key):
+		return _normalize_building_id(str(_building_name_to_id[key]))
+	var snake_guess: String = _normalize_building_id(key.replace(" ", "_"))
+	if _local_buildings_cache.has(snake_guess):
+		return snake_guess
+	return ""
+
+
+func _get_prerequisite_building_level(building_id: String) -> int:
+	var bid: String = _normalize_building_id(building_id)
+	if bid.is_empty():
+		return 0
+	if has_node("/root/ConstructionState") and ConstructionState.has_method("get_canonical_building_level"):
+		return maxi(0, int(ConstructionState.get_canonical_building_level(bid)))
+	return 0
+
+
+func _evaluate_upgrade_prerequisites(
+	building_id_for_cap: String,
+	current_level: int,
+	prereqs: Variant
+) -> Dictionary:
+	var json_gate: Dictionary = _evaluate_building_prerequisites(prereqs)
+	if not bool(json_gate.get("ok", false)):
+		return json_gate
+	if _normalize_building_id(building_id_for_cap) == "castle":
+		return json_gate
+
+	var target_level: int = current_level + 1
+	if has_node("/root/ConstructionState") and ConstructionState.has_method("check_castle_level_cap"):
+		var cap: Dictionary = ConstructionState.check_castle_level_cap(
+			building_id_for_cap,
+			target_level
+		)
+		if not bool(cap.get("ok", false)):
+			return {
+				"ok": false,
+				"unmet": [{
+					"display": "Citadel Keep Lv. %d" % int(cap.get("required_castle_level", target_level)),
+					"building_id": "castle",
+					"have": int(cap.get("current_castle_level", 0)),
+					"need": int(cap.get("required_castle_level", target_level)),
+					"building_name": "Citadel Keep",
+				}],
+				"invalid": PackedStringArray(),
+			}
+	return {"ok": true, "unmet": [], "invalid": []}
+
+
+func _evaluate_building_prerequisites(prereqs: Variant) -> Dictionary:
+	if prereqs == null:
+		return {"ok": true, "unmet": [], "invalid": []}
+	if typeof(prereqs) != TYPE_ARRAY:
+		return {
+			"ok": false,
+			"unmet": [],
+			"invalid": ["Prerequisites must be a list."],
+		}
+
+	var unmet: Array = []
+	var invalid: PackedStringArray = PackedStringArray()
+	for entry: Variant in prereqs as Array:
+		var parsed: Dictionary = _parse_prerequisite_entry(entry)
+		if not bool(parsed.get("ok", false)):
+			invalid.append(str(parsed.get("display", entry)))
+			continue
+		var bid: String = str(parsed.get("building_id", ""))
+		var need: int = int(parsed.get("required_level", 1))
+		var have: int = _get_prerequisite_building_level(bid)
+		if have < need:
+			unmet.append({
+				"display": str(parsed.get("display", "")),
+				"building_id": bid,
+				"have": have,
+				"need": need,
+				"building_name": str(parsed.get("building_name", bid)),
+			})
+
+	return {
+		"ok": unmet.is_empty() and invalid.is_empty(),
+		"unmet": unmet,
+		"invalid": invalid,
+	}
+
+
+func _format_prerequisite_failure(gate: Dictionary) -> String:
+	var invalid: PackedStringArray = gate.get("invalid", PackedStringArray()) as PackedStringArray
+	if not invalid.is_empty():
+		return "Upgrade blocked: invalid prerequisite data (%s)." % ", ".join(invalid)
+
+	var unmet: Array = gate.get("unmet", []) as Array
+	if unmet.is_empty():
+		return "Upgrade blocked: building requirements not met."
+
+	var lines: PackedStringArray = PackedStringArray()
+	for item: Variant in unmet:
+		if typeof(item) != TYPE_DICTIONARY:
+			continue
+		var d: Dictionary = item as Dictionary
+		lines.append(
+			"%s Lv. %d (current Lv. %d)" % [
+				str(d.get("building_name", d.get("display", "Building"))),
+				int(d.get("need", 1)),
+				int(d.get("have", 0)),
+			]
+		)
+	return "Requires:\n" + "\n".join(lines)
+
+
+func _format_castle_cap_failure(cap: Dictionary) -> String:
+	return "Requires:\nCitadel Keep Lv. %d (current Lv. %d)" % [
+		int(cap.get("required_castle_level", 1)),
+		int(cap.get("current_castle_level", 0)),
+	]
+
+
+func _is_prerequisite_failure_message(err: String) -> bool:
+	return (
+		err.begins_with("Requires:")
+		or err.begins_with("Upgrade blocked:")
+		or err.contains("Citadel Keep Lv.")
+	)
+
+
 func _load_saved_building_level(
 	b_id: String,
-	display_name: String
+	_display_name: String
 ) -> int:
-	var save := ConfigFile.new()
-
-	if save.load("user://buildings.cfg") != OK:
+	# Phase 0B2-A: canonical ConstructionState authority only.
+	# Display-name / legacy cfg sections are never used as level authority.
+	var id_key: String = _normalize_building_id(b_id)
+	if id_key.is_empty():
 		return 1
-
-	if save.has_section_key(b_id, "level"):
-		return int(save.get_value(b_id, "level", 1))
-
-	if save.has_section_key(display_name, "level"):
-		return int(save.get_value(display_name, "level", 1))
-
+	if has_node("/root/ConstructionState") and ConstructionState.has_method("get_canonical_building_level"):
+		return maxi(1, int(ConstructionState.get_canonical_building_level(id_key)))
 	return 1
 
 func _local_upgrade_building(b_id: String) -> Dictionary:
-	var b := _get_local_building(b_id)
+	# Legacy name — starts a TIMED job only. Level applies on ConstructionState completion.
+	return _start_timed_construction(b_id)
 
+
+## Deduct resources once and start a timed ConstructionState job.
+## NEVER writes the target building level here.
+func _start_timed_construction(b_id: String) -> Dictionary:
+	if not has_node("/root/ConstructionState"):
+		return {"success": false, "error": "ConstructionState missing"}
+
+	var b := _get_local_building(b_id)
 	if b.is_empty():
-		return {
-			"success": false,
-			"error": "Building not found"
-		}
+		return {"success": false, "error": "Building not found"}
 
 	var lvl := int(b.get("level", 1))
 	var max_lvl := int(b.get("max_level", 40))
-
 	if lvl >= max_lvl:
+		return {"success": false, "error": "Max level reached"}
+
+	if ConstructionState.is_building_upgrading(b_id):
+		return {"success": false, "error": "Already upgrading."}
+
+	var gate: Dictionary = ConstructionState.can_start_construction(b_id)
+	if not bool(gate.get("ok", false)):
+		return {"success": false, "error": str(gate.get("reason", "Construction Queue Full"))}
+
+	var prereq_gate: Dictionary = _evaluate_upgrade_prerequisites(
+		b_id,
+		lvl,
+		b.get("prerequisites", [])
+	)
+	if not bool(prereq_gate.get("ok", false)):
 		return {
 			"success": false,
-			"error": "Max level reached"
+			"error": _format_prerequisite_failure(prereq_gate),
 		}
 
-	var reqs: Dictionary = b.get("resources_required", {})
-
-	for res_key in reqs.keys():
-		var resource_id := str(res_key)
-		var required_amount := int(reqs[res_key])
-		var current_amount := _get_player_resource(resource_id)
-
-		if current_amount < required_amount:
+	var target_level := lvl + 1
+	if has_node("/root/ConstructionState"):
+		var cap: Dictionary = ConstructionState.check_castle_level_cap(b_id, target_level)
+		if not bool(cap.get("ok", false)):
 			return {
 				"success": false,
-				"error": "Not enough %s" % resource_id.capitalize()
+				"error": _format_castle_cap_failure(cap),
 			}
 
-	var ui := _get_ui_manager()
-
+	var reqs: Dictionary = b.get("resources_required", {})
+	var food_cost := int(reqs.get("food", 0))
+	var wood_cost := int(reqs.get("wood", 0))
+	var stone_cost := int(reqs.get("stone", 0))
+	var iron_cost := int(reqs.get("iron", 0))
 	for res_key in reqs.keys():
 		var resource_id := str(res_key)
 		var required_amount := int(reqs[res_key])
-		var current_amount := _get_player_resource(resource_id)
-		var remaining_amount := current_amount - required_amount
+		if _get_player_resource(resource_id) < required_amount:
+			return {"success": false, "error": "Not enough %s" % resource_id.capitalize()}
 
-		if ui and ui.get(resource_id) != null:
-			ui.set(resource_id, remaining_amount)
-		else:
-			_local_resources[resource_id] = remaining_amount
+	# Deduct resources exactly once at start via canonical GameState wallet.
+	if not GameState.spend_resources(food_cost, wood_cost, stone_cost, iron_cost):
+		return {"success": false, "error": "Not enough resources"}
 
-	var new_level := lvl + 1
-	var save := ConfigFile.new()
-	var save_path := "user://buildings.cfg"
+	# Non-basic costs (e.g. valor) still spend through crystal/UIManager wallet.
+	var extra_spent: Dictionary = {}
+	for res_key in reqs.keys():
+		var resource_id := str(res_key)
+		if resource_id in ["food", "wood", "stone", "iron"]:
+			continue
+		var required_amount := int(reqs[res_key])
+		if required_amount <= 0:
+			continue
+		_set_player_resource(resource_id, _get_player_resource(resource_id) - required_amount)
+		extra_spent[resource_id] = required_amount
 
-	# Keep every other building already stored in the same file.
-	var load_error := save.load(save_path)
-	if load_error != OK and load_error != ERR_FILE_NOT_FOUND:
-		return {
-			"success": false,
-			"error": "Could not open building save file"
-		}
+	var duration: float = float(b.get("upgrade_time_seconds", building_data.get("upgrade_time_seconds", 300)))
+	if duration <= 0.0:
+		duration = 30.0
 
-	save.set_value(b_id, "level", new_level)
-
-	var save_error := save.save(save_path)
-	if save_error != OK:
-		return {
-			"success": false,
-			"error": "Could not save building level"
-		}
+	var started: Dictionary = ConstructionState.start_construction(b_id, lvl, target_level, duration)
+	if not bool(started.get("ok", false)):
+		# Refund on reject (queue full / race).
+		if food_cost > 0:
+			GameState.add_food(food_cost)
+		if wood_cost > 0:
+			GameState.add_wood(wood_cost)
+		if stone_cost > 0:
+			GameState.add_stone(stone_cost)
+		if iron_cost > 0:
+			GameState.add_iron(iron_cost)
+		for rid3 in extra_spent.keys():
+			_set_player_resource(str(rid3), _get_player_resource(str(rid3)) + int(extra_spent[rid3]))
+		return {"success": false, "error": str(started.get("reason", "Construction Queue Full"))}
 
 	return {
 		"success": true,
-		"new_level": new_level
+		"from_level": lvl,
+		"target_level": target_level,
+		"duration": duration,
 	}

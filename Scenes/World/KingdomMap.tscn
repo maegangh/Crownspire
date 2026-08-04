@@ -19,6 +19,9 @@
 [ext_resource type="Texture2D" uid="uid://cnextpfvf0wsa" path="res://assets/UI/wildling_cards/bear_card.png" id="16_qgij0"]
 [ext_resource type="Texture2D" uid="uid://ctwaupkx6abn3" path="res://assets/UI/wildling_cards/spider_card.png" id="17_jfqr5"]
 [ext_resource type="PackedScene" uid="uid://bh08artiwt8rc" path="res://Scenes/WildlingPanel.tscn" id="17_uo8to"]
+[ext_resource type="PackedScene" path="res://Scenes/ResourcePanel.tscn" id="17_respanel"]
+[ext_resource type="PackedScene" uid="uid://bwildlinglairnode01" path="res://Scenes/World/WildlingLairNode.tscn" id="17_lairnode"]
+[ext_resource type="PackedScene" uid="uid://bwildlinglairpanel01" path="res://Scenes/UI/WildlingLairPanel.tscn" id="17_lairpanel"]
 [ext_resource type="Texture2D" uid="uid://bc3btqnta45r2" path="res://assets/UI/wildling_cards/boar_card.png" id="18_o3h75"]
 [ext_resource type="Texture2D" uid="uid://6cn657gfcdjk" path="res://assets/UI/wildling_cards/troll_card.png" id="19_qrnde"]
 [ext_resource type="Texture2D" uid="uid://ybaw7tbmepw" path="res://assets/UI/wildling_cards/dragon_card.png" id="20_va38e"]
@@ -33,6 +36,8 @@
 script = ExtResource("1_xgwgn")
 resource_node_scene = ExtResource("2_xgwgn")
 wildling_node_scene = ExtResource("3_6ptn3")
+wildling_lair_node_scene = ExtResource("17_lairnode")
+map_size = Vector2(8192, 8192)
 food_texture = ExtResource("4_cuw03")
 wood_texture = ExtResource("5_aodh5")
 stone_texture = ExtResource("6_x63qt")
@@ -158,6 +163,8 @@ modulate = Color(0.4117647, 0.29411766, 0, 1)
 [node name="WildlingSpawns" type="Node2D" parent="." unique_id=356533683]
 position = Vector2(0, 1)
 
+[node name="WildlingLairSpawns" type="Node2D" parent="."]
+
 [node name="ResourceSpawns" type="Node2D" parent="." unique_id=1843093794]
 
 [node name="Marches" type="Node2D" parent="." unique_id=756472754]
@@ -204,10 +211,15 @@ offset_right = 250.0
 offset_bottom = 280.0
 size_flags_horizontal = 0
 size_flags_vertical = 0
+mouse_filter = 2
 
 [node name="Labels" type="Node2D" parent="HUD" unique_id=924927819]
 
 [node name="WildlingPanel" parent="HUD" unique_id=488162736 instance=ExtResource("17_uo8to")]
+
+[node name="ResourcePanel" parent="HUD" instance=ExtResource("17_respanel")]
+
+[node name="WildlingLairPanel" parent="HUD" instance=ExtResource("17_lairpanel")]
 
 [node name="WildlingRegions" type="Node2D" parent="." unique_id=196643114]
 z_index = 30
@@ -246,3 +258,4 @@ script = ExtResource("27_qrnde")
 
 [node name="GameHUD" parent="." unique_id=1833121157 instance=ExtResource("28_va38e")]
 layer = 100
+is_world_screen = true

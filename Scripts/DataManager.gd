@@ -6,6 +6,7 @@ var research = {}
 var heroes = []
 var monsters = {}
 var alliance = {}
+var alliance_research = []
 var hero_skills = {}
 var city_layout = {}
 var world_map_spawns = {}
@@ -18,6 +19,7 @@ func _ready():
 	load_heroes()
 	load_monsters()
 	load_alliance()
+	load_alliance_research()
 	load_hero_skills()
 	load_city_layout()
 	load_world_map_spawns()
@@ -72,6 +74,15 @@ func load_alliance():
 	if alliance.size() > 0:
 		print("Alliance Loaded")
 
+func load_alliance_research():
+	var data = load_json("res://data/alliance_research.json")
+	if typeof(data) == TYPE_ARRAY:
+		alliance_research = data
+	else:
+		alliance_research = []
+	if alliance_research.size() > 0:
+		print("Alliance Research Loaded: ", alliance_research.size(), " categories")
+
 func load_hero_skills():
 	hero_skills = load_json("res://data/hero_skills.json")
 	if hero_skills.size() > 0:
@@ -115,6 +126,73 @@ func get_city_layout():
 
 func get_alliance_data():
 	return alliance
+
+## Canonical Alliance Research tree (Economy / Military / Territory / Support).
+func get_alliance_research_data() -> Array:
+	return alliance_research
+
+func get_alliance_research_def(research_id: String) -> Dictionary:
+	for category_block: Variant in alliance_research:
+		if typeof(category_block) != TYPE_DICTIONARY:
+			continue
+		var researches: Array = category_block.get("researches", [])
+		for research_def: Variant in researches:
+			if typeof(research_def) == TYPE_DICTIONARY and str(research_def.get("id", "")) == research_id:
+				var result: Dictionary = research_def.duplicate(true)
+				result["category"] = str(category_block.get("category", ""))
+				result["prerequisites"] = normalize_alliance_research_prerequisites(result.get("prerequisites", []))
+				if not result.has("required_alliance_level"):
+					var costs: Dictionary = result.get("costs", {})
+					result["required_alliance_level"] = int(costs.get("requiredAllianceLevel", 1))
+				if not result.has("tier"):
+					result["tier"] = 1
+				if not result.has("branch"):
+					result["branch"] = str(result.get("category", "general")).to_lower()
+				if not result.has("research_points"):
+					result["research_points"] = 100
+				if typeof(result.get("contribution_rewards", null)) != TYPE_DICTIONARY:
+					result["contribution_rewards"] = {
+						"personal_contribution": 120,
+						"alliance_coins": 120,
+					}
+				# Migrate legacy multi-resource contribution_cost → single resource fields.
+				if str(result.get("contribution_resource", "")) == "" \
+						and typeof(result.get("contribution_cost", null)) == TYPE_DICTIONARY:
+					var legacy: Dictionary = result.get("contribution_cost", {})
+					var best_id: String = "food"
+					var best_amount: int = -1
+					for candidate: String in ["food", "wood", "stone", "iron"]:
+						var amount: int = int(legacy.get(candidate, 0))
+						if amount > best_amount:
+							best_amount = amount
+							best_id = candidate
+					result["contribution_resource"] = best_id
+					result["contribution_amount"] = max(1, best_amount if best_amount > 0 else 10000)
+				if str(result.get("contribution_resource", "")) == "":
+					result["contribution_resource"] = "food"
+				if not result.has("contribution_amount"):
+					result["contribution_amount"] = 10000
+				return result
+	return {}
+
+
+## Normalizes legacy string prereqs and object prereqs into {research_id, required_level}.
+func normalize_alliance_research_prerequisites(raw: Variant) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	if typeof(raw) != TYPE_ARRAY:
+		return result
+	for item: Variant in raw:
+		if typeof(item) == TYPE_DICTIONARY:
+			var research_id: String = str(item.get("research_id", item.get("id", "")))
+			if research_id == "":
+				continue
+			result.append({
+				"research_id": research_id,
+				"required_level": max(1, int(item.get("required_level", item.get("level", 1)))),
+			})
+		elif typeof(item) == TYPE_STRING and str(item) != "":
+			result.append({"research_id": str(item), "required_level": 1})
+	return result
 
 func get_troop(troop_id: String):
 	for troop in troops:

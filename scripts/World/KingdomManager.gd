@@ -3,7 +3,6 @@
 # Godot 4.6 / GDScript 2.0 Central orchestrator for maps, events & campaign columns
 # ==============================================================================
 
-class_name KingdomManager
 extends Node2D
 
 @export_category("Core Game Balance")

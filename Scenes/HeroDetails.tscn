@@ -190,13 +190,12 @@ stretch_mode = 0
 [node name="TabButtons" type="HBoxContainer" parent="." unique_id=1000441177]
 z_index = 20
 layout_mode = 0
-offset_left = 8.0
-offset_top = 971.00006
-offset_right = 3110.0
-offset_bottom = 1435.0
-scale = Vector2(1.15, 1.15)
+offset_left = 20.0
+offset_top = 960.0
+offset_right = 700.0
+offset_bottom = 1020.0
 mouse_filter = 2
-theme_override_constants/separation = 0
+theme_override_constants/separation = 8
 
 [node name="StatsButton" type="TextureButton" parent="TabButtons" unique_id=1395871142]
 custom_minimum_size = Vector2(155, 55)
@@ -232,74 +231,85 @@ ignore_texture_size = true
 stretch_mode = 0
 
 [node name="Pages" type="Control" parent="." unique_id=2090285602]
+z_index = 12
 anchors_preset = 0
-offset_left = 721.0
-offset_top = 971.00006
-offset_right = 721.0
-offset_bottom = 1434.0
+offset_left = 24.0
+offset_top = 600.0
+offset_right = 696.0
+offset_bottom = 955.0
 mouse_filter = 2
 
 [node name="OverviewPage" type="Control" parent="Pages" unique_id=1408203387]
-anchors_preset = 0
-offset_left = -721.0
-offset_top = -971.00006
-offset_right = -681.0
-offset_bottom = -931.00006
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 
 [node name="Overview" type="Label" parent="Pages/OverviewPage" unique_id=1046581245]
+visible = false
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
 
 [node name="StatsPage" type="Control" parent="Pages" unique_id=1434930845]
-anchors_preset = 0
-offset_left = -700.0
-offset_top = 243.99994
-offset_right = -536.0
-offset_bottom = 300.99994
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 
 [node name="Stats" type="Label" parent="Pages/StatsPage" unique_id=279226436]
+visible = false
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
 
 [node name="SkillsPage" type="Control" parent="Pages" unique_id=1288829734]
-anchors_preset = 0
-offset_left = -520.0
-offset_top = 245.99994
-offset_right = -360.0
-offset_bottom = 294.99994
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 
 [node name="Skills" type="Label" parent="Pages/SkillsPage" unique_id=1447471466]
+visible = false
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
 
 [node name="GearPage" type="Control" parent="Pages" unique_id=1048587191]
-anchors_preset = 0
-offset_left = -345.0
-offset_top = 241.99994
-offset_right = -182.0
-offset_bottom = 302.99994
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 
 [node name="Gear" type="Label" parent="Pages/GearPage" unique_id=2068016202]
+visible = false
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
 
-[node name="TroopSkillPage" type="Control" parent="Pages" unique_id=2004466226]
-anchors_preset = 0
-offset_left = -174.0
-offset_top = 238.99994
-offset_right = -4.0
-offset_bottom = 292.99994
+[node name="TroopSkillsPage" type="Control" parent="Pages" unique_id=2004466226]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 
-[node name="TroopSkills" type="Label" parent="Pages/TroopSkillPage" unique_id=651080671]
+[node name="TroopSkills" type="Label" parent="Pages/TroopSkillsPage" unique_id=651080671]
+visible = false
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0

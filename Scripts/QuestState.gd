@@ -154,12 +154,14 @@ func on_troops_trained(amount: int) -> void:
 func on_quest_screen_opened() -> void:
 	_add_objective_progress("quest_screen_opened", 1)
 
-func on_research_completed(amount: int = 1) -> void:
-	_add_objective_progress("research", amount)
+func on_research_completed(_research_id: String = "") -> void:
+	## GameEvents.research_completed now carries research_id; quests still +1.
+	_add_objective_progress("research", 1)
 
 
-func on_wildling_defeated(amount: int = 1) -> void:
-	_add_objective_progress("wildling", amount)
+func on_wildling_defeated(_wildling_id: String = "") -> void:
+	## GameEvents.wildling_defeated now carries wildling_id; quests still +1.
+	_add_objective_progress("wildling", 1)
 
 
 func on_building_upgraded(_building_id: String, level: int) -> void:
