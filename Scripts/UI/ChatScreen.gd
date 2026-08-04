@@ -1,7 +1,7 @@
 extends Control
 
-## Crownspire Chat UI — premium floating modal (Kingdom + Alliance only).
-## UI/UX only. Uses existing ChatManager / AllianceBackend APIs unchanged.
+## Crownspire Chat UI — Kingdom / Alliance / Direct (private DMs + friends hub).
+## Uses ChatManager + FriendsBackend. Private never mixes into Kingdom/Alliance.
 
 const MobileScrollUtil = preload("res://scripts/UI/MobileScroll.gd")
 const ChatMessageScript = preload("res://scripts/Backend/ChatMessage.gd")
@@ -35,6 +35,11 @@ var _send_btn: Button
 var _kingdom_tab: Button
 var _alliance_tab: Button
 var _private_tab: Button
+var _dm_peer_bar: HBoxContainer
+var _dm_peer_label: Label
+var _dm_back_btn: Button
+var _dm_hub_section: String = "conversations" ## conversations | friends | requests
+var _composer_wrap: Control
 var _action_overlay: Control
 var _action_box: VBoxContainer
 var _emoji_overlay: Control
@@ -59,6 +64,10 @@ func _chat_manager() -> Node:
 
 func _alliance_backend() -> Node:
 	return get_node_or_null("/root/AllianceBackend")
+
+
+func _friends_backend() -> Node:
+	return get_node_or_null("/root/FriendsBackend")
 
 
 func _ready() -> void:
@@ -86,6 +95,7 @@ func on_open() -> void:
 	_refresh_tabs()
 	_refresh_status()
 	_refresh_messages()
+	print("[ChatScreen] opened tab=%s" % _tab)
 	if has_node("/root/ChatManager"):
 		if _tab == "private" and _pending_private_peer != "":
 			await _chat_manager().ensure_private_joined(_pending_private_peer, _pending_private_name)
@@ -153,6 +163,14 @@ func _bind_chat_signals() -> void:
 		cm.kingdom_join_failed.connect(_on_join_failed)
 	if not cm.alliance_join_failed.is_connected(_on_alliance_join_failed):
 		cm.alliance_join_failed.connect(_on_alliance_join_failed)
+	if cm.has_signal("dm_conversations_changed") and not cm.dm_conversations_changed.is_connected(_on_dm_hub_changed):
+		cm.dm_conversations_changed.connect(_on_dm_hub_changed)
+	if cm.has_signal("dm_unread_changed") and not cm.dm_unread_changed.is_connected(_on_dm_unread_ui):
+		cm.dm_unread_changed.connect(_on_dm_unread_ui)
+	var fb_bind: Node = _friends_backend()
+	if fb_bind != null:
+		if fb_bind.has_signal("friends_changed") and not fb_bind.friends_changed.is_connected(_on_dm_hub_changed):
+			fb_bind.friends_changed.connect(_on_dm_hub_changed)
 	if not cm.alliance_joined.is_connected(_on_alliance_joined):
 		cm.alliance_joined.connect(_on_alliance_joined)
 	var nc: Node = get_node_or_null("/root/NakamaConnection")
@@ -292,7 +310,7 @@ func _build_ui() -> void:
 	root.add_child(tabs)
 	_kingdom_tab = _make_tab_button("KINGDOM")
 	_alliance_tab = _make_tab_button("ALLIANCE")
-	_private_tab = _make_tab_button("PRIVATE")
+	_private_tab = _make_tab_button("DIRECT")
 	_kingdom_tab.pressed.connect(func(): _set_tab("kingdom"))
 	_alliance_tab.pressed.connect(func(): _set_tab("alliance"))
 	_private_tab.pressed.connect(func(): _set_tab("private"))
@@ -305,6 +323,23 @@ func _build_ui() -> void:
 	_status_label.add_theme_font_size_override("font_size", 12)
 	_status_label.add_theme_color_override("font_color", COL_MUTED)
 	root.add_child(_status_label)
+
+	_dm_peer_bar = HBoxContainer.new()
+	_dm_peer_bar.visible = false
+	_dm_peer_bar.add_theme_constant_override("separation", 8)
+	root.add_child(_dm_peer_bar)
+	_dm_back_btn = Button.new()
+	_dm_back_btn.text = "← Inbox"
+	_dm_back_btn.focus_mode = Control.FOCUS_NONE
+	_dm_back_btn.custom_minimum_size = Vector2(110, 40)
+	_style_icon_button(_dm_back_btn)
+	_dm_back_btn.pressed.connect(_on_dm_back_pressed)
+	_dm_peer_bar.add_child(_dm_back_btn)
+	_dm_peer_label = Label.new()
+	_dm_peer_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_dm_peer_label.add_theme_color_override("font_color", COL_GOLD)
+	_dm_peer_label.add_theme_font_size_override("font_size", 16)
+	_dm_peer_bar.add_child(_dm_peer_label)
 
 	_scroll = ScrollContainer.new()
 	_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -319,7 +354,8 @@ func _build_ui() -> void:
 	_scroll.add_child(_messages_box)
 
 	# Composer toolbar + input
-	root.add_child(_build_composer())
+	_composer_wrap = _build_composer()
+	root.add_child(_composer_wrap)
 
 	_build_action_overlay()
 	_build_emoji_overlay()
@@ -328,6 +364,7 @@ func _build_ui() -> void:
 
 func _build_composer() -> Control:
 	var wrap := VBoxContainer.new()
+	wrap.name = "Composer"
 	wrap.add_theme_constant_override("separation", 6)
 
 	var tools := HBoxContainer.new()
@@ -544,6 +581,8 @@ func _set_tab(tab_id: String) -> void:
 	_tab = tab_id
 	_close_actions()
 	_close_emoji()
+	if _tab != "private" and has_node("/root/ChatManager"):
+		_chat_manager().clear_active_dm_peer()
 	_refresh_tabs()
 	_refresh_status()
 	_refresh_messages()
@@ -552,6 +591,9 @@ func _set_tab(tab_id: String) -> void:
 		_input.placeholder_text = "Message alliance…"
 	elif _tab == "private":
 		_input.placeholder_text = "Private message…"
+		var fb_refresh: Node = _friends_backend()
+		if fb_refresh != null and fb_refresh.has_method("refresh_friends"):
+			fb_refresh.call("refresh_friends")
 	else:
 		_input.placeholder_text = "Message kingdom…"
 
@@ -561,18 +603,15 @@ func _refresh_tabs() -> void:
 	_style_tab(_alliance_tab, _tab == "alliance")
 	_style_tab(_private_tab, _tab == "private")
 	if _private_tab != null:
-		var peer: String = ""
+		_private_tab.visible = true
+		var unread: int = 0
 		if has_node("/root/ChatManager"):
-			peer = _chat_manager().get_active_dm_peer()
-		if peer == "" and _pending_private_peer != "":
-			peer = _pending_private_peer
-		_private_tab.visible = peer != "" or _tab == "private"
-		if peer != "" and has_node("/root/ChatManager"):
-			var unread: int = int(_chat_manager().get_dm_unread_total())
-			var label: String = "PRIVATE"
-			if unread > 0 and _tab != "private":
-				label = "PRIVATE (%d)" % unread
-			_private_tab.text = label
+			unread = int(_chat_manager().get_dm_unread_total())
+		var label: String = "DIRECT"
+		if unread > 0 and _tab != "private":
+			label = "DIRECT (%d)" % unread
+		_private_tab.text = label
+	_update_dm_chrome()
 
 
 func _style_tab(btn: Button, active: bool) -> void:
@@ -600,15 +639,22 @@ func _refresh_status() -> void:
 
 	if _tab == "private":
 		if not has_node("/root/ChatManager") or not _chat_manager().is_chat_available():
-			_status_label.text = _format_conn_banner(conn_label, "Private chat unavailable")
+			_status_label.text = _format_conn_banner(conn_label, "Direct Messages unavailable")
 			_input.editable = false
 			_send_btn.disabled = true
+			_update_dm_chrome()
 			return
 		var peer: String = _chat_manager().get_active_dm_peer()
-		var pname: String = _chat_manager().get_dm_display_name(peer) if peer != "" else "Player"
-		_status_label.text = "Private · %s · %s" % [pname, conn_label if conn_label != "" else "Connected"]
-		_input.editable = peer != ""
-		_send_btn.disabled = peer == ""
+		if peer == "":
+			_status_label.text = "Direct · Private inbox · %s" % (conn_label if conn_label != "" else "Connected")
+			_input.editable = false
+			_send_btn.disabled = true
+		else:
+			var pname: String = _chat_manager().get_dm_display_name(peer)
+			_status_label.text = "Direct · Messaging %s · %s" % [pname, conn_label if conn_label != "" else "Connected"]
+			_input.editable = true
+			_send_btn.disabled = false
+		_update_dm_chrome()
 		return
 	if _tab == "alliance":
 		if not has_node("/root/ChatManager") or not _chat_manager().is_alliance_chat_available():
@@ -669,18 +715,15 @@ func _refresh_messages() -> void:
 		return
 
 	if _tab == "private" and _chat_manager().get_active_dm_peer() == "":
-		var no_dm := Label.new()
-		no_dm.text = "Select Message from a player to start a private conversation."
-		no_dm.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		no_dm.add_theme_color_override("font_color", COL_MUTED)
-		no_dm.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		_messages_box.add_child(no_dm)
+		_render_dm_hub()
 		return
 
 	var has_more: bool = false
 	if _tab == "alliance":
 		has_more = _chat_manager().get_alliance_history_has_more()
-	elif _tab != "private":
+	elif _tab == "private":
+		has_more = false
+	else:
 		has_more = _chat_manager().get_history_has_more()
 	if has_more:
 		var older := Button.new()
@@ -709,6 +752,305 @@ func _refresh_messages() -> void:
 
 	for msg in msgs:
 		_messages_box.add_child(_build_message_row(msg, local_id))
+
+
+func _update_dm_chrome() -> void:
+	var in_private: bool = _tab == "private"
+	var peer: String = ""
+	if in_private and has_node("/root/ChatManager"):
+		peer = _chat_manager().get_active_dm_peer()
+	if _dm_peer_bar != null:
+		_dm_peer_bar.visible = in_private and peer != ""
+		if peer != "":
+			_dm_peer_label.text = "Private with %s" % _chat_manager().get_dm_display_name(peer)
+	if _composer_wrap != null:
+		_composer_wrap.visible = not in_private or peer != ""
+
+
+func _on_dm_back_pressed() -> void:
+	if has_node("/root/ChatManager"):
+		_chat_manager().clear_active_dm_peer()
+	_dm_hub_section = "conversations"
+	_refresh_tabs()
+	_refresh_status()
+	_refresh_messages()
+
+
+func _on_dm_hub_changed(_a = null, _b = null, _c = null) -> void:
+	if not visible or _tab != "private":
+		if visible:
+			_refresh_tabs()
+		return
+	_refresh_tabs()
+	_refresh_status()
+	if _chat_manager().get_active_dm_peer() == "":
+		_refresh_messages()
+
+
+func _on_dm_unread_ui(_total: int = 0) -> void:
+	_refresh_tabs()
+
+
+func _render_dm_hub() -> void:
+	var section_row := HBoxContainer.new()
+	section_row.add_theme_constant_override("separation", 6)
+	_messages_box.add_child(section_row)
+	for item in [
+		["conversations", "Inbox"],
+		["friends", "Friends"],
+		["requests", "Requests"],
+	]:
+		var sid: String = str(item[0])
+		var btn := Button.new()
+		btn.text = str(item[1])
+		btn.focus_mode = Control.FOCUS_NONE
+		btn.custom_minimum_size = Vector2(0, 40)
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_style_tab(btn, _dm_hub_section == sid)
+		btn.pressed.connect(func():
+			_dm_hub_section = sid
+			_refresh_messages()
+		)
+		section_row.add_child(btn)
+
+	var note := Label.new()
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	note.add_theme_color_override("font_color", COL_MUTED)
+	note.add_theme_font_size_override("font_size", 12)
+	note.text = "Private messages stay in Direct. They never post to Kingdom or Alliance."
+	_messages_box.add_child(note)
+
+	match _dm_hub_section:
+		"friends":
+			_render_dm_friends_list()
+		"requests":
+			_render_dm_requests_list()
+		_:
+			_render_dm_conversations_list()
+
+
+func _render_dm_conversations_list() -> void:
+	var convos: Array[Dictionary] = _chat_manager().list_dm_conversations()
+	if convos.is_empty():
+		var empty := Label.new()
+		empty.text = "No conversations yet. Message a player from their Profile or Friends."
+		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		empty.add_theme_color_override("font_color", COL_MUTED)
+		_messages_box.add_child(empty)
+		return
+	for c in convos:
+		_messages_box.add_child(_build_dm_convo_row(c))
+
+
+func _build_dm_convo_row(c: Dictionary) -> Control:
+	var uid: String = str(c.get("user_id", ""))
+	var panel := PanelContainer.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = COL_CARD
+	style.border_color = Color(COL_BORDER.r, COL_BORDER.g, COL_BORDER.b, 0.35)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(12)
+	style.content_margin_left = 10
+	style.content_margin_right = 10
+	style.content_margin_top = 8
+	style.content_margin_bottom = 8
+	panel.add_theme_stylebox_override("panel", style)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	panel.add_child(row)
+	var name_col := VBoxContainer.new()
+	name_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(name_col)
+	var title := Label.new()
+	var unread: int = int(c.get("unread", 0))
+	title.text = str(c.get("display_name", "Player"))
+	if unread > 0:
+		title.text = "%s  (%d)" % [title.text, unread]
+	title.add_theme_color_override("font_color", COL_GOLD if unread > 0 else COL_INK)
+	title.add_theme_font_size_override("font_size", 16)
+	name_col.add_child(title)
+	var preview := Label.new()
+	preview.text = str(c.get("preview", ""))
+	if preview.text == "":
+		preview.text = "Tap to open conversation"
+	preview.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	preview.add_theme_color_override("font_color", COL_MUTED)
+	preview.add_theme_font_size_override("font_size", 12)
+	name_col.add_child(preview)
+	var ts := Label.new()
+	ts.text = _format_unix_short(int(c.get("timestamp_unix", 0)))
+	ts.add_theme_color_override("font_color", COL_MUTED)
+	ts.add_theme_font_size_override("font_size", 11)
+	row.add_child(ts)
+	var open_btn := Button.new()
+	open_btn.text = "Open"
+	open_btn.focus_mode = Control.FOCUS_NONE
+	open_btn.custom_minimum_size = Vector2(72, 44)
+	_style_icon_button(open_btn)
+	open_btn.pressed.connect(func(): _start_private_with(uid, str(c.get("display_name", "Player"))))
+	row.add_child(open_btn)
+	return panel
+
+
+func _render_dm_friends_list() -> void:
+	var fb: Node = _friends_backend()
+	if fb == null or not fb.has_method("get_friends"):
+		var miss := Label.new()
+		miss.text = "Friends unavailable."
+		miss.add_theme_color_override("font_color", COL_MUTED)
+		_messages_box.add_child(miss)
+		return
+	var friends: Array[Dictionary] = fb.get_friends()
+	if friends.is_empty():
+		var empty := Label.new()
+		empty.text = "No friends yet. Send a request from a Player Profile."
+		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		empty.add_theme_color_override("font_color", COL_MUTED)
+		_messages_box.add_child(empty)
+		return
+	for f in friends:
+		_messages_box.add_child(_build_friend_row(f, "friend"))
+
+
+func _render_dm_requests_list() -> void:
+	var fb: Node = _friends_backend()
+	if fb == null:
+		return
+	var incoming: Array[Dictionary] = fb.get_incoming_requests()
+	var outgoing: Array[Dictionary] = fb.get_outgoing_requests()
+	var blocked: Array[Dictionary] = fb.get_blocked()
+
+	_add_hub_heading("Incoming")
+	if incoming.is_empty():
+		_add_hub_empty("No incoming requests.")
+	else:
+		for f in incoming:
+			_messages_box.add_child(_build_friend_row(f, "invite_received"))
+
+	_add_hub_heading("Outgoing")
+	if outgoing.is_empty():
+		_add_hub_empty("No outgoing requests.")
+	else:
+		for f in outgoing:
+			_messages_box.add_child(_build_friend_row(f, "invite_sent"))
+
+	_add_hub_heading("Blocked")
+	if blocked.is_empty():
+		_add_hub_empty("No blocked players.")
+	else:
+		for f in blocked:
+			_messages_box.add_child(_build_friend_row(f, "blocked"))
+
+
+func _add_hub_heading(text_value: String) -> void:
+	var lbl := Label.new()
+	lbl.text = text_value
+	lbl.add_theme_color_override("font_color", COL_GOLD)
+	lbl.add_theme_font_size_override("font_size", 15)
+	_messages_box.add_child(lbl)
+
+
+func _add_hub_empty(text_value: String) -> void:
+	var lbl := Label.new()
+	lbl.text = text_value
+	lbl.add_theme_color_override("font_color", COL_MUTED)
+	lbl.add_theme_font_size_override("font_size", 12)
+	_messages_box.add_child(lbl)
+
+
+func _build_friend_row(f: Dictionary, mode: String) -> Control:
+	var uid: String = str(f.get("user_id", ""))
+	var dname: String = str(f.get("display_name", "Player"))
+	var panel := PanelContainer.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = COL_CARD
+	style.border_color = Color(COL_BORDER.r, COL_BORDER.g, COL_BORDER.b, 0.3)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(12)
+	style.content_margin_left = 10
+	style.content_margin_right = 10
+	style.content_margin_top = 8
+	style.content_margin_bottom = 8
+	panel.add_theme_stylebox_override("panel", style)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 6)
+	panel.add_child(col)
+	var top := HBoxContainer.new()
+	top.add_theme_constant_override("separation", 8)
+	col.add_child(top)
+	var title := Label.new()
+	var online: String = str(f.get("online_status", "unknown"))
+	var online_mark: String = ""
+	if online == "online":
+		online_mark = " ●"
+	elif online == "offline":
+		online_mark = " ○"
+	title.text = "%s%s" % [dname, online_mark]
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.add_theme_color_override("font_color", COL_OK if online == "online" else COL_INK)
+	title.add_theme_font_size_override("font_size", 15)
+	top.add_child(title)
+	var profile_btn := Button.new()
+	profile_btn.text = "Profile"
+	profile_btn.focus_mode = Control.FOCUS_NONE
+	profile_btn.custom_minimum_size = Vector2(72, 40)
+	_style_icon_button(profile_btn)
+	profile_btn.pressed.connect(func(): _open_external_profile(uid))
+	top.add_child(profile_btn)
+
+	var actions := HBoxContainer.new()
+	actions.add_theme_constant_override("separation", 6)
+	col.add_child(actions)
+	match mode:
+		"friend":
+			_hub_action_btn(actions, "Message", func(): _start_private_with(uid, dname))
+			_hub_action_btn(actions, "Remove", func():
+				var fb: Node = _friends_backend()
+				if fb != null:
+					await fb.remove_friend(uid)
+			)
+		"invite_received":
+			_hub_action_btn(actions, "Accept", func():
+				var fb: Node = _friends_backend()
+				if fb != null:
+					await fb.accept_friend_request(uid)
+			)
+			_hub_action_btn(actions, "Decline", func():
+				var fb: Node = _friends_backend()
+				if fb != null:
+					await fb.decline_friend_request(uid)
+			)
+		"invite_sent":
+			_hub_action_btn(actions, "Cancel", func():
+				var fb: Node = _friends_backend()
+				if fb != null:
+					await fb.cancel_friend_request(uid)
+			)
+		"blocked":
+			_hub_action_btn(actions, "Unblock", func():
+				var fb: Node = _friends_backend()
+				if fb != null:
+					await fb.unblock_player(uid)
+			)
+	return panel
+
+
+func _hub_action_btn(parent: Control, label: String, cb: Callable) -> void:
+	var btn := Button.new()
+	btn.text = label
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.custom_minimum_size = Vector2(0, 40)
+	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_style_icon_button(btn)
+	btn.pressed.connect(cb)
+	parent.add_child(btn)
+
+
+func _format_unix_short(ts: int) -> String:
+	if ts <= 0:
+		return ""
+	var dt := Time.get_datetime_dict_from_unix_time(ts)
+	return "%02d:%02d" % [int(dt.get("hour", 0)), int(dt.get("minute", 0))]
 
 
 func _build_message_row(msg: RefCounted, local_id: String) -> Control:
@@ -755,23 +1097,23 @@ func _build_message_row(msg: RefCounted, local_id: String) -> Control:
 	var name_text: String = str(msg.sender_display_name).strip_edges()
 	if name_text == "":
 		name_text = "Player"
-	var name_lbl := Label.new()
+	var name_btn := Button.new()
 	if tag != "":
-		name_lbl.text = "[%s] %s" % [tag, name_text]
+		name_btn.text = "[%s] %s" % [tag, name_text]
 	else:
-		name_lbl.text = name_text
-	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_lbl.add_theme_color_override("font_color", COL_GOLD if is_self else COL_INK)
-	name_lbl.add_theme_font_size_override("font_size", 14)
-	name_lbl.mouse_filter = Control.MOUSE_FILTER_STOP
+		name_btn.text = name_text
+	name_btn.flat = true
+	name_btn.focus_mode = Control.FOCUS_NONE
+	name_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	name_btn.add_theme_color_override("font_color", COL_GOLD if is_self else COL_INK)
+	name_btn.add_theme_font_size_override("font_size", 14)
+	name_btn.mouse_filter = Control.MOUSE_FILTER_STOP
 	if not is_self:
-		name_lbl.gui_input.connect(func(e: InputEvent):
-			if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT:
-				_open_player_context(str(msg.sender_user_id), name_text)
-			elif e is InputEventScreenTouch and e.pressed:
-				_open_player_context(str(msg.sender_user_id), name_text)
+		name_btn.pressed.connect(func():
+			_open_player_context(str(msg.sender_user_id), name_text)
 		)
-	header.add_child(name_lbl)
+	header.add_child(name_btn)
 
 	var time_lbl := Label.new()
 	time_lbl.text = str(msg.format_timestamp_local())
@@ -847,9 +1189,15 @@ func _build_system_row(msg: RefCounted) -> Control:
 
 
 func _build_avatar(msg: RefCounted, is_self: bool) -> Control:
-	var wrap := Control.new()
+	var wrap := Button.new()
+	wrap.flat = true
+	wrap.focus_mode = Control.FOCUS_NONE
 	wrap.custom_minimum_size = Vector2(44, 44)
-	wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	wrap.mouse_filter = Control.MOUSE_FILTER_STOP
+	var empty := StyleBoxEmpty.new()
+	wrap.add_theme_stylebox_override("normal", empty)
+	wrap.add_theme_stylebox_override("hover", empty)
+	wrap.add_theme_stylebox_override("pressed", empty)
 
 	var frame := Panel.new()
 	frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -884,6 +1232,10 @@ func _build_avatar(msg: RefCounted, is_self: bool) -> Control:
 	initials.add_theme_color_override("font_color", COL_INK)
 	initials.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	wrap.add_child(initials)
+	if not is_self:
+		wrap.pressed.connect(func():
+			_open_player_context(str(msg.sender_user_id), str(msg.sender_display_name))
+		)
 	return wrap
 
 
@@ -971,6 +1323,11 @@ func _build_map_card(msg: RefCounted) -> Control:
 	_style_primary_button(view)
 	view.pressed.connect(func():
 		if has_node("/root/ChatManager"):
+			print("[Chat] castle location tapped kingdom=%s x=%s y=%s" % [
+				str(payload.get("kingdom_id", "")),
+				str(payload.get("x", 0)),
+				str(payload.get("y", 0)),
+			])
 			var result: Dictionary = await _chat_manager().navigate_to_map_location(payload)
 			if bool(result.get("navigated", false)):
 				_status_label.text = "Navigating to location…"
@@ -1142,7 +1499,8 @@ func _open_actions(msg: RefCounted, is_self: bool) -> void:
 	_action_box.add_child(title)
 
 	_add_action("View Profile", func():
-		_show_player_profile(msg)
+		_open_external_profile(str(msg.sender_user_id))
+		_close_actions()
 		_close_actions()
 	)
 	_add_action("Translate", func():
@@ -1193,13 +1551,50 @@ func _open_player_context(user_id: String, display_name: String) -> void:
 		_start_private_with(_player_context_user_id, _player_context_name)
 		_close_actions()
 	)
-	_add_action("Block", func():
-		_chat_manager().block_user(_player_context_user_id)
-		_status_label.text = "Player blocked (local filter)."
-		_close_actions()
-	)
+	var fb_ctx: Node = _friends_backend()
+	if fb_ctx != null and fb_ctx.has_method("get_relationship"):
+		var rel: String = str(fb_ctx.get_relationship(_player_context_user_id))
+		if rel == "none":
+			_add_action("Add Friend", func():
+				var fb: Node = _friends_backend()
+				if fb == null:
+					return
+				var r: Dictionary = await fb.send_friend_request(_player_context_user_id)
+				_status_label.text = "Friend request sent." if bool(r.get("ok", false)) else str(r.get("error", "Request failed."))
+				_close_actions()
+			)
+		elif rel == "invite_received":
+			_add_action("Accept Friend", func():
+				var fb: Node = _friends_backend()
+				if fb != null:
+					await fb.accept_friend_request(_player_context_user_id)
+				_status_label.text = "Friend request accepted."
+				_close_actions()
+			)
+		elif rel == "friend":
+			_add_action("Remove Friend", func():
+				var fb: Node = _friends_backend()
+				if fb != null:
+					await fb.remove_friend(_player_context_user_id)
+				_status_label.text = "Friend removed."
+				_close_actions()
+			)
+		_add_action("Block", func():
+			var fb: Node = _friends_backend()
+			if fb == null:
+				return
+			var br: Dictionary = await fb.block_player(_player_context_user_id)
+			_status_label.text = "Player blocked." if bool(br.get("ok", false)) else str(br.get("error", "Block failed."))
+			_close_actions()
+		)
+	else:
+		_add_action("Block", func():
+			_chat_manager().block_user(_player_context_user_id)
+			_status_label.text = "Player blocked."
+			_close_actions()
+		)
 	_add_action("Report", func():
-		_status_label.text = "Report stub — use long-press Report on a message."
+		_status_label.text = "Long-press a message to report with evidence."
 		_close_actions()
 	)
 	_add_action("Cancel", func(): _close_actions())
@@ -1294,7 +1689,11 @@ func _on_share_location() -> void:
 		"target_type": "coord",
 		"target_id": "",
 	}
-	var kind: String = "alliance" if _tab == "alliance" else "kingdom"
+	var kind: String = "kingdom"
+	if _tab == "alliance":
+		kind = "alliance"
+	elif _tab == "private":
+		kind = "private"
 	var result: Dictionary = await cm.send_map_location(payload, kind)
 	if not bool(result.get("ok", false)):
 		_status_label.text = str(result.get("error", "Share location failed."))
@@ -1307,6 +1706,9 @@ func _on_share_rally() -> void:
 	if not has_node("/root/ChatManager"):
 		return
 	if not _can_compose():
+		return
+	if _tab == "private":
+		_status_label.text = "Rallies cannot be shared in Direct Messages."
 		return
 	var cm: Node = _chat_manager()
 	var payload := {
@@ -1395,24 +1797,8 @@ func _open_report_reasons(msg: RefCounted) -> void:
 
 
 func _show_player_profile(msg: RefCounted) -> void:
-	if not has_node("/root/AllianceBackend"):
-		_status_label.text = "Profile backend unavailable."
-		return
-	var result: Dictionary = await _alliance_backend().get_public_profile(str(msg.sender_user_id))
-	if not bool(result.get("ok", false)):
-		_status_label.text = str(result.get("error", "Profile lookup failed."))
-		return
-	var p: Dictionary = result.get("profile", {})
-	var tag: String = str(p.get("alliance_tag", "")).strip_edges()
-	var aname: String = str(p.get("alliance_name", "")).strip_edges()
-	var lines: PackedStringArray = PackedStringArray([
-		"Name: %s" % str(p.get("display_name", "?")),
-		"Alliance: %s%s" % [
-			("[%s] " % tag) if tag != "" else "",
-			aname if aname != "" else "(none)",
-		],
-	])
-	_status_label.text = " · ".join(lines)
+	## Legacy helper — always opens the unified PlayerProfileScreen by user_id.
+	_open_external_profile(str(msg.sender_user_id))
 
 
 func _on_close_pressed() -> void:

@@ -180,6 +180,15 @@ static func validate_map_payload(payload_value: Dictionary, kingdom_id: String) 
 		"target_type": str(payload_value.get("target_type", "coord")).strip_edges(),
 		"target_id": str(payload_value.get("target_id", "")).strip_edges(),
 	}
+	# Optional castle-share identity (coords remain authoritative for navigation).
+	var owner_id: String = str(payload_value.get("owner_user_id", out["target_id"])).strip_edges()
+	if owner_id != "":
+		out["owner_user_id"] = owner_id
+	var display_name: String = str(payload_value.get("display_name", "")).strip_edges()
+	if display_name != "":
+		if display_name.length() > MAX_LABEL_LENGTH:
+			display_name = display_name.substr(0, MAX_LABEL_LENGTH)
+		out["display_name"] = display_name
 	return {"ok": true, "payload": out}
 
 

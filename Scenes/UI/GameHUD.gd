@@ -24,6 +24,7 @@ const PlayerAvatarCatalog = preload("res://scripts/UI/PlayerAvatarCatalog.gd")
 @onready var events_button: Button = $Control/RightFeatureButtons/EventsButton
 @onready var events_claim_badge: Label = $Control/RightFeatureButtons/EventsButton/ClaimBadge
 var _chat_preview: Control = null
+var _castle_popup: Control = null
 var _help_button: Button = null
 var _help_count_label: Label = null
 @onready var mail_button: TextureButton = $Control/MailButton
@@ -41,6 +42,7 @@ var _event_toast_timer: float = 0.0
 
 var _queue_status_hud: Control = null
 var _world_search_button: Button = null
+var _world_home_button: Button
 var _world_search_panel: Control = null
 var _active_marches_hud: Control = null
 
@@ -63,6 +65,7 @@ func _ready():
 	_ensure_help_button()
 	_ensure_profile_screen()
 	_bind_profile_avatar()
+	_bind_social_notifications()
 	_refresh_portrait_avatar()
 	_refresh_mail_badge()
 	_refresh_events_badge()
@@ -139,9 +142,9 @@ func _sync_queue_status_visibility() -> void:
 		# Hide under full ScreenRoot screens (Bag/Alliance/etc). Keep visible during city popups.
 		show_queue = false
 	_queue_status_hud.visible = show_queue
-	_queue_status_hud.mouse_filter = (
-		Control.MOUSE_FILTER_STOP if show_queue else Control.MOUSE_FILTER_IGNORE
-	)
+	# Root must IGNORE — only queue cards own taps. STOP here ate ChatPreview taps
+	# on Android where QueueStatusHUD shares the lower-left band at z_index 40.
+	_queue_status_hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
 func _setup_active_marches_hud() -> void:
@@ -181,6 +184,7 @@ func _apply_screen_context() -> void:
 	_sync_world_search_visibility()
 	_sync_right_feature_visibility()
 	_sync_chat_preview_visibility()
+	call_deferred("_position_chrome_above_chat")
 
 
 func _on_resources_changed() -> void:
@@ -224,7 +228,8 @@ func _sync_chat_preview_visibility() -> void:
 		_chat_preview.call("set_force_hidden", hide_preview and not chat_open)
 	else:
 		_chat_preview.visible = not hide_preview
-		_chat_preview.mouse_filter = Control.MOUSE_FILTER_STOP if not hide_preview else Control.MOUSE_FILTER_IGNORE
+		# Hit ownership lives on ChatPreview's internal button; keep root IGNORE.
+		_chat_preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
 func _ensure_help_button() -> void:
@@ -245,7 +250,7 @@ func _ensure_help_button() -> void:
 		_help_button.offset_right = 48.0
 		_help_button.offset_top = -300.0
 		_help_button.offset_bottom = -248.0
-		_help_button.z_index = 41
+		_help_button.z_index = 61
 		host.add_child(_help_button)
 		_help_count_label = Label.new()
 		_help_count_label.name = "HelpCount"
@@ -258,6 +263,7 @@ func _ensure_help_button() -> void:
 		_help_button.add_child(_help_count_label)
 	else:
 		_help_count_label = _help_button.get_node_or_null("HelpCount") as Label
+	_help_button.z_index = 61
 	_style_help_button()
 	if not _help_button.pressed.is_connected(_on_help_all_hud_pressed):
 		_help_button.pressed.connect(_on_help_all_hud_pressed)
@@ -350,22 +356,66 @@ func _setup_world_search_ui() -> void:
 		_world_search_button.add_theme_font_size_override("font_size", 16)
 		_world_search_button.add_theme_color_override("font_color", Color(0.96, 0.92, 0.82, 1.0))
 		host.add_child(_world_search_button)
-	# Bottom-left above nav — clear of Mail (right) and ActiveMarchesHUD (top-left).
+	# Size kept; Y is resolved against ChatPreview top in _position_chrome_above_chat().
 	_world_search_button.custom_minimum_size = Vector2(96, 96)
 	_world_search_button.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
 	_world_search_button.anchor_left = 0.0
 	_world_search_button.anchor_top = 1.0
 	_world_search_button.anchor_right = 0.0
 	_world_search_button.anchor_bottom = 1.0
-	# Bottom nav top ≈ offset -179; keep ~16px clearance above it.
-	_world_search_button.offset_left = 14.0
-	_world_search_button.offset_top = -291.0
-	_world_search_button.offset_right = 110.0
-	_world_search_button.offset_bottom = -195.0
 	_world_search_button.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	_world_search_button.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	if not _world_search_button.pressed.is_connected(_on_world_search_pressed):
 		_world_search_button.pressed.connect(_on_world_search_pressed)
+
+	# Locate My Castle / Return Home button
+	_world_home_button = host.get_node_or_null("WorldHomeButton") as Button
+	if _world_home_button == null:
+		_world_home_button = Button.new()
+		_world_home_button.name = "WorldHomeButton"
+		_world_home_button.text = "🏰\nCASTLE"
+		_world_home_button.focus_mode = Control.FOCUS_NONE
+
+		var home_fill := StyleBoxFlat.new()
+		home_fill.bg_color = Color(0.12, 0.11, 0.16, 0.92)
+		home_fill.border_color = Color(0.78, 0.66, 0.34, 0.95)
+		home_fill.set_border_width_all(2)
+		home_fill.set_corner_radius_all(14)
+
+		_world_home_button.add_theme_stylebox_override("normal", home_fill)
+		_world_home_button.add_theme_font_size_override("font_size", 16)
+		_world_home_button.add_theme_color_override(
+			"font_color",
+			Color(0.96, 0.92, 0.82, 1.0)
+		)
+
+		host.add_child(_world_home_button)
+
+	_world_home_button.custom_minimum_size = Vector2(96, 96)
+	_world_home_button.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	_world_home_button.anchor_left = 0.0
+	_world_home_button.anchor_top = 1.0
+	_world_home_button.anchor_right = 0.0
+	_world_home_button.anchor_bottom = 1.0
+	_world_home_button.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_world_home_button.grow_vertical = Control.GROW_DIRECTION_BEGIN
+
+	if not _world_home_button.pressed.is_connected(_on_world_home_pressed):
+		_world_home_button.pressed.connect(_on_world_home_pressed)
+
+	# Regularly checks whether the castle has moved outside the visible map area.
+	var home_update_timer: Timer = host.get_node_or_null("WorldHomeUpdateTimer") as Timer
+	if home_update_timer == null:
+		home_update_timer = Timer.new()
+		home_update_timer.name = "WorldHomeUpdateTimer"
+		home_update_timer.wait_time = 0.10
+		home_update_timer.one_shot = false
+		host.add_child(home_update_timer)
+
+	if not home_update_timer.timeout.is_connected(_update_world_home_button):
+		home_update_timer.timeout.connect(_update_world_home_button)
+
+	home_update_timer.start()		
 
 	_world_search_panel = host.get_node_or_null("WorldSearchPanel") as Control
 	if _world_search_panel == null and WorldSearchPanelScene != null:
@@ -373,6 +423,7 @@ func _setup_world_search_ui() -> void:
 		_world_search_panel.name = "WorldSearchPanel"
 		host.add_child(_world_search_panel)
 	_sync_world_search_visibility()
+	call_deferred("_position_chrome_above_chat")
 
 
 func _sync_world_search_visibility() -> void:
@@ -380,17 +431,20 @@ func _sync_world_search_visibility() -> void:
 	var manager: Node = get_node_or_null("UIManager")
 	if manager != null and manager.has_method("is_screen_open") and bool(manager.is_screen_open()):
 		show_search = false
+
 	if _world_search_button != null and is_instance_valid(_world_search_button):
 		_world_search_button.visible = show_search
 		_world_search_button.mouse_filter = (
 			Control.MOUSE_FILTER_STOP if show_search else Control.MOUSE_FILTER_IGNORE
 		)
+
+	_update_world_home_button()
+
 	if not show_search and _world_search_panel != null and is_instance_valid(_world_search_panel):
 		if _world_search_panel.has_method("close_panel"):
 			_world_search_panel.call("close_panel")
 		else:
 			_world_search_panel.visible = false
-
 
 func _on_world_search_pressed() -> void:
 	if not is_world_screen:
@@ -400,6 +454,122 @@ func _on_world_search_pressed() -> void:
 	if _world_search_panel.has_method("open_panel"):
 		_world_search_panel.call("open_panel")
 
+func _update_world_home_button() -> void:
+	if _world_home_button == null or not is_instance_valid(_world_home_button):
+		return
+
+	# Castle button never appears outside the Kingdom Map.
+	if not is_world_screen:
+		_set_world_home_visible(false)
+		return
+
+	# Hide it while another full UI screen is open.
+	var manager: Node = get_node_or_null("UIManager")
+	if manager != null and manager.has_method("is_screen_open"):
+		if bool(manager.is_screen_open()):
+			_set_world_home_visible(false)
+			return
+
+	var scene_tree: SceneTree = get_tree()
+	if scene_tree == null:
+		_set_world_home_visible(false)
+		return
+
+	var marker: Node2D = scene_tree.root.find_child(
+		"PlayerCastleMarker",
+		true,
+		false
+	) as Node2D
+
+	var camera: Camera2D = scene_tree.root.find_child(
+		"MapCamera",
+		true,
+		false
+	) as Camera2D
+
+	if camera == null:
+		camera = scene_tree.root.find_child(
+			"Camera2D",
+			true,
+			false
+		) as Camera2D
+
+	if marker == null or camera == null:
+		_set_world_home_visible(false)
+		return
+
+	# Calculate the visible world area using the current camera zoom.
+	var viewport_size: Vector2 = camera.get_viewport_rect().size
+	var half_visible_world: Vector2 = (viewport_size * 0.5) / camera.zoom
+
+	var castle_offset: Vector2 = marker.global_position - camera.global_position
+
+	var castle_is_visible: bool = (
+		absf(castle_offset.x) <= half_visible_world.x
+		and absf(castle_offset.y) <= half_visible_world.y
+	)
+
+	# Hide the button whenever the castle is on-screen.
+	if castle_is_visible:
+		_set_world_home_visible(false)
+		return
+
+	var distance: float = camera.global_position.distance_to(marker.global_position)
+
+	_world_home_button.text = "🏰\n%s" % _format_world_distance(distance)
+	_set_world_home_visible(true)
+
+
+func _set_world_home_visible(should_show: bool) -> void:
+	if _world_home_button == null or not is_instance_valid(_world_home_button):
+		return
+
+	_world_home_button.visible = should_show
+	_world_home_button.mouse_filter = (
+		Control.MOUSE_FILTER_STOP
+		if should_show
+		else Control.MOUSE_FILTER_IGNORE
+	)
+
+
+func _format_world_distance(distance: float) -> String:
+	if distance >= 1000.0:
+		return "%.1fK" % (distance / 1000.0)
+
+	return str(int(round(distance)))
+
+func _on_world_home_pressed() -> void:
+	if not is_world_screen:
+		return
+
+	var marker: Node2D = get_tree().root.find_child(
+		"PlayerCastleMarker",
+		true,
+		false
+	) as Node2D
+
+	if marker == null:
+		push_warning("[WorldHome] PlayerCastleMarker not found")
+		return
+
+	var camera: Node = get_tree().root.find_child(
+		"MapCamera",
+		true,
+		false
+	)
+
+	if camera == null:
+		camera = get_tree().root.find_child(
+			"Camera2D",
+			true,
+			false
+		)
+
+	if camera != null and camera.has_method("focus_world_position"):
+		camera.call("focus_world_position", marker.global_position)
+		print("[WorldHome] focused castle at %s" % str(marker.global_position))
+	else:
+		push_warning("[WorldHome] World camera/focus_world_position not found")
 
 func _resync_marches() -> void:
 	if has_node("/root/MarchState") and MarchState.has_method("resync_map_visuals"):
@@ -432,17 +602,31 @@ func _refresh_mail_badge() -> void:
 func _style_events_button() -> void:
 	if events_button == null:
 		return
+
 	var fill := StyleBoxFlat.new()
 	fill.bg_color = Color(0.12, 0.16, 0.24, 0.94)
 	fill.border_color = Color(0.78, 0.66, 0.34, 0.95)
 	fill.set_border_width_all(2)
 	fill.set_corner_radius_all(14)
+
 	events_button.add_theme_stylebox_override("normal", fill)
 	events_button.add_theme_stylebox_override("pressed", fill)
 	events_button.add_theme_stylebox_override("hover", fill)
 	events_button.add_theme_font_size_override("font_size", 14)
-	events_button.add_theme_color_override("font_color", Color(0.96, 0.92, 0.82, 1.0))
+	events_button.add_theme_color_override(
+		"font_color",
+		Color(0.96, 0.92, 0.82, 1.0)
+	)
 	events_button.focus_mode = Control.FOCUS_NONE
+
+	# Keep Events underneath Shop instead of overlapping it.
+	if right_feature_buttons != null:
+		right_feature_buttons.add_theme_constant_override("separation", 12)
+
+	if shop_button != null:
+		shop_button.custom_minimum_size = Vector2(96, 96)
+
+	events_button.custom_minimum_size = Vector2(96, 64)
 
 
 func _on_event_state_changed() -> void:
@@ -499,9 +683,293 @@ func _tick_event_toast(delta: float) -> void:
 		_event_toast_label.modulate.a = clampf(_event_toast_timer / 0.45, 0.0, 1.0)
 
 
+func _run_chat_preview_input_smoke_if_headless() -> void:
+	if DisplayServer.get_name() != "headless":
+		return
+	_ensure_chat_preview()
+	_ensure_chat_screen()
+	_sync_chat_preview_visibility()
+	if _chat_preview == null or not is_instance_valid(_chat_preview):
+		push_error("[GameHUD] ChatPreview smoke failed: preview missing")
+		return
+	if not _chat_preview.visible:
+		# Force visible for input routing check (no modal open in headless smoke).
+		if _chat_preview.has_method("set_force_hidden"):
+			_chat_preview.call("set_force_hidden", false)
+		if _chat_preview.has_method("set_chat_session_open"):
+			_chat_preview.call("set_chat_session_open", false)
+		_chat_preview.visible = true
+	if _chat_preview.has_method("refresh_layout_after_nav"):
+		await _chat_preview.refresh_layout_after_nav()
+	elif _chat_preview.has_method("refresh_layout"):
+		_chat_preview.call("refresh_layout")
+	_position_chrome_above_chat()
+	await get_tree().process_frame
+	var rect: Rect2 = _chat_preview.get_global_rect()
+	var preview_hit: Control = _chat_preview.get_node_or_null("PreviewHitButton") as Control
+	var preview_hit_rect: Rect2 = preview_hit.get_global_rect() if preview_hit != null else Rect2()
+	var has_envelope: bool = false
+	for child in _chat_preview.find_children("*", "TextureRect", true, false):
+		var tr: TextureRect = child as TextureRect
+		if tr != null and tr.texture != null and str(tr.texture.resource_path).find("mail_envelope") >= 0:
+			has_envelope = true
+			break
+	print("[GameHUD] ChatPreview smoke rect=%s hit=%s h=%.1f envelope=%s" % [
+		str(rect), str(preview_hit_rect), rect.size.y, str(has_envelope),
+	])
+	if has_envelope:
+		push_error("[GameHUD] ChatPreview still contains mail envelope icon.")
+	# Prove bottom-anchoring survives chrome height change (Android safe-area analogue).
+	var chrome: Control = get_node_or_null("Control") as Control
+	if chrome != null and bottom_bar_texture != null:
+		var prev_bottom: float = chrome.offset_bottom
+		chrome.offset_bottom = -48.0
+		await get_tree().process_frame
+		if _chat_preview.has_method("refresh_layout"):
+			_chat_preview.call("refresh_layout")
+		await get_tree().process_frame
+		var chat2: Rect2 = _chat_preview.get_global_rect()
+		var nav2: Rect2 = bottom_bar_texture.get_global_rect()
+		var gap2: float = nav2.position.y - chat2.end.y
+		print("[GameHUD] safe-area-sim gap after chrome inset=%.2f chat=%s nav=%s" % [gap2, str(chat2), str(nav2)])
+		# City + World tuck behind nav (negative gap) — Kingdom screenshot is the reference.
+		var gap_ok: bool = gap2 >= -40.0 and gap2 <= 4.0
+		if not gap_ok:
+			push_error("[GameHUD] ChatPreview did not follow BottomBarTexture after chrome inset (gap=%.2f)." % gap2)
+		chrome.offset_bottom = prev_bottom
+		if _chat_preview.has_method("refresh_layout"):
+			_chat_preview.call("refresh_layout")
+		await get_tree().process_frame
+		rect = _chat_preview.get_global_rect()
+		preview_hit_rect = preview_hit.get_global_rect() if preview_hit != null else Rect2()
+	if rect.size.x < 80.0 or rect.size.y < 85.0:
+		push_error("[GameHUD] ChatPreview smoke failed: panel too small %s (want ~90–105px tall)" % str(rect))
+		return
+	# Hit target must match width but end above the tucked overlap (~28px).
+	if preview_hit != null:
+		if absf(preview_hit_rect.size.x - rect.size.x) > 2.0:
+			push_error("[GameHUD] PreviewHitButton width mismatch.")
+		if preview_hit_rect.size.y > rect.size.y + 1.0 or preview_hit_rect.size.y < rect.size.y - 45.0:
+			push_error("[GameHUD] PreviewHitButton height not clipped for nav tuck: hit=%.1f panel=%.1f" % [
+				preview_hit_rect.size.y, rect.size.y,
+			])
+	if bottom_bar_texture != null and is_instance_valid(bottom_bar_texture):
+		var nav_rect: Rect2 = bottom_bar_texture.get_global_rect()
+		var left_delta: float = absf(rect.position.x - nav_rect.position.x)
+		var right_delta: float = absf(rect.end.x - nav_rect.end.x)
+		var gap_px: float = nav_rect.position.y - rect.end.y
+		print("[GameHUD] ChatPreview↔nav leftΔ=%.2f rightΔ=%.2f gap=%.2f chatZ=%d barZ=%d" % [
+			left_delta, right_delta, gap_px, _chat_preview.z_index, bottom_bar_texture.z_index,
+		])
+		print("[GameHUD] rects Search=%s Mail=%s Chat=%s Nav=%s Hit=%s" % [
+			str(_world_search_button.get_global_rect() if _world_search_button != null else Rect2()),
+			str(mail_button.get_global_rect() if mail_button != null else Rect2()),
+			str(rect),
+			str(nav_rect),
+			str(preview_hit_rect),
+		])
+		if left_delta > 1.5 or right_delta > 1.5:
+			push_error("[GameHUD] ChatPreview width does not match bottom nav edges.")
+		# Intentional tuck: chat end below nav top (overlap ~25–35px).
+		if gap_px < -40.0 or gap_px > 4.0:
+			push_error("[GameHUD] ChatPreview tuck/gap out of range: %.2f" % gap_px)
+		if bottom_bar_texture.z_index <= _chat_preview.z_index:
+			push_error("[GameHUD] BottomBarTexture z_index must be above ChatPreview.")
+		if preview_hit != null and preview_hit_rect.end.y > nav_rect.position.y + 2.0:
+			push_error("[GameHUD] PreviewHitButton extends into bottom navigation hit area.")
+		if mail_button != null and is_instance_valid(mail_button) and mail_button.visible:
+			var mail_r: Rect2 = mail_button.get_global_rect()
+			if mail_r.intersects(rect):
+				push_error("[GameHUD] Mail overlaps ChatPreview.")
+			if mail_r.end.y > rect.position.y - 6.0:
+				push_error("[GameHUD] Mail clearance above ChatPreview too small.")
+		if is_world_screen and _world_search_button != null and _world_search_button.visible:
+			var search_r: Rect2 = _world_search_button.get_global_rect()
+			if search_r.intersects(rect):
+				push_error("[GameHUD] Search overlaps ChatPreview.")
+			if search_r.end.y > rect.position.y - 6.0:
+				push_error("[GameHUD] Search clearance above ChatPreview too small.")
+
+	# 1) Signal / callback path (proves GameHUD ↔ ChatPreview wiring).
+	if _chat_preview.has_method("debug_activate_for_test"):
+		_chat_preview.call("debug_activate_for_test")
+	else:
+		_chat_preview.emit_signal("open_chat_requested")
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var manager: Node = get_node_or_null("UIManager")
+	var opened_via_signal: bool = (
+		manager != null
+		and manager.has_method("is_screen_open")
+		and bool(manager.is_screen_open())
+		and str(manager.get_current_screen_name()) == "ChatScreen"
+	)
+	if not opened_via_signal:
+		push_error("[GameHUD] ChatPreview smoke failed: signal path did not open ChatScreen")
+	else:
+		print("[GameHUD] ChatPreview signal→open_chat OK")
+	if manager != null and manager.has_method("close_current_screen"):
+		manager.close_current_screen()
+	await get_tree().create_timer(0.3).timeout
+	_sync_chat_preview_visibility()
+
+	# 2) Hit-button pressed signal (Android BaseButton activation path).
+	if _chat_preview.has_method("set_force_hidden"):
+		_chat_preview.call("set_force_hidden", false)
+	if _chat_preview.has_method("set_chat_session_open"):
+		_chat_preview.call("set_chat_session_open", false)
+	_chat_preview.visible = true
+	var hit_btn: Button = _chat_preview.get_node_or_null("PreviewHitButton") as Button
+	if hit_btn == null:
+		push_error("[GameHUD] ChatPreview smoke failed: PreviewHitButton missing")
+	else:
+		hit_btn.disabled = false
+		hit_btn.mouse_filter = Control.MOUSE_FILTER_STOP
+		hit_btn.visible = true
+		print("[GameHUD] ChatPreview hit button rect=%s filter=%s disabled=%s owner_at_center=%s" % [
+			str(hit_btn.get_global_rect()), str(hit_btn.mouse_filter), str(hit_btn.disabled),
+			_diagnose_control_at(rect.get_center()),
+		])
+		if _chat_preview.has_method("debug_reset_activate_guard"):
+			_chat_preview.call("debug_reset_activate_guard")
+		hit_btn.pressed.emit()
+		await get_tree().process_frame
+		await get_tree().process_frame
+		var opened_via_button: bool = (
+			manager != null
+			and manager.has_method("is_screen_open")
+			and bool(manager.is_screen_open())
+			and str(manager.get_current_screen_name()) == "ChatScreen"
+		)
+		if not opened_via_button:
+			push_error("[GameHUD] ChatPreview smoke failed: PreviewHitButton.pressed did not open ChatScreen")
+		else:
+			print("[GameHUD] ChatPreview button.pressed→open_chat OK")
+		if manager != null and manager.has_method("close_current_screen"):
+			manager.close_current_screen()
+		await get_tree().create_timer(0.3).timeout
+		_sync_chat_preview_visibility()
+
+	# 3) Desktop mouse + Android-equivalent at preview center (informational in headless).
+	_push_preview_pointer_click(rect.get_center(), false)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var opened_via_mouse: bool = (
+		manager != null
+		and manager.has_method("is_screen_open")
+		and bool(manager.is_screen_open())
+		and str(manager.get_current_screen_name()) == "ChatScreen"
+	)
+	if opened_via_mouse:
+		print("[GameHUD] ChatPreview mouse click→open_chat OK")
+		if manager != null and manager.has_method("close_current_screen"):
+			manager.close_current_screen()
+		await get_tree().create_timer(0.3).timeout
+	else:
+		print("[GameHUD] ChatPreview mouse push_input skipped/failed in headless (owner=%s) — device uses real GUI delivery" % _diagnose_control_at(rect.get_center()))
+
+	_sync_chat_preview_visibility()
+	_push_preview_pointer_click(rect.get_center(), true)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var opened_via_touch: bool = (
+		manager != null
+		and manager.has_method("is_screen_open")
+		and bool(manager.is_screen_open())
+		and str(manager.get_current_screen_name()) == "ChatScreen"
+	)
+	if opened_via_touch:
+		print("[GameHUD] ChatPreview ScreenTouch/mouse→open_chat OK")
+		if manager != null and manager.has_method("close_current_screen"):
+			manager.close_current_screen()
+		await get_tree().create_timer(0.3).timeout
+	else:
+		print("[GameHUD] ChatPreview ScreenTouch push_input informational-only in headless")
+
+	_sync_chat_preview_visibility()
+	if _chat_preview != null and is_instance_valid(_chat_preview) and _chat_preview.visible:
+		print("[GameHUD] ChatPreview restored visible after close OK")
+	print("[GameHUD] ChatPreview input smoke done")
+
+
+func _diagnose_control_at(screen_pos: Vector2) -> String:
+	var host: Control = get_node_or_null("Control") as Control
+	if host == null:
+		return "no-host"
+	var best: Control = null
+	var best_z: int = -999999
+	for child in host.get_children():
+		if not (child is Control):
+			continue
+		var c: Control = child as Control
+		if not c.visible:
+			continue
+		if c.mouse_filter != Control.MOUSE_FILTER_IGNORE and c.get_global_rect().has_point(screen_pos):
+			if best == null or c.z_index >= best_z:
+				best = c
+				best_z = c.z_index
+		# Descend into IGNORE parents (ChatPreview root ignores; hit button stops).
+		for sub in c.find_children("*", "Control", true, false):
+			var s: Control = sub as Control
+			if s == null or not s.visible or s.mouse_filter != Control.MOUSE_FILTER_STOP:
+				continue
+			if s.get_global_rect().has_point(screen_pos):
+				var z: int = s.z_index
+				var p: Node = s.get_parent()
+				while p != null and p != host:
+					if p is CanvasItem:
+						z += (p as CanvasItem).z_index
+					p = p.get_parent()
+				if best == null or z >= best_z:
+					best = s
+					best_z = z
+	if best == null:
+		return "none"
+	return "%s(z~%d filter=%d)" % [str(best.get_path()), best_z, best.mouse_filter]
+
+
+func _push_preview_pointer_click(screen_pos: Vector2, as_touch: bool) -> void:
+	var vp: Viewport = get_viewport()
+	if vp == null:
+		return
+	# BaseButton needs hover before press in some headless/GUI paths.
+	var motion := InputEventMouseMotion.new()
+	motion.position = screen_pos
+	motion.global_position = screen_pos
+	vp.push_input(motion)
+	if as_touch:
+		var down := InputEventScreenTouch.new()
+		down.index = 0
+		down.pressed = true
+		down.position = screen_pos
+		vp.push_input(down)
+		var up := InputEventScreenTouch.new()
+		up.index = 0
+		up.pressed = false
+		up.position = screen_pos
+		vp.push_input(up)
+	# Android GUI uses emulate_mouse_from_touch → MouseButton on BaseButton.
+	var mb_down := InputEventMouseButton.new()
+	mb_down.button_index = MOUSE_BUTTON_LEFT
+	mb_down.pressed = true
+	mb_down.position = screen_pos
+	mb_down.global_position = screen_pos
+	mb_down.button_mask = MOUSE_BUTTON_MASK_LEFT
+	vp.push_input(mb_down)
+	var mb_up := InputEventMouseButton.new()
+	mb_up.button_index = MOUSE_BUTTON_LEFT
+	mb_up.pressed = false
+	mb_up.position = screen_pos
+	mb_up.global_position = screen_pos
+	mb_up.button_mask = 0
+	vp.push_input(mb_up)
+
+
 func _run_hud_navigation_smoke_test_if_headless() -> void:
 	if DisplayServer.get_name() != "headless":
 		return
+
+	await _run_chat_preview_input_smoke_if_headless()
 
 	var manager: Node = get_node_or_null("UIManager")
 	if manager != null and manager.has_method("run_navigation_smoke_test"):
@@ -657,24 +1125,99 @@ func set_gameplay_hud_visible(is_visible: bool) -> void:
 
 func _apply_safe_area_insets() -> void:
 	## Align top HUD / bottom nav with device safe areas (notches / home indicators).
+	## Safe-area is applied ONCE on GameHUD/Control. Children (TopBarTexture) must not
+	## add a second top inset — that creates a City-visible gap above the HUD art.
 	var chrome: Control = get_node_or_null("Control") as Control
 	if chrome == null:
 		return
 	var safe: Rect2 = DisplayServer.get_display_safe_area()
 	var win: Vector2i = DisplayServer.window_get_size()
 	if win.x <= 0 or win.y <= 0:
+		_align_city_top_hud()
+		call_deferred("_log_top_hud_geometry")
 		return
 	var vp_size: Vector2 = get_viewport().get_visible_rect().size
 	var top_inset: float = maxf(0.0, float(safe.position.y) * (vp_size.y / float(win.y)))
 	var bottom_inset: float = maxf(0.0, float(win.y - (safe.position.y + safe.size.y)) * (vp_size.y / float(win.y)))
 	# Keep at least a few px on modern phones; ignore tiny values on desktop.
 	if top_inset < 8.0 and bottom_inset < 8.0 and OS.get_name() != "Android":
+		_align_city_top_hud()
+		call_deferred("_log_top_hud_geometry")
 		return
 	chrome.offset_top = top_inset
 	chrome.offset_bottom = -bottom_inset
+	# Portrait is a chrome child — use local offsets only (do NOT add top_inset again).
 	if portrait_button != null:
-		portrait_button.offset_top = 20.0 + minf(top_inset, 24.0)
-		portrait_button.offset_bottom = 108.0 + minf(top_inset, 24.0)
+		portrait_button.offset_top = 20.0
+		portrait_button.offset_bottom = 108.0
+	_align_city_top_hud()
+	# ChatPreview must re-measure AFTER safe-area changes chrome height (bottom-anchored nav moves).
+	if _chat_preview != null and is_instance_valid(_chat_preview):
+		if _chat_preview.has_method("refresh_layout_after_nav"):
+			_chat_preview.call_deferred("refresh_layout_after_nav")
+		elif _chat_preview.has_method("refresh_layout"):
+			_chat_preview.call_deferred("refresh_layout")
+	call_deferred("_position_chrome_above_chat")
+	call_deferred("_log_top_hud_geometry")
+
+
+func _align_city_top_hud() -> void:
+	## Kingdom top HUD is the visual reference and must stay untouched.
+	## City only: cancel TopBarTexture's baked editor drop (offset_top=80 with negative
+	## anchors) plus the top_bar.png transparent pad so opaque HUD art meets chrome top
+	## (chrome top == safe-area top after _apply_safe_area_insets).
+	if is_world_screen:
+		return
+	var top: TextureRect = get_node_or_null("Control/TopBarTexture") as TextureRect
+	if top == null:
+		return
+	var bar_h: float = maxf(1.0, top.offset_bottom - top.offset_top)
+	if bar_h < 8.0:
+		bar_h = 179.0
+	# Measured: top_bar.png (~250px) stays nearly transparent until ~row 40.
+	var tex_pad_src: float = 40.0
+	var tex_h: float = float(top.texture.get_height()) if top.texture != null else 250.0
+	var pad: float = tex_pad_src * (bar_h / maxf(1.0, tex_h))
+	# Pin to chrome top (anchor 0) — safe-area lives on chrome, not here.
+	top.anchor_top = 0.0
+	top.anchor_bottom = 0.0
+	top.offset_top = -pad
+	top.offset_bottom = bar_h - pad
+	# Keep portrait in the TopBar portrait hole (was ~31px below old TopBar top).
+	if portrait_button != null:
+		var hole: float = 31.0
+		portrait_button.offset_top = top.offset_top + hole
+		portrait_button.offset_bottom = portrait_button.offset_top + 88.0
+		portrait_button.offset_left = 20.0
+		portrait_button.offset_right = 108.0
+
+
+func _log_top_hud_geometry() -> void:
+	var vp: Rect2 = get_viewport().get_visible_rect() if get_viewport() != null else Rect2()
+	var safe: Rect2 = DisplayServer.get_display_safe_area()
+	var chrome: Control = get_node_or_null("Control") as Control
+	var top: Control = get_node_or_null("Control/TopBarTexture") as Control
+	var bar: Control = bottom_bar_texture
+	var chat_r: Rect2 = _chat_preview.get_global_rect() if _chat_preview != null else Rect2()
+	var top_r: Rect2 = top.get_global_rect() if top != null else Rect2()
+	var bar_r: Rect2 = bar.get_global_rect() if bar != null else Rect2()
+	var overlap: float = 0.0
+	if chat_r.size.y > 1.0 and bar_r.size.y > 1.0:
+		overlap = chat_r.end.y - bar_r.position.y
+	print("[GameHUD] topHUD screen=%s vp=%s safe=%s chrome=%s top=%s topY=%.2f chat=%s bar=%s chatZ=%s barZ=%s overlap=%.2f chromeTopOff=%.2f" % [
+		"WORLD" if is_world_screen else "CITY",
+		str(vp),
+		str(safe),
+		str(chrome.get_global_rect() if chrome != null else Rect2()),
+		str(top_r),
+		top_r.position.y,
+		str(chat_r),
+		str(bar_r),
+		str(_chat_preview.z_index) if _chat_preview != null else "?",
+		str(bar.z_index) if bar != null else "?",
+		overlap,
+		chrome.offset_top if chrome != null else 0.0,
+	])
 
 
 func _sync_secondary_hud_visibility() -> void:
@@ -688,10 +1231,63 @@ func _sync_secondary_hud_visibility() -> void:
 	set_secondary_hud_visible(show_secondary)
 
 func setup_bottom_bar():
+	## City and Kingdom use different bar textures. City keeps KEEP_ASPECT_CENTERED
+	## (letterboxed width is intentional for that art). Kingdom scales to full bleed.
+	## Both raise BottomBarTexture above ChatPreview so nav paints/taps on top.
+	if bottom_bar_texture == null:
+		return
 	if is_world_screen:
 		bottom_bar_texture.texture = bottom_bar_home
+		bottom_bar_texture.stretch_mode = TextureRect.STRETCH_SCALE
 	else:
 		bottom_bar_texture.texture = bottom_bar_world
+		bottom_bar_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	bottom_bar_texture.z_index = 70 ## ChatPreview uses z=40 — nav always in front
+	call_deferred("_log_bottom_bar_geometry")
+	call_deferred("_align_city_top_hud")
+	call_deferred("_log_top_hud_geometry")
+
+
+func _log_bottom_bar_geometry() -> void:
+	var vp: Rect2 = get_viewport().get_visible_rect() if get_viewport() != null else Rect2()
+	var chrome: Control = get_node_or_null("Control") as Control
+	var bar_r: Rect2 = bottom_bar_texture.get_global_rect() if bottom_bar_texture != null else Rect2()
+	var chat_r: Rect2 = _chat_preview.get_global_rect() if _chat_preview != null else Rect2()
+	var drawn: Rect2 = _compute_drawn_bar_rect()
+	print("[GameHUD] bottomBar screen=%s vp=%s chrome=%s bar=%s drawn≈%s chat=%s stretch=%s" % [
+		"WORLD" if is_world_screen else "CITY",
+		str(vp),
+		str(chrome.get_global_rect() if chrome != null else Rect2()),
+		str(bar_r),
+		str(drawn),
+		str(chat_r),
+		str(bottom_bar_texture.stretch_mode) if bottom_bar_texture != null else "?",
+	])
+	if vp.size.x > 1.0 and drawn.size.x > 1.0:
+		print("[GameHUD] bottomBar edgeΔ left=%.2f right=%.2f (drawn vs viewport)" % [
+			drawn.position.x - vp.position.x,
+			(vp.position.x + vp.size.x) - drawn.end.x,
+		])
+
+
+func _compute_drawn_bar_rect() -> Rect2:
+	## Approximate the player-visible painted bar inside BottomBarTexture.
+	if bottom_bar_texture == null:
+		return Rect2()
+	var bar_r: Rect2 = bottom_bar_texture.get_global_rect()
+	var tex: Texture2D = bottom_bar_texture.texture
+	if tex == null:
+		return bar_r
+	var mode: int = bottom_bar_texture.stretch_mode
+	if mode == TextureRect.STRETCH_SCALE or mode == TextureRect.STRETCH_KEEP_ASPECT_COVERED:
+		return bar_r
+	var tex_size: Vector2 = tex.get_size()
+	if tex_size.x <= 1.0 or tex_size.y <= 1.0 or bar_r.size.y <= 1.0:
+		return bar_r
+	var scale: float = minf(bar_r.size.x / tex_size.x, bar_r.size.y / tex_size.y)
+	var drawn: Vector2 = tex_size * scale
+	var origin: Vector2 = bar_r.position + (bar_r.size - drawn) * 0.5
+	return Rect2(origin, drawn)
 
 
 ## Invisible equal-width hit targets over the bottom bar art.
@@ -780,8 +1376,8 @@ func _validate_mail_hitbox() -> void:
 		push_error("[GameHUD] Mail hitbox too small: %s" % str(mail_rect))
 		return
 
-	# Must sit in the lower HUD band (above bottom bar), not near top resources.
-	if mail_rect.position.y < 900.0:
+	# Must sit in the lower HUD band (above ChatPreview / bottom bar), not near top resources.
+	if mail_rect.position.y < 700.0:
 		push_error("[GameHUD] Mail not bottom-anchored (y=%.1f)." % mail_rect.position.y)
 		return
 
@@ -789,6 +1385,12 @@ func _validate_mail_hitbox() -> void:
 		var shop_rect: Rect2 = shop_button.get_global_rect()
 		if mail_rect.intersects(shop_rect):
 			push_error("[GameHUD] Mail overlaps Shop hitbox.")
+			return
+
+	if _chat_preview != null and is_instance_valid(_chat_preview) and _chat_preview.visible:
+		var chat_r: Rect2 = _chat_preview.get_global_rect()
+		if mail_rect.intersects(chat_r):
+			push_error("[GameHUD] Mail overlaps ChatPreview.")
 			return
 
 	if bottom_bar_texture != null and is_instance_valid(bottom_bar_texture):
@@ -863,6 +1465,8 @@ func open_player_profile(user_id: String = "") -> void:
 	_ensure_profile_screen()
 	if _profile_screen == null:
 		return
+	if _castle_popup != null and is_instance_valid(_castle_popup) and _castle_popup.has_method("close_panel"):
+		_castle_popup.call("close_panel")
 	if _chat_preview != null and _chat_preview.has_method("set_force_hidden"):
 		_chat_preview.call("set_force_hidden", true)
 	if has_node("/root/GameState"):
@@ -875,6 +1479,20 @@ func open_player_profile(user_id: String = "") -> void:
 		await _profile_screen.open_self()
 	else:
 		await _profile_screen.open_user(user_id)
+
+
+func ensure_player_castle_popup() -> Control:
+	var host: Control = get_node_or_null("Control") as Control
+	if host == null:
+		return null
+	_castle_popup = host.get_node_or_null("PlayerCastlePopup") as Control
+	if _castle_popup == null:
+		_castle_popup = Control.new()
+		_castle_popup.name = "PlayerCastlePopup"
+		_castle_popup.set_script(load("res://scripts/UI/PlayerCastlePopup.gd"))
+		host.add_child(_castle_popup)
+	_castle_popup.z_index = 120
+	return _castle_popup
 
 
 func _ensure_profile_screen() -> void:
@@ -929,6 +1547,44 @@ func _bind_profile_avatar() -> void:
 			ab.profile_changed.connect(_on_backend_profile_changed)
 
 
+func _bind_social_notifications() -> void:
+	if has_node("/root/FriendsBackend"):
+		var fb: Node = get_node("/root/FriendsBackend")
+		if fb.has_signal("friend_request_received") and not fb.friend_request_received.is_connected(_on_friend_request_toast):
+			fb.friend_request_received.connect(_on_friend_request_toast)
+		if fb.has_signal("friend_accepted") and not fb.friend_accepted.is_connected(_on_friend_accepted_toast):
+			fb.friend_accepted.connect(_on_friend_accepted_toast)
+	if has_node("/root/ChatManager"):
+		var cm: Node = get_node("/root/ChatManager")
+		if cm.has_signal("private_message_notify") and not cm.private_message_notify.is_connected(_on_private_message_toast):
+			cm.private_message_notify.connect(_on_private_message_toast)
+
+
+func _on_friend_request_toast(user_id: String, display_name: String) -> void:
+	if user_id.strip_edges() == "":
+		return
+	_show_event_points_toast("Friend request from %s" % (display_name if display_name != "" else "Player"))
+
+
+func _on_friend_accepted_toast(user_id: String, display_name: String) -> void:
+	if user_id.strip_edges() == "":
+		return
+	_show_event_points_toast("%s is now your friend" % (display_name if display_name != "" else "Player"))
+
+
+func _on_private_message_toast(peer_user_id: String, display_name: String, preview: String) -> void:
+	if peer_user_id.strip_edges() == "":
+		return
+	var name_text: String = display_name if display_name != "" else "Player"
+	var body: String = preview.strip_edges()
+	if body.length() > 36:
+		body = body.substr(0, 33) + "…"
+	if body == "":
+		_show_event_points_toast("Message from %s" % name_text)
+	else:
+		_show_event_points_toast("%s: %s" % [name_text, body])
+
+
 func _on_backend_profile_changed(_profile: Dictionary) -> void:
 	_refresh_portrait_avatar()
 
@@ -939,11 +1595,14 @@ func _refresh_portrait_avatar() -> void:
 	# Replace empty black placeholder with the selected fantasy avatar.
 	portrait_button.ignore_texture_size = true
 	portrait_button.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_COVERED
-	# Keep a square-ish hit target in the top-left band.
-	portrait_button.offset_left = 20.0
-	portrait_button.offset_top = 20.0
-	portrait_button.offset_right = 108.0
-	portrait_button.offset_bottom = 108.0
+	# City TopBar is re-pinned in _align_city_top_hud(); don't stomp those offsets.
+	if is_world_screen:
+		portrait_button.offset_left = 20.0
+		portrait_button.offset_top = 20.0
+		portrait_button.offset_right = 108.0
+		portrait_button.offset_bottom = 108.0
+	else:
+		_align_city_top_hud()
 	var avatar_id: String = "avatar_01"
 	if has_node("/root/AllianceBackend"):
 		var ab: Node = get_node("/root/AllianceBackend")
@@ -967,12 +1626,14 @@ func _on_chat_pressed() -> void:
 
 
 func open_chat(preferred_tab: String = "kingdom") -> void:
+	print("[GameHUD] open_chat requested: %s" % preferred_tab)
 	_ensure_chat_screen()
 	var chat: Control = get_node_or_null("ScreenRoot/ChatScreen") as Control
 	if chat != null and chat.has_method("request_open_tab") and preferred_tab != "":
 		chat.call("request_open_tab", preferred_tab)
 	if _chat_preview != null and _chat_preview.has_method("set_chat_session_open"):
 		_chat_preview.call("set_chat_session_open", true)
+	print("[GameHUD] creating/opening ChatScreen")
 	$UIManager.open_screen("ChatScreen")
 
 
@@ -983,7 +1644,7 @@ func _remove_legacy_chat_button() -> void:
 	if legacy != null:
 		legacy.queue_free()
 	# Restore compact Events/Shop stack height (no vertical Chat button).
-	right_feature_buttons.offset_bottom = 220.0
+	right_feature_buttons.offset_bottom = 270.0
 
 
 func _ensure_chat_preview() -> void:
@@ -996,17 +1657,95 @@ func _ensure_chat_preview() -> void:
 		_chat_preview.name = "ChatPreview"
 		_chat_preview.set_script(load("res://scripts/UI/ChatPreview.gd"))
 		host.add_child(_chat_preview)
-	# Keep preview above bottom nav, below ScreenRoot overlays.
+	# Below BottomBarTexture (70). Mail/Search stay at 50 (above chat, below nav).
 	_chat_preview.z_index = 40
+	_chat_preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Ensure later tree order among same-layer chrome siblings.
+	host.move_child(_chat_preview, host.get_child_count() - 1)
 	if _chat_preview.has_signal("open_chat_requested"):
 		if not _chat_preview.is_connected("open_chat_requested", Callable(self, "_on_chat_preview_open")):
 			_chat_preview.connect("open_chat_requested", Callable(self, "_on_chat_preview_open"))
+			print("[GameHUD] ChatPreview open_chat_requested connected")
+	else:
+		push_error("[GameHUD] ChatPreview missing open_chat_requested signal")
+	if _chat_preview.has_signal("layout_changed"):
+		if not _chat_preview.is_connected("layout_changed", Callable(self, "_on_chat_preview_layout_changed")):
+			_chat_preview.connect("layout_changed", Callable(self, "_on_chat_preview_layout_changed"))
+	if _chat_preview.has_method("refresh_layout_after_nav"):
+		_chat_preview.call_deferred("refresh_layout_after_nav")
+	elif _chat_preview.has_method("refresh_layout"):
+		_chat_preview.call_deferred("refresh_layout")
 	_sync_chat_preview_visibility()
+	call_deferred("_position_chrome_above_chat")
 
 
 func _on_chat_preview_open() -> void:
+	print("[GameHUD] ChatPreview open_chat_requested received")
 	open_chat("kingdom")
 
+
+func _on_chat_preview_layout_changed(_rect: Rect2) -> void:
+	_position_chrome_above_chat()
+
+
+## Keep Search (world) + Mail above the ChatPreview panel (8–12px clearance).
+## Does NOT call _ensure_chat_preview() — that would recurse via deferred layout hooks.
+func _position_chrome_above_chat() -> void:
+	var host: Control = get_node_or_null("Control") as Control
+	if host == null:
+		return
+	if _chat_preview == null or not is_instance_valid(_chat_preview):
+		return
+	var chat_rect: Rect2 = _chat_preview.get_global_rect()
+	if chat_rect.size.y < 8.0:
+		return
+	var host_rect: Rect2 = host.get_global_rect()
+	var clearance: float = 10.0
+	var btn_bottom_global: float = chat_rect.position.y - clearance
+	# Bottom-anchored offsets: distance from host bottom to control bottom (negative = above).
+	var offset_bottom: float = btn_bottom_global - host_rect.end.y
+
+	# Mail — both City and World; sit above ChatPreview so the taller panel never covers it.
+	if mail_button != null and is_instance_valid(mail_button):
+		var mail_h: float = maxf(72.0, mail_button.size.y if mail_button.size.y > 1.0 else 80.0)
+		mail_button.anchor_left = 1.0
+		mail_button.anchor_top = 1.0
+		mail_button.anchor_right = 1.0
+		mail_button.anchor_bottom = 1.0
+		mail_button.offset_right = -16.0
+		mail_button.offset_left = -16.0 - mail_h
+		mail_button.offset_bottom = offset_bottom
+		mail_button.offset_top = offset_bottom - mail_h
+		mail_button.z_index = 50
+
+	# Search — World Map only.
+	if is_world_screen and _world_search_button != null and is_instance_valid(_world_search_button):
+		var search_h: float = 96.0
+		_world_search_button.anchor_left = 0.0
+		_world_search_button.anchor_top = 1.0
+		_world_search_button.anchor_right = 0.0
+		_world_search_button.anchor_bottom = 1.0
+		_world_search_button.offset_left = 14.0
+		_world_search_button.offset_right = 14.0 + search_h
+		_world_search_button.offset_bottom = offset_bottom
+		_world_search_button.offset_top = offset_bottom - search_h
+		_world_search_button.z_index = 50
+
+	# Locate Castle — beside Search on the World Map.
+	if is_world_screen and _world_home_button != null and is_instance_valid(_world_home_button):
+		var home_h: float = 96.0
+		var button_gap: float = 10.0
+
+		_world_home_button.anchor_left = 0.0
+		_world_home_button.anchor_top = 1.0
+		_world_home_button.anchor_right = 0.0
+		_world_home_button.anchor_bottom = 1.0
+
+		_world_home_button.offset_left = 14.0 + 96.0 + button_gap
+		_world_home_button.offset_right = 14.0 + 96.0 + button_gap + home_h
+		_world_home_button.offset_bottom = offset_bottom
+		_world_home_button.offset_top = offset_bottom - home_h
+		_world_home_button.z_index = 50
 
 func _ensure_chat_screen() -> void:
 	var root: Control = get_node_or_null("ScreenRoot") as Control
