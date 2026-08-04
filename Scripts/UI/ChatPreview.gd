@@ -447,6 +447,18 @@ func _bind_signals() -> void:
 		cm.availability_changed.connect(_on_availability)
 	if cm.has_signal("dm_unread_changed") and not cm.dm_unread_changed.is_connected(_on_dm_unread):
 		cm.dm_unread_changed.connect(_on_dm_unread)
+	if cm.has_signal("dm_conversations_changed") and not cm.dm_conversations_changed.is_connected(_on_dm_conversations_changed):
+		cm.dm_conversations_changed.connect(_on_dm_conversations_changed)
+	if cm.has_signal("private_message_notify") and not cm.private_message_notify.is_connected(_on_private_message_notify):
+		cm.private_message_notify.connect(_on_private_message_notify)
+
+
+func _on_dm_conversations_changed() -> void:
+	_refresh_from_latest()
+
+
+func _on_private_message_notify(_peer: String, _display_name: String, _preview: String) -> void:
+	_refresh_from_latest()
 
 
 func _on_dm_unread(total: int) -> void:
@@ -506,7 +518,15 @@ func _pick_newest_message() -> RefCounted:
 	pools.append(cm.get_messages())
 	if cm.has_method("is_alliance_chat_available") and cm.is_alliance_chat_available():
 		pools.append(cm.get_alliance_messages())
-	if cm.has_method("get_private_messages") and cm.has_method("get_active_dm_peer"):
+	if cm.has_method("list_dm_conversations"):
+		for conv: Variant in cm.list_dm_conversations():
+			if typeof(conv) != TYPE_DICTIONARY:
+				continue
+			var row: Dictionary = conv as Dictionary
+			var peer: String = str(row.get("user_id", "")).strip_edges()
+			if peer != "" and cm.has_method("get_private_messages"):
+				pools.append(cm.get_private_messages(peer))
+	elif cm.has_method("get_private_messages") and cm.has_method("get_active_dm_peer"):
 		var peer: String = str(cm.get_active_dm_peer())
 		if peer != "":
 			pools.append(cm.get_private_messages(peer))
