@@ -236,12 +236,13 @@ func grant_lair_rewards_once(claim_key: String, lair_or_level: Dictionary) -> Di
 					HeroState.add_hero_xp(amount)
 				granted[k] = amount
 			"speedup_min":
-				if has_node("/root/InventoryState"):
-					InventoryState.add_item("speedup_1m", amount)
+				# Phase 0A: BagState is the sole inventory authority.
+				if has_node("/root/BagState"):
+					BagState.add_item("speedup_1m", amount)
 				granted[k] = amount
 			_:
-				if has_node("/root/InventoryState"):
-					InventoryState.add_item(k, amount)
+				if has_node("/root/BagState"):
+					BagState.add_item(str(k), amount)
 				granted[k] = amount
 	_reward_claims[key] = true
 	_save_runtime()

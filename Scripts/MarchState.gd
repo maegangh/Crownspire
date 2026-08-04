@@ -955,8 +955,9 @@ func _grant_wildling_rewards(target: Dictionary) -> Dictionary:
 					HeroState.add_hero_xp(100 + level * 25)
 				granted[key] = 100 + level * 25
 			_:
-				if has_node("/root/InventoryState"):
-					InventoryState.add_item(key, 1)
+				# Phase 0A: BagState is the sole inventory authority.
+				if has_node("/root/BagState"):
+					BagState.add_item(str(key), 1)
 				granted[key] = 1
 	return granted
 
