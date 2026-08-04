@@ -35,6 +35,7 @@ const BLOCK_MUTE_PATH: String = "user://chat_moderation_local.cfg"
 const DISPLAY_NAME_PATH: String = "user://chat_display_name.cfg"
 const REPORTS_PATH: String = "user://chat_reports_pending.cfg"
 const DM_CONV_PATH: String = "user://dm_conversations.cfg"
+const DM_NOTIF_CODE: int = 5004
 
 ## TEMPORARY local-only moderation stores. Migrate to account/backend later.
 ## Block/mute here are client filters only — not server punishment.
@@ -67,6 +68,10 @@ var _dm_last_ts: Dictionary = {} ## peer_uid -> int
 var _active_dm_peer: String = ""
 var _joining_dm: bool = false
 var _dm_notify_guard: Dictionary = {} ## peer_uid -> last_notify_ms
+var _dm_socket_subscribed: Dictionary = {} ## peer_uid -> channel_id (socket join confirmed)
+var _subscribing_dm: bool = false
+var _dm_notif_bound: bool = false
+var _dm_unread_counted_mids: Dictionary = {} ## "peer|message_id" -> true
 
 var _messages: Array[RefCounted] = [] ## ChatMessage kingdom
 var _blocked_user_ids: Dictionary = {} ## user_id -> true
@@ -360,7 +365,7 @@ func join_alliance_chat() -> Dictionary:
 	return {"ok": true, "channel_id": _alliance_channel_id, "group_id": group_id}
 
 
-func join_private_chat(peer_user_id: String, peer_display_name: String = "") -> Dictionary:
+func join_private_chat(peer_user_id: String, peer_display_name: String = "", set_active: bool = true) -> Dictionary:
 	## Nakama DirectMessage channel with the other player's user id.
 	var peer: String = peer_user_id.strip_edges()
 	if peer == "":
@@ -369,8 +374,6 @@ func join_private_chat(peer_user_id: String, peer_display_name: String = "") -> 
 		return {"ok": false, "error": "Cannot message yourself."}
 	if is_blocked_for_social(peer):
 		return {"ok": false, "error": "Player is blocked."}
-	if _joining_dm:
-		return {"ok": false, "error": "Private join already in progress."}
 	if not is_chat_available():
 		var err := "Nakama unavailable"
 		private_join_failed.emit(err)
@@ -379,15 +382,37 @@ func join_private_chat(peer_user_id: String, peer_display_name: String = "") -> 
 	if peer_display_name.strip_edges() != "":
 		_dm_display_names[peer] = peer_display_name.strip_edges()
 
-	if _dm_channel_ids.has(peer) and str(_dm_channel_ids[peer]) != "":
-		_active_dm_peer = peer
-		_clear_dm_unread(peer)
-		private_joined.emit(peer, str(_dm_channel_ids[peer]))
-		await load_private_history(peer, true)
-		return {"ok": true, "channel_id": str(_dm_channel_ids[peer]), "peer_user_id": peer}
+	while _joining_dm:
+		await get_tree().process_frame
 
+	var prior_active: String = _active_dm_peer
+	var result: Dictionary = await _join_dm_socket(peer, set_active)
+	if not bool(result.get("ok", false)):
+		return result
+
+	if not set_active and prior_active != "" and prior_active != peer:
+		_active_dm_peer = prior_active
+
+	private_joined.emit(peer, str(result.get("channel_id", "")))
+	dm_conversations_changed.emit()
+	return result
+
+
+func subscribe_dm_peer_background(peer_user_id: String, peer_display_name: String = "") -> Dictionary:
+	## Join a DM channel for inbox/unread delivery without opening the thread UI.
+	var prior_active: String = _active_dm_peer
+	var result: Dictionary = await join_private_chat(peer_user_id, peer_display_name, false)
+	if prior_active != "" and _active_dm_peer != prior_active:
+		_active_dm_peer = prior_active
+	return result
+
+
+func _join_dm_socket(peer: String, set_active: bool) -> Dictionary:
+	if _joining_dm:
+		return {"ok": false, "error": "Private join already in progress."}
 	_joining_dm = true
 	_bind_socket_message_handler()
+	_bind_dm_notifications()
 	var nc: Node = _nakama_connection()
 	var socket: NakamaSocket = nc.get_socket() if nc != null else null
 	if socket == null:
@@ -412,15 +437,15 @@ func join_private_chat(peer_user_id: String, peer_display_name: String = "") -> 
 
 	var channel_id: String = str(channel.id)
 	_dm_channel_ids[peer] = channel_id
+	_dm_socket_subscribed[peer] = channel_id
 	if not _dm_messages.has(peer):
 		_dm_messages[peer] = [] as Array[RefCounted]
-	_active_dm_peer = peer
-	_clear_dm_unread(peer)
+	if set_active:
+		_active_dm_peer = peer
+		_clear_dm_unread(peer)
 	_touch_dm_conversation(peer, "", int(Time.get_unix_time_from_system()))
 	_save_dm_conversations()
-	print("[Chat] Joined private DM peer=%s channel_id=%s" % [peer, channel_id])
-	private_joined.emit(peer, channel_id)
-	dm_conversations_changed.emit()
+	print("[Chat] Joined private DM peer=%s channel_id=%s active=%s" % [peer, channel_id, str(set_active)])
 	await load_private_history(peer, true)
 	return {"ok": true, "channel_id": channel_id, "peer_user_id": peer}
 
@@ -542,6 +567,74 @@ func _clear_dm_unread(peer: String) -> void:
 		_dm_unread[peer] = 0
 		dm_unread_changed.emit(get_dm_unread_total())
 		_save_dm_conversations()
+
+
+func _dm_unread_count_key(peer: String, message_id: String) -> String:
+	return "%s|%s" % [peer.strip_edges(), message_id.strip_edges()]
+
+
+func _try_increment_dm_unread(peer: String, msg: RefCounted) -> bool:
+	if peer == "" or msg == null:
+		return false
+	if peer == _active_dm_peer:
+		return false
+	if str(msg.sender_user_id) == get_local_user_id():
+		return false
+	var mid: String = str(msg.message_id).strip_edges()
+	if mid != "":
+		var key: String = _dm_unread_count_key(peer, mid)
+		if _dm_unread_counted_mids.has(key):
+			return false
+		_dm_unread_counted_mids[key] = true
+	_dm_unread[peer] = int(_dm_unread.get(peer, 0)) + 1
+	dm_unread_changed.emit(get_dm_unread_total())
+	return true
+
+
+func _dm_preview_from_message(msg: RefCounted) -> String:
+	var preview: String = str(msg.text).strip_edges()
+	if preview.length() > 48:
+		preview = preview.substr(0, 45) + "…"
+	return preview
+
+
+func _apply_dm_inbound_side_effects(peer: String, msg: RefCounted) -> bool:
+	if not _try_increment_dm_unread(peer, msg):
+		return false
+	var preview: String = _dm_preview_from_message(msg)
+	_touch_dm_conversation(peer, preview, int(msg.timestamp_unix))
+	if str(msg.sender_display_name).strip_edges() != "":
+		_dm_display_names[peer] = str(msg.sender_display_name)
+	_notify_private_message(peer, preview)
+	return true
+
+
+func _apply_dm_unread_for_message_id(peer: String, message_id: String) -> void:
+	if peer == "" or message_id == "" or peer == _active_dm_peer:
+		return
+	for m in _dm_messages.get(peer, []):
+		if str(m.message_id).strip_edges() == message_id.strip_edges():
+			if _apply_dm_inbound_side_effects(peer, m):
+				_save_dm_conversations()
+				dm_conversations_changed.emit()
+			return
+
+
+func _apply_dm_unread_newest_inbound(peer: String) -> void:
+	if peer == "" or peer == _active_dm_peer:
+		return
+	var best: RefCounted = null
+	var best_ts: int = 0
+	for m in _dm_messages.get(peer, []):
+		if str(m.sender_user_id) == get_local_user_id():
+			continue
+		var ts: int = int(m.timestamp_unix)
+		if best == null or ts >= best_ts:
+			best_ts = ts
+			best = m
+	if best != null and _apply_dm_inbound_side_effects(peer, best):
+		_save_dm_conversations()
+		dm_conversations_changed.emit()
 
 
 func _peer_for_dm_channel(channel_id: String) -> String:
@@ -1006,6 +1099,7 @@ func _send_structured(
 	channel_kind: String = "kingdom"
 ) -> Dictionary:
 	var channel_id: String = _kingdom_channel_id
+	var dm_peer: String = ""
 	if channel_kind == "alliance":
 		if not is_alliance_joined():
 			var err_a := "Alliance Chat unavailable"
@@ -1013,13 +1107,13 @@ func _send_structured(
 			return {"ok": false, "error": err_a}
 		channel_id = _alliance_channel_id
 	elif channel_kind == "private":
-		var peer: String = _active_dm_peer
-		channel_id = str(_dm_channel_ids.get(peer, ""))
-		if peer == "" or channel_id == "":
+		dm_peer = _active_dm_peer
+		channel_id = str(_dm_channel_ids.get(dm_peer, ""))
+		if dm_peer == "" or channel_id == "":
 			var err_p := "Private chat unavailable"
 			send_failed.emit(err_p)
 			return {"ok": false, "error": err_p}
-		if is_blocked_for_social(peer):
+		if is_blocked_for_social(dm_peer):
 			var err_b := "Player is blocked."
 			send_failed.emit(err_b)
 			return {"ok": false, "error": err_b}
@@ -1042,17 +1136,21 @@ func _send_structured(
 	## Client cooldown is UX only. Server RPCs for report/name/alliance are rate-limited.
 	## Chat message flood protection for production should add a runtime beforeHook later.
 
+	var meta: Dictionary = {
+		"client_schema": ChatMessageScript.SCHEMA_VERSION,
+		"tag_authority": "alliance_backend",
+		"display_name_authority": "alliance_backend",
+	}
+	if channel_kind == "private" and dm_peer != "":
+		meta["dm_recipient_user_id"] = dm_peer
+
 	var content: Dictionary = ChatMessageScript.build_outbound_content(
 		message_type,
 		text_value,
 		get_display_name(),
 		get_server_alliance_tag(), ## server-backed tag (may be empty)
 		payload_value,
-		{
-			"client_schema": ChatMessageScript.SCHEMA_VERSION,
-			"tag_authority": "alliance_backend",
-			"display_name_authority": "alliance_backend",
-		},
+		meta,
 		_kingdom_id
 	)
 
@@ -1114,6 +1212,9 @@ func _bind_nakama_signals() -> void:
 			ab.profile_changed.connect(_on_profile_changed)
 		if not ab.alliance_changed.is_connected(_on_alliance_membership_changed):
 			ab.alliance_changed.connect(_on_alliance_membership_changed)
+	var fb: Node = _friends_backend()
+	if fb != null and fb.has_signal("friends_changed") and not fb.friends_changed.is_connected(_on_friends_changed):
+		fb.friends_changed.connect(_on_friends_changed)
 	if nc.is_socket_connected():
 		_on_socket_connected()
 
@@ -1132,6 +1233,49 @@ func _on_socket_connected() -> void:
 		_alliance_channel_id = ""
 		join_alliance_chat()
 	await _rejoin_dm_conversations()
+	await _subscribe_background_dm_peers()
+
+
+func _subscribe_background_dm_peers() -> void:
+	## Proactively join DM sockets for friends + known peers so inbound messages arrive
+	## while the Direct inbox is closed.
+	if _subscribing_dm or not is_chat_available():
+		return
+	_subscribing_dm = true
+	var active: String = _active_dm_peer
+	var local_id: String = get_local_user_id()
+	var peers: Dictionary = {}
+	for peer_v in _dm_channel_ids.keys():
+		peers[str(peer_v)] = true
+	for peer_v in _dm_display_names.keys():
+		peers[str(peer_v)] = true
+	var fb: Node = _friends_backend()
+	if fb != null and fb.has_method("get_friends"):
+		for entry: Variant in fb.get_friends():
+			if typeof(entry) != TYPE_DICTIONARY:
+				continue
+			var row: Dictionary = entry as Dictionary
+			var uid: String = str(row.get("user_id", "")).strip_edges()
+			if uid == "":
+				continue
+			peers[uid] = true
+			var dn: String = str(row.get("display_name", "")).strip_edges()
+			if dn != "":
+				_dm_display_names[uid] = dn
+	for peer in peers.keys():
+		var p: String = str(peer).strip_edges()
+		if p == "" or p == local_id or is_blocked_for_social(p):
+			continue
+		var ch: String = str(_dm_channel_ids.get(p, ""))
+		if ch != "" and str(_dm_socket_subscribed.get(p, "")) == ch:
+			continue
+		var sub: Dictionary = await join_private_chat(p, get_dm_display_name(p), p == active)
+		if not bool(sub.get("ok", false)):
+			print("[Chat] DM background subscribe failed peer=%s err=%s" % [p, str(sub.get("error", ""))])
+	if active != "":
+		_active_dm_peer = active
+	_subscribing_dm = false
+	dm_conversations_changed.emit()
 
 
 func _rejoin_dm_conversations() -> void:
@@ -1144,10 +1288,11 @@ func _rejoin_dm_conversations() -> void:
 		var peer: String = str(peer_v)
 		if peer == "" or is_blocked_for_social(peer):
 			continue
-		# Clear stale channel id so join recreates/rejoins.
+		# Clear stale channel id so join recreates/rejoins the socket subscription.
 		_dm_channel_ids.erase(peer)
+		_dm_socket_subscribed.erase(peer)
 		var name_text: String = get_dm_display_name(peer)
-		var result: Dictionary = await join_private_chat(peer, name_text)
+		var result: Dictionary = await join_private_chat(peer, name_text, peer == active)
 		if not bool(result.get("ok", false)):
 			print("[Chat] DM rejoin failed peer=%s err=%s" % [peer, str(result.get("error", ""))])
 	if active != "":
@@ -1161,7 +1306,13 @@ func _rejoin_dm_conversations() -> void:
 func _on_connection_failed(_reason: String) -> void:
 	_reset_kingdom_channel_state()
 	_reset_alliance_channel_state()
+	_dm_socket_subscribed.clear()
 	availability_changed.emit(false)
+
+
+func _on_friends_changed() -> void:
+	if is_chat_available():
+		await _subscribe_background_dm_peers()
 
 
 func _on_profile_changed(_profile: Dictionary) -> void:
@@ -1201,7 +1352,57 @@ func _bind_socket_message_handler() -> void:
 		return
 	if not socket.received_channel_message.is_connected(_on_channel_message):
 		socket.received_channel_message.connect(_on_channel_message)
+	_bind_dm_notifications()
 	_socket_bound = true
+
+
+func _bind_dm_notifications() -> void:
+	if _dm_notif_bound:
+		return
+	var nc: Node = _nakama_connection()
+	if nc == null:
+		return
+	var socket: NakamaSocket = nc.get_socket()
+	if socket == null:
+		return
+	if socket.has_signal("received_notification") and not socket.received_notification.is_connected(_on_dm_notification):
+		socket.received_notification.connect(_on_dm_notification)
+	_dm_notif_bound = true
+
+
+func _on_dm_notification(notification) -> void:
+	if notification == null:
+		return
+	var code: int = int(notification.code) if ("code" in notification) else -1
+	if code != DM_NOTIF_CODE:
+		return
+	var content_raw: String = str(notification.content) if ("content" in notification) else ""
+	var parsed: Variant = null
+	if typeof(notification.content) == TYPE_DICTIONARY:
+		parsed = notification.content
+	elif content_raw != "":
+		parsed = JSON.parse_string(content_raw)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return
+	var payload: Dictionary = parsed as Dictionary
+	var sender_id: String = str(payload.get("sender_user_id", "")).strip_edges()
+	if sender_id == "" or sender_id == get_local_user_id():
+		return
+	if is_blocked_for_social(sender_id):
+		return
+	var display_name: String = str(payload.get("sender_display_name", "Player")).strip_edges()
+	var channel_id: String = str(payload.get("channel_id", "")).strip_edges()
+	if channel_id != "":
+		_dm_channel_ids[sender_id] = channel_id
+	var preview: String = str(payload.get("preview", "")).strip_edges()
+	if preview != "":
+		_touch_dm_conversation(sender_id, preview, int(Time.get_unix_time_from_system()))
+	var target_mid: String = str(payload.get("message_id", "")).strip_edges()
+	await subscribe_dm_peer_background(sender_id, display_name)
+	if target_mid != "":
+		_apply_dm_unread_for_message_id(sender_id, target_mid)
+	else:
+		_apply_dm_unread_newest_inbound(sender_id)
 
 
 func _on_channel_message(raw) -> void:
@@ -1217,21 +1418,25 @@ func _on_channel_message(raw) -> void:
 	else:
 		dm_peer = _peer_for_dm_channel(channel_id)
 		if dm_peer == "":
-			return
+			var sender_id: String = str(raw.sender_id) if ("sender_id" in raw) else ""
+			var local_id: String = get_local_user_id()
+			if sender_id != "" and sender_id != local_id:
+				dm_peer = sender_id
+				_dm_channel_ids[dm_peer] = channel_id
+				_dm_socket_subscribed[dm_peer] = channel_id
+			else:
+				return
 		kind = "private"
 	var msg: RefCounted = ChatMessageScript.from_nakama_channel_message(raw, _kingdom_id)
-	_append_message(msg, kind, dm_peer)
-	if kind == "private" and dm_peer != "":
-		var preview: String = str(msg.text).strip_edges()
-		if preview.length() > 48:
-			preview = preview.substr(0, 45) + "…"
+	var added: bool = _append_message(msg, kind, dm_peer)
+	if kind == "private" and dm_peer != "" and added:
+		var preview: String = _dm_preview_from_message(msg)
 		_touch_dm_conversation(dm_peer, preview, int(msg.timestamp_unix))
 		if str(msg.sender_display_name).strip_edges() != "":
 			_dm_display_names[dm_peer] = str(msg.sender_display_name)
-		if dm_peer != _active_dm_peer:
-			_dm_unread[dm_peer] = int(_dm_unread.get(dm_peer, 0)) + 1
-			dm_unread_changed.emit(get_dm_unread_total())
-			_notify_private_message(dm_peer, preview)
+		if dm_peer != _active_dm_peer and str(msg.sender_user_id) != get_local_user_id():
+			if _try_increment_dm_unread(dm_peer, msg):
+				_notify_private_message(dm_peer, preview)
 		_save_dm_conversations()
 		dm_conversations_changed.emit()
 	if _should_render(msg):
@@ -1247,14 +1452,14 @@ func _notify_private_message(peer: String, preview: String) -> void:
 	private_message_notify.emit(peer, get_dm_display_name(peer), preview)
 
 
-func _append_message(msg: RefCounted, channel_kind: String = "kingdom", dm_peer: String = "") -> void:
+func _append_message(msg: RefCounted, channel_kind: String = "kingdom", dm_peer: String = "") -> bool:
 	if msg == null:
-		return
+		return false
 	var bucket: Array[RefCounted]
 	if channel_kind == "private":
 		var peer: String = dm_peer if dm_peer != "" else _active_dm_peer
 		if peer == "":
-			return
+			return false
 		if not _dm_messages.has(peer):
 			_dm_messages[peer] = [] as Array[RefCounted]
 		bucket = _dm_messages[peer]
@@ -1266,7 +1471,7 @@ func _append_message(msg: RefCounted, channel_kind: String = "kingdom", dm_peer:
 	if mid != "":
 		for existing: RefCounted in bucket:
 			if str(existing.message_id) == mid:
-				return
+				return false
 	bucket.append(msg)
 	if bucket.size() > 300:
 		bucket = bucket.slice(bucket.size() - 300, bucket.size())
@@ -1277,6 +1482,7 @@ func _append_message(msg: RefCounted, channel_kind: String = "kingdom", dm_peer:
 		_messages = bucket
 	else:
 		_alliance_messages = bucket
+	return true
 
 
 func _should_render(msg: RefCounted) -> bool:
@@ -1822,3 +2028,171 @@ func _print_phase3_result(fails: Array[String]) -> void:
 		for f in fails:
 			print("[Phase3Smoke] FAIL: %s" % f)
 		print("[Phase3Smoke] FAILED count=%d" % fails.size())
+
+
+func run_dm_delivery_smoke_test() -> bool:
+	## Two-account DM delivery: B receives without opening the thread first.
+	print("[DmSmoke] BEGIN")
+	var fails: Array[String] = []
+	for _i in 40:
+		if is_chat_available():
+			break
+		await get_tree().create_timer(0.25).timeout
+	if not is_chat_available():
+		print("[DmSmoke] FAIL primary Nakama unavailable")
+		return false
+
+	var nakama: Node = _nakama()
+	if nakama == null:
+		print("[DmSmoke] FAIL Nakama autoload missing")
+		return false
+
+	var nc_a: Node = _nakama_connection()
+	var client_a: NakamaClient = nc_a.get_client() if nc_a != null else null
+	var session_a: NakamaSession = nc_a.get_session() if nc_a != null else null
+	if client_a == null or session_a == null:
+		fails.append("primary client/session missing")
+		_print_dm_smoke_result(fails)
+		return false
+
+	var client_b: NakamaClient = nakama.create_client("defaultkey", "127.0.0.1", 7350, "http", 3, NakamaLogger.LOG_LEVEL.ERROR)
+	client_b.auto_retry = false
+	var device_b: String = "crownspire-dm-smoke-b-%s" % str(int(Time.get_unix_time_from_system()))
+	var session_b: NakamaSession = await client_b.authenticate_device_async(device_b)
+	if session_b == null or session_b.is_exception():
+		fails.append("B auth failed")
+		_print_dm_smoke_result(fails)
+		return false
+	var b_uid: String = str(session_b.user_id)
+
+	var socket_b: NakamaSocket = nakama.create_socket_from(client_b)
+	var sock_res = await socket_b.connect_async(session_b)
+	if sock_res == null or sock_res.is_exception() or not socket_b.is_connected_to_host():
+		fails.append("B socket failed")
+		_print_dm_smoke_result(fails)
+		return false
+
+	var notif_hits: Array[Dictionary] = []
+	if socket_b.has_signal("received_notification"):
+		socket_b.received_notification.connect(func(n):
+			if n == null:
+				return
+			var code: int = int(n.code) if ("code" in n) else -1
+			if code != DM_NOTIF_CODE:
+				return
+			var payload: Dictionary = {}
+			if typeof(n.content) == TYPE_DICTIONARY:
+				payload = n.content as Dictionary
+			else:
+				var raw: String = str(n.content) if ("content" in n) else ""
+				var parsed: Variant = JSON.parse_string(raw)
+				if typeof(parsed) == TYPE_DICTIONARY:
+					payload = parsed as Dictionary
+			notif_hits.append(payload)
+		)
+
+	var received_b_realtime: Array[String] = []
+	socket_b.received_channel_message.connect(func(raw):
+		var parsed: RefCounted = ChatMessageScript.from_nakama_channel_message(raw, _kingdom_id)
+		received_b_realtime.append(str(parsed.text))
+	)
+
+	clear_active_dm_peer()
+	var join_a: Dictionary = await join_private_chat(b_uid, "DmSmokeB", true)
+	if not bool(join_a.get("ok", false)):
+		fails.append("A join DM failed: %s" % join_a.get("error"))
+		_print_dm_smoke_result(fails)
+		return false
+	var channel_id: String = str(join_a.get("channel_id", ""))
+
+	var token_a: String = "dmA 🌟 %d" % int(Time.get_unix_time_from_system())
+	var send_a: Dictionary = await send_text_message(token_a, "private")
+	if not bool(send_a.get("ok", false)):
+		fails.append("A send failed: %s" % send_a.get("error"))
+
+	await get_tree().create_timer(2.0).timeout
+	if not received_b_realtime.is_empty():
+		fails.append("B received realtime before joining DM (unexpected)")
+
+	var got_notif := false
+	for hit in notif_hits:
+		if str(hit.get("sender_user_id", "")) == get_local_user_id():
+			got_notif = true
+			break
+	if not got_notif:
+		fails.append("B did not receive DM delivery notification")
+
+	var channel_b: NakamaRTAPI.Channel = await socket_b.join_chat_async(
+		get_local_user_id(),
+		NakamaSocket.ChannelType.DirectMessage,
+		true,
+		false
+	)
+	if channel_b == null or channel_b.is_exception():
+		fails.append("B join DM failed")
+	else:
+		if str(channel_b.id) != channel_id:
+			fails.append("A/B DM channel_id mismatch")
+		var hist_b: NakamaAPI.ApiChannelMessageList = await client_b.list_channel_messages_async(
+			session_b, channel_id, 20, true, null
+		)
+		var saw_a := false
+		if hist_b != null and not hist_b.is_exception():
+			for raw in hist_b.messages:
+				var parsed2: RefCounted = ChatMessageScript.from_nakama_channel_message(raw, _kingdom_id)
+				if str(parsed2.text).find("dmA") >= 0:
+					saw_a = true
+					break
+		if not saw_a:
+			fails.append("B history missing A message")
+
+		var token_b: String = "dmB reply 💬 %d" % int(Time.get_unix_time_from_system())
+		var content_b: Dictionary = ChatMessageScript.build_outbound_content(
+			ChatMessageScript.TYPE_TEXT,
+			token_b,
+			"DmSmokeB",
+			"",
+			{},
+			{
+				"dm_recipient_user_id": get_local_user_id(),
+				"client_schema": ChatMessageScript.SCHEMA_VERSION,
+			},
+			_kingdom_id
+		)
+		var ack_b = await socket_b.write_chat_message_async(channel_id, content_b)
+		if ack_b == null or ack_b.is_exception():
+			fails.append("B reply send failed")
+
+		await get_tree().create_timer(1.0).timeout
+		var saw_b := false
+		for m in get_private_messages(b_uid):
+			if str(m.text).find("dmB reply") >= 0:
+				saw_b = true
+				break
+		if not saw_b:
+			fails.append("A did not receive B reply in same conversation")
+
+	# Duplicate prevention (client cooldown)
+	var dup1: Dictionary = await send_text_message(token_a, "private")
+	var dup2: Dictionary = await send_text_message(token_a, "private")
+	if bool(dup1.get("ok", false)) and bool(dup2.get("ok", false)):
+		fails.append("duplicate DM send not blocked")
+
+	# Kingdom regression
+	var ksend: Dictionary = await send_text_message("dm smoke kingdom ok", "kingdom")
+	if not bool(ksend.get("ok", false)):
+		fails.append("kingdom regression send failed")
+
+	socket_b.close()
+	clear_active_dm_peer()
+	_print_dm_smoke_result(fails)
+	return fails.is_empty()
+
+
+func _print_dm_smoke_result(fails: Array[String]) -> void:
+	if fails.is_empty():
+		print("[DmSmoke] PASS")
+	else:
+		for f in fails:
+			print("[DmSmoke] FAIL: %s" % f)
+		print("[DmSmoke] FAILED count=%d" % fails.size())

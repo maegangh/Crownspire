@@ -75,9 +75,20 @@ func _on_changed(_a = null, _b = null) -> void:
 	_refresh_totals()
 
 
+func _hud_ui_manager() -> Node:
+	var manager: Node = get_node_or_null("../../UIManager")
+	if manager != null:
+		return manager
+	var hud: Node = get_tree().root.find_child("GameHUD", true, false)
+	if hud != null:
+		return hud.get_node_or_null("UIManager")
+	return null
+
+
 func _close() -> void:
-	if has_node("/root/UIManager"):
-		UIManager.close_current_screen()
+	var manager: Node = _hud_ui_manager()
+	if manager != null and manager.has_method("close_current_screen"):
+		manager.close_current_screen()
 	else:
 		on_close()
 
