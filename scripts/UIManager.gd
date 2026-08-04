@@ -69,55 +69,16 @@ func get_building(building_id: String) -> Dictionary:
 			return b
 	return {}
 
+## Phase 0B3-C: obsolete mock upgrade path. Does not spend, mutate levels, or complete buildings.
+## Production upgrades: BuildingUpgradeWindow → ConstructionState only.
 func upgrade_building(building_id: String) -> Dictionary:
-	var b = get_building(building_id)
-	if b.is_empty():
-		return {"success": false, "error": "Building not found"}
-	
-	var lvl = int(b.get("level", 1))
-	var max_lvl = int(b.get("max_level", 30))
-	if lvl >= max_lvl:
-		return {"success": false, "error": "Max level reached"}
-	
-	# Calculate structural costs
-	var reqs = b.get("resources_required", {})
-	var multiplier = 1.0 + lvl * 0.15
-	
-	# Deduct costs from canonical GameState wallet (same as Top HUD).
-	var food_cost := 0
-	var wood_cost := 0
-	var stone_cost := 0
-	var iron_cost := 0
-	for res in reqs.keys():
-		var cost = int(reqs[res] * multiplier)
-		match str(res):
-			"food":
-				food_cost = cost
-			"wood":
-				wood_cost = cost
-			"stone":
-				stone_cost = cost
-			"iron":
-				iron_cost = cost
-			_:
-				var current_val = get(res)
-				if current_val == null or int(current_val) < cost:
-					return {"success": false, "error": "Insufficient " + str(res)}
-	if not GameState.can_afford_resources(food_cost, wood_cost, stone_cost, iron_cost):
-		return {"success": false, "error": "Insufficient resources"}
-	if not GameState.spend_resources(food_cost, wood_cost, stone_cost, iron_cost):
-		return {"success": false, "error": "Insufficient resources"}
-	for res in reqs.keys():
-		var cost2 = int(reqs[res] * multiplier)
-		if str(res) in ["food", "wood", "stone", "iron"]:
-			continue
-		set(res, int(get(res)) - cost2)
-		currency_changed.emit(str(res), float(get(res)))
-		
-	# Upgrade level
-	b["level"] = lvl + 1
-	print("[Crownspire UIManager] Upgraded %s to level %d!" % [building_id, lvl + 1])
-	return {"success": true}
+	push_warning(
+		(
+			"UIManager.upgrade_building: obsolete mock path disabled (0B3-C); "
+			+ "refusing spend/level mutation for building_id=%s. Use BuildingUpgradeWindow."
+		) % building_id
+	)
+	return {"success": false, "error": "Obsolete mock upgrade path disabled (0B3-C)"}
 
 func close_popup(popup_node: Node) -> void:
 	if is_instance_valid(popup_node):

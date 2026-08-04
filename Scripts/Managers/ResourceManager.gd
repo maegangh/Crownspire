@@ -145,7 +145,7 @@ func _on_upgrade_tap() -> void:
 		_open_troop_building_actions()
 		return
 	if building_id == "tavern" or building_name == "Tavern":
-		_open_tavern_recruit()
+		_open_tavern_actions()
 		return
 	if building_id == "academy" or building_name == "Academy":
 		_open_research_hall_actions()
@@ -219,6 +219,7 @@ func _resolve_building_action_title() -> String:
 		"medical_tent": "HOSPITAL",
 		"infirmary": "HOSPITAL",
 		"wall": "WALL",
+		"tavern": "TAVERN",
 	}
 	if titles.has(id_key):
 		return str(titles[id_key])
@@ -275,6 +276,29 @@ func _is_main_screen_open() -> bool:
 				mgr.call("close_current_screen")
 			return false
 	return true
+
+
+## Tavern tap → Recruit / Upgrade chooser (Recruit preserves legacy TavernWindow path).
+func _open_tavern_actions() -> void:
+	var hud: Node = _get_game_hud()
+	var parent_n: Node = hud if hud != null else get_tree().current_scene
+	if parent_n == null:
+		parent_n = get_tree().root
+
+	BuildingActionPopupScript.present(
+		parent_n,
+		_resolve_building_action_title(),
+		[
+			{"id": "recruit", "label": "Recruit"},
+			{"id": "upgrade", "label": "Upgrade"},
+		],
+		func(action_id: String) -> void:
+			match action_id:
+				"recruit":
+					_open_tavern_recruit()
+				"upgrade":
+					open_upgrade_window()
+	)
 
 
 func _open_tavern_recruit() -> void:
@@ -461,51 +485,40 @@ func _open_research_hall() -> void:
 	else:
 		push_error("ResourceManager: AcademyResearchWindow missing open_research().")
 
+## Phase 0B3-B: obsolete legacy upgrade path. Does not start jobs, timers, or spends.
+## Active City upgrades go through BuildingUpgradeWindow → ConstructionState only.
 func start_upgrade_timer():
-	if has_node("/root/ConstructionState"):
-		var gate: Dictionary = ConstructionState.can_start_construction(building_id)
-		if not bool(gate.get("ok", false)):
-			push_warning("ResourceManager: " + str(gate.get("reason", "Construction Queue Full")))
-			return
-		var duration: float = float(building_level * 10)
-		var started: Dictionary = ConstructionState.start_construction(
-			building_id,
-			building_level,
-			building_level + 1,
-			duration
-		)
-		if bool(started.get("ok", false)):
-			upgrading = true
-			upgrade_finish_time = int(Time.get_unix_time_from_system()) + int(duration)
-			save_building_level()
-		return
-	upgrading = true
-	var seconds_needed: int = building_level * 10
-	upgrade_finish_time = int(Time.get_unix_time_from_system()) + seconds_needed
-	save_building_level()
+	push_warning(
+		"ResourceManager.start_upgrade_timer: obsolete legacy path disabled (0B3-B); "
+		+ "refusing job/timer for building_id=%s. Use BuildingUpgradeWindow."
+		% building_id
+	)
+	return
 
 func check_upgrade_finished():
 	if not upgrading:
 		return
-	# Canonical completion owned by ConstructionState when present.
-	if has_node("/root/ConstructionState") and ConstructionState.is_building_upgrading(building_id):
+	# Phase 0B3-A: ConstructionState is the sole completion authority.
+	# Never independently increment building_level, write completed levels, or emit rewards.
+	if not has_node("/root/ConstructionState"):
+		# Fail safely: keep upgrading/upgrade_finish_time so UI does not falsely show
+		# completion. Do not invent a timer/queue, raise a level, or consult display sections.
+		push_warning(
+			"ResourceManager.check_upgrade_finished: ConstructionState unavailable; "
+			+ "refusing independent completion for building_id=%s (status left unchanged)."
+			% building_id
+		)
 		return
-	if has_node("/root/ConstructionState") and not ConstructionState.is_building_upgrading(building_id):
-		# Job finished elsewhere — refresh local flags/level from cfg.
+	if ConstructionState.is_building_upgrading(building_id):
+		return
+	# Job finished (or absent) under ConstructionState — refresh scene display from
+	# canonical completed level only. Do not write completed level.
+	load_building_level()
+	if not ConstructionState.is_building_upgrading(building_id):
 		upgrading = false
 		upgrade_finish_time = 0
-		load_building_level()
-		update_level_label()
-		return
-
-	var now: int = int(Time.get_unix_time_from_system())
-
-	if now >= upgrade_finish_time:
-		upgrading = false
-		upgrade_finish_time = 0
-		building_level += 1
-		update_level_label()
-		save_building_level()
+		save_building_level() # flags-only under canonical building_id
+	update_level_label()
 
 func get_upgrade_time_left() -> int:
 	if not upgrading:
@@ -518,25 +531,40 @@ func update_level_label():
 	if has_node("LevelLabel"):
 		$LevelLabel.text = str(building_level)
 
+## Phase 0B3-A: construction-status persistence only.
+## Does NOT save a completed building level. Completed levels are written solely by
+## ConstructionState._write_building_level / _complete_job_at.
+## Persists only `upgrading` and `upgrade_finish_time` under the canonical building_id section.
+## Never writes display-name sections or any `level` key.
 func save_building_level():
+	var id_key: String = building_id.strip_edges()
+	if id_key.is_empty():
+		push_warning("ResourceManager.save_building_level: empty building_id; skipping status persist.")
+		return
+	if has_node("/root/ConstructionState") and ConstructionState.has_method("normalize_building_id"):
+		id_key = ConstructionState.normalize_building_id(id_key)
 	var save = ConfigFile.new()
 	save.load("user://buildings.cfg")
-	save.set_value(building_name, "level", building_level)
-	save.set_value(building_name, "upgrading", upgrading)
-	save.set_value(building_name, "upgrade_finish_time", upgrade_finish_time)
-	# Also mirror under canonical building_id so UpgradeWindow/ConstructionState agree.
-	if not building_id.is_empty():
-		save.set_value(building_id, "level", building_level)
-		save.set_value(building_id, "upgrading", upgrading)
-		save.set_value(building_id, "upgrade_finish_time", upgrade_finish_time)
+	save.set_value(id_key, "upgrading", upgrading)
+	save.set_value(id_key, "upgrade_finish_time", upgrade_finish_time)
 	save.save("user://buildings.cfg")
 
 func load_building_level():
+	# Phase 0B2-A: completed level from ConstructionState canonical authority only.
+	# Never treat display-name cfg sections or GameState mirrors as level authority.
+	var id_key: String = building_id.strip_edges()
+	if not id_key.is_empty() and has_node("/root/ConstructionState") and ConstructionState.has_method("get_canonical_building_level"):
+		building_level = maxi(1, int(ConstructionState.get_canonical_building_level(id_key)))
+	else:
+		building_level = 1
+	# Upgrade-job flags only (not completed level). Prefer canonical id section when present.
 	var save = ConfigFile.new()
 	if save.load("user://buildings.cfg") == OK:
-		building_level = save.get_value(building_name, "level", 1)
-		upgrading = save.get_value(building_name, "upgrading", false)
-		upgrade_finish_time = save.get_value(building_name, "upgrade_finish_time", 0)
+		var flag_section: String = building_name
+		if not id_key.is_empty() and save.has_section(id_key):
+			flag_section = id_key
+		upgrading = bool(save.get_value(flag_section, "upgrading", false))
+		upgrade_finish_time = int(save.get_value(flag_section, "upgrade_finish_time", 0))
 
 func open_upgrade_window() -> void:
 	if building_id.is_empty():

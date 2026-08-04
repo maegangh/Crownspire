@@ -76,37 +76,17 @@ func get_building(building_id: String) -> Dictionary:
 			return b
 	return {}
 
+## Phase 0B3-C: obsolete mock upgrade path. Does not spend, mutate levels, or complete buildings.
+## Production upgrades: BuildingUpgradeWindow → ConstructionState only.
+## HUD navigation (open_screen / close_current_screen) is unchanged.
 func upgrade_building(building_id: String) -> Dictionary:
-	var b = get_building(building_id)
-	if b.is_empty():
-		return {"success": false, "error": "Building not found"}
-	
-	var lvl = int(b.get("level", 1))
-	var max_lvl = int(b.get("max_level", 30))
-	if lvl >= max_lvl:
-		return {"success": false, "error": "Max level reached"}
-	
-	# Calculate structural costs
-	var reqs = b.get("resources_required", {})
-	var multiplier = 1.0 + lvl * 0.15
-	
-	# Verify and deduct
-	for res in reqs.keys():
-		var cost = int(reqs[res] * multiplier)
-		var current_val = get(res)
-		if current_val < cost:
-			return {"success": false, "error": "Insufficient " + res}
-	
-	# Deduct costs
-	for res in reqs.keys():
-		var cost = int(reqs[res] * multiplier)
-		set(res, get(res) - cost)
-		currency_changed.emit(res, float(get(res)))
-		
-	# Upgrade level
-	b["level"] = lvl + 1
-	print("[Crownspire UIManager] Upgraded %s to level %d!" % [building_id, lvl + 1])
-	return {"success": true}
+	push_warning(
+		(
+			"UI/UIManager.upgrade_building: obsolete mock path disabled (0B3-C); "
+			+ "refusing spend/level mutation for building_id=%s. Use BuildingUpgradeWindow."
+		) % building_id
+	)
+	return {"success": false, "error": "Obsolete mock upgrade path disabled (0B3-C)"}
 
 func close_popup(popup_node: Node) -> void:
 	if is_instance_valid(popup_node):

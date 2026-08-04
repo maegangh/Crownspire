@@ -9,6 +9,28 @@ var production_timer = 0.0
 
 const TRAIN_AMOUNT := 10
 
+## Phase 0B2-C / 0B3-B: read-only completed levels from ConstructionState authority.
+## Never use GameState, savegame, or display-name cfg as fallback authority.
+func _canonical_building_level(building_id: String) -> int:
+	if has_node("/root/ConstructionState") and ConstructionState.has_method("get_canonical_building_level"):
+		return maxi(1, int(ConstructionState.get_canonical_building_level(building_id)))
+	return 1
+
+
+func _canonical_castle_level() -> int:
+	return _canonical_building_level("castle")
+
+
+## Phase 0B3-B: obsolete Main/EternalRealms upgrade controls cannot mutate levels.
+func _refuse_legacy_building_upgrade(building_label: String) -> void:
+	push_warning(
+		(
+			"upgrade_castle_button: obsolete legacy %s upgrade disabled (0B3-B); "
+			+ "refusing spend/level write/job. Use City BuildingUpgradeWindow."
+		) % building_label
+	)
+	print("Upgrade unavailable — use City Building Upgrade window (%s)." % building_label)
+
 @onready var castle_label = $CastleLevelLabel
 @onready var food_label = $FoodLabel
 @onready var wood_label = $WoodLabel
@@ -169,12 +191,13 @@ func _on_close_world_map_button_pressed():
 	world_map_panel.visible = false
 
 func _on_bag_button_pressed():
-	print("Bag opened. Items: ", InventoryState.items)
-	
-	var text = ""
+	# Phase 0A: BagState is inventory authority (InventoryState is obsolete shim).
+	var bag_items: Dictionary = BagState.items if has_node("/root/BagState") else {}
+	print("Bag opened. Items: ", bag_items)
 
-	for item_name in InventoryState.items.keys():
-		text += item_name + " x" + str(InventoryState.items[item_name]) + "\n"
+	var text = ""
+	for item_name in bag_items.keys():
+		text += str(item_name) + " x" + str(bag_items[item_name]) + "\n"
 
 	if text == "":
 		text = "Bag Empty"
@@ -240,7 +263,7 @@ func _on_close_monster_reward_button_pressed():
 
 
 func update_labels():
-	warehouse_label.text = "Warehouse Level " + str(GameState.warehouse_level)
+	warehouse_label.text = "Warehouse Level " + str(_canonical_building_level("warehouse"))
 	warehouse_protection_label.text = "Protected Resources: " + str(get_warehouse_protection_limit())
 
 	CampaignState.player_power = calculate_power(
@@ -264,32 +287,33 @@ func update_labels():
 		TroopState.cavalry
 	)
 
-	TroopState.hospital_capacity = GameState.castle_level * 1000
-	TroopState.sanctuary_capacity = GameState.castle_level * 500
+	var castle_lvl: int = _canonical_castle_level()
+	TroopState.hospital_capacity = castle_lvl * 1000
+	TroopState.sanctuary_capacity = castle_lvl * 500
 
 	campaign_stage_label.text = "Campaign Stage: " + str(CampaignState.campaign_chapter) + "-" + str(CampaignState.campaign_stage)
 	campaign_progress_label.text = "Campaign Progress: " + str(CampaignState.campaign_progress) + "/10"
 
 	quest1_label.text = "Quest 1: Train 50 Troops"
-	quest1_progress_label.text = "Progress: " + str(QuestState.quest1_progress) + "/" + str(QuestState.quest1_target)
+	quest1_progress_label.text = "Progress: " + str(int(_legacy_save_prop(QuestState, "quest1_progress", 0))) + "/" + str(int(_legacy_save_prop(QuestState, "quest1_target", 50)))
 	quest1_reward_label.text = "Reward: 500 Food"
-	claim_quest1_button.disabled = not QuestState.quest1_completed
+	claim_quest1_button.disabled = not bool(_legacy_save_prop(QuestState, "quest1_completed", false))
 
 	quest2_label.text = "Quest 2: Win 3 Campaign Battles"
-	quest2_progress_label.text = "Progress: " + str(QuestState.quest2_progress) + "/" + str(QuestState.quest2_target)
+	quest2_progress_label.text = "Progress: " + str(int(_legacy_save_prop(QuestState, "quest2_progress", 0))) + "/" + str(int(_legacy_save_prop(QuestState, "quest2_target", 3)))
 	quest2_reward_label.text = "Reward: 50 Valor"
-	claim_quest2_button.disabled = not QuestState.quest2_completed
+	claim_quest2_button.disabled = not bool(_legacy_save_prop(QuestState, "quest2_completed", false))
 
-	castle_label.text = "Castle Level " + str(GameState.castle_level)
+	castle_label.text = "Castle Level " + str(castle_lvl)
 	food_label.text = "Food: " + str(GameState.food)
 	wood_label.text = "Wood: " + str(GameState.wood)
 	stone_label.text = "Stone: " + str(GameState.stone)
 	iron_label.text = "Iron: " + str(GameState.iron)
 
-	farm_label.text = "Farm Level " + str(GameState.farm_level)
-	lumber_mill_label.text = "Lumber Mill Level " + str(GameState.lumber_mill_level)
-	quarry_label.text = "Quarry Level " + str(GameState.quarry_level)
-	iron_mine_label.text = "Iron Mine Level " + str(GameState.iron_mine_level)
+	farm_label.text = "Farm Level " + str(_canonical_building_level("farm"))
+	lumber_mill_label.text = "Lumber Mill Level " + str(_canonical_building_level("lumber_mill"))
+	quarry_label.text = "Quarry Level " + str(_canonical_building_level("quarry"))
+	iron_mine_label.text = "Iron Mine Level " + str(_canonical_building_level("iron_mine"))
 
 	stored_food_label.text = "Stored Food: " + str(stored_food)
 	stored_wood_label.text = "Stored Wood: " + str(stored_wood)
@@ -363,7 +387,9 @@ func hunt_monster(monster_id: String):
 	var item_drops = rewards.get("itemDrops", [])
 
 	for item in item_drops:
-		InventoryState.add_item(item, 1)
+		# Phase 0A: BagState is the sole inventory authority.
+		if has_node("/root/BagState"):
+			BagState.add_item(str(item), 1)
 		print("Added item to bag: ", item)
 	
 
@@ -566,10 +592,10 @@ func _process(delta):
 func produce_resources():
 	var economy_bonus = 1.0 + (ResearchState.economy_research_level * 0.05)
 
-	var food_gain = int((GameState.farm_level * 2) * economy_bonus)
-	var wood_gain = int((GameState.lumber_mill_level * 2) * economy_bonus)
-	var stone_gain = int((GameState.quarry_level * 1) * economy_bonus)
-	var iron_gain = int((GameState.iron_mine_level * 1) * economy_bonus)
+	var food_gain = int((_canonical_building_level("farm") * 2) * economy_bonus)
+	var wood_gain = int((_canonical_building_level("lumber_mill") * 2) * economy_bonus)
+	var stone_gain = int((_canonical_building_level("quarry") * 1) * economy_bonus)
+	var iron_gain = int((_canonical_building_level("iron_mine") * 1) * economy_bonus)
 
 	stored_food = min(stored_food + food_gain, get_food_storage_limit())
 	stored_wood = min(stored_wood + wood_gain, get_wood_storage_limit())
@@ -584,10 +610,10 @@ func apply_offline_production(seconds_away: float):
 
 	var economy_bonus = 1.0 + (ResearchState.economy_research_level * 0.05)
 
-	var food_gain = int((GameState.farm_level * 2) * economy_bonus * (seconds_away / 60.0))
-	var wood_gain = int((GameState.lumber_mill_level * 2) * economy_bonus * (seconds_away / 60.0))
-	var stone_gain = int((GameState.quarry_level * 1) * economy_bonus * (seconds_away / 60.0))
-	var iron_gain = int((GameState.iron_mine_level * 1) * economy_bonus * (seconds_away / 60.0))
+	var food_gain = int((_canonical_building_level("farm") * 2) * economy_bonus * (seconds_away / 60.0))
+	var wood_gain = int((_canonical_building_level("lumber_mill") * 2) * economy_bonus * (seconds_away / 60.0))
+	var stone_gain = int((_canonical_building_level("quarry") * 1) * economy_bonus * (seconds_away / 60.0))
+	var iron_gain = int((_canonical_building_level("iron_mine") * 1) * economy_bonus * (seconds_away / 60.0))
 
 	stored_food = min(stored_food + food_gain, get_food_storage_limit())
 	stored_wood = min(stored_wood + wood_gain, get_wood_storage_limit())
@@ -623,23 +649,23 @@ func apply_offline_training(seconds_away: float):
 			complete_training("cavalry")
 
 func get_food_storage_limit() -> int:
-	return GameState.farm_level * 1000
+	return _canonical_building_level("farm") * 1000
 
 
 func get_wood_storage_limit() -> int:
-	return GameState.lumber_mill_level * 1000
+	return _canonical_building_level("lumber_mill") * 1000
 
 
 func get_stone_storage_limit() -> int:
-	return GameState.quarry_level * 800
+	return _canonical_building_level("quarry") * 800
 
 
 func get_iron_storage_limit() -> int:
-	return GameState.iron_mine_level * 500
+	return _canonical_building_level("iron_mine") * 500
 
 
 func get_warehouse_protection_limit() -> int:
-	return GameState.warehouse_level * 50000
+	return _canonical_building_level("warehouse") * 50000
 
 
 func complete_training(training_type: String):
@@ -700,43 +726,14 @@ func give_current_hero_xp(amount: int):
 
 
 func _on_upgrade_castle_button_pressed():
-	var next_level = GameState.castle_level + 1
-	var cost = DataManager.get_building_cost("castle", next_level)
-
-	if cost.is_empty():
-		print("Castle upgrade data missing for level " + str(next_level))
-		return
-
-	var food_cost = int(cost.get("food", 0))
-	var wood_cost = int(cost.get("wood", 0))
-	var stone_cost = int(cost.get("stone", 0))
-	var iron_cost = int(cost.get("iron", 0))
-	var valor_cost = int(cost.get("valor", 0))
-
-	if GameState.food < food_cost or GameState.wood < wood_cost or GameState.stone < stone_cost or GameState.iron < iron_cost or valor < valor_cost:
-		print("Not enough resources to upgrade Castle!")
-		return
-
-	GameState.food -= food_cost
-	GameState.wood -= wood_cost
-	GameState.stone -= stone_cost
-	GameState.iron -= iron_cost
-	valor -= valor_cost
-
-	GameState.castle_level = next_level
-
-	var power_gain = DataManager.get_building_power_gain("castle", next_level)
-	print("Castle upgraded to Level " + str(next_level) + " | Power +" + str(power_gain))
-
-	update_labels()
-	save_game()
+	_refuse_legacy_building_upgrade("Castle")
 
 
 func _on_gather_resources_button_pressed():
-	var food_gain = (GameState.farm_level * 50) + 50
-	var wood_gain = (GameState.lumber_mill_level * 50) + 50
-	var stone_gain = (GameState.quarry_level * 25) + 25
-	var iron_gain = (GameState.iron_mine_level * 15) + 10
+	var food_gain = (_canonical_building_level("farm") * 50) + 50
+	var wood_gain = (_canonical_building_level("lumber_mill") * 50) + 50
+	var stone_gain = (_canonical_building_level("quarry") * 25) + 25
+	var iron_gain = (_canonical_building_level("iron_mine") * 15) + 10
 
 	for hero in HeroState.recruited_heroes:
 		var template = get_hero_template(hero)
@@ -767,59 +764,19 @@ func _on_gather_resources_button_pressed():
 
 
 func _on_upgrade_farm_button_pressed():
-	var food_cost = 100 * GameState.farm_level
-	var wood_cost = 200 * GameState.farm_level
-
-	if GameState.food >= food_cost and GameState.wood >= wood_cost:
-		GameState.food -= food_cost
-		GameState.wood -= wood_cost
-		GameState.farm_level += 1
-		update_labels()
-		save_game()
-	else:
-		print("Not enough resources to upgrade Farm!")
+	_refuse_legacy_building_upgrade("Farm")
 
 
 func _on_upgrade_lumber_mill_button_pressed():
-	var food_cost = GameState.lumber_mill_level * 100
-	var wood_cost = GameState.lumber_mill_level * 150
-
-	if GameState.food >= food_cost and GameState.wood >= wood_cost:
-		GameState.food -= food_cost
-		GameState.wood -= wood_cost
-		GameState.lumber_mill_level += 1
-		update_labels()
-		save_game()
-	else:
-		print("Not enough resources to upgrade Lumber Mill!")
+	_refuse_legacy_building_upgrade("Lumber Mill")
 
 
 func _on_upgrade_quarry_button_pressed():
-	var wood_cost = GameState.quarry_level * 150
-	var stone_cost = GameState.quarry_level * 100
-
-	if GameState.wood >= wood_cost and GameState.stone >= stone_cost:
-		GameState.wood -= wood_cost
-		GameState.stone -= stone_cost
-		GameState.quarry_level += 1
-		update_labels()
-		save_game()
-	else:
-		print("Not enough resources to upgrade Quarry!")
+	_refuse_legacy_building_upgrade("Quarry")
 
 
 func _on_upgrade_iron_mine_button_pressed():
-	var stone_cost = GameState.iron_mine_level * 150
-	var iron_cost = GameState.iron_mine_level * 100
-
-	if GameState.stone >= stone_cost and GameState.iron >= iron_cost:
-		GameState.stone -= stone_cost
-		GameState.iron -= iron_cost
-		GameState.iron_mine_level += 1
-		update_labels()
-		save_game()
-	else:
-		print("Not enough resources to upgrade Iron Mine!")
+	_refuse_legacy_building_upgrade("Iron Mine")
 
 
 func _on_train_infantry_button_pressed():
@@ -1123,42 +1080,45 @@ func add_casualties_to_hospital(amount):
 
 
 func _on_upgrade_warehouse_button_pressed():
-	var wood_cost = GameState.warehouse_level * 300
-	var stone_cost = GameState.warehouse_level * 200
+	_refuse_legacy_building_upgrade("Warehouse")
 
-	if GameState.wood >= wood_cost and GameState.stone >= stone_cost:
-		GameState.wood -= wood_cost
-		GameState.stone -= stone_cost
-		GameState.warehouse_level += 1
-		update_labels()
-		save_game()
-	else:
-		print("Not enough resources to upgrade Warehouse!")
+
+func _legacy_save_prop(obj: Object, prop: String, default_v: Variant = 0) -> Variant:
+	# Safe read for obsolete legacy save keys whose backing properties may no longer exist.
+	if obj == null:
+		return default_v
+	var v: Variant = obj.get(prop)
+	return default_v if v == null else v
+
+
+func _legacy_load_prop(obj: Object, prop: String, value: Variant) -> void:
+	# Skip assignment when the legacy property no longer exists on the target object.
+	if obj == null:
+		return
+	if prop in obj:
+		obj.set(prop, value)
 
 
 func save_game():
+	# Phase 0B3-B: do not write completed building levels into savegame.save.
+	# Authority remains ConstructionState / buildings.cfg canonical sections.
 	var save_data = {
-		"warehouse_level": GameState.warehouse_level,
-		"castle_level": GameState.castle_level,
 		"food": GameState.food,
 		"wood": GameState.wood,
 		"stone": GameState.stone,
 		"iron": GameState.iron,
-		"farm_level": GameState.farm_level,
-		"lumber_mill_level": GameState.lumber_mill_level,
-		"quarry_level": GameState.quarry_level,
-		"iron_mine_level": GameState.iron_mine_level,
 		"TroopState.infantry": TroopState.infantry,
 		"TroopState.marksmen": TroopState.marksmen,
 		"TroopState.cavalry": TroopState.cavalry,
-		"TroopState.infantry_training_time_left": TroopState.infantry_training_time_left,
-		"TroopState.marksmen_training_time_left": TroopState.marksmen_training_time_left,
-		"TroopState.cavalry_training_time_left": TroopState.cavalry_training_time_left,
+		"TroopState.infantry_training_time_left": float(_legacy_save_prop(TroopState, "infantry_training_time_left", 0.0)),
+		"TroopState.marksmen_training_time_left": float(_legacy_save_prop(TroopState, "marksmen_training_time_left", 0.0)),
+		"TroopState.cavalry_training_time_left": float(_legacy_save_prop(TroopState, "cavalry_training_time_left", 0.0)),
 		"HeroState.hero_tickets": HeroState.hero_tickets,
 		"HeroState.recruited_heroes": HeroState.recruited_heroes,
 		"HeroState.current_hero_index": HeroState.current_hero_index,
 		"HeroState.hero_shards": HeroState.hero_shards,
-		"InventoryState.items": InventoryState.items,
+		# Phase 0A: persist bag via BagState; key kept for legacy savegame shape.
+		"InventoryState.items": (BagState.items.duplicate() if has_node("/root/BagState") else {}),
 		"valor": valor,
 		"stored_food": stored_food,
 		"stored_wood": stored_wood,
@@ -1176,10 +1136,10 @@ func save_game():
 		"CampaignState.enemy_cavalry": CampaignState.enemy_cavalry,
 		"CampaignState.player_power": CampaignState.player_power,
 		"CampaignState.enemy_power": CampaignState.enemy_power,
-		"QuestState.quest1_progress": QuestState.quest1_progress,
-		"QuestState.quest1_completed": QuestState.quest1_completed,
-		"QuestState.quest2_progress": QuestState.quest2_progress,
-		"QuestState.quest2_completed": QuestState.quest2_completed,
+		"QuestState.quest1_progress": int(_legacy_save_prop(QuestState, "quest1_progress", 0)),
+		"QuestState.quest1_completed": bool(_legacy_save_prop(QuestState, "quest1_completed", false)),
+		"QuestState.quest2_progress": int(_legacy_save_prop(QuestState, "quest2_progress", 0)),
+		"QuestState.quest2_completed": bool(_legacy_save_prop(QuestState, "quest2_completed", false)),
 		"TroopState.wounded_infantry": TroopState.wounded_infantry,
 		"TroopState.wounded_marksmen": TroopState.wounded_marksmen,
 		"TroopState.wounded_cavalry": TroopState.wounded_cavalry,
@@ -1208,23 +1168,34 @@ func load_game():
 	if save_data == null:
 		return
 
-	GameState.castle_level = save_data.get("castle_level", 1)
+	# Phase 0B1 / 0B3-B: once savegame_building_levels_merged_v1 is committed,
+	# never restore or raise GameState/canonical levels from legacy savegame keys.
+	# Historical keys may remain in old files; they are ignored after migration.
+	# Pre-flag path below is preserved for the one-time migration only — do not redesign.
+	var skip_savegame_building_levels: bool = false
+	if has_node("/root/ConstructionState") and ConstructionState.has_method("has_completed_savegame_building_migration"):
+		skip_savegame_building_levels = ConstructionState.has_completed_savegame_building_migration()
+
+	if not skip_savegame_building_levels:
+		GameState.castle_level = save_data.get("castle_level", 1)
+		GameState.farm_level = save_data.get("farm_level", 1)
+		GameState.lumber_mill_level = save_data.get("lumber_mill_level", 1)
+		GameState.quarry_level = save_data.get("quarry_level", 1)
+		GameState.iron_mine_level = save_data.get("iron_mine_level", 1)
+		GameState.warehouse_level = save_data.get("warehouse_level", 1)
+
 	GameState.food = save_data.get("food", 1000)
 	GameState.wood = save_data.get("wood", 1000)
 	GameState.stone = save_data.get("stone", 1000)
 	GameState.iron = save_data.get("iron", 1000)
-	GameState.farm_level = save_data.get("farm_level", 1)
-	GameState.lumber_mill_level = save_data.get("lumber_mill_level", 1)
-	GameState.quarry_level = save_data.get("quarry_level", 1)
-	GameState.iron_mine_level = save_data.get("iron_mine_level", 1)
-	GameState.warehouse_level = save_data.get("warehouse_level", 1)
 
 	TroopState.infantry = save_data.get("TroopState.infantry", 0)
 	TroopState.marksmen = save_data.get("TroopState.marksmen", 0)
 	TroopState.cavalry = save_data.get("TroopState.cavalry", 0)
-	TroopState.infantry_training_time_left = save_data.get("TroopState.infantry_training_time_left", 0.0)
-	TroopState.marksmen_training_time_left = save_data.get("TroopState.marksmen_training_time_left", 0.0)
-	TroopState.cavalry_training_time_left = save_data.get("TroopState.cavalry_training_time_left", 0.0)
+	# Obsolete Main-scene training timers may no longer exist on TroopState.
+	_legacy_load_prop(TroopState, "infantry_training_time_left", save_data.get("TroopState.infantry_training_time_left", 0.0))
+	_legacy_load_prop(TroopState, "marksmen_training_time_left", save_data.get("TroopState.marksmen_training_time_left", 0.0))
+	_legacy_load_prop(TroopState, "cavalry_training_time_left", save_data.get("TroopState.cavalry_training_time_left", 0.0))
 	TroopState.wounded_infantry = int(save_data.get("TroopState.wounded_infantry", 0))
 	TroopState.wounded_marksmen = int(save_data.get("TroopState.wounded_marksmen", 0))
 	TroopState.wounded_cavalry = int(save_data.get("TroopState.wounded_cavalry", 0))
@@ -1232,11 +1203,17 @@ func load_game():
 	TroopState.hospital_capacity = int(save_data.get("TroopState.hospital_capacity", 1000))
 	TroopState.sanctuary_capacity = int(save_data.get("TroopState.sanctuary_capacity", 500))
 
-	HeroState.hero_tickets = save_data.get("HeroState.hero_tickets", 5)
-	HeroState.recruited_heroes = save_data.get("HeroState.recruited_heroes", [])
-	HeroState.current_hero_index = save_data.get("HeroState.current_hero_index", -1)
-	HeroState.hero_shards = save_data.get("HeroState.hero_shards", {})
-	InventoryState.items = save_data.get("InventoryState.items", {})
+	_legacy_load_prop(HeroState, "hero_tickets", save_data.get("HeroState.hero_tickets", 5))
+	_legacy_load_prop(HeroState, "recruited_heroes", save_data.get("HeroState.recruited_heroes", []))
+	_legacy_load_prop(HeroState, "current_hero_index", save_data.get("HeroState.current_hero_index", -1))
+	_legacy_load_prop(HeroState, "hero_shards", save_data.get("HeroState.hero_shards", {}))
+	# Phase 0A: one-time legacy inventory import (flagged in bag.cfg).
+	# Must not re-apply after the player consumes an item to zero.
+	var legacy_items: Variant = save_data.get("InventoryState.items", {})
+	if typeof(legacy_items) == TYPE_DICTIONARY and has_node("/root/BagState"):
+		BagState.import_legacy_savegame_inventory_once(legacy_items as Dictionary)
+	elif typeof(legacy_items) == TYPE_DICTIONARY and has_node("/root/InventoryState"):
+		InventoryState.items = legacy_items
 
 	valor = save_data.get("valor", 100)
 
@@ -1259,10 +1236,10 @@ func load_game():
 	CampaignState.player_power = save_data.get("CampaignState.player_power", 0)
 	CampaignState.enemy_power = save_data.get("CampaignState.enemy_power", 0)
 
-	QuestState.quest1_progress = save_data.get("QuestState.quest1_progress", 0)
-	QuestState.quest1_completed = save_data.get("QuestState.quest1_completed", false)
-	QuestState.quest2_progress = save_data.get("QuestState.quest2_progress", 0)
-	QuestState.quest2_completed = save_data.get("QuestState.quest2_completed", false)
+	_legacy_load_prop(QuestState, "quest1_progress", save_data.get("QuestState.quest1_progress", 0))
+	_legacy_load_prop(QuestState, "quest1_completed", save_data.get("QuestState.quest1_completed", false))
+	_legacy_load_prop(QuestState, "quest2_progress", save_data.get("QuestState.quest2_progress", 0))
+	_legacy_load_prop(QuestState, "quest2_completed", save_data.get("QuestState.quest2_completed", false))
 	
 	var last_save_time = save_data.get("last_save_time", Time.get_unix_time_from_system())
 	var current_time = Time.get_unix_time_from_system()
