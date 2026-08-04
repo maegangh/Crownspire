@@ -310,6 +310,10 @@ function publicProfile(profile) {
     var now = nowUnix();
     var lastOnline = typeof profile.last_online === "number" ? profile.last_online : 0;
     var online = lastOnline > 0 && now - lastOnline <= PRESENCE_ONLINE_SEC;
+    var power = typeof profile.power === "number" ? profile.power : 0;
+    var highest = typeof profile.highest_power === "number" ? Math.max(profile.highest_power, power) : power;
+    var kills = typeof profile.kills === "number" && profile.kills >= 0 ? Math.floor(profile.kills) : 0;
+    var gear = Array.isArray(profile.public_equipment) ? profile.public_equipment : [];
     return {
         user_id: profile.user_id,
         display_name: profile.display_name,
@@ -319,7 +323,11 @@ function publicProfile(profile) {
         alliance_name: profile.alliance_name,
         crownspire_rank: profile.crownspire_rank,
         avatar_id: profile.avatar_id || "avatar_01",
-        power: typeof profile.power === "number" ? profile.power : 0,
+        power: power,
+        kills: kills,
+        highest_power: highest,
+        // Public showcase only — never troops/resources/garrison/marches.
+        public_equipment: gear,
         citadel_level: typeof profile.citadel_level === "number" ? profile.citadel_level : 1,
         vip_level: typeof profile.vip_level === "number" ? profile.vip_level : 0,
         last_online: lastOnline,
@@ -2345,6 +2353,22 @@ function rpcUpdatePlayerIdentity(ctx, logger, nk, payload) {
             throw Err("Invalid power");
         }
         profile.power = Math.min(power, 999999999);
+        var prevHighest = typeof profile.highest_power === "number" ? profile.highest_power : 0;
+        profile.highest_power = Math.max(prevHighest, profile.power);
+    }
+    if (data["kills"] !== undefined) {
+        var kills = Math.floor(Number(data["kills"]));
+        if (!isFinite(kills) || kills < 0) {
+            throw Err("Invalid kills");
+        }
+        profile.kills = Math.min(kills, 999999999);
+    }
+    if (data["public_equipment"] !== undefined) {
+        // Public showcase gear only — reject non-arrays; never store troop/resource secrets here.
+        if (!Array.isArray(data["public_equipment"])) {
+            throw Err("Invalid public_equipment");
+        }
+        profile.public_equipment = data["public_equipment"].slice(0, 12);
     }
     if (data["citadel_level"] !== undefined) {
         var lvl = Math.floor(Number(data["citadel_level"]));

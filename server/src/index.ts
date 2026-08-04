@@ -60,6 +60,15 @@ interface CrownspireProfile {
   avatar_id: string;
   /** Client-reported power snapshot for social display (not combat authority). */
   power: number;
+  /** Lifetime social kill counter (client-reported snapshot; not combat authority). */
+  kills?: number;
+  /** Peak reported power snapshot for social display. */
+  highest_power?: number;
+  /**
+   * Optional public gear showcase only.
+   * Must NEVER include troops, resources, garrison, marches, or scout intel.
+   */
+  public_equipment?: any[];
   citadel_level: number;
   vip_level: number;
   /** Unix seconds — updated by presence heartbeat while online. */
@@ -369,6 +378,11 @@ function publicProfile(profile: CrownspireProfile): any {
   const now = nowUnix();
   const lastOnline = typeof profile.last_online === "number" ? profile.last_online : 0;
   const online = lastOnline > 0 && now - lastOnline <= PRESENCE_ONLINE_SEC;
+  const power = typeof profile.power === "number" ? profile.power : 0;
+  const highest =
+    typeof profile.highest_power === "number" ? Math.max(profile.highest_power, power) : power;
+  const kills = typeof profile.kills === "number" && profile.kills >= 0 ? Math.floor(profile.kills) : 0;
+  const gear = Array.isArray(profile.public_equipment) ? profile.public_equipment : [];
   return {
     user_id: profile.user_id,
     display_name: profile.display_name,
@@ -378,7 +392,11 @@ function publicProfile(profile: CrownspireProfile): any {
     alliance_name: profile.alliance_name,
     crownspire_rank: profile.crownspire_rank,
     avatar_id: profile.avatar_id || "avatar_01",
-    power: typeof profile.power === "number" ? profile.power : 0,
+    power,
+    kills,
+    highest_power: highest,
+    // Public showcase only — never troops/resources/garrison/marches.
+    public_equipment: gear,
     citadel_level: typeof profile.citadel_level === "number" ? profile.citadel_level : 1,
     vip_level: typeof profile.vip_level === "number" ? profile.vip_level : 0,
     last_online: lastOnline,

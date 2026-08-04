@@ -56,8 +56,8 @@ const RPC_LIST_MY_HELP := "crownspire_list_my_active_help_requests"
 const RPC_COMPLETE_CANCEL_HELP := "crownspire_complete_or_cancel_help_request"
 const RPC_GET_MY_ENTITLEMENTS := "crownspire_get_my_entitlements"
 const RPC_UPDATE_PLAYER_IDENTITY := "crownspire_update_player_identity"
-	const RPC_PRESENCE_HEARTBEAT := "crownspire_presence_heartbeat"
-	const RPC_LIST_KINGDOM_CASTLES := "crownspire_list_kingdom_castles"
+const RPC_PRESENCE_HEARTBEAT := "crownspire_presence_heartbeat"
+const RPC_LIST_KINGDOM_CASTLES := "crownspire_list_kingdom_castles"
 
 ## TODO (Production): Replace beta_alliance_auto_help with production
 ## alliance_auto_help entitlement verified through Google Play Billing.
@@ -795,13 +795,19 @@ func _on_authenticated() -> void:
 
 
 func _on_socket_connected() -> void:
-	if not has_profile():
-		await refresh_profile()
+	## Always refresh after socket connect/reconnect so Android never stays stuck
+	## authenticated+socket with an empty Crownspire profile cache.
+	var result: Dictionary = await refresh_profile()
+	if not bool(result.get("ok", false)):
+		print("[AllianceBackend] socket_connected refresh_profile failed: %s" % str(result.get("error", "unknown")))
+	else:
+		print("[AllianceBackend] socket_connected profile ready has_profile=%s" % has_profile())
 	_bind_help_notifications()
 	_help_socket_bound = false
 	_bind_help_notifications()
 	_start_presence()
 	if is_in_backend_alliance():
+		await refresh_membership_caches()
 		await refresh_help_requests()
 
 

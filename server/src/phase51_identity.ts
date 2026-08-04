@@ -47,6 +47,22 @@ function rpcUpdatePlayerIdentity(ctx: nkruntime.Context, logger: nkruntime.Logge
       throw Err("Invalid power");
     }
     profile.power = Math.min(power, 999999999);
+    const prevHighest = typeof profile.highest_power === "number" ? profile.highest_power : 0;
+    profile.highest_power = Math.max(prevHighest, profile.power);
+  }
+  if (data["kills"] !== undefined) {
+    const kills = Math.floor(Number(data["kills"]));
+    if (!isFinite(kills) || kills < 0) {
+      throw Err("Invalid kills");
+    }
+    profile.kills = Math.min(kills, 999999999);
+  }
+  if (data["public_equipment"] !== undefined) {
+    // Public showcase gear only — reject non-arrays; never store troop/resource secrets here.
+    if (!Array.isArray(data["public_equipment"])) {
+      throw Err("Invalid public_equipment");
+    }
+    profile.public_equipment = data["public_equipment"].slice(0, 12);
   }
   if (data["citadel_level"] !== undefined) {
     const lvl = Math.floor(Number(data["citadel_level"]));
