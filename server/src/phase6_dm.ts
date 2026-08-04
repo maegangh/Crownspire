@@ -1,120 +1,109 @@
 /**
- * Crownspire Phase 6 — Direct Message delivery notifications.
- * When a private DM is sent on an authoritative DirectMessage channel, notify the
- * recipient so their client can join the Nakama channel without the thread open.
+ * Crownspire Phase 6 — Direct Message RPC delivery.
  *
- * Security: metadata.dm_recipient_user_id is a hint only. Notifications are sent
- * only when nk.channelIdBuild(ctx.userId, recipientId, DirectMessage) matches the
- * incoming ChannelMessageSend channelId.
- *
- * Rate limit: per-sender/recipient pair via assertRateLimit (1s cooldown). A
- * global per-user notification flood limiter is out of scope for this hook.
+ * Private messages are sent through an authenticated Nakama RPC instead of
+ * relying on the recipient already being subscribed to a DirectMessage socket
+ * channel. The server builds the authoritative DM channel, persists the
+ * message, and sends a delivery notification to the recipient.
  */
 
-const DM_NOTIF_CODE = 5004;
-/** nkruntime.ChanType.DirectMessage — Room=1, DirectMessage=2, Group=3 */
-const CHANNEL_TYPE_DIRECT = 2;
-const PREVIEW_MAX_LEN = 80;
-const DISPLAY_NAME_MAX_LEN = 64;
+const DM_NOTIF_CODE = 5002;
+const DM_MAX_TEXT_LENGTH = 280;
+const DM_SUPPORTED_TYPES: {[key: string]: boolean} = {
+  TEXT: true,
+  MAP_LOCATION: true,
+  RALLY: true,
+};
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function isUuid(value: string): boolean {
-  return UUID_RE.test(value);
-}
-
-function registerDmHooks(initializer: nkruntime.Initializer): void {
-  initializer.registerRtAfter("ChannelMessageSend", afterChannelMessageSend);
-}
-
-let afterChannelMessageSend: nkruntime.RtAfterHookFunction<nkruntime.EnvelopeChannelMessageSend> = function (
+function rpcDmSend(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,
-  output: nkruntime.EnvelopeChannelMessageSend | null,
-  input: nkruntime.EnvelopeChannelMessageSend
-): void {
-  if (!ctx.userId || !input || !input.channelMessageSend) {
-    return;
-  }
-  const senderId = String(ctx.userId).trim();
-  if (!isUuid(senderId)) {
-    return;
+  payload: string
+): string {
+  if (!ctx.userId) {
+    throw new Error("Unauthenticated");
   }
 
-  const send = input.channelMessageSend;
-  const actualChannelId = String(send.channelId || "").trim();
-  const contentStr = String(send.content || "");
-  if (actualChannelId === "" || contentStr === "") {
-    return;
+  const data = parsePayload(payload);
+  const recipientId = String(data.recipient_user_id || "").trim();
+  if (recipientId === "" || recipientId === ctx.userId) {
+    throw new Error("Invalid DM recipient");
   }
 
-  let content: any = null;
-  try {
-    content = JSON.parse(contentStr);
-  } catch (_e) {
-    return;
-  }
-  if (!content || typeof content !== "object") {
-    return;
+  // Verify the recipient is a real Nakama account before creating a thread.
+  const recipients = nk.usersGetId([recipientId]);
+  if (!recipients || recipients.length !== 1) {
+    throw new Error("Player not found");
   }
 
-  const meta = content["metadata"];
-  if (!meta || typeof meta !== "object") {
-    return;
-  }
-  const recipientId = String(meta["dm_recipient_user_id"] || "").trim();
-  if (!isUuid(recipientId) || recipientId === senderId) {
-    return;
+  const messageType = String(data.message_type || "TEXT").trim().toUpperCase();
+  if (!DM_SUPPORTED_TYPES[messageType]) {
+    throw new Error("Unsupported DM message type");
   }
 
-  let expectedChannelId: string;
-  try {
-    expectedChannelId = nk.channelIdBuild(senderId, recipientId, CHANNEL_TYPE_DIRECT);
-  } catch (_e) {
-    return;
+  let text = String(data.text || "").trim();
+  if (messageType === "TEXT" && text === "") {
+    throw new Error("Message is empty");
   }
-  if (expectedChannelId !== actualChannelId) {
-    return;
+  if (text.length > DM_MAX_TEXT_LENGTH) {
+    throw new Error("Message exceeds 280 characters");
   }
 
-  try {
-    assertRateLimit(nk, senderId, "dm_notify_" + recipientId, 1);
-  } catch (_e) {
-    return;
+  const messagePayload = (data.payload && typeof data.payload === "object") ? data.payload : {};
+  // Keep structured payloads bounded. This is validation, not authority for gameplay actions.
+  const payloadJson = JSON.stringify(messagePayload);
+  if (payloadJson.length > 4096) {
+    throw new Error("DM payload too large");
   }
 
-  const previewRaw = String(content["text"] || "");
-  const preview =
-    previewRaw.length > PREVIEW_MAX_LEN
-      ? previewRaw.substring(0, PREVIEW_MAX_LEN - 3) + "..."
-      : previewRaw;
-  const senderName = String(content["sender_display_name"] || "Player").substring(0, DISPLAY_NAME_MAX_LEN);
+  // Server-backed identity: never trust display name or alliance tag supplied by the client.
+  const profile = ensureProfile(nk, logger, ctx.userId);
+  const senderName = String(profile.display_name || "Player").substring(0, 64);
+  const allianceTag = String(profile.alliance_tag || "").substring(0, 8);
+  const kingdomId = String(profile.kingdom_id || "");
 
-  let messageId = "";
-  const outAny = output as any;
-  if (outAny) {
-    if (outAny.messageId) {
-      messageId = String(outAny.messageId);
-    } else if (outAny.channelMessageSend && outAny.channelMessageSend.messageId) {
-      messageId = String(outAny.channelMessageSend.messageId);
-    }
-  }
-  if (messageId !== "" && !isUuid(messageId)) {
-    messageId = "";
-  }
+  // DirectMessage == 2. Nakama canonicalizes the channel for this sender/recipient pair.
+  const channelId = nk.channelIdBuild(ctx.userId, recipientId, 2 as any);
+  const content: {[key: string]: any} = {
+    v: 1,
+    message_type: messageType,
+    text: text,
+    sender_display_name: senderName,
+    sender_alliance_tag: allianceTag,
+    kingdom_id: kingdomId,
+    payload: messagePayload,
+    metadata: {
+      client_schema: 1,
+      tag_authority: "alliance_backend",
+      display_name_authority: "alliance_backend",
+      delivery_authority: "crownspire_dm_send_rpc",
+    },
+  };
 
+  const ack = nk.channelMessageSend(channelId, content, ctx.userId, undefined, true);
+
+  const preview = text.substring(0, 120);
   const notifContent = {
-    sender_user_id: senderId,
+    sender_user_id: ctx.userId,
     sender_display_name: senderName,
     preview: preview,
-    channel_id: actualChannelId,
-    message_id: messageId,
+    channel_id: channelId,
+    message_id: String((ack as any).messageId || ""),
   };
 
   try {
     nk.notificationSend(recipientId, "Direct Message", notifContent, DM_NOTIF_CODE, null, true);
   } catch (e) {
+    // Message persistence already succeeded. Log notification failure so the recipient
+    // can still recover the DM through history on reconnect/open.
     logger.warn("DM delivery notification failed recipient=%s err=%s", recipientId, String(e));
   }
-};
+
+  return JSON.stringify({
+    ok: true,
+    channel_id: channelId,
+    message_id: String((ack as any).messageId || ""),
+    create_time: String((ack as any).createTime || ""),
+  });
+}

@@ -35,7 +35,7 @@ const BLOCK_MUTE_PATH: String = "user://chat_moderation_local.cfg"
 const DISPLAY_NAME_PATH: String = "user://chat_display_name.cfg"
 const REPORTS_PATH: String = "user://chat_reports_pending.cfg"
 const DM_CONV_PATH: String = "user://dm_conversations.cfg"
-const DM_NOTIF_CODE: int = 5004
+const DM_NOTIF_CODE: int = 5002
 
 ## TEMPORARY local-only moderation stores. Migrate to account/backend later.
 ## Block/mute here are client filters only — not server punishment.
@@ -71,7 +71,6 @@ var _dm_notify_guard: Dictionary = {} ## peer_uid -> last_notify_ms
 var _dm_socket_subscribed: Dictionary = {} ## peer_uid -> channel_id (socket join confirmed)
 var _subscribing_dm: bool = false
 var _dm_notif_bound: bool = false
-var _dm_unread_counted_mids: Dictionary = {} ## "peer|message_id" -> true
 
 var _messages: Array[RefCounted] = [] ## ChatMessage kingdom
 var _blocked_user_ids: Dictionary = {} ## user_id -> true
@@ -567,74 +566,6 @@ func _clear_dm_unread(peer: String) -> void:
 		_dm_unread[peer] = 0
 		dm_unread_changed.emit(get_dm_unread_total())
 		_save_dm_conversations()
-
-
-func _dm_unread_count_key(peer: String, message_id: String) -> String:
-	return "%s|%s" % [peer.strip_edges(), message_id.strip_edges()]
-
-
-func _try_increment_dm_unread(peer: String, msg: RefCounted) -> bool:
-	if peer == "" or msg == null:
-		return false
-	if peer == _active_dm_peer:
-		return false
-	if str(msg.sender_user_id) == get_local_user_id():
-		return false
-	var mid: String = str(msg.message_id).strip_edges()
-	if mid != "":
-		var key: String = _dm_unread_count_key(peer, mid)
-		if _dm_unread_counted_mids.has(key):
-			return false
-		_dm_unread_counted_mids[key] = true
-	_dm_unread[peer] = int(_dm_unread.get(peer, 0)) + 1
-	dm_unread_changed.emit(get_dm_unread_total())
-	return true
-
-
-func _dm_preview_from_message(msg: RefCounted) -> String:
-	var preview: String = str(msg.text).strip_edges()
-	if preview.length() > 48:
-		preview = preview.substr(0, 45) + "…"
-	return preview
-
-
-func _apply_dm_inbound_side_effects(peer: String, msg: RefCounted) -> bool:
-	if not _try_increment_dm_unread(peer, msg):
-		return false
-	var preview: String = _dm_preview_from_message(msg)
-	_touch_dm_conversation(peer, preview, int(msg.timestamp_unix))
-	if str(msg.sender_display_name).strip_edges() != "":
-		_dm_display_names[peer] = str(msg.sender_display_name)
-	_notify_private_message(peer, preview)
-	return true
-
-
-func _apply_dm_unread_for_message_id(peer: String, message_id: String) -> void:
-	if peer == "" or message_id == "" or peer == _active_dm_peer:
-		return
-	for m in _dm_messages.get(peer, []):
-		if str(m.message_id).strip_edges() == message_id.strip_edges():
-			if _apply_dm_inbound_side_effects(peer, m):
-				_save_dm_conversations()
-				dm_conversations_changed.emit()
-			return
-
-
-func _apply_dm_unread_newest_inbound(peer: String) -> void:
-	if peer == "" or peer == _active_dm_peer:
-		return
-	var best: RefCounted = null
-	var best_ts: int = 0
-	for m in _dm_messages.get(peer, []):
-		if str(m.sender_user_id) == get_local_user_id():
-			continue
-		var ts: int = int(m.timestamp_unix)
-		if best == null or ts >= best_ts:
-			best_ts = ts
-			best = m
-	if best != null and _apply_dm_inbound_side_effects(peer, best):
-		_save_dm_conversations()
-		dm_conversations_changed.emit()
 
 
 func _peer_for_dm_channel(channel_id: String) -> String:
@@ -1155,31 +1086,80 @@ func _send_structured(
 	)
 
 	var nc_send: Node = _nakama_connection()
-	var socket: NakamaSocket = nc_send.get_socket() if nc_send != null else null
-	if socket == null:
-		var err_sock := "Chat unavailable"
-		send_failed.emit(err_sock)
-		return {"ok": false, "error": err_sock}
-	var ack = await socket.write_chat_message_async(channel_id, content)
-	if ack == null or ack.is_exception():
-		var reason: String = "Send failed"
-		if ack != null and ack.get_exception() != null:
-			reason = str(ack.get_exception().message)
-		send_failed.emit(reason)
-		return {"ok": false, "error": reason}
+	if nc_send == null:
+		var err_nc := "Chat unavailable"
+		send_failed.emit(err_nc)
+		return {"ok": false, "error": err_nc}
+
+	var ack_message_id: String = ""
+	var ack_create_time: String = ""
+	if channel_kind == "private":
+		## DMs use a server RPC so delivery does not depend on the recipient already
+		## being subscribed to the DirectMessage socket channel. The server validates
+		## the authenticated sender, persists the message, and notifies the recipient.
+		var client: NakamaClient = nc_send.get_client() if nc_send.has_method("get_client") else null
+		var session: NakamaSession = nc_send.get_session() if nc_send.has_method("get_session") else null
+		if client == null or session == null:
+			var err_rpc := "Private chat unavailable"
+			send_failed.emit(err_rpc)
+			return {"ok": false, "error": err_rpc}
+		var rpc_payload: Dictionary = {
+			"recipient_user_id": dm_peer,
+			"message_type": message_type,
+			"text": text_value,
+			"payload": payload_value,
+		}
+		var rpc_result = await client.rpc_async(session, "crownspire_dm_send", JSON.stringify(rpc_payload))
+		if rpc_result == null or rpc_result.is_exception():
+			var reason_rpc: String = "Private message send failed"
+			if rpc_result != null and rpc_result.get_exception() != null:
+				reason_rpc = str(rpc_result.get_exception().message)
+			send_failed.emit(reason_rpc)
+			return {"ok": false, "error": reason_rpc}
+		var rpc_body_raw: String = str(rpc_result.payload) if ("payload" in rpc_result) else ""
+		var rpc_body_v: Variant = JSON.parse_string(rpc_body_raw) if rpc_body_raw != "" else {}
+		if typeof(rpc_body_v) != TYPE_DICTIONARY:
+			var err_response := "Invalid private message response"
+			send_failed.emit(err_response)
+			return {"ok": false, "error": err_response}
+		var rpc_body: Dictionary = rpc_body_v as Dictionary
+		if not bool(rpc_body.get("ok", false)):
+			var err_rejected: String = str(rpc_body.get("error", "Private message rejected"))
+			send_failed.emit(err_rejected)
+			return {"ok": false, "error": err_rejected}
+		channel_id = str(rpc_body.get("channel_id", channel_id))
+		ack_message_id = str(rpc_body.get("message_id", ""))
+		ack_create_time = str(rpc_body.get("create_time", ""))
+		if dm_peer != "" and channel_id != "":
+			_dm_channel_ids[dm_peer] = channel_id
+	else:
+		var socket: NakamaSocket = nc_send.get_socket() if nc_send.has_method("get_socket") else null
+		if socket == null:
+			var err_sock := "Chat unavailable"
+			send_failed.emit(err_sock)
+			return {"ok": false, "error": err_sock}
+		var ack = await socket.write_chat_message_async(channel_id, content)
+		if ack == null or ack.is_exception():
+			var reason: String = "Send failed"
+			if ack != null and ack.get_exception() != null:
+				reason = str(ack.get_exception().message)
+			send_failed.emit(reason)
+			return {"ok": false, "error": reason}
+		ack_message_id = str(ack.message_id) if ("message_id" in ack) else ""
+		ack_create_time = str(ack.create_time) if ("create_time" in ack) else ""
 
 	_last_send_ms = now_ms
 	_last_send_fingerprint = fingerprint
 
 	var echo := ChatMessageScript.new()
-	echo.message_id = str(ack.message_id) if ("message_id" in ack) else ""
+	echo.message_id = ack_message_id
 	echo.channel_id = channel_id
 	echo.kingdom_id = _kingdom_id
 	echo.sender_user_id = get_local_user_id()
 	echo.sender_display_name = get_display_name()
 	echo.sender_alliance_tag = get_server_alliance_tag()
 	echo.timestamp_unix = int(Time.get_unix_time_from_system())
-	echo.create_time_raw = str(ack.create_time) if ("create_time" in ack) else ""
+	echo.create_time_raw = ack_create_time
 	if echo.create_time_raw != "":
 		echo.timestamp_unix = ChatMessageScript._parse_nakama_time(echo.create_time_raw)
 	echo.message_type = message_type
@@ -1397,12 +1377,7 @@ func _on_dm_notification(notification) -> void:
 	var preview: String = str(payload.get("preview", "")).strip_edges()
 	if preview != "":
 		_touch_dm_conversation(sender_id, preview, int(Time.get_unix_time_from_system()))
-	var target_mid: String = str(payload.get("message_id", "")).strip_edges()
 	await subscribe_dm_peer_background(sender_id, display_name)
-	if target_mid != "":
-		_apply_dm_unread_for_message_id(sender_id, target_mid)
-	else:
-		_apply_dm_unread_newest_inbound(sender_id)
 
 
 func _on_channel_message(raw) -> void:
@@ -1428,15 +1403,18 @@ func _on_channel_message(raw) -> void:
 				return
 		kind = "private"
 	var msg: RefCounted = ChatMessageScript.from_nakama_channel_message(raw, _kingdom_id)
-	var added: bool = _append_message(msg, kind, dm_peer)
-	if kind == "private" and dm_peer != "" and added:
-		var preview: String = _dm_preview_from_message(msg)
+	_append_message(msg, kind, dm_peer)
+	if kind == "private" and dm_peer != "":
+		var preview: String = str(msg.text).strip_edges()
+		if preview.length() > 48:
+			preview = preview.substr(0, 45) + "…"
 		_touch_dm_conversation(dm_peer, preview, int(msg.timestamp_unix))
 		if str(msg.sender_display_name).strip_edges() != "":
 			_dm_display_names[dm_peer] = str(msg.sender_display_name)
-		if dm_peer != _active_dm_peer and str(msg.sender_user_id) != get_local_user_id():
-			if _try_increment_dm_unread(dm_peer, msg):
-				_notify_private_message(dm_peer, preview)
+		if dm_peer != _active_dm_peer:
+			_dm_unread[dm_peer] = int(_dm_unread.get(dm_peer, 0)) + 1
+			dm_unread_changed.emit(get_dm_unread_total())
+			_notify_private_message(dm_peer, preview)
 		_save_dm_conversations()
 		dm_conversations_changed.emit()
 	if _should_render(msg):
@@ -1452,14 +1430,14 @@ func _notify_private_message(peer: String, preview: String) -> void:
 	private_message_notify.emit(peer, get_dm_display_name(peer), preview)
 
 
-func _append_message(msg: RefCounted, channel_kind: String = "kingdom", dm_peer: String = "") -> bool:
+func _append_message(msg: RefCounted, channel_kind: String = "kingdom", dm_peer: String = "") -> void:
 	if msg == null:
-		return false
+		return
 	var bucket: Array[RefCounted]
 	if channel_kind == "private":
 		var peer: String = dm_peer if dm_peer != "" else _active_dm_peer
 		if peer == "":
-			return false
+			return
 		if not _dm_messages.has(peer):
 			_dm_messages[peer] = [] as Array[RefCounted]
 		bucket = _dm_messages[peer]
@@ -1471,7 +1449,7 @@ func _append_message(msg: RefCounted, channel_kind: String = "kingdom", dm_peer:
 	if mid != "":
 		for existing: RefCounted in bucket:
 			if str(existing.message_id) == mid:
-				return false
+				return
 	bucket.append(msg)
 	if bucket.size() > 300:
 		bucket = bucket.slice(bucket.size() - 300, bucket.size())
@@ -1482,7 +1460,6 @@ func _append_message(msg: RefCounted, channel_kind: String = "kingdom", dm_peer:
 		_messages = bucket
 	else:
 		_alliance_messages = bucket
-	return true
 
 
 func _should_render(msg: RefCounted) -> bool:

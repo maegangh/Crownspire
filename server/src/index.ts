@@ -140,10 +140,10 @@ function InitModule(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkrunt
   initializer.registerRpc("crownspire_rally_list_active", rpcRallyListActive);
   initializer.registerRpc("crownspire_rally_complete", rpcRallyComplete);
 
-  // Phase 6 — Direct Message delivery notifications (RtAfter ChannelMessageSend).
-  registerDmHooks(initializer);
+  // Phase 6 — Direct Message delivery through authenticated server RPC.
+  initializer.registerRpc("crownspire_dm_send", rpcDmSend);
 
-  logger.info("Crownspire runtime loaded (Phase 3+4+5+5.1+5.3+6+castles identity/alliance/help/social/rallies/dm). LOCAL DEVELOPMENT ONLY.");
+  logger.info("Crownspire runtime loaded (Phase 3+4+5+5.1+5.3+6+castles identity/alliance/help/social/rallies/dm-rpc). LOCAL DEVELOPMENT ONLY.");
 }
 
 // ---------------------------------------------------------------------------
