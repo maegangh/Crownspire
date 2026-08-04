@@ -42,6 +42,7 @@ var _local_resources := {
 }
 
 var _local_buildings_cache: Dictionary = {}
+var _building_name_to_id: Dictionary = {}
 var _ui_manager: Node = null
 
 
@@ -345,6 +346,17 @@ func _populate_requirements(lvl: int, max_lvl: int) -> void:
 	if req_iron > 0:
 		_add_resource_row("Iron", "iron", req_iron, "res://assets/ui/icons/res_iron.png")
 
+	var target_level: int = mini(lvl + 1, max_lvl)
+	if _normalize_building_id(building_id) != "castle":
+		_add_castle_cap_prerequisite_row(target_level)
+
+	var building_prereqs: Array = building_data.get("prerequisites", [])
+	for prereq_entry: Variant in building_prereqs:
+		var parsed: Dictionary = _parse_prerequisite_entry(prereq_entry)
+		if bool(parsed.get("ok", false)) and str(parsed.get("building_id", "")) == "castle":
+			continue
+		_add_building_prerequisite_row(prereq_entry)
+
 	refresh_requirements_and_buttons()
 
 
@@ -384,6 +396,63 @@ func _add_resource_row(display_name: String, resource_id: String, req_amount: in
 		row.action_pressed.connect(func(): _on_obtain_pressed(resource_id))
 
 
+func _add_castle_cap_prerequisite_row(required_castle_level: int) -> void:
+	var have_lvl: int = _get_prerequisite_building_level("castle")
+	var is_met: bool = have_lvl >= required_castle_level
+	var missing_str := ""
+	if not is_met:
+		missing_str = "Lv. %d" % required_castle_level
+
+	var row = REQUIREMENT_ROW_SCENE.instantiate()
+	requirements_container.add_child(row)
+	row.setup(
+		"Citadel Keep",
+		"res://assets/ui/icons/hud_power.png",
+		"Lv. %d" % have_lvl,
+		"Lv. %d" % required_castle_level,
+		missing_str,
+		is_met,
+		""
+	)
+
+
+func _add_building_prerequisite_row(prereq_entry: Variant) -> void:
+	var parsed: Dictionary = _parse_prerequisite_entry(prereq_entry)
+	var row = REQUIREMENT_ROW_SCENE.instantiate()
+	requirements_container.add_child(row)
+
+	if not bool(parsed.get("ok", false)):
+		row.setup(
+			"Building Requirement",
+			"res://assets/ui/icons/category_featured.png",
+			"—",
+			str(parsed.get("display", "Invalid")),
+			"Invalid",
+			false,
+			""
+		)
+		return
+
+	var bid: String = str(parsed.get("building_id", ""))
+	var need_lvl: int = int(parsed.get("required_level", 1))
+	var have_lvl: int = _get_prerequisite_building_level(bid)
+	var is_met: bool = have_lvl >= need_lvl
+	var display_name: String = str(parsed.get("building_name", bid))
+	var missing_str := ""
+	if not is_met:
+		missing_str = "Lv. %d" % need_lvl
+
+	row.setup(
+		display_name,
+		"res://assets/ui/icons/category_featured.png",
+		"Lv. %d" % have_lvl,
+		"Lv. %d" % need_lvl,
+		missing_str,
+		is_met,
+		""
+	)
+
+
 func refresh_requirements_and_buttons() -> void:
 	var lvl := int(building_data.get("level", 1))
 	var max_lvl := int(building_data.get("max_level", 30))
@@ -405,6 +474,13 @@ func refresh_requirements_and_buttons() -> void:
 			all_met = false
 			break
 
+	var prereq_gate: Dictionary = _evaluate_upgrade_prerequisites(
+		building_id,
+		lvl,
+		building_data.get("prerequisites", [])
+	)
+	var prereqs_met: bool = bool(prereq_gate.get("ok", true))
+
 	var this_upgrading := false
 	var queue_full := false
 	if has_node("/root/ConstructionState"):
@@ -422,7 +498,7 @@ func refresh_requirements_and_buttons() -> void:
 			upgrade_button.disabled = true
 		else:
 			upgrade_button.text = "Upgrade"
-			upgrade_button.disabled = not all_met
+			upgrade_button.disabled = not all_met or not prereqs_met
 
 	if finish_button:
 		if missing_resources_crystal_cost > 0:
@@ -431,7 +507,7 @@ func refresh_requirements_and_buttons() -> void:
 			var base_speed_cost := int(float(building_data.get("upgrade_time_seconds", 300)) / 60.0)
 			finish_button.text = "Finish Now (%d 💎)" % max(5, base_speed_cost)
 		# Finish Now blocked when another building occupies the only queue slot.
-		finish_button.disabled = queue_full and not this_upgrading
+		finish_button.disabled = (queue_full and not this_upgrading) or not prereqs_met
 
 	if speedup_button:
 		# Enabled whenever a real construction timer is running — even with 0 bag speedups.
@@ -617,6 +693,8 @@ func _on_upgrade_button_pressed() -> void:
 	else:
 		var err: String = str(result.get("error", "Unknown error"))
 		push_warning("[Crownspire UpgradeWindow] Upgrade failed: " + err)
+		if _is_prerequisite_failure_message(err):
+			_show_celebration_overlay("REQUIREMENTS NOT MET", err)
 		if upgrade_button and err == "Construction Queue Full":
 			upgrade_button.text = "Construction Queue Full"
 			upgrade_button.disabled = true
@@ -675,7 +753,10 @@ func _on_finish_button_pressed() -> void:
 	var started: Dictionary = _start_timed_construction(building_id)
 	if not started.get("success", false):
 		_set_player_resource("royal_crystals", crystals_before)
-		push_warning("[Crownspire UpgradeWindow] Finish start failed: " + str(started.get("error", "")))
+		var start_err: String = str(started.get("error", ""))
+		push_warning("[Crownspire UpgradeWindow] Finish start failed: " + start_err)
+		if _is_prerequisite_failure_message(start_err):
+			_show_celebration_overlay("REQUIREMENTS NOT MET", start_err)
 		return
 
 	var finished2: Dictionary = ConstructionState.finish_construction_now(building_id)
@@ -872,28 +953,214 @@ func _get_local_building(b_id: String) -> Dictionary:
 		"description": str(next_data.get("description", ""))
 	}
 
+func _ensure_building_name_map() -> void:
+	if not _building_name_to_id.is_empty():
+		return
+	_ensure_buildings_cache_loaded()
+	for raw_id: Variant in _local_buildings_cache.keys():
+		var bid: String = str(raw_id)
+		var template: Dictionary = _local_buildings_cache[bid] as Dictionary
+		var display_name: String = str(template.get("name", "")).strip_edges().to_lower()
+		if not display_name.is_empty():
+			_building_name_to_id[display_name] = bid
+	# Common prerequisite spellings from buildings.json.
+	_building_name_to_id["citadel keep"] = "castle"
+	_building_name_to_id["citadel"] = "castle"
+	_building_name_to_id["wanderers farm"] = "farm"
+	_building_name_to_id["timber woodmill"] = "lumber_mill"
+	_building_name_to_id["slate quarry"] = "quarry"
+	_building_name_to_id["deep iron shaft"] = "iron_mine"
+	_building_name_to_id["vault warehouse"] = "warehouse"
+	_building_name_to_id["research hall"] = "academy"
+	_building_name_to_id["sacred hospital"] = "hospital"
+	_building_name_to_id["imperial embassy"] = "embassy"
+	_building_name_to_id["sentry watchtower"] = "watchtower"
+
+
+func _ensure_buildings_cache_loaded() -> void:
+	if not _local_buildings_cache.is_empty():
+		return
+	var path := "res://data/buildings.json"
+	if not FileAccess.file_exists(path):
+		return
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return
+	var parsed: Variant = JSON.parse_string(file.get_as_text())
+	if parsed is Dictionary:
+		_local_buildings_cache = parsed as Dictionary
+
+
+func _parse_prerequisite_entry(raw: Variant) -> Dictionary:
+	if typeof(raw) != TYPE_STRING:
+		return {"ok": false, "display": "Invalid prerequisite", "error": "not_string"}
+	var text: String = str(raw).strip_edges()
+	if text.is_empty():
+		return {"ok": false, "display": "Empty prerequisite", "error": "empty"}
+
+	var re := RegEx.new()
+	if re.compile("(?i)^(.+?)\\s+(?:lvl|level)\\.?\\s*(\\d+)\\s*$") != OK:
+		return {"ok": false, "display": text, "error": "regex_failed"}
+	var match: RegExMatch = re.search(text)
+	if match == null:
+		return {"ok": false, "display": text, "error": "unrecognized_format"}
+
+	var name_part: String = match.get_string(1).strip_edges()
+	var req_level: int = int(match.get_string(2))
+	if req_level <= 0:
+		return {"ok": false, "display": text, "error": "invalid_level"}
+
+	var bid: String = _resolve_prerequisite_building_id(name_part)
+	if bid.is_empty():
+		return {"ok": false, "display": text, "error": "unknown_building"}
+
+	return {
+		"ok": true,
+		"building_id": bid,
+		"required_level": req_level,
+		"building_name": name_part,
+		"display": text,
+	}
+
+
+func _resolve_prerequisite_building_id(name_part: String) -> String:
+	_ensure_building_name_map()
+	var key: String = name_part.strip_edges().to_lower()
+	if _building_name_to_id.has(key):
+		return _normalize_building_id(str(_building_name_to_id[key]))
+	var snake_guess: String = _normalize_building_id(key.replace(" ", "_"))
+	if _local_buildings_cache.has(snake_guess):
+		return snake_guess
+	return ""
+
+
+func _get_prerequisite_building_level(building_id: String) -> int:
+	var bid: String = _normalize_building_id(building_id)
+	if bid.is_empty():
+		return 0
+	if has_node("/root/ConstructionState") and ConstructionState.has_method("get_canonical_building_level"):
+		return maxi(0, int(ConstructionState.get_canonical_building_level(bid)))
+	return 0
+
+
+func _evaluate_upgrade_prerequisites(
+	building_id_for_cap: String,
+	current_level: int,
+	prereqs: Variant
+) -> Dictionary:
+	var json_gate: Dictionary = _evaluate_building_prerequisites(prereqs)
+	if not bool(json_gate.get("ok", false)):
+		return json_gate
+	if _normalize_building_id(building_id_for_cap) == "castle":
+		return json_gate
+
+	var target_level: int = current_level + 1
+	if has_node("/root/ConstructionState") and ConstructionState.has_method("check_castle_level_cap"):
+		var cap: Dictionary = ConstructionState.check_castle_level_cap(
+			building_id_for_cap,
+			target_level
+		)
+		if not bool(cap.get("ok", false)):
+			return {
+				"ok": false,
+				"unmet": [{
+					"display": "Citadel Keep Lv. %d" % int(cap.get("required_castle_level", target_level)),
+					"building_id": "castle",
+					"have": int(cap.get("current_castle_level", 0)),
+					"need": int(cap.get("required_castle_level", target_level)),
+					"building_name": "Citadel Keep",
+				}],
+				"invalid": PackedStringArray(),
+			}
+	return {"ok": true, "unmet": [], "invalid": []}
+
+
+func _evaluate_building_prerequisites(prereqs: Variant) -> Dictionary:
+	if prereqs == null:
+		return {"ok": true, "unmet": [], "invalid": []}
+	if typeof(prereqs) != TYPE_ARRAY:
+		return {
+			"ok": false,
+			"unmet": [],
+			"invalid": ["Prerequisites must be a list."],
+		}
+
+	var unmet: Array = []
+	var invalid: PackedStringArray = PackedStringArray()
+	for entry: Variant in prereqs as Array:
+		var parsed: Dictionary = _parse_prerequisite_entry(entry)
+		if not bool(parsed.get("ok", false)):
+			invalid.append(str(parsed.get("display", entry)))
+			continue
+		var bid: String = str(parsed.get("building_id", ""))
+		var need: int = int(parsed.get("required_level", 1))
+		var have: int = _get_prerequisite_building_level(bid)
+		if have < need:
+			unmet.append({
+				"display": str(parsed.get("display", "")),
+				"building_id": bid,
+				"have": have,
+				"need": need,
+				"building_name": str(parsed.get("building_name", bid)),
+			})
+
+	return {
+		"ok": unmet.is_empty() and invalid.is_empty(),
+		"unmet": unmet,
+		"invalid": invalid,
+	}
+
+
+func _format_prerequisite_failure(gate: Dictionary) -> String:
+	var invalid: PackedStringArray = gate.get("invalid", PackedStringArray()) as PackedStringArray
+	if not invalid.is_empty():
+		return "Upgrade blocked: invalid prerequisite data (%s)." % ", ".join(invalid)
+
+	var unmet: Array = gate.get("unmet", []) as Array
+	if unmet.is_empty():
+		return "Upgrade blocked: building requirements not met."
+
+	var lines: PackedStringArray = PackedStringArray()
+	for item: Variant in unmet:
+		if typeof(item) != TYPE_DICTIONARY:
+			continue
+		var d: Dictionary = item as Dictionary
+		lines.append(
+			"%s Lv. %d (current Lv. %d)" % [
+				str(d.get("building_name", d.get("display", "Building"))),
+				int(d.get("need", 1)),
+				int(d.get("have", 0)),
+			]
+		)
+	return "Requires:\n" + "\n".join(lines)
+
+
+func _format_castle_cap_failure(cap: Dictionary) -> String:
+	return "Requires:\nCitadel Keep Lv. %d (current Lv. %d)" % [
+		int(cap.get("required_castle_level", 1)),
+		int(cap.get("current_castle_level", 0)),
+	]
+
+
+func _is_prerequisite_failure_message(err: String) -> bool:
+	return (
+		err.begins_with("Requires:")
+		or err.begins_with("Upgrade blocked:")
+		or err.contains("Citadel Keep Lv.")
+	)
+
+
 func _load_saved_building_level(
 	b_id: String,
-	display_name: String
+	_display_name: String
 ) -> int:
-	var save := ConfigFile.new()
-
-	if save.load("user://buildings.cfg") != OK:
+	# Phase 0B2-A: canonical ConstructionState authority only.
+	# Display-name / legacy cfg sections are never used as level authority.
+	var id_key: String = _normalize_building_id(b_id)
+	if id_key.is_empty():
 		return 1
-
-	if save.has_section_key(b_id, "level"):
-		return int(save.get_value(b_id, "level", 1))
-
-	if save.has_section_key(display_name, "level"):
-		return int(save.get_value(display_name, "level", 1))
-
-	# ResourceManager legacy sections often use node export building_name ("Farm").
-	if save.has_section_key("Farm", "level") and b_id == "farm":
-		return int(save.get_value("Farm", "level", 1))
-	var titled := b_id.capitalize().replace("_", " ")
-	if save.has_section_key(titled, "level"):
-		return int(save.get_value(titled, "level", 1))
-
+	if has_node("/root/ConstructionState") and ConstructionState.has_method("get_canonical_building_level"):
+		return maxi(1, int(ConstructionState.get_canonical_building_level(id_key)))
 	return 1
 
 func _local_upgrade_building(b_id: String) -> Dictionary:
@@ -923,6 +1190,26 @@ func _start_timed_construction(b_id: String) -> Dictionary:
 	if not bool(gate.get("ok", false)):
 		return {"success": false, "error": str(gate.get("reason", "Construction Queue Full"))}
 
+	var prereq_gate: Dictionary = _evaluate_upgrade_prerequisites(
+		b_id,
+		lvl,
+		b.get("prerequisites", [])
+	)
+	if not bool(prereq_gate.get("ok", false)):
+		return {
+			"success": false,
+			"error": _format_prerequisite_failure(prereq_gate),
+		}
+
+	var target_level := lvl + 1
+	if has_node("/root/ConstructionState"):
+		var cap: Dictionary = ConstructionState.check_castle_level_cap(b_id, target_level)
+		if not bool(cap.get("ok", false)):
+			return {
+				"success": false,
+				"error": _format_castle_cap_failure(cap),
+			}
+
 	var reqs: Dictionary = b.get("resources_required", {})
 	var food_cost := int(reqs.get("food", 0))
 	var wood_cost := int(reqs.get("wood", 0))
@@ -950,7 +1237,6 @@ func _start_timed_construction(b_id: String) -> Dictionary:
 		_set_player_resource(resource_id, _get_player_resource(resource_id) - required_amount)
 		extra_spent[resource_id] = required_amount
 
-	var target_level := lvl + 1
 	var duration: float = float(b.get("upgrade_time_seconds", building_data.get("upgrade_time_seconds", 300)))
 	if duration <= 0.0:
 		duration = 30.0
