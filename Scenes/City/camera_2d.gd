@@ -242,9 +242,51 @@ func _pointer_over_blocking_gui(screen_pos: Vector2 = Vector2.INF) -> bool:
 	var pos: Vector2 = screen_pos
 	if pos == Vector2.INF:
 		pos = vp.get_mouse_position()
+	## Queue cards sit over the left/top city band; prefer collect when a ready
+	## Collect ClickArea is under the pointer so Farm/resource taps still work.
+	if _is_under_named_ancestor(hovered, "QueueStatusHUD") and _collect_ready_under_screen(pos):
+		return false
 	if _pointer_inside_tutorial_spotlight_hole(pos) and not _is_tutorial_interactive_chrome(hovered):
 		return false
 	return true
+
+
+func _is_under_named_ancestor(ctrl: Control, node_name: String) -> bool:
+	var n: Node = ctrl
+	while n != null:
+		if str(n.name) == node_name:
+			return true
+		n = n.get_parent()
+	return false
+
+
+func _collect_ready_under_screen(screen_pos: Vector2) -> bool:
+	var space := get_world_2d().direct_space_state if get_world_2d() != null else null
+	if space == null:
+		return false
+	var world_pos: Vector2 = get_canvas_transform().affine_inverse() * screen_pos
+	var query := PhysicsPointQueryParameters2D.new()
+	query.position = world_pos
+	query.collide_with_areas = true
+	query.collide_with_bodies = false
+	query.collision_mask = 0xFFFFFFFF
+	var hits: Array = space.intersect_point(query, 16)
+	for hit: Variant in hits:
+		if typeof(hit) != TYPE_DICTIONARY:
+			continue
+		var collider: Variant = hit.get("collider")
+		if not (collider is Area2D):
+			continue
+		var area: Area2D = collider as Area2D
+		if area.name != "ClickArea":
+			continue
+		var host: Node = area.get_parent()
+		if host == null or not host.has_method("activate_collect_tap"):
+			continue
+		if "ready_to_collect" in host and not bool(host.get("ready_to_collect")):
+			continue
+		return true
+	return false
 
 
 func _is_building_decor_control(ctrl: Control) -> bool:

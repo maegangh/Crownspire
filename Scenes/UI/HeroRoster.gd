@@ -63,19 +63,47 @@ func _ready() -> void:
 
 
 func _polish_shell_layout() -> void:
+	## Fill the full usable viewport (Android expand stretch can exceed 720×1280).
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var fill: ColorRect = get_node_or_null("FillColor") as ColorRect
+	if fill != null:
+		fill.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var bg: TextureRect = get_node_or_null("Background") as TextureRect
+	if bg != null:
+		bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		bg.offset_left = 0.0
+		bg.offset_top = 0.0
+		bg.offset_right = 0.0
+		bg.offset_bottom = 0.0
+		bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
 	_title_label = get_node_or_null("TitleLabel") as Label
 	if _title_label:
 		_title_label.text = "HEROES"
 		_title_label.add_theme_font_size_override("font_size", 36)
 		_title_label.add_theme_color_override("font_color", COL_GOLD)
 		_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_title_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
+		_title_label.offset_left = 24.0
+		_title_label.offset_right = -24.0
+		_title_label.offset_top = 24.0
+		_title_label.offset_bottom = 72.0
 
 	if scroll:
+		scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		scroll.offset_left = 24.0
-		scroll.offset_right = 696.0
+		scroll.offset_right = -24.0
 		scroll.offset_top = 92.0
-		scroll.offset_bottom = 1260.0
+		scroll.offset_bottom = -24.0
 		MobileScrollUtil.configure(scroll)
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_RESIZED:
+		_polish_shell_layout()
 
 
 func _setup_content_root() -> void:

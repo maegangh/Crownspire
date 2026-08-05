@@ -5,6 +5,7 @@ extends Control
 
 const MobileScrollUtil = preload("res://scripts/UI/MobileScroll.gd")
 const ChatMessageScript = preload("res://scripts/Backend/ChatMessage.gd")
+const ChatEmojiCatalogScript = preload("res://scripts/UI/ChatEmojiCatalog.gd")
 
 const COL_INK := Color(0.93, 0.88, 0.76, 1.0)
 const COL_MUTED := Color(0.72, 0.66, 0.55, 1.0)
@@ -23,6 +24,10 @@ const COL_INPUT := Color(0.07, 0.06, 0.09, 0.98)
 const FALLBACK_TOP_INSET: float = 120.0
 const FALLBACK_BOTTOM_INSET: float = 188.0
 const LONG_PRESS_MS: int = 380
+const KEYBOARD_POLL_SEC: float = 0.08
+const SCROLL_STICK_MARGIN_PX: float = 96.0
+const EMOJI_CELL_SIZE: float = 46.0
+const EMOJI_INLINE_SIZE: float = 22.0
 
 var _tab: String = "kingdom"
 var _dim: ColorRect
@@ -56,6 +61,20 @@ var _pending_private_peer: String = ""
 var _pending_private_name: String = ""
 var _player_context_user_id: String = ""
 var _player_context_name: String = ""
+var _keyboard_lift_px: float = 0.0
+var _keyboard_poll_accum: float = 0.0
+var _stick_to_bottom: bool = true
+var _emoji_grid: GridContainer = null
+var _emoji_panel: PanelContainer = null
+var _emoji_grid_scroll: ScrollContainer = null
+var _tool_emoji_btn: Button = null
+var _tool_location_btn: Button = null
+var _tool_rally_btn: Button = null
+var _tool_more_btn: Button = null
+var _chat_font: Font = null
+var _emoji_preview_row: HBoxContainer = null
+var _emoji_preview_flow: HFlowContainer = null
+var _emoji_preview_hint: Label = null
 
 
 func _chat_manager() -> Node:
@@ -89,8 +108,11 @@ func on_open() -> void:
 		_tab = "kingdom"
 	_close_actions()
 	_close_emoji()
+	_keyboard_lift_px = 0.0
+	_stick_to_bottom = true
 	visible = true
 	mouse_filter = Control.MOUSE_FILTER_STOP
+	set_process(true)
 	_apply_window_position()
 	_refresh_tabs()
 	_refresh_status()
@@ -107,7 +129,7 @@ func on_open() -> void:
 				await _chat_manager().ensure_alliance_joined()
 		_refresh_status()
 		_refresh_messages()
-		_scroll_to_bottom()
+		_scroll_to_bottom(true)
 
 
 func request_open_tab(tab_id: String) -> void:
@@ -141,8 +163,14 @@ func _open_active_channel() -> void:
 func on_close() -> void:
 	_close_actions()
 	_close_emoji()
+	_keyboard_lift_px = 0.0
+	if _input != null and _input.has_focus():
+		_input.release_focus()
+	DisplayServer.virtual_keyboard_hide()
+	set_process(false)
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_apply_window_position()
 
 
 func _bind_chat_signals() -> void:
@@ -198,7 +226,7 @@ func _on_message_event(_msg: RefCounted) -> void:
 	if not visible:
 		return
 	_refresh_messages()
-	_scroll_to_bottom()
+	_scroll_to_bottom(false)
 
 
 func _on_messages_loaded(kind: String) -> void:
@@ -212,6 +240,7 @@ func _on_messages_loaded(kind: String) -> void:
 		_refresh_tabs()
 		return
 	_refresh_messages()
+	_scroll_to_bottom(true)
 
 
 func _on_availability(_available: bool) -> void:
@@ -245,6 +274,42 @@ func _on_alliance_joined(_channel_id: String) -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
 		_apply_window_position()
+		if _emoji_overlay != null and _emoji_overlay.visible:
+			_fit_emoji_panel()
+		if visible and _stick_to_bottom:
+			_scroll_to_bottom(false)
+
+
+func _process(delta: float) -> void:
+	if not visible:
+		return
+	_keyboard_poll_accum += delta
+	if _keyboard_poll_accum < KEYBOARD_POLL_SEC:
+		return
+	_keyboard_poll_accum = 0.0
+	_update_keyboard_lift()
+
+
+func _update_keyboard_lift() -> void:
+	var focused: bool = _input != null and _input.has_focus()
+	var kb_h: float = 0.0
+	if focused:
+		kb_h = float(DisplayServer.virtual_keyboard_get_height())
+		## Some Android builds report 0 until Soft Input Mode resizes the viewport;
+		## use a viewport shrink heuristic as fallback.
+		if kb_h <= 1.0:
+			var shrink: float = maxf(0.0, get_viewport().get_visible_rect().size.y - size.y)
+			if shrink > 80.0:
+				kb_h = shrink
+	var next_lift: float = 0.0
+	if kb_h > 40.0:
+		## Lift enough to clear the keyboard while keeping the panel above the nav bar when closed.
+		next_lift = maxf(0.0, kb_h - FALLBACK_BOTTOM_INSET + 12.0)
+	if absf(next_lift - _keyboard_lift_px) > 1.0:
+		_keyboard_lift_px = next_lift
+		_apply_window_position()
+		if _stick_to_bottom:
+			_scroll_to_bottom(false)
 
 
 func _build_ui() -> void:
@@ -347,6 +412,9 @@ func _build_ui() -> void:
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	root.add_child(_scroll)
 	_mobile_scroll = MobileScrollUtil.ensure(self, _scroll, "ChatMobileScroll")
+	var vbar: ScrollBar = _scroll.get_v_scroll_bar()
+	if vbar != null and not vbar.value_changed.is_connected(_on_chat_scroll_value_changed):
+		vbar.value_changed.connect(_on_chat_scroll_value_changed)
 
 	_messages_box = VBoxContainer.new()
 	_messages_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -371,26 +439,49 @@ func _build_composer() -> Control:
 	tools.add_theme_constant_override("separation", 6)
 	wrap.add_child(tools)
 
-	var emoji_btn := _make_tool_button("😀", "Emoji")
-	emoji_btn.pressed.connect(_open_emoji_placeholder)
-	tools.add_child(emoji_btn)
+	## Original callbacks (in order):
+	## 1) _open_emoji_picker — emoji picker
+	## 2) _on_share_location — share map location
+	## 3) _on_share_rally — share rally preview
+	## 4) attachments stub (was disabled "coming soon") → More menu
+	_tool_emoji_btn = _make_tool_button("Emoji", "Open emoji picker")
+	_tool_emoji_btn.pressed.connect(_open_emoji_picker)
+	tools.add_child(_tool_emoji_btn)
 
-	var loc_btn := _make_tool_button("📍", "Share location")
-	loc_btn.pressed.connect(_on_share_location)
-	tools.add_child(loc_btn)
+	_tool_location_btn = _make_tool_button("Map", "Share map location")
+	_tool_location_btn.pressed.connect(_on_share_location)
+	tools.add_child(_tool_location_btn)
 
-	var rally_btn := _make_tool_button("⚔", "Share rally")
-	rally_btn.pressed.connect(_on_share_rally)
-	tools.add_child(rally_btn)
+	_tool_rally_btn = _make_tool_button("Rally", "Share rally")
+	_tool_rally_btn.pressed.connect(_on_share_rally)
+	tools.add_child(_tool_rally_btn)
 
-	var more_btn := _make_tool_button("➕", "Attachments coming soon")
-	more_btn.disabled = true
-	more_btn.tooltip_text = "Attachments coming soon"
-	tools.add_child(more_btn)
+	_tool_more_btn = _make_tool_button("More", "More actions")
+	_tool_more_btn.pressed.connect(_on_composer_more_pressed)
+	tools.add_child(_tool_more_btn)
 
-	var spacer := Control.new()
-	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	tools.add_child(spacer)
+	## PNG preview of emoji tokens in the draft (LineEdit cannot show inline images).
+	_emoji_preview_row = HBoxContainer.new()
+	_emoji_preview_row.add_theme_constant_override("separation", 8)
+	_emoji_preview_row.custom_minimum_size = Vector2(0, 28)
+	wrap.add_child(_emoji_preview_row)
+	var preview_lbl := Label.new()
+	preview_lbl.text = "Emoji"
+	preview_lbl.add_theme_color_override("font_color", COL_MUTED)
+	preview_lbl.add_theme_font_size_override("font_size", 12)
+	_apply_chat_font(preview_lbl, 12)
+	_emoji_preview_row.add_child(preview_lbl)
+	_emoji_preview_flow = HFlowContainer.new()
+	_emoji_preview_flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_emoji_preview_flow.add_theme_constant_override("h_separation", 4)
+	_emoji_preview_flow.add_theme_constant_override("v_separation", 2)
+	_emoji_preview_row.add_child(_emoji_preview_flow)
+	_emoji_preview_hint = Label.new()
+	_emoji_preview_hint.text = "Pick an emoji to insert :token:"
+	_emoji_preview_hint.add_theme_color_override("font_color", Color(COL_MUTED.r, COL_MUTED.g, COL_MUTED.b, 0.85))
+	_emoji_preview_hint.add_theme_font_size_override("font_size", 12)
+	_apply_chat_font(_emoji_preview_hint, 12)
+	_emoji_preview_flow.add_child(_emoji_preview_hint)
 
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
@@ -402,6 +493,9 @@ func _build_composer() -> Control:
 	_input.custom_minimum_size = Vector2(0, 52)
 	_input.max_length = ChatMessageScript.MAX_TEXT_LENGTH
 	_input.text_submitted.connect(func(_t): _on_send_pressed())
+	_input.text_changed.connect(_on_composer_text_changed)
+	_input.focus_entered.connect(_on_composer_focus_entered)
+	_input.focus_exited.connect(_on_composer_focus_exited)
 	var input_style := StyleBoxFlat.new()
 	input_style.bg_color = COL_INPUT
 	input_style.border_color = COL_BORDER
@@ -412,6 +506,7 @@ func _build_composer() -> Control:
 	_input.add_theme_stylebox_override("normal", input_style)
 	_input.add_theme_color_override("font_color", COL_INK)
 	_input.add_theme_color_override("font_placeholder_color", COL_MUTED)
+	_apply_chat_font(_input, 16)
 	row.add_child(_input)
 
 	_send_btn = Button.new()
@@ -422,17 +517,142 @@ func _build_composer() -> Control:
 	_send_btn.pressed.connect(_on_send_pressed)
 	row.add_child(_send_btn)
 
+	_refresh_composer_tools()
+	_refresh_emoji_preview()
 	return wrap
 
 
-func _make_tool_button(icon_text: String, tip: String) -> Button:
+func _on_composer_text_changed(_new_text: String) -> void:
+	_refresh_emoji_preview()
+
+
+func _refresh_emoji_preview() -> void:
+	if _emoji_preview_flow == null:
+		return
+	for c in _emoji_preview_flow.get_children():
+		c.queue_free()
+	var draft: String = ""
+	if _input != null:
+		draft = _input.text
+	var tokens: PackedStringArray = ChatEmojiCatalogScript.list_tokens_in_text(draft)
+	if tokens.is_empty():
+		_emoji_preview_hint = Label.new()
+		_emoji_preview_hint.text = "Pick an emoji to insert :token:"
+		_emoji_preview_hint.add_theme_color_override("font_color", Color(COL_MUTED.r, COL_MUTED.g, COL_MUTED.b, 0.85))
+		_emoji_preview_hint.add_theme_font_size_override("font_size", 12)
+		_apply_chat_font(_emoji_preview_hint, 12)
+		_emoji_preview_flow.add_child(_emoji_preview_hint)
+		return
+	for tok in tokens:
+		var tex: Texture2D = ChatEmojiCatalogScript.texture_for_token(str(tok))
+		if tex == null:
+			var fallback := Label.new()
+			fallback.text = ChatEmojiCatalogScript.token_literal(str(tok))
+			fallback.add_theme_color_override("font_color", COL_INK)
+			fallback.add_theme_font_size_override("font_size", 12)
+			_apply_chat_font(fallback, 12)
+			_emoji_preview_flow.add_child(fallback)
+			continue
+		var icon := TextureRect.new()
+		icon.texture = tex
+		icon.custom_minimum_size = Vector2(24, 24)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.tooltip_text = ChatEmojiCatalogScript.token_literal(str(tok))
+		icon.mouse_filter = Control.MOUSE_FILTER_STOP
+		_emoji_preview_flow.add_child(icon)
+
+
+func _make_tool_button(label_text: String, tip: String) -> Button:
 	var btn := Button.new()
-	btn.text = icon_text
+	btn.text = label_text
 	btn.tooltip_text = tip
 	btn.focus_mode = Control.FOCUS_NONE
-	btn.custom_minimum_size = Vector2(52, 48)
+	btn.custom_minimum_size = Vector2(0, 44)
+	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	btn.clip_text = true
 	_style_icon_button(btn)
+	btn.add_theme_font_size_override("font_size", 13)
+	_apply_chat_font(btn, 13)
 	return btn
+
+
+func _refresh_composer_tools() -> void:
+	## Rally share is kingdom/alliance only — hide in Direct instead of failing after tap.
+	if _tool_rally_btn != null:
+		var rally_ok: bool = _tab != "private"
+		_tool_rally_btn.visible = rally_ok
+		_tool_rally_btn.disabled = not rally_ok
+	if _tool_location_btn != null:
+		_tool_location_btn.disabled = not _can_compose()
+	if _tool_emoji_btn != null:
+		_tool_emoji_btn.disabled = not _can_compose()
+	if _tool_more_btn != null:
+		_tool_more_btn.disabled = false
+
+
+func _on_composer_more_pressed() -> void:
+	_close_emoji()
+	## Small action menu for the former attachments stub (+).
+	_selected_message = null
+	if _action_overlay == null or _action_box == null:
+		if _status_label != null:
+			_status_label.text = "Attachments are coming soon."
+		return
+	for c in _action_box.get_children():
+		c.queue_free()
+	var title := Label.new()
+	title.text = "More"
+	title.add_theme_color_override("font_color", COL_GOLD)
+	title.add_theme_font_size_override("font_size", 18)
+	_apply_chat_font(title, 18)
+	_action_box.add_child(title)
+	_add_action("Attachments (coming soon)", func():
+		_close_actions()
+		if _status_label != null:
+			_status_label.text = "Attachments are coming soon."
+	)
+	## Mirror Map/Rally here so players still find them if the toolbar feels crowded.
+	if _can_compose():
+		_add_action("Share Map Location", func():
+			_close_actions()
+			_on_share_location()
+		)
+	if _tab != "private" and _can_compose():
+		_add_action("Share Rally", func():
+			_close_actions()
+			_on_share_rally()
+		)
+	_add_action("Cancel", _close_actions)
+	_action_overlay.visible = true
+
+
+func _get_chat_font() -> Font:
+	if _chat_font != null:
+		return _chat_font
+	## Plain system UI font only — emoji rendering is PNG/token based, not Unicode fonts.
+	var base := SystemFont.new()
+	base.font_names = PackedStringArray(["sans-serif", "Roboto", "Arial", "Helvetica"])
+	base.multichannel_signed_distance_field = false
+	_chat_font = base
+	return _chat_font
+
+
+func _apply_chat_font(ctrl: Control, font_size: int = 16) -> void:
+	if ctrl == null:
+		return
+	var font: Font = _get_chat_font()
+	if font == null:
+		return
+	if ctrl is LineEdit:
+		(ctrl as LineEdit).add_theme_font_override("font", font)
+		(ctrl as LineEdit).add_theme_font_size_override("font_size", font_size)
+	elif ctrl is Button:
+		(ctrl as Button).add_theme_font_override("font", font)
+		(ctrl as Button).add_theme_font_size_override("font_size", font_size)
+	elif ctrl is Label:
+		(ctrl as Label).add_theme_font_override("font", font)
+		(ctrl as Label).add_theme_font_size_override("font_size", font_size)
 
 
 func _style_icon_button(btn: Button) -> void:
@@ -441,12 +661,17 @@ func _style_icon_button(btn: Button) -> void:
 	fill.border_color = COL_BORDER
 	fill.set_border_width_all(1)
 	fill.set_corner_radius_all(10)
+	var disabled := fill.duplicate() as StyleBoxFlat
+	disabled.bg_color = Color(0.10, 0.09, 0.12, 1.0)
+	disabled.border_color = Color(COL_BORDER.r, COL_BORDER.g, COL_BORDER.b, 0.35)
 	btn.add_theme_stylebox_override("normal", fill)
 	btn.add_theme_stylebox_override("pressed", fill)
 	btn.add_theme_stylebox_override("hover", fill)
-	btn.add_theme_stylebox_override("disabled", fill)
-	btn.add_theme_font_size_override("font_size", 20)
+	btn.add_theme_stylebox_override("disabled", disabled)
+	btn.add_theme_font_size_override("font_size", 13)
 	btn.add_theme_color_override("font_color", COL_INK)
+	btn.add_theme_color_override("font_disabled_color", Color(COL_MUTED.r, COL_MUTED.g, COL_MUTED.b, 0.55))
+	_apply_chat_font(btn, 13)
 
 
 func _style_primary_button(btn: Button) -> void:
@@ -517,33 +742,51 @@ func _build_emoji_overlay() -> void:
 			_close_emoji()
 	)
 	_emoji_overlay.add_child(dim)
-	var panel := PanelContainer.new()
-	panel.set_anchors_preset(Control.PRESET_CENTER)
-	panel.custom_minimum_size = Vector2(420, 180)
+	_emoji_panel = PanelContainer.new()
+	_emoji_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	var st := StyleBoxFlat.new()
 	st.bg_color = COL_CARD
 	st.border_color = COL_BORDER
 	st.set_border_width_all(2)
 	st.set_corner_radius_all(12)
-	st.content_margin_left = 16
-	st.content_margin_right = 16
-	st.content_margin_top = 16
-	st.content_margin_bottom = 16
-	panel.add_theme_stylebox_override("panel", st)
-	_emoji_overlay.add_child(panel)
+	st.content_margin_left = 10
+	st.content_margin_right = 10
+	st.content_margin_top = 10
+	st.content_margin_bottom = 10
+	_emoji_panel.add_theme_stylebox_override("panel", st)
+	_emoji_overlay.add_child(_emoji_panel)
 	var col := VBoxContainer.new()
-	col.add_theme_constant_override("separation", 10)
-	panel.add_child(col)
+	col.add_theme_constant_override("separation", 8)
+	_emoji_panel.add_child(col)
 	var t := Label.new()
-	t.text = "Emoji Picker"
+	t.text = "Emoji"
 	t.add_theme_color_override("font_color", COL_GOLD)
-	t.add_theme_font_size_override("font_size", 20)
+	t.add_theme_font_size_override("font_size", 18)
+	_apply_chat_font(t, 18)
 	col.add_child(t)
-	var body := Label.new()
-	body.text = "Emoji support is coming soon.\nThis button is ready for the full picker."
-	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	body.add_theme_color_override("font_color", COL_MUTED)
-	col.add_child(body)
+	var tip := Label.new()
+	tip.text = "Inserts :token: — preview shows above the message field"
+	tip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	tip.add_theme_color_override("font_color", COL_MUTED)
+	tip.add_theme_font_size_override("font_size", 11)
+	_apply_chat_font(tip, 11)
+	col.add_child(tip)
+	_emoji_grid_scroll = ScrollContainer.new()
+	_emoji_grid_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_emoji_grid_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_emoji_grid_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_emoji_grid_scroll.custom_minimum_size = Vector2(0, 200)
+	col.add_child(_emoji_grid_scroll)
+	_emoji_grid = GridContainer.new()
+	_emoji_grid.columns = 6
+	_emoji_grid.add_theme_constant_override("h_separation", 6)
+	_emoji_grid.add_theme_constant_override("v_separation", 6)
+	_emoji_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_emoji_grid_scroll.add_child(_emoji_grid)
+	for i in range(ChatEmojiCatalogScript.TOKENS.size()):
+		var tok: String = str(ChatEmojiCatalogScript.TOKENS[i])
+		var file_name: String = str(ChatEmojiCatalogScript.FILES[i]) if i < ChatEmojiCatalogScript.FILES.size() else ""
+		_emoji_grid.add_child(_make_emoji_cell(tok, file_name))
 	var close := Button.new()
 	close.text = "Close"
 	close.custom_minimum_size = Vector2(0, 48)
@@ -551,6 +794,111 @@ func _build_emoji_overlay() -> void:
 	_style_primary_button(close)
 	close.pressed.connect(_close_emoji)
 	col.add_child(close)
+	_fit_emoji_panel()
+
+
+func _make_emoji_cell(token_name: String, file_name: String) -> Control:
+	var tex: Texture2D = ChatEmojiCatalogScript.load_texture(file_name)
+	var btn := Button.new()
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.custom_minimum_size = Vector2(EMOJI_CELL_SIZE, EMOJI_CELL_SIZE)
+	btn.tooltip_text = ChatEmojiCatalogScript.token_literal(token_name)
+	_style_icon_button(btn)
+	btn.add_theme_font_size_override("font_size", 1)
+	btn.add_theme_color_override("font_color", Color(0, 0, 0, 0))
+	if tex != null:
+		var icon := TextureRect.new()
+		icon.texture = tex
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		icon.offset_left = 6
+		icon.offset_top = 6
+		icon.offset_right = -6
+		icon.offset_bottom = -6
+		btn.add_child(icon)
+	else:
+		btn.text = token_name.substr(0, 1).to_upper()
+		btn.add_theme_font_size_override("font_size", 14)
+		btn.add_theme_color_override("font_color", COL_INK)
+		_apply_chat_font(btn, 14)
+	var picked: String = token_name
+	btn.pressed.connect(func(): _insert_emoji_token(picked))
+	return btn
+
+
+func _build_emoji_text_block(text: String, font_size: int, color: Color) -> Control:
+	## Render :token: (and known legacy Unicode) as PNG; never treat BBCode as markup.
+	var flow := HFlowContainer.new()
+	flow.add_theme_constant_override("h_separation", 2)
+	flow.add_theme_constant_override("v_separation", 2)
+	flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	flow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var icon_px: float = float(font_size) + 4.0
+	for seg in ChatEmojiCatalogScript.parse_segments(str(text)):
+		var kind: String = str(seg.get("kind", "text"))
+		if kind == "emoji":
+			var tex: Texture2D = ChatEmojiCatalogScript.load_texture(str(seg.get("file", "")))
+			if tex != null:
+				var icon := TextureRect.new()
+				icon.texture = tex
+				icon.custom_minimum_size = Vector2(icon_px, icon_px)
+				icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+				icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+				icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+				icon.tooltip_text = ChatEmojiCatalogScript.token_literal(str(seg.get("token", "")))
+				flow.add_child(icon)
+			else:
+				## Missing asset — show the token text safely.
+				flow.add_child(_make_plain_run_label(str(seg.get("text", "")), font_size, color))
+		else:
+			var plain: String = str(seg.get("text", ""))
+			if plain != "":
+				flow.add_child(_make_plain_run_label(plain, font_size, color))
+	if flow.get_child_count() == 0:
+		flow.add_child(_make_plain_run_label("", font_size, color))
+	return flow
+
+
+func _make_plain_run_label(plain: String, font_size: int, color: Color) -> Label:
+	var lbl := Label.new()
+	lbl.text = plain
+	lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
+	lbl.add_theme_color_override("font_color", color)
+	lbl.add_theme_font_size_override("font_size", font_size)
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_apply_chat_font(lbl, font_size)
+	return lbl
+
+
+func _fit_emoji_panel() -> void:
+	if _emoji_panel == null:
+		return
+	## Fit inside phone viewport with margins for notches / bottom nav / short heights.
+	var margin_x: float = 16.0
+	var margin_y: float = 20.0
+	var avail_w: float = maxf(240.0, size.x - margin_x * 2.0)
+	var avail_h: float = maxf(260.0, size.y - margin_y * 2.0 - 40.0)
+	## Target ~720×1280 portrait: keep panel fully on-screen on narrower/taller phones too.
+	var max_w: float = minf(avail_w, 360.0)
+	var max_h: float = minf(avail_h, 420.0)
+	## Constrain scroll body so PanelContainer cannot grow with the full grid height.
+	if _emoji_grid_scroll != null:
+		var scroll_h: float = maxf(160.0, max_h - 140.0)
+		_emoji_grid_scroll.custom_minimum_size = Vector2(max_w - 28.0, scroll_h)
+		_emoji_grid_scroll.size = Vector2(max_w - 28.0, scroll_h)
+	_emoji_panel.clip_contents = true
+	_emoji_panel.custom_minimum_size = Vector2(max_w, max_h)
+	_emoji_panel.size = Vector2(max_w, max_h)
+	_emoji_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	_emoji_panel.anchor_right = 0.0
+	_emoji_panel.anchor_bottom = 0.0
+	var x: float = (size.x - max_w) * 0.5
+	var y: float = clampf((size.y - max_h) * 0.38, margin_y, maxf(margin_y, size.y - max_h - margin_y))
+	_emoji_panel.position = Vector2(x, y)
+	## Re-assert size after layout in case content tried to expand the panel.
+	_emoji_panel.size = Vector2(max_w, max_h)
 
 
 func _make_tab_button(text_value: String) -> Button:
@@ -567,14 +915,37 @@ func _apply_window_position() -> void:
 		return
 	var top: float = FALLBACK_TOP_INSET
 	var bottom: float = FALLBACK_BOTTOM_INSET
-	var avail_h: float = maxf(360.0, size.y - top - bottom)
-	var h: float = clampf(size.y * 0.72, 420.0, avail_h)
+	## Keep composer clear of the Android keyboard without overlapping bottom nav when closed.
+	var keyboard_pad: float = maxf(0.0, _keyboard_lift_px)
+	var avail_h: float = maxf(280.0, size.y - top - bottom - keyboard_pad)
+	var h: float = clampf(size.y * 0.72, 360.0, avail_h)
 	var w: float = minf(size.x - 28.0, 680.0)
 	_window.custom_minimum_size = Vector2(w, h)
 	_window.size = Vector2(w, h)
-	_window.position = Vector2((size.x - w) * 0.5, top + (avail_h - h) * 0.35)
+	var y: float = top + maxf(0.0, (avail_h - h) * 0.2)
+	## When keyboard is open, pin the window just above the keyboard/nav pad.
+	if keyboard_pad > 1.0:
+		y = maxf(8.0, size.y - bottom - keyboard_pad - h - 8.0)
+	_window.position = Vector2((size.x - w) * 0.5, y)
 	if _dim != null:
 		_dim.offset_bottom = -bottom
+
+
+func _on_composer_focus_entered() -> void:
+	if _input == null:
+		return
+	DisplayServer.virtual_keyboard_show(_input.text)
+	_update_keyboard_lift()
+
+
+func _on_composer_focus_exited() -> void:
+	DisplayServer.virtual_keyboard_hide()
+	_keyboard_lift_px = 0.0
+	_apply_window_position()
+
+
+func _on_chat_scroll_value_changed(_value: float) -> void:
+	_stick_to_bottom = _is_near_bottom()
 
 
 func _set_tab(tab_id: String) -> void:
@@ -612,6 +983,7 @@ func _refresh_tabs() -> void:
 			label = "DIRECT (%d)" % unread
 		_private_tab.text = label
 	_update_dm_chrome()
+	_refresh_composer_tools()
 
 
 func _style_tab(btn: Button, active: bool) -> void:
@@ -1128,13 +1500,7 @@ func _build_message_row(msg: RefCounted, local_id: String) -> Control:
 		ChatMessageScript.TYPE_RALLY:
 			col.add_child(_build_rally_card(msg))
 		_:
-			var body := Label.new()
-			body.text = str(msg.text)
-			body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			body.add_theme_color_override("font_color", COL_INK)
-			body.add_theme_font_size_override("font_size", 16)
-			body.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			col.add_child(body)
+			col.add_child(_build_emoji_text_block(str(msg.text), 16, COL_INK))
 
 	var mid: String = str(msg.message_id)
 	if _translations.has(mid):
@@ -1178,12 +1544,7 @@ func _build_system_row(msg: RefCounted) -> Control:
 	sys.add_theme_color_override("font_color", Color(0.70, 0.78, 0.90, 1.0))
 	sys.add_theme_font_size_override("font_size", 11)
 	col.add_child(sys)
-	var body := Label.new()
-	body.text = str(msg.text)
-	body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	body.add_theme_color_override("font_color", COL_MUTED)
-	body.add_theme_font_size_override("font_size", 14)
+	var body := _build_emoji_text_block(str(msg.text), 14, COL_MUTED)
 	col.add_child(body)
 	return panel
 
@@ -1480,12 +1841,19 @@ func _apply_translate(msg: RefCounted) -> void:
 		_translations[mid] = {"ok": true, "text": str(result.get("translated_text", result.get("text", "")))}
 		if str(_translations[mid]["text"]).strip_edges() == "":
 			_translations[mid] = {"ok": false, "error": "Translation service not configured."}
+			if _status_label != null:
+				_status_label.text = "Translation is not available yet — no translation provider is configured."
+		else:
+			if _status_label != null:
+				_status_label.text = "Translation applied."
 	else:
-		_translations[mid] = {
-			"ok": false,
-			"error": str(result.get("error", "Translation service not configured.")),
-		}
+		var err_text: String = str(result.get("error", "Translation service not configured."))
+		_translations[mid] = {"ok": false, "error": err_text}
+		if _status_label != null:
+			_status_label.text = "Translation unavailable: %s" % err_text
 	_refresh_messages()
+	if _stick_to_bottom:
+		_scroll_to_bottom(false)
 
 
 func _open_actions(msg: RefCounted, is_self: bool) -> void:
@@ -1654,15 +2022,52 @@ func _close_actions() -> void:
 		_action_overlay.visible = false
 
 
-func _open_emoji_placeholder() -> void:
+func _open_emoji_picker() -> void:
 	_close_actions()
 	if _emoji_overlay != null:
+		_fit_emoji_panel()
 		_emoji_overlay.visible = true
+		call_deferred("_fit_emoji_panel")
+
+
+func _insert_emoji_token(token_name: String) -> void:
+	if _input == null or token_name == "":
+		return
+	var literal: String = ChatEmojiCatalogScript.token_literal(token_name)
+	var caret: int = _input.caret_column
+	var text: String = _input.text
+	caret = clampi(caret, 0, text.length())
+	## Insert ASCII token only — never invisible Unicode glyphs.
+	_input.text = text.substr(0, caret) + literal + text.substr(caret)
+	_input.caret_column = caret + literal.length()
+	_refresh_emoji_preview()
+	_close_emoji()
+	_input.grab_focus()
+	DisplayServer.virtual_keyboard_show(_input.text)
 
 
 func _close_emoji() -> void:
 	if _emoji_overlay != null:
 		_emoji_overlay.visible = false
+
+
+func _is_near_bottom() -> bool:
+	if _scroll == null:
+		return true
+	var bar: ScrollBar = _scroll.get_v_scroll_bar()
+	if bar == null:
+		return true
+	return float(bar.value) >= float(bar.max_value) - SCROLL_STICK_MARGIN_PX
+
+
+func _scroll_to_bottom(force: bool = false) -> void:
+	if not force and not _stick_to_bottom and not _is_near_bottom():
+		return
+	_stick_to_bottom = true
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if _scroll != null:
+		_scroll.scroll_vertical = int(_scroll.get_v_scroll_bar().max_value)
 
 
 func _on_share_location() -> void:
@@ -1746,8 +2151,10 @@ func _on_send_pressed() -> void:
 		return
 	if _tab == "private" and _chat_manager().get_active_dm_peer() == "":
 		return
-	var text_value: String = _input.text
+	## Normalize known legacy Unicode → :token: before Nakama; keep ordinary text intact.
+	var text_value: String = ChatEmojiCatalogScript.normalize_outbound(_input.text)
 	_input.text = ""
+	_refresh_emoji_preview()
 	var kind: String = "kingdom"
 	if _tab == "alliance":
 		kind = "alliance"
@@ -1811,9 +2218,3 @@ func _on_close_pressed() -> void:
 		manager.close_current_screen()
 	else:
 		on_close()
-
-
-func _scroll_to_bottom() -> void:
-	await get_tree().process_frame
-	if _scroll != null:
-		_scroll.scroll_vertical = int(_scroll.get_v_scroll_bar().max_value)

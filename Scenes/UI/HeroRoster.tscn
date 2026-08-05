@@ -6,22 +6,29 @@
 [ext_resource type="PackedScene" uid="uid://cxthq4bwuwj4f" path="res://Scenes/HeroDetails.tscn" id="4_y45q5"]
 
 [node name="HeroRoster" type="Control" unique_id=1755422229]
-custom_minimum_size = Vector2(720, 1280)
 layout_mode = 3
-anchors_preset = 0
-offset_right = 720.0
-offset_bottom = 1280.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_hero_roster")
+
+[node name="FillColor" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.12, 0.14, 0.22, 1)
 
 [node name="Background" type="TextureRect" parent="." unique_id=774699109]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -93.0
-offset_top = -280.0
-offset_right = 53.0
-offset_bottom = 290.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -42,19 +49,25 @@ texture_normal = ExtResource("4_ji56e")
 layout_mode = 0
 offset_left = 24.0
 offset_top = 24.0
-offset_right = 696.0
+offset_right = -24.0
 offset_bottom = 72.0
+anchor_right = 1.0
 theme_override_font_sizes/font_size = 32
 text = "Hero Roster"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="ScrollContainer" type="ScrollContainer" parent="." unique_id=1251120809]
-layout_mode = 0
-offset_left = 16.0
-offset_top = 88.0
-offset_right = 704.0
-offset_bottom = 1264.0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 92.0
+offset_right = -24.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 2
 horizontal_scroll_mode = 0
 
 [node name="HeroGrid" type="GridContainer" parent="ScrollContainer" unique_id=19440366]

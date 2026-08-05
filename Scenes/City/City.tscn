@@ -100,6 +100,9 @@ size = Vector2(365.7845, 149.61829)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_2rvwe"]
 size = Vector2(502.06824, 410.911)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_farm_collect"]
+size = Vector2(96, 96)
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8t732"]
 size = Vector2(101.716, 94.158554)
 
@@ -846,7 +849,7 @@ metadata/_edit_use_anchors_ = true
 
 [node name="CollectIcon" type="Sprite2D" parent="Buildings/Farm" unique_id=1271854018]
 visible = false
-position = Vector2(149.63184, 124.46241)
+position = Vector2(151.3131, 168)
 scale = Vector2(0.05, 0.044999998)
 texture = ExtResource("26_spmma")
 
@@ -854,8 +857,8 @@ texture = ExtResource("26_spmma")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Buildings/Farm/ClickArea" unique_id=1442425720]
 visible = false
-position = Vector2(147.95059, 120.133286)
-shape = SubResource("RectangleShape2D_o46t0")
+position = Vector2(151.3131, 168)
+shape = SubResource("RectangleShape2D_farm_collect")
 
 [node name="UpgradeArea" type="Area2D" parent="Buildings/Farm" unique_id=1261912325]
 position = Vector2(-65.569, 636.3817)

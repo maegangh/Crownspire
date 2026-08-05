@@ -465,7 +465,7 @@ func load_private_history(peer_user_id: String, reset: bool = false) -> Dictiona
 		return {"ok": false, "error": "Missing client/session"}
 
 	var result: NakamaAPI.ApiChannelMessageList = await client.list_channel_messages_async(
-		session, channel_id, HISTORY_PAGE_SIZE, true, null
+		session, channel_id, HISTORY_PAGE_SIZE, false, null
 	)
 	if result == null or result.is_exception():
 		var reason: String = "Failed to load private history"
@@ -480,14 +480,15 @@ func load_private_history(peer_user_id: String, reset: bool = false) -> Dictiona
 	for raw in incoming:
 		var msg: RefCounted = ChatMessageScript.from_nakama_channel_message(raw, _kingdom_id)
 		parsed.append(msg)
+	## Nakama forward=false returns newest→oldest; reverse to chronological (oldest→newest).
 	parsed.reverse()
+	parsed.sort_custom(func(a: RefCounted, b: RefCounted) -> bool:
+		return int(a.timestamp_unix) < int(b.timestamp_unix)
+	)
 	if reset or not _dm_messages.has(peer):
 		_dm_messages[peer] = parsed
 	else:
-		var merged: Array[RefCounted] = []
-		merged.append_array(parsed)
-		merged.append_array(_dm_messages[peer])
-		_dm_messages[peer] = merged
+		_dm_messages[peer] = _merge_channel_history(parsed, _dm_messages[peer])
 	messages_loaded.emit("private")
 	return {"ok": true, "count": parsed.size()}
 
@@ -670,17 +671,18 @@ func _load_history(kind: String, reset: bool = false) -> Dictionary:
 	for raw in incoming:
 		var msg: RefCounted = ChatMessageScript.from_nakama_channel_message(raw, _kingdom_id)
 		parsed.append(msg)
+	## Nakama forward=false returns newest→oldest; reverse to chronological (oldest→newest).
 	parsed.reverse()
+	parsed.sort_custom(func(a: RefCounted, b: RefCounted) -> bool:
+		return int(a.timestamp_unix) < int(b.timestamp_unix)
+	)
 
 	if kind == "kingdom":
 		if reset:
 			_messages.clear()
 			_messages.append_array(parsed)
 		else:
-			var merged: Array[RefCounted] = []
-			merged.append_array(parsed)
-			merged.append_array(_messages)
-			_messages = merged
+			_messages = _merge_channel_history(parsed, _messages)
 		_history_cursor = str(result.next_cursor) if str(result.next_cursor) != "" else ""
 		_history_has_more = _history_cursor != ""
 	else:
@@ -688,10 +690,7 @@ func _load_history(kind: String, reset: bool = false) -> Dictionary:
 			_alliance_messages.clear()
 			_alliance_messages.append_array(parsed)
 		else:
-			var merged_a: Array[RefCounted] = []
-			merged_a.append_array(parsed)
-			merged_a.append_array(_alliance_messages)
-			_alliance_messages = merged_a
+			_alliance_messages = _merge_channel_history(parsed, _alliance_messages)
 		_alliance_history_cursor = str(result.next_cursor) if str(result.next_cursor) != "" else ""
 		_alliance_history_has_more = _alliance_history_cursor != ""
 
@@ -1460,6 +1459,35 @@ func _append_message(msg: RefCounted, channel_kind: String = "kingdom", dm_peer:
 		_messages = bucket
 	else:
 		_alliance_messages = bucket
+
+
+## Merge history pages with live messages: keep one entry per message_id, chronological oldest→newest.
+## Prefer existing rows when IDs collide so live-delivered state is preserved.
+func _merge_channel_history(incoming: Array[RefCounted], existing: Array[RefCounted]) -> Array[RefCounted]:
+	var seen: Dictionary = {}
+	var out: Array[RefCounted] = []
+	for msg in existing:
+		if msg == null:
+			continue
+		var mid: String = str(msg.message_id).strip_edges()
+		if mid != "":
+			if seen.has(mid):
+				continue
+			seen[mid] = true
+		out.append(msg)
+	for msg in incoming:
+		if msg == null:
+			continue
+		var mid2: String = str(msg.message_id).strip_edges()
+		if mid2 != "":
+			if seen.has(mid2):
+				continue
+			seen[mid2] = true
+		out.append(msg)
+	out.sort_custom(func(a: RefCounted, b: RefCounted) -> bool:
+		return int(a.timestamp_unix) < int(b.timestamp_unix)
+	)
+	return out
 
 
 func _should_render(msg: RefCounted) -> bool:
