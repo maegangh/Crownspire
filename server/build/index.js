@@ -81,6 +81,14 @@ function InitModule(ctx, logger, nk, initializer) {
     initializer.registerRpc("crownspire_presence_heartbeat", rpcPresenceHeartbeat);
     // Kingdom world castles (stable positions for multiplayer map).
     initializer.registerRpc("crownspire_list_kingdom_castles", rpcListKingdomCastles);
+    // Current-kingdom targeted city teleport.
+    initializer.registerRpc("crownspire_teleport_inventory_sync", rpcTeleportInventorySync);
+    initializer.registerRpc("crownspire_teleport_inventory_get", rpcTeleportInventoryGet);
+    initializer.registerRpc("crownspire_teleport_deployment_begin", rpcTeleportDeploymentBegin);
+    initializer.registerRpc("crownspire_teleport_deployment_end", rpcTeleportDeploymentEnd);
+    // Retired: clients could clear the troop ledger to bypass teleport checks.
+    initializer.registerRpc("crownspire_set_troop_activity", rpcSetTroopActivity);
+    initializer.registerRpc("crownspire_city_teleport_relocate", rpcCityTeleportRelocate);
     // Phase 5.3 — Alliance Rallies (Wildling Lair).
     initializer.registerRpc("crownspire_rally_create", rpcRallyCreate);
     initializer.registerRpc("crownspire_rally_join", rpcRallyJoin);
@@ -90,9 +98,9 @@ function InitModule(ctx, logger, nk, initializer) {
     initializer.registerRpc("crownspire_rally_get", rpcRallyGet);
     initializer.registerRpc("crownspire_rally_list_active", rpcRallyListActive);
     initializer.registerRpc("crownspire_rally_complete", rpcRallyComplete);
-    // Phase 6 — Direct Message delivery notifications (RtAfter ChannelMessageSend).
-    registerDmHooks(initializer);
-    logger.info("Crownspire runtime loaded (Phase 3+4+5+5.1+5.3+6+castles identity/alliance/help/social/rallies/dm). LOCAL DEVELOPMENT ONLY.");
+    // Phase 6 — Direct Message delivery through authenticated server RPC.
+    initializer.registerRpc("crownspire_dm_send", rpcDmSend);
+    logger.info("Crownspire runtime loaded (Phase 3+4+5+5.1+5.3+6+castles identity/alliance/help/social/rallies/dm-rpc). LOCAL DEVELOPMENT ONLY.");
 }
 // ---------------------------------------------------------------------------
 // Profile
@@ -3048,106 +3056,881 @@ function rpcListKingdomCastles(ctx, logger, nk, payload) {
     });
 }
 /**
- * Crownspire Phase 6 — Direct Message delivery notifications.
- * When a private DM is sent on an authoritative DirectMessage channel, notify the
- * recipient so their client can join the Nakama channel without the thread open.
+ * Crownspire — Current-kingdom city teleport (durable OCC saga)
+ * LOCAL DEVELOPMENT ONLY. Concatenated into build/index.js.
  *
- * Security: metadata.dm_recipient_user_id is a hint only. Notifications are sent
- * only when nk.channelIdBuild(ctx.userId, recipientId, DirectMessage) matches the
- * incoming ChannelMessageSend channelId.
+ * Nakama Storage provides per-object version CAS, not multi-object SQL transactions.
+ * Atomicity is achieved with:
+ *  1) create-only idempotency op (version="*")
+ *  2) kingdom lock via versioned CAS + TTL recovery
+ *  3) staged durable saga (pending → … → completed|failed) with crash recovery
+ *  4) versioned writes for inventory + kingdom registry
  *
- * Rate limit: per-sender/recipient pair via assertRateLimit (1s cooldown). A
- * global per-user notification flood limiter is out of scope for this hook.
+ * Contract blockers: crownspire_map_blockers_v1 (matches MapPlacementContract.gd).
  */
-var DM_NOTIF_CODE = 5004;
-/** nkruntime.ChanType.DirectMessage — Room=1, DirectMessage=2, Group=3 */
-var CHANNEL_TYPE_DIRECT = 2;
-var PREVIEW_MAX_LEN = 80;
-var DISPLAY_NAME_MAX_LEN = 64;
-var UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-function isUuid(value) {
-    return UUID_RE.test(value);
+var TELEPORT_ITEM_ID = "teleport_advanced_compass";
+var TELEPORT_INV_COLLECTION = "crownspire_teleport_inventory";
+var TELEPORT_OPS_COLLECTION = "crownspire_teleport_ops";
+var TELEPORT_DEPLOY_COLLECTION = "crownspire_teleport_deployments";
+var TELEPORT_LOCK_COLLECTION = "crownspire_kingdom_teleport_lock";
+var CASTLE_MOVED_NOTIF_CODE = 5005;
+var LOCK_TTL_SEC = 20;
+var MAP_CONTRACT_ID = "crownspire_map_blockers_v1";
+var WORLD_MAP_SIZE_T = 8192;
+var CASTLE_EDGE_MARGIN_T = 900;
+var CASTLE_MIN_SPACING_T = 500;
+var TERRAIN_EDGE_MARGIN_T = 450;
+var POI_EDGE_MARGIN_T = 300;
+var MAX_PLACE_ATTEMPTS = 250;
+var LAKE_COUNT_T = 6;
+var LAKE_RADIUS_T = 700;
+var MOUNTAIN_COUNT_T = 18;
+var MOUNTAIN_RADIUS_T = 550;
+var FOREST_COUNT_T = 35;
+var FOREST_RADIUS_T = 425;
+var ROCK_COUNT_T = 30;
+var ROCK_RADIUS_T = 250;
+var RESOURCE_COUNT_T = 40;
+var RESOURCE_RADIUS_T = 160;
+var WILDLING_COUNT_T = 30;
+var WILDLING_RADIUS_T = 120;
+var LAIR_COUNT_T = 10;
+var LAIR_RADIUS_T = 360;
+var OP_PENDING = "pending";
+var OP_INV_CONSUMED = "inventory_consumed";
+var OP_REGISTRY_UPDATED = "registry_updated";
+var OP_PROFILE_UPDATED = "profile_updated";
+var OP_COMPLETED = "completed";
+var OP_FAILED = "failed";
+function fnv1a32Teleport(text) {
+    var h = 2166136261;
+    var s = String(text || "");
+    for (var i = 0; i < s.length; i++) {
+        h ^= s.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
 }
-function registerDmHooks(initializer) {
-    initializer.registerRtAfter("ChannelMessageSend", afterChannelMessageSend);
+function kingdomSeedTeleport(kingdomId, salt) {
+    return fnv1a32Teleport(String(salt) + "|" + String(kingdomId || ""));
 }
-var afterChannelMessageSend = function (ctx, logger, nk, output, input) {
-    if (!ctx.userId || !input || !input.channelMessageSend) {
-        return;
-    }
-    var senderId = String(ctx.userId).trim();
-    if (!isUuid(senderId)) {
-        return;
-    }
-    var send = input.channelMessageSend;
-    var actualChannelId = String(send.channelId || "").trim();
-    var contentStr = String(send.content || "");
-    if (actualChannelId === "" || contentStr === "") {
-        return;
-    }
-    var content = null;
-    try {
-        content = JSON.parse(contentStr);
-    }
-    catch (_e) {
-        return;
-    }
-    if (!content || typeof content !== "object") {
-        return;
-    }
-    var meta = content["metadata"];
-    if (!meta || typeof meta !== "object") {
-        return;
-    }
-    var recipientId = String(meta["dm_recipient_user_id"] || "").trim();
-    if (!isUuid(recipientId) || recipientId === senderId) {
-        return;
-    }
-    var expectedChannelId;
-    try {
-        expectedChannelId = nk.channelIdBuild(senderId, recipientId, CHANNEL_TYPE_DIRECT);
-    }
-    catch (_e) {
-        return;
-    }
-    if (expectedChannelId !== actualChannelId) {
-        return;
-    }
-    try {
-        assertRateLimit(nk, senderId, "dm_notify_" + recipientId, 1);
-    }
-    catch (_e) {
-        return;
-    }
-    var previewRaw = String(content["text"] || "");
-    var preview = previewRaw.length > PREVIEW_MAX_LEN
-        ? previewRaw.substring(0, PREVIEW_MAX_LEN - 3) + "..."
-        : previewRaw;
-    var senderName = String(content["sender_display_name"] || "Player").substring(0, DISPLAY_NAME_MAX_LEN);
-    var messageId = "";
-    var outAny = output;
-    if (outAny) {
-        if (outAny.messageId) {
-            messageId = String(outAny.messageId);
+function mulberry32Teleport(seed) {
+    var state = seed >>> 0;
+    return function () {
+        state = (state + 0x6d2b79f5) >>> 0;
+        var t = state;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+}
+function findValidPackedTeleport(rng, occupied, radius, edge) {
+    var minC = edge + radius;
+    var maxC = WORLD_MAP_SIZE_T - edge - radius;
+    if (maxC <= minC)
+        return null;
+    for (var a = 0; a < MAX_PLACE_ATTEMPTS; a++) {
+        var x = minC + rng() * (maxC - minC);
+        var y = minC + rng() * (maxC - minC);
+        var ok = true;
+        for (var i = 0; i < occupied.length; i++) {
+            var o = occupied[i];
+            var dx = x - o.x;
+            var dy = y - o.y;
+            if (Math.sqrt(dx * dx + dy * dy) < radius + o.radius) {
+                ok = false;
+                break;
+            }
         }
-        else if (outAny.channelMessageSend && outAny.channelMessageSend.messageId) {
-            messageId = String(outAny.channelMessageSend.messageId);
+        if (ok)
+            return { x: x, y: y };
+    }
+    return null;
+}
+function appendPackedTeleport(out, occupied, rng, kind, count, radius, edge) {
+    for (var i = 0; i < count; i++) {
+        var pos = findValidPackedTeleport(rng, occupied, radius, edge);
+        if (!pos)
+            continue;
+        var b = { kind: kind, x: pos.x, y: pos.y, radius: radius };
+        occupied.push(b);
+        out.push(b);
+    }
+}
+function computeMapBlockers(kingdomId) {
+    var kid = String(kingdomId || DEV_KINGDOM_ID);
+    var out = [];
+    var occupied = [];
+    var terrainRng = mulberry32Teleport(kingdomSeedTeleport(kid, "terrain_v1"));
+    appendPackedTeleport(out, occupied, terrainRng, "lake", LAKE_COUNT_T, LAKE_RADIUS_T, TERRAIN_EDGE_MARGIN_T);
+    appendPackedTeleport(out, occupied, terrainRng, "mountain", MOUNTAIN_COUNT_T, MOUNTAIN_RADIUS_T, TERRAIN_EDGE_MARGIN_T);
+    appendPackedTeleport(out, occupied, terrainRng, "forest", FOREST_COUNT_T, FOREST_RADIUS_T, TERRAIN_EDGE_MARGIN_T);
+    appendPackedTeleport(out, occupied, terrainRng, "rock", ROCK_COUNT_T, ROCK_RADIUS_T, TERRAIN_EDGE_MARGIN_T);
+    var poiRng = mulberry32Teleport(kingdomSeedTeleport(kid, "poi_v1"));
+    appendPackedTeleport(out, occupied, poiRng, "resource", RESOURCE_COUNT_T, RESOURCE_RADIUS_T, POI_EDGE_MARGIN_T);
+    appendPackedTeleport(out, occupied, poiRng, "wildling", WILDLING_COUNT_T, WILDLING_RADIUS_T, POI_EDGE_MARGIN_T);
+    appendPackedTeleport(out, occupied, poiRng, "lair", LAIR_COUNT_T, LAIR_RADIUS_T, POI_EDGE_MARGIN_T);
+    return out;
+}
+function validateCastleCandidateServer(kingdomId, x, y, castles, selfUserId) {
+    if (typeof x !== "number" || typeof y !== "number" || !isFinite(x) || !isFinite(y)) {
+        return { ok: false, error: "Invalid coordinates." };
+    }
+    if (x < CASTLE_EDGE_MARGIN_T ||
+        y < CASTLE_EDGE_MARGIN_T ||
+        x > WORLD_MAP_SIZE_T - CASTLE_EDGE_MARGIN_T ||
+        y > WORLD_MAP_SIZE_T - CASTLE_EDGE_MARGIN_T) {
+        return { ok: false, error: "Too close to the map edge." };
+    }
+    for (var i = 0; i < castles.length; i++) {
+        var c = castles[i];
+        if (String(c.user_id) === selfUserId)
+            continue;
+        var cx = Number(c.world_x);
+        var cy = Number(c.world_y);
+        if (!isFinite(cx) || !isFinite(cy))
+            continue;
+        var dx = x - cx;
+        var dy = y - cy;
+        if (Math.sqrt(dx * dx + dy * dy) < CASTLE_MIN_SPACING_T) {
+            return { ok: false, error: "Too close to another castle." };
         }
     }
-    if (messageId !== "" && !isUuid(messageId)) {
-        messageId = "";
+    var blockers = computeMapBlockers(kingdomId);
+    var softR = CASTLE_MIN_SPACING_T * 0.5;
+    for (var i = 0; i < blockers.length; i++) {
+        var b = blockers[i];
+        var dx = x - b.x;
+        var dy = y - b.y;
+        if (Math.sqrt(dx * dx + dy * dy) < b.radius + softR) {
+            return { ok: false, error: "Blocked by " + b.kind + "." };
+        }
     }
+    return { ok: true, error: "" };
+}
+function trimStr(v) {
+    return String(v == null ? "" : v).replace(/^\s+|\s+$/g, "");
+}
+function isStrictNonNegInt(v) {
+    return typeof v === "number" && isFinite(v) && !isNaN(v) && v >= 0 && Math.floor(v) === v;
+}
+function isStrictBool(v) {
+    return v === true || v === false;
+}
+function storageReadOne(nk, collection, key, userId) {
+    var objects = nk.storageRead([{ collection: collection, key: key, userId: userId }]);
+    if (objects && objects.length > 0 && objects[0].value) {
+        return { value: objects[0].value, version: String(objects[0].version || "") };
+    }
+    return null;
+}
+function storageWriteVersioned(nk, collection, key, userId, value, version, permissionRead) {
+    nk.storageWrite([
+        {
+            collection: collection,
+            key: key,
+            userId: userId,
+            value: value,
+            version: version,
+            permissionRead: permissionRead,
+            permissionWrite: 0,
+        },
+    ]);
+}
+function readTeleportInvObj(nk, userId) {
+    var obj = storageReadOne(nk, TELEPORT_INV_COLLECTION, userId, userId);
+    if (obj)
+        return obj;
+    return {
+        value: {
+            user_id: userId,
+            balances: {},
+            reconciled: false,
+            import_fingerprint: "",
+            updated_at: 0,
+        },
+        version: "*",
+    };
+}
+function getTeleportBalance(rec) {
+    var n = Number(rec.balances[TELEPORT_ITEM_ID] || 0);
+    return isFinite(n) && n > 0 ? Math.floor(n) : 0;
+}
+function setTeleportBalance(rec, amount) {
+    if (!rec.balances)
+        rec.balances = {};
+    var n = Math.max(0, Math.floor(amount));
+    if (n <= 0)
+        delete rec.balances[TELEPORT_ITEM_ID];
+    else
+        rec.balances[TELEPORT_ITEM_ID] = n;
+}
+function readRegistryObj(nk, kingdomId) {
+    var obj = storageReadOne(nk, KINGDOM_CASTLE_COLLECTION, kingdomId, SYSTEM_USER);
+    if (obj) {
+        var v = obj.value;
+        if (!Array.isArray(v.castles))
+            v.castles = [];
+        return obj;
+    }
+    return {
+        value: { kingdom_id: kingdomId, castles: [], updated_at: 0 },
+        version: "*",
+    };
+}
+function readOpObj(nk, userId, requestId) {
+    return storageReadOne(nk, TELEPORT_OPS_COLLECTION, requestId, userId);
+}
+function writeOpObj(nk, userId, requestId, value, version) {
+    storageWriteVersioned(nk, TELEPORT_OPS_COLLECTION, requestId, userId, value, version, 1);
+}
+function readDeployObj(nk, userId) {
+    var obj = storageReadOne(nk, TELEPORT_DEPLOY_COLLECTION, userId, userId);
+    if (obj) {
+        if (!Array.isArray(obj.value.deployments))
+            obj.value.deployments = [];
+        return obj;
+    }
+    return { value: { user_id: userId, deployments: [], updated_at: 0 }, version: "*" };
+}
+function userHasServerDeployments(nk, userId) {
+    var obj = readDeployObj(nk, userId);
+    return Array.isArray(obj.value.deployments) && obj.value.deployments.length > 0;
+}
+function userInActiveRally(nk, logger, userId, allianceId) {
+    if (!allianceId)
+        return false;
+    try {
+        var objects = nk.storageRead([
+            { collection: "crownspire_alliance_rally_index", key: allianceId, userId: SYSTEM_USER },
+        ]);
+        if (!objects || objects.length === 0 || !objects[0].value)
+            return false;
+        var ids = Array.isArray(objects[0].value.rally_ids)
+            ? objects[0].value.rally_ids
+            : [];
+        for (var i = 0; i < ids.length; i++) {
+            var rid = String(ids[i] || "");
+            if (!rid)
+                continue;
+            var rallyObjs = nk.storageRead([{ collection: "crownspire_rallies", key: rid, userId: SYSTEM_USER }]);
+            if (!rallyObjs || rallyObjs.length === 0 || !rallyObjs[0].value)
+                continue;
+            var rally = rallyObjs[0].value;
+            var status = String(rally.status || "");
+            if (status !== "FORMING" && status !== "LAUNCHED")
+                continue;
+            if (String(rally.leader_user_id) === userId)
+                return true;
+            var parts = Array.isArray(rally.participants) ? rally.participants : [];
+            for (var p = 0; p < parts.length; p++) {
+                if (String(parts[p].user_id) === userId)
+                    return true;
+            }
+        }
+    }
+    catch (e) {
+        logger.warn("teleport rally check failed: %s", String(e));
+    }
+    return false;
+}
+function acquireKingdomLock(nk, kingdomId, userId, requestId) {
+    var now = nowUnix();
+    for (var attempt = 0; attempt < 8; attempt++) {
+        var obj = storageReadOne(nk, TELEPORT_LOCK_COLLECTION, kingdomId, SYSTEM_USER);
+        var cur = obj ? obj.value : null;
+        var ver = obj ? obj.version : "*";
+        var expired = !cur || !cur.expires_at || Number(cur.expires_at) <= now;
+        var sameHolder = cur && String(cur.request_id) === requestId && String(cur.user_id) === userId;
+        if (!expired && !sameHolder) {
+            return { ok: false, error: "Kingdom teleport lock busy. Try again.", version: "" };
+        }
+        var next = {
+            kingdom_id: kingdomId,
+            user_id: userId,
+            request_id: requestId,
+            expires_at: now + LOCK_TTL_SEC,
+            updated_at: now,
+        };
+        try {
+            storageWriteVersioned(nk, TELEPORT_LOCK_COLLECTION, kingdomId, SYSTEM_USER, next, ver, 1);
+            var confirm = storageReadOne(nk, TELEPORT_LOCK_COLLECTION, kingdomId, SYSTEM_USER);
+            if (confirm &&
+                String(confirm.value.request_id) === requestId &&
+                String(confirm.value.user_id) === userId) {
+                return { ok: true, error: "", version: confirm.version };
+            }
+        }
+        catch (_e) {
+            // CAS conflict — retry
+        }
+    }
+    return { ok: false, error: "Could not acquire kingdom teleport lock.", version: "" };
+}
+function releaseKingdomLock(nk, kingdomId, userId, requestId) {
+    var obj = storageReadOne(nk, TELEPORT_LOCK_COLLECTION, kingdomId, SYSTEM_USER);
+    if (!obj)
+        return;
+    var cur = obj.value;
+    if (String(cur.user_id) !== userId || String(cur.request_id) !== requestId)
+        return;
+    try {
+        storageWriteVersioned(nk, TELEPORT_LOCK_COLLECTION, kingdomId, SYSTEM_USER, { kingdom_id: kingdomId, user_id: "", request_id: "", expires_at: 0, updated_at: nowUnix() }, obj.version, 1);
+    }
+    catch (_e) {
+        // Best-effort release; TTL recovers crashed holders.
+    }
+}
+function notifyKingdomCastleMoved(nk, logger, kingdomId, actorUserId, worldX, worldY, displayName) {
+    var reg = readRegistryObj(nk, kingdomId).value;
+    var recipients = [];
+    var castles = Array.isArray(reg.castles) ? reg.castles : [];
+    for (var i = 0; i < castles.length; i++) {
+        var uid = String(castles[i].user_id || "");
+        if (!uid || uid === actorUserId)
+            continue;
+        recipients.push({
+            userId: uid,
+            subject: "Castle Moved",
+            content: {
+                type: "castle_moved",
+                kingdom_id: kingdomId,
+                user_id: actorUserId,
+                display_name: displayName || "Player",
+                world_x: worldX,
+                world_y: worldY,
+                contract_id: MAP_CONTRACT_ID,
+            },
+            code: CASTLE_MOVED_NOTIF_CODE,
+            persistent: false,
+        });
+    }
+    if (recipients.length === 0)
+        return;
+    try {
+        nk.notificationsSend(recipients);
+    }
+    catch (e) {
+        logger.warn("castle_moved notify failed: %s", String(e));
+    }
+}
+function applyRegistryMove(nk, profile, worldX, worldY) {
+    var kingdomId = String(profile.kingdom_id || DEV_KINGDOM_ID);
+    for (var attempt = 0; attempt < 8; attempt++) {
+        var regObj = readRegistryObj(nk, kingdomId);
+        var reg = regObj.value;
+        var castles = Array.isArray(reg.castles) ? reg.castles.slice() : [];
+        var check = validateCastleCandidateServer(kingdomId, worldX, worldY, castles, profile.user_id);
+        if (!check.ok)
+            throw Err(check.error);
+        var entry = {
+            user_id: profile.user_id,
+            display_name: profile.display_name || "",
+            alliance_tag: profile.alliance_tag || "",
+            alliance_name: profile.alliance_name || "",
+            avatar_id: profile.avatar_id || "avatar_01",
+            world_x: worldX,
+            world_y: worldY,
+            citadel_level: typeof profile.citadel_level === "number" ? profile.citadel_level : 1,
+            power: typeof profile.power === "number" ? profile.power : 0,
+            updated_at: nowUnix(),
+        };
+        var found = false;
+        for (var i = 0; i < castles.length; i++) {
+            if (String(castles[i].user_id) === profile.user_id) {
+                castles[i] = entry;
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+            castles.push(entry);
+        if (castles.length > 200) {
+            castles.sort(function (a, b) {
+                return Number(b.updated_at || 0) - Number(a.updated_at || 0);
+            });
+            castles.length = 200;
+        }
+        var next = { kingdom_id: kingdomId, castles: castles, updated_at: nowUnix() };
+        try {
+            storageWriteVersioned(nk, KINGDOM_CASTLE_COLLECTION, kingdomId, SYSTEM_USER, next, regObj.version, 2);
+            return;
+        }
+        catch (_e) {
+            // retry CAS
+        }
+    }
+    throw Err("Kingdom castle registry busy. Try again.");
+}
+function restoreRegistryCoords(nk, profile, worldX, worldY) {
+    profile.world_x = worldX;
+    profile.world_y = worldY;
+    applyRegistryMove(nk, profile, worldX, worldY);
+}
+function consumeInventoryCAS(nk, userId) {
+    for (var attempt = 0; attempt < 8; attempt++) {
+        var invObj = readTeleportInvObj(nk, userId);
+        var inv = invObj.value;
+        if (!inv.reconciled)
+            throw Err("Teleport inventory not reconciled. Open the Bag once while online.");
+        var bal = getTeleportBalance(inv);
+        if (bal < 1)
+            throw Err("No Advanced Teleport remaining.");
+        setTeleportBalance(inv, bal - 1);
+        inv.updated_at = nowUnix();
+        try {
+            storageWriteVersioned(nk, TELEPORT_INV_COLLECTION, userId, userId, inv, invObj.version, 1);
+            return getTeleportBalance(inv);
+        }
+        catch (_e) {
+            // retry
+        }
+    }
+    throw Err("Teleport inventory busy. Try again.");
+}
+function refundInventoryCAS(nk, userId) {
+    for (var attempt = 0; attempt < 8; attempt++) {
+        var invObj = readTeleportInvObj(nk, userId);
+        var inv = invObj.value;
+        setTeleportBalance(inv, getTeleportBalance(inv) + 1);
+        inv.updated_at = nowUnix();
+        try {
+            storageWriteVersioned(nk, TELEPORT_INV_COLLECTION, userId, userId, inv, invObj.version, 1);
+            return getTeleportBalance(inv);
+        }
+        catch (_e) {
+            // retry
+        }
+    }
+    throw Err("Failed to refund teleport item.");
+}
+function advanceTeleportSaga(nk, logger, profile, opObj, requestId) {
+    var op = opObj.value;
+    var opVersion = opObj.version;
+    var kingdomId = String(op.kingdom_id || profile.kingdom_id || DEV_KINGDOM_ID);
+    var worldX = Number(op.world_x);
+    var worldY = Number(op.world_y);
+    var oldX = Number(op.old_world_x);
+    var oldY = Number(op.old_world_y);
+    function persistOp(nextState, extra) {
+        op = Object.assign({}, op, extra || {}, { state: nextState, updated_at: nowUnix() });
+        writeOpObj(nk, profile.user_id, requestId, op, opVersion);
+        var refreshed = readOpObj(nk, profile.user_id, requestId);
+        if (!refreshed)
+            throw Err("Teleport operation lost.");
+        op = refreshed.value;
+        opVersion = refreshed.version;
+    }
+    if (op.state === OP_COMPLETED && op.result)
+        return op.result;
+    if (op.state === OP_FAILED) {
+        throw Err(String(op.error || "Teleport previously failed."));
+    }
+    var lock = acquireKingdomLock(nk, kingdomId, profile.user_id, requestId);
+    if (!lock.ok)
+        throw Err(lock.error);
+    try {
+        // Re-validate under lock for every non-terminal resume.
+        if (op.state === OP_PENDING || op.state === OP_INV_CONSUMED) {
+            if (userHasServerDeployments(nk, profile.user_id)) {
+                throw Err("Cannot teleport while troops are deployed.");
+            }
+            if (userInActiveRally(nk, logger, profile.user_id, String(profile.alliance_id || ""))) {
+                throw Err("Cannot teleport while in an active rally.");
+            }
+            var reg = readRegistryObj(nk, kingdomId).value;
+            var check = validateCastleCandidateServer(kingdomId, worldX, worldY, Array.isArray(reg.castles) ? reg.castles : [], profile.user_id);
+            if (!check.ok)
+                throw Err(check.error);
+        }
+        if (op.state === OP_PENDING) {
+            var newBal = consumeInventoryCAS(nk, profile.user_id);
+            persistOp(OP_INV_CONSUMED, { balance_after_consume: newBal });
+        }
+        if (op.state === OP_INV_CONSUMED) {
+            applyRegistryMove(nk, profile, worldX, worldY);
+            persistOp(OP_REGISTRY_UPDATED, {});
+        }
+        if (op.state === OP_REGISTRY_UPDATED) {
+            profile.world_x = worldX;
+            profile.world_y = worldY;
+            profile.updated_at = nowUnix();
+            writeProfile(nk, profile);
+            persistOp(OP_PROFILE_UPDATED, {});
+        }
+        if (op.state === OP_PROFILE_UPDATED || op.state === OP_REGISTRY_UPDATED) {
+            // Ensure profile matches registry even if we landed mid-stage.
+            if (Number(profile.world_x) !== worldX || Number(profile.world_y) !== worldY) {
+                profile.world_x = worldX;
+                profile.world_y = worldY;
+                profile.updated_at = nowUnix();
+                writeProfile(nk, profile);
+            }
+            var invObj = readTeleportInvObj(nk, profile.user_id);
+            var balance = getTeleportBalance(invObj.value);
+            var result = {
+                ok: true,
+                request_id: requestId,
+                kingdom_id: kingdomId,
+                world_x: worldX,
+                world_y: worldY,
+                item_id: TELEPORT_ITEM_ID,
+                balance: balance,
+                contract_id: MAP_CONTRACT_ID,
+                notif_code: CASTLE_MOVED_NOTIF_CODE,
+            };
+            persistOp(OP_COMPLETED, { result: result, ok: true });
+            notifyKingdomCastleMoved(nk, logger, kingdomId, profile.user_id, worldX, worldY, profile.display_name || "Player");
+            return result;
+        }
+        throw Err("Unknown teleport operation state.");
+    }
+    catch (e) {
+        var msg = e instanceof Error ? String(e.message || e) : String(e);
+        try {
+            // Compensate based on durable stage.
+            if (op.state === OP_PROFILE_UPDATED) {
+                // Profile+registry already moved; finish as completed rather than unwind.
+                var invObj = readTeleportInvObj(nk, profile.user_id);
+                var result = {
+                    ok: true,
+                    request_id: requestId,
+                    kingdom_id: kingdomId,
+                    world_x: worldX,
+                    world_y: worldY,
+                    item_id: TELEPORT_ITEM_ID,
+                    balance: getTeleportBalance(invObj.value),
+                    contract_id: MAP_CONTRACT_ID,
+                    notif_code: CASTLE_MOVED_NOTIF_CODE,
+                };
+                persistOp(OP_COMPLETED, { result: result, ok: true });
+                return result;
+            }
+            if (op.state === OP_REGISTRY_UPDATED) {
+                restoreRegistryCoords(nk, profile, oldX, oldY);
+                profile.world_x = oldX;
+                profile.world_y = oldY;
+                writeProfile(nk, profile);
+                refundInventoryCAS(nk, profile.user_id);
+                persistOp(OP_FAILED, { ok: false, error: msg });
+            }
+            else if (op.state === OP_INV_CONSUMED) {
+                refundInventoryCAS(nk, profile.user_id);
+                persistOp(OP_FAILED, { ok: false, error: msg });
+            }
+            else if (op.state === OP_PENDING) {
+                // No irreversible side effects yet — keep pending so the same request_id can resume.
+            }
+            else {
+                persistOp(OP_FAILED, { ok: false, error: msg });
+            }
+        }
+        catch (compErr) {
+            logger.error("teleport compensate failed: %s", String(compErr));
+        }
+        throw Err(msg);
+    }
+    finally {
+        releaseKingdomLock(nk, kingdomId, profile.user_id, requestId);
+    }
+}
+function rpcTeleportInventorySync(ctx, logger, nk, payload) {
+    if (!ctx.userId)
+        throw Err("Unauthenticated");
+    ensureProfile(nk, logger, ctx.userId);
+    var body = {};
+    try {
+        body = payload && payload.length > 0 ? JSON.parse(payload) : {};
+    }
+    catch (_e) {
+        throw Err("Invalid JSON");
+    }
+    if (!Object.prototype.hasOwnProperty.call(body, "local_count"))
+        throw Err("Missing local_count.");
+    if (!isStrictNonNegInt(body.local_count))
+        throw Err("local_count must be a non-negative integer.");
+    var clientCount = body.local_count;
+    for (var attempt = 0; attempt < 8; attempt++) {
+        var invObj = readTeleportInvObj(nk, ctx.userId);
+        var rec = invObj.value;
+        if (!rec.reconciled) {
+            setTeleportBalance(rec, clientCount);
+            rec.reconciled = true;
+            rec.import_fingerprint = "bag_v1:" + String(clientCount) + ":" + String(nowUnix());
+            rec.updated_at = nowUnix();
+            try {
+                storageWriteVersioned(nk, TELEPORT_INV_COLLECTION, ctx.userId, ctx.userId, rec, invObj.version, 1);
+            }
+            catch (_e) {
+                continue;
+            }
+            logger.info("Teleport inventory reconciled user=%s imported=%d", ctx.userId, clientCount);
+        }
+        var latest = readTeleportInvObj(nk, ctx.userId).value;
+        return JSON.stringify({
+            ok: true,
+            item_id: TELEPORT_ITEM_ID,
+            balance: getTeleportBalance(latest),
+            reconciled: true,
+            contract_id: MAP_CONTRACT_ID,
+        });
+    }
+    throw Err("Teleport inventory sync busy.");
+}
+function rpcTeleportInventoryGet(ctx, _logger, nk, _payload) {
+    if (!ctx.userId)
+        throw Err("Unauthenticated");
+    var rec = readTeleportInvObj(nk, ctx.userId).value;
+    return JSON.stringify({
+        ok: true,
+        item_id: TELEPORT_ITEM_ID,
+        balance: getTeleportBalance(rec),
+        reconciled: !!rec.reconciled,
+    });
+}
+/** Additive deployment ledger — clients cannot wipe deployments in one call. */
+function rpcTeleportDeploymentBegin(ctx, _logger, nk, payload) {
+    if (!ctx.userId)
+        throw Err("Unauthenticated");
+    var body = {};
+    try {
+        body = payload && payload.length > 0 ? JSON.parse(payload) : {};
+    }
+    catch (_e) {
+        throw Err("Invalid JSON");
+    }
+    var deploymentId = trimStr(body.deployment_id || "");
+    var kind = trimStr(body.kind || "");
+    if (deploymentId.length < 8 || deploymentId.length > 80)
+        throw Err("Invalid deployment_id.");
+    if (kind !== "march" && kind !== "gather" && kind !== "rally" && kind !== "reinforce") {
+        throw Err("Invalid deployment kind.");
+    }
+    for (var attempt = 0; attempt < 8; attempt++) {
+        var obj = readDeployObj(nk, ctx.userId);
+        var val = obj.value;
+        var list = Array.isArray(val.deployments) ? val.deployments.slice() : [];
+        var found = false;
+        for (var i = 0; i < list.length; i++) {
+            if (String(list[i].deployment_id) === deploymentId) {
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+            list.push({ deployment_id: deploymentId, kind: kind, started_at: nowUnix() });
+        val.deployments = list;
+        val.updated_at = nowUnix();
+        try {
+            storageWriteVersioned(nk, TELEPORT_DEPLOY_COLLECTION, ctx.userId, ctx.userId, val, obj.version, 1);
+            return JSON.stringify({ ok: true, deployments: list });
+        }
+        catch (_e) {
+            // retry
+        }
+    }
+    throw Err("Deployment begin busy.");
+}
+function rpcTeleportDeploymentEnd(ctx, _logger, nk, payload) {
+    if (!ctx.userId)
+        throw Err("Unauthenticated");
+    var body = {};
+    try {
+        body = payload && payload.length > 0 ? JSON.parse(payload) : {};
+    }
+    catch (_e) {
+        throw Err("Invalid JSON");
+    }
+    var deploymentId = trimStr(body.deployment_id || "");
+    if (deploymentId.length < 8 || deploymentId.length > 80)
+        throw Err("Invalid deployment_id.");
+    for (var attempt = 0; attempt < 8; attempt++) {
+        var obj = readDeployObj(nk, ctx.userId);
+        var val = obj.value;
+        var list = Array.isArray(val.deployments) ? val.deployments : [];
+        var next = [];
+        for (var i = 0; i < list.length; i++) {
+            if (String(list[i].deployment_id) !== deploymentId)
+                next.push(list[i]);
+        }
+        val.deployments = next;
+        val.updated_at = nowUnix();
+        try {
+            storageWriteVersioned(nk, TELEPORT_DEPLOY_COLLECTION, ctx.userId, ctx.userId, val, obj.version, 1);
+            return JSON.stringify({ ok: true, deployments: next });
+        }
+        catch (_e) {
+            // retry
+        }
+    }
+    throw Err("Deployment end busy.");
+}
+/** Removed insecure clear-all troop activity writer. Kept name rejected. */
+function rpcSetTroopActivity(ctx, _logger, _nk, _payload) {
+    if (!ctx.userId)
+        throw Err("Unauthenticated");
+    throw Err("crownspire_set_troop_activity is retired. Use deployment begin/end.");
+}
+function rpcCityTeleportRelocate(ctx, logger, nk, payload) {
+    if (!ctx.userId)
+        throw Err("Unauthenticated");
+    var body = {};
+    try {
+        body = payload && payload.length > 0 ? JSON.parse(payload) : {};
+    }
+    catch (_e) {
+        throw Err("Invalid JSON");
+    }
+    var requestId = trimStr(body.request_id || "");
+    if (requestId.length < 8 || requestId.length > 80)
+        throw Err("Missing request_id.");
+    var itemId = trimStr(body.item_id || TELEPORT_ITEM_ID);
+    if (itemId !== TELEPORT_ITEM_ID)
+        throw Err("Unsupported teleport item.");
+    if (!Object.prototype.hasOwnProperty.call(body, "world_x") || !Object.prototype.hasOwnProperty.call(body, "world_y")) {
+        throw Err("Missing coordinates.");
+    }
+    if (typeof body.world_x !== "number" || typeof body.world_y !== "number") {
+        throw Err("Coordinates must be numbers.");
+    }
+    var worldX = body.world_x;
+    var worldY = body.world_y;
+    if (!isFinite(worldX) || !isFinite(worldY) || isNaN(worldX) || isNaN(worldY)) {
+        throw Err("Invalid coordinates.");
+    }
+    var profile = ensureProfile(nk, logger, ctx.userId);
+    ensureCastleCoords(nk, profile);
+    var kingdomId = String(profile.kingdom_id || DEV_KINGDOM_ID);
+    if (Object.prototype.hasOwnProperty.call(body, "kingdom_id")) {
+        var claimed = trimStr(body.kingdom_id);
+        if (claimed !== kingdomId)
+            throw Err("Cannot teleport outside your current kingdom.");
+    }
+    var opObj = readOpObj(nk, ctx.userId, requestId);
+    if (!opObj) {
+        var createVal = {
+            request_id: requestId,
+            user_id: ctx.userId,
+            kingdom_id: kingdomId,
+            item_id: itemId,
+            world_x: Math.floor(worldX),
+            world_y: Math.floor(worldY),
+            old_world_x: Number(profile.world_x),
+            old_world_y: Number(profile.world_y),
+            state: OP_PENDING,
+            created_at: nowUnix(),
+            updated_at: nowUnix(),
+            contract_id: MAP_CONTRACT_ID,
+        };
+        try {
+            writeOpObj(nk, ctx.userId, requestId, createVal, "*");
+        }
+        catch (_e) {
+            // Another worker created it — read existing.
+        }
+        opObj = readOpObj(nk, ctx.userId, requestId);
+        if (!opObj)
+            throw Err("Failed to create teleport operation.");
+    }
+    var existing = opObj.value;
+    if (existing.state === OP_COMPLETED && existing.result) {
+        return JSON.stringify(existing.result);
+    }
+    if (existing.state === OP_FAILED) {
+        throw Err(String(existing.error || "Teleport previously failed."));
+    }
+    var result = advanceTeleportSaga(nk, logger, profile, opObj, requestId);
+    return JSON.stringify(result);
+}
+/**
+ * Crownspire Phase 6 — Direct Message RPC delivery.
+ *
+ * Private messages are sent through an authenticated Nakama RPC instead of
+ * relying on the recipient already being subscribed to a DirectMessage socket
+ * channel. The server builds the authoritative DM channel, persists the
+ * message, and sends a delivery notification to the recipient.
+ */
+var DM_NOTIF_CODE = 5002;
+var DM_MAX_TEXT_LENGTH = 280;
+var DM_SUPPORTED_TYPES = {
+    TEXT: true,
+    MAP_LOCATION: true,
+    RALLY: true,
+};
+function rpcDmSend(ctx, logger, nk, payload) {
+    if (!ctx.userId) {
+        throw new Error("Unauthenticated");
+    }
+    var data = parsePayload(payload);
+    var recipientId = String(data.recipient_user_id || "").trim();
+    if (recipientId === "" || recipientId === ctx.userId) {
+        throw new Error("Invalid DM recipient");
+    }
+    // Verify the recipient is a real Nakama account before creating a thread.
+    var recipients = nk.usersGetId([recipientId]);
+    if (!recipients || recipients.length !== 1) {
+        throw new Error("Player not found");
+    }
+    var messageType = String(data.message_type || "TEXT").trim().toUpperCase();
+    if (!DM_SUPPORTED_TYPES[messageType]) {
+        throw new Error("Unsupported DM message type");
+    }
+    var text = String(data.text || "").trim();
+    if (messageType === "TEXT" && text === "") {
+        throw new Error("Message is empty");
+    }
+    if (text.length > DM_MAX_TEXT_LENGTH) {
+        throw new Error("Message exceeds 280 characters");
+    }
+    var messagePayload = (data.payload && typeof data.payload === "object") ? data.payload : {};
+    // Keep structured payloads bounded. This is validation, not authority for gameplay actions.
+    var payloadJson = JSON.stringify(messagePayload);
+    if (payloadJson.length > 4096) {
+        throw new Error("DM payload too large");
+    }
+    // Server-backed identity: never trust display name or alliance tag supplied by the client.
+    var profile = ensureProfile(nk, logger, ctx.userId);
+    var senderName = String(profile.display_name || "Player").substring(0, 64);
+    var allianceTag = String(profile.alliance_tag || "").substring(0, 8);
+    var kingdomId = String(profile.kingdom_id || "");
+    // DirectMessage == 2. Nakama canonicalizes the channel for this sender/recipient pair.
+    var channelId = nk.channelIdBuild(ctx.userId, recipientId, 2);
+    var content = {
+        v: 1,
+        message_type: messageType,
+        text: text,
+        sender_display_name: senderName,
+        sender_alliance_tag: allianceTag,
+        kingdom_id: kingdomId,
+        payload: messagePayload,
+        metadata: {
+            client_schema: 1,
+            tag_authority: "alliance_backend",
+            display_name_authority: "alliance_backend",
+            delivery_authority: "crownspire_dm_send_rpc",
+        },
+    };
+    var ack = nk.channelMessageSend(channelId, content, ctx.userId, undefined, true);
+    var preview = text.substring(0, 120);
     var notifContent = {
-        sender_user_id: senderId,
+        sender_user_id: ctx.userId,
         sender_display_name: senderName,
         preview: preview,
-        channel_id: actualChannelId,
-        message_id: messageId,
+        channel_id: channelId,
+        message_id: String(ack.messageId || ""),
     };
     try {
         nk.notificationSend(recipientId, "Direct Message", notifContent, DM_NOTIF_CODE, null, true);
     }
     catch (e) {
+        // Message persistence already succeeded. Log notification failure so the recipient
+        // can still recover the DM through history on reconnect/open.
         logger.warn("DM delivery notification failed recipient=%s err=%s", recipientId, String(e));
     }
-};
+    return JSON.stringify({
+        ok: true,
+        channel_id: channelId,
+        message_id: String(ack.messageId || ""),
+        create_time: String(ack.createTime || ""),
+    });
+}

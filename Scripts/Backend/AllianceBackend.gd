@@ -58,6 +58,14 @@ const RPC_GET_MY_ENTITLEMENTS := "crownspire_get_my_entitlements"
 const RPC_UPDATE_PLAYER_IDENTITY := "crownspire_update_player_identity"
 const RPC_PRESENCE_HEARTBEAT := "crownspire_presence_heartbeat"
 const RPC_LIST_KINGDOM_CASTLES := "crownspire_list_kingdom_castles"
+const RPC_TELEPORT_INV_SYNC := "crownspire_teleport_inventory_sync"
+const RPC_TELEPORT_INV_GET := "crownspire_teleport_inventory_get"
+const RPC_TELEPORT_DEPLOY_BEGIN := "crownspire_teleport_deployment_begin"
+const RPC_TELEPORT_DEPLOY_END := "crownspire_teleport_deployment_end"
+const RPC_SET_TROOP_ACTIVITY := "crownspire_set_troop_activity"
+const RPC_CITY_TELEPORT_RELOCATE := "crownspire_city_teleport_relocate"
+const CASTLE_MOVED_NOTIF_CODE: int = 5005
+const TELEPORT_ITEM_ID := "teleport_advanced_compass"
 
 ## TODO (Production): Replace beta_alliance_auto_help with production
 ## alliance_auto_help entitlement verified through Google Play Billing.
@@ -103,6 +111,9 @@ var _auto_help_running: bool = false
 var _help_socket_bound: bool = false
 var _presence_timer: Timer = null
 const PRESENCE_INTERVAL_SEC: float = 30.0
+var _cached_kingdom_castles: Array = []
+var _teleport_balance: int = -1
+var _castle_moved_bound: bool = false
 
 
 func _nakama_connection() -> Node:
@@ -365,7 +376,136 @@ func list_alliances(query: String = "") -> Dictionary:
 
 func list_kingdom_castles() -> Dictionary:
 	## Returns real kingdom player castles with stable world coordinates.
-	return await _rpc(RPC_LIST_KINGDOM_CASTLES, {})
+	var result: Dictionary = await _rpc(RPC_LIST_KINGDOM_CASTLES, {})
+	if bool(result.get("ok", false)) and typeof(result.get("castles")) == TYPE_ARRAY:
+		_cached_kingdom_castles = result.get("castles", [])
+	return result
+
+
+func get_cached_kingdom_castles() -> Array:
+	return _cached_kingdom_castles.duplicate(true)
+
+
+func get_teleport_balance() -> int:
+	return _teleport_balance
+
+
+func sync_teleport_inventory_from_bag() -> Dictionary:
+	## One-time reconcile of local bag count into server-authoritative balance.
+	var local_count: int = 0
+	if has_node("/root/BagState"):
+		local_count = int(BagState.get_item_count(TELEPORT_ITEM_ID))
+	var result: Dictionary = await _rpc(RPC_TELEPORT_INV_SYNC, {"local_count": local_count})
+	if bool(result.get("ok", false)):
+		_teleport_balance = int(result.get("balance", 0))
+		if has_node("/root/BagState") and BagState.has_method("set_item_count_authoritative"):
+			BagState.set_item_count_authoritative(TELEPORT_ITEM_ID, _teleport_balance)
+	return result
+
+
+func refresh_teleport_inventory() -> Dictionary:
+	var result: Dictionary = await _rpc(RPC_TELEPORT_INV_GET, {})
+	if bool(result.get("ok", false)):
+		_teleport_balance = int(result.get("balance", 0))
+		if bool(result.get("reconciled", false)) and has_node("/root/BagState") \
+				and BagState.has_method("set_item_count_authoritative"):
+			BagState.set_item_count_authoritative(TELEPORT_ITEM_ID, _teleport_balance)
+	return result
+
+
+func set_troop_activity(active_marches: int, gathering: bool, reinforcements: bool = false) -> Dictionary:
+	## Retired insecure clear/set ledger. Kept for call-site compatibility; always errors.
+	push_warning("[AllianceBackend] set_troop_activity retired — use teleport_deployment_begin/end")
+	return await _rpc(RPC_SET_TROOP_ACTIVITY, {
+		"active_marches": active_marches,
+		"gathering": gathering,
+		"reinforcements": reinforcements,
+	})
+
+
+func teleport_deployment_begin(deployment_id: String, kind: String) -> Dictionary:
+	return await _rpc(RPC_TELEPORT_DEPLOY_BEGIN, {
+		"deployment_id": str(deployment_id),
+		"kind": str(kind),
+	})
+
+
+func teleport_deployment_end(deployment_id: String) -> Dictionary:
+	return await _rpc(RPC_TELEPORT_DEPLOY_END, {
+		"deployment_id": str(deployment_id),
+	})
+
+
+func city_teleport_relocate(world_x: float, world_y: float, request_id: String = "") -> Dictionary:
+	var rid: String = str(request_id).strip_edges()
+	if rid == "":
+		rid = "tp_%s_%s" % [
+			str(Time.get_unix_time_from_system()).replace(".", ""),
+			str(randi()),
+		]
+	var kid: String = str(_profile.get("kingdom_id", "kingdom_dev_001"))
+	var result: Dictionary = await _rpc(RPC_CITY_TELEPORT_RELOCATE, {
+		"request_id": rid,
+		"item_id": TELEPORT_ITEM_ID,
+		"kingdom_id": kid,
+		"world_x": world_x,
+		"world_y": world_y,
+	})
+	if bool(result.get("ok", false)):
+		_teleport_balance = int(result.get("balance", _teleport_balance))
+		if has_node("/root/BagState") and BagState.has_method("set_item_count_authoritative"):
+			BagState.set_item_count_authoritative(TELEPORT_ITEM_ID, _teleport_balance)
+		if typeof(result.get("world_x")) != TYPE_NIL:
+			_profile["world_x"] = float(result.get("world_x"))
+			_profile["world_y"] = float(result.get("world_y"))
+			profile_changed.emit(_profile.duplicate(true))
+	else:
+		## Refresh authoritative balance after failed teleport / reconnect races.
+		await refresh_teleport_inventory()
+	return result
+
+
+func bind_castle_moved_notifications() -> void:
+	if _castle_moved_bound:
+		return
+	var nc: Node = _nakama_connection()
+	if nc == null or not nc.has_method("get_socket"):
+		return
+	var socket = nc.get_socket()
+	if socket == null:
+		return
+	if socket.has_signal("received_notification") and not socket.received_notification.is_connected(_on_castle_moved_notification):
+		socket.received_notification.connect(_on_castle_moved_notification)
+	_castle_moved_bound = true
+
+
+func _on_castle_moved_notification(notification) -> void:
+	if notification == null:
+		return
+	var code: int = int(notification.code) if ("code" in notification) else -1
+	if code != CASTLE_MOVED_NOTIF_CODE:
+		return
+	var parsed: Variant = notification.content if typeof(notification.content) == TYPE_DICTIONARY else null
+	if parsed == null:
+		var raw: String = str(notification.content) if ("content" in notification) else ""
+		parsed = JSON.parse_string(raw)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return
+	var payload: Dictionary = parsed as Dictionary
+	if str(payload.get("type", "")) != "castle_moved":
+		return
+	## Refresh kingdom castles so peer markers move without restart.
+	call_deferred("_refresh_castles_after_peer_move")
+
+
+func _refresh_castles_after_peer_move() -> void:
+	await list_kingdom_castles()
+	var tree := get_tree()
+	if tree == null:
+		return
+	var layer: Node = tree.root.find_child("WorldCastleLayer", true, false)
+	if layer != null and layer.has_method("refresh_castles"):
+		layer.call("refresh_castles")
 
 
 func update_alliance_profile(fields: Dictionary) -> Dictionary:
@@ -805,10 +945,16 @@ func _on_socket_connected() -> void:
 	_bind_help_notifications()
 	_help_socket_bound = false
 	_bind_help_notifications()
+	bind_castle_moved_notifications()
+	call_deferred("_boot_teleport_inventory_sync")
 	_start_presence()
 	if is_in_backend_alliance():
 		await refresh_membership_caches()
 		await refresh_help_requests()
+
+
+func _boot_teleport_inventory_sync() -> void:
+	await sync_teleport_inventory_from_bag()
 
 
 func _set_profile(profile: Dictionary) -> void:

@@ -47,6 +47,8 @@ func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> voi
 		_trigger_click()
 
 func _trigger_click() -> void:
+	if _is_city_teleport_placement_active():
+		return
 	# High-feedback visual feedback scaling
 	var tween = create_tween()
 	tween.set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
@@ -54,6 +56,13 @@ func _trigger_click() -> void:
 	tween.tween_property(self, "scale", scale, 0.15)
 	
 	clicked.emit(self)
+
+func _is_city_teleport_placement_active() -> bool:
+	var tree := get_tree()
+	if tree == null:
+		return false
+	var ctrl: Node = tree.root.find_child("CityTeleportController", true, false)
+	return ctrl != null and ctrl.has_method("is_placement_active") and bool(ctrl.call("is_placement_active"))
 
 func _on_mouse_entered() -> void:
 	_hovered = true

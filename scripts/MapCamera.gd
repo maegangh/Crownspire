@@ -102,6 +102,17 @@ func focus_world_position(world_pos: Vector2) -> void:
 	_clamp_camera()
 
 
+## Convert viewport/screen position to world coordinates (KingdomMap placement / tools).
+func screen_to_world(screen_pos: Vector2) -> Vector2:
+	var vp: Viewport = get_viewport()
+	var vp_size: Vector2 = get_viewport_rect().size
+	if vp != null:
+		## Prefer canvas inverse when available (handles stretch / safe areas).
+		var xform: Transform2D = get_canvas_transform()
+		return xform.affine_inverse() * screen_pos
+	return get_screen_center_position() + (screen_pos - vp_size * 0.5) / zoom.x
+
+
 func _apply_zoom(amount: float) -> void:
 	var new_zoom: float = clampf(zoom.x + amount, zoom_min, zoom_max)
 	zoom = Vector2(new_zoom, new_zoom)

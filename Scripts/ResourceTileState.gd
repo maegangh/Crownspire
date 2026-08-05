@@ -8,6 +8,10 @@ signal tiles_changed
 
 const SAVE_PATH := "user://resource_tiles.cfg"
 const SMOKE_SAVE_PATH := "user://resource_tiles_smoke_test.cfg"
+const META_SECTION := "meta"
+const LAYOUT_CONTRACT_KEY := "layout_contract_id"
+const LAYOUT_KINGDOM_KEY := "layout_kingdom_id"
+const CONTRACT_ID := "crownspire_map_blockers_v1"
 
 const STATUS_AVAILABLE := "AVAILABLE"
 const STATUS_RESERVED := "RESERVED"
@@ -21,6 +25,8 @@ var tiles: Dictionary = {} # tile_id -> Dictionary state
 var _live_nodes: Dictionary = {} # tile_id -> Node2D
 var _save_path_override: String = ""
 var _next_index_by_type: Dictionary = {"food": 0, "wood": 0, "stone": 0, "iron": 0}
+var _layout_contract_id: String = ""
+var _layout_kingdom_id: String = ""
 
 
 func _ready() -> void:
@@ -45,6 +51,8 @@ func begin_smoke_isolation() -> void:
 	_save_path_override = SMOKE_SAVE_PATH
 	tiles.clear()
 	_live_nodes.clear()
+	_layout_contract_id = ""
+	_layout_kingdom_id = ""
 	_next_index_by_type = {"food": 0, "wood": 0, "stone": 0, "iron": 0}
 	if FileAccess.file_exists(SMOKE_SAVE_PATH):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(SMOKE_SAVE_PATH))
@@ -99,6 +107,86 @@ func allocate_tile_id(resource_type: String) -> String:
 	return make_tile_id(rtype, idx)
 
 
+## Stable id keyed to shared map contract index (not obsolete random coordinates).
+func make_contract_tile_id(contract_index: int, resource_type: String) -> String:
+	var rtype: String = resource_type.strip_edges().to_lower()
+	return "%s:resource:%d:%s" % [CONTRACT_ID, maxi(0, contract_index), rtype]
+
+
+## Rebuild tile map from contract spots. Preserve depletion/timers by contract tile id
+## or by legacy type+index when migrating older saves.
+func reconcile_to_contract_layout(kingdom_id: String, contract_spots: Array) -> void:
+	var kid: String = str(kingdom_id).strip_edges()
+	if kid == "":
+		kid = "kingdom_dev_001"
+	var prior: Dictionary = tiles.duplicate(true)
+	var legacy_by_type_index: Dictionary = {}
+	for tid_v: Variant in prior.keys():
+		var tid: String = str(tid_v)
+		var t: Dictionary = prior[tid] as Dictionary
+		var rtype: String = str(t.get("resource_type", "")).strip_edges().to_lower()
+		if rtype not in ["food", "wood", "stone", "iron"]:
+			continue
+		# Legacy ids: resource_food_0
+		if tid.begins_with("resource_%s_" % rtype):
+			var parts: PackedStringArray = tid.split("_")
+			if parts.size() >= 3:
+				var idx: int = int(parts[parts.size() - 1])
+				legacy_by_type_index["%s:%d" % [rtype, idx]] = t
+	var next: Dictionary = {}
+	for spot_v: Variant in contract_spots:
+		if typeof(spot_v) != TYPE_DICTIONARY:
+			continue
+		var spot: Dictionary = spot_v
+		var idx: int = int(spot.get("index", 0))
+		var rtype: String = str(spot.get("resource_type", "food")).strip_edges().to_lower()
+		var tid: String = make_contract_tile_id(idx, rtype)
+		var existing: Dictionary = {}
+		if prior.has(tid):
+			existing = prior[tid] as Dictionary
+		elif legacy_by_type_index.has("%s:%d" % [rtype, idx]):
+			existing = legacy_by_type_index["%s:%d" % [rtype, idx]] as Dictionary
+		var level: int = int(spot.get("level", int(existing.get("level", 1))))
+		var max_amount: int = int(spot.get("max_amount", int(existing.get("max_amount", 0))))
+		var remaining: int = max_amount
+		var status: String = STATUS_AVAILABLE
+		var reserved: String = ""
+		var respawn_unix: int = 0
+		var applied: Array = []
+		if not existing.is_empty():
+			remaining = maxi(0, int(existing.get("remaining_amount", remaining)))
+			max_amount = int(existing.get("max_amount", max_amount))
+			level = int(existing.get("level", level))
+			status = str(existing.get("status", status))
+			reserved = str(existing.get("reserved_by_march_id", ""))
+			respawn_unix = int(existing.get("respawn_unix", 0))
+			var prev_applied: Variant = existing.get("tile_amount_applied_march_ids", [])
+			if typeof(prev_applied) == TYPE_ARRAY:
+				applied = prev_applied
+		var pos_x: float = float(spot.get("x", 0.0))
+		var pos_y: float = float(spot.get("y", 0.0))
+		next[tid] = {
+			"tile_id": tid,
+			"resource_type": rtype,
+			"level": level,
+			"max_amount": max_amount,
+			"remaining_amount": remaining,
+			"status": status,
+			"reserved_by_march_id": reserved,
+			"respawn_unix": respawn_unix,
+			"world_position": {"x": pos_x, "y": pos_y},
+			"tile_amount_applied_march_ids": applied,
+			"contract_index": idx,
+		}
+		_bump_index_from_id(tid)
+	tiles = next
+	_layout_contract_id = CONTRACT_ID
+	_layout_kingdom_id = kid
+	_live_nodes.clear()
+	save_tiles()
+	tiles_changed.emit()
+
+
 func register_or_update_tile(
 	tile_id: String,
 	resource_type: String,
@@ -121,6 +209,7 @@ func register_or_update_tile(
 		"status": status if status != "" else STATUS_AVAILABLE,
 		"reserved_by_march_id": str(existing.get("reserved_by_march_id", "")),
 		"respawn_unix": int(existing.get("respawn_unix", 0)),
+		## Authoritative spawn always writes contract coordinates (never keep stale saves).
 		"world_position": {"x": world_pos.x, "y": world_pos.y},
 		"tile_amount_applied_march_ids": existing.get("tile_amount_applied_march_ids", []),
 	}
@@ -132,7 +221,6 @@ func register_or_update_tile(
 		state["status"] = str(existing.get("status", status))
 		state["reserved_by_march_id"] = str(existing.get("reserved_by_march_id", ""))
 		state["respawn_unix"] = int(existing.get("respawn_unix", 0))
-		state["world_position"] = existing.get("world_position", state["world_position"])
 	tiles[tile_id] = state
 	_bump_index_from_id(tile_id)
 	return state.duplicate(true)
@@ -389,8 +477,10 @@ func _bump_index_from_id(tile_id: String) -> void:
 
 func save_tiles() -> void:
 	var save := ConfigFile.new()
-	save.set_value("meta", "save_version", 1)
+	save.set_value("meta", "save_version", 2)
 	save.set_value("meta", "next_index_json", JSON.stringify(_next_index_by_type))
+	save.set_value("meta", LAYOUT_CONTRACT_KEY, _layout_contract_id)
+	save.set_value("meta", LAYOUT_KINGDOM_KEY, _layout_kingdom_id)
 	var list: Array = []
 	for tid: Variant in tiles.keys():
 		list.append(tiles[tid])
@@ -400,6 +490,8 @@ func save_tiles() -> void:
 
 func load_tiles() -> void:
 	tiles.clear()
+	_layout_contract_id = ""
+	_layout_kingdom_id = ""
 	var save := ConfigFile.new()
 	if save.load(get_save_path()) != OK:
 		return
@@ -407,6 +499,8 @@ func load_tiles() -> void:
 	var idx_parsed: Variant = JSON.parse_string(idx_raw)
 	if typeof(idx_parsed) == TYPE_DICTIONARY:
 		_next_index_by_type = idx_parsed
+	_layout_contract_id = str(save.get_value("meta", LAYOUT_CONTRACT_KEY, ""))
+	_layout_kingdom_id = str(save.get_value("meta", LAYOUT_KINGDOM_KEY, ""))
 	var raw: String = str(save.get_value("registry", "tiles_json", "[]"))
 	var parsed: Variant = JSON.parse_string(raw)
 	if typeof(parsed) != TYPE_ARRAY:

@@ -157,6 +157,19 @@ func _player_castle_marker() -> Node2D:
 	return null
 
 
+func apply_self_castle_position(pos: Vector2) -> void:
+	var marker: Node2D = _player_castle_marker()
+	if marker == null:
+		return
+	marker.global_position = _clamp_map(pos)
+	marker.visible = true
+	marker.set_meta("world_x", marker.global_position.x)
+	marker.set_meta("world_y", marker.global_position.y)
+	## Keep reserved list coherent for spawn exclusion.
+	_reserved_positions.clear()
+	_reserved_positions.append(marker.global_position)
+
+
 func _place_local_castle(pos: Vector2, self_id: String, self_entry: Dictionary) -> void:
 	var marker: Node2D = _player_castle_marker()
 	if marker == null:
@@ -253,6 +266,8 @@ func _wire_local_castle_input() -> void:
 
 
 func _on_local_castle_input(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:
+	if _is_city_teleport_placement_active():
+		return
 	var marker: Node2D = _player_castle_marker()
 	var uid: String = str(marker.get_meta("user_id", "")) if marker != null else ""
 	if event is InputEventScreenTouch:
@@ -511,6 +526,8 @@ func _opaque_texture_rect(tex: Texture2D) -> Rect2:
 
 
 func _open_castle_popup(payload: Dictionary) -> void:
+	if _is_city_teleport_placement_active():
+		return
 	print("[WorldCastle] opening PlayerCastlePopup owner=%s" % str(payload.get("user_id", "")))
 	var popup: Control = _ensure_castle_popup()
 	if popup != null and popup.has_method("open_for_castle"):
@@ -555,3 +572,11 @@ func _clamp_map(pos: Vector2) -> Vector2:
 		clampf(pos.x, EDGE_MARGIN, MAP_SIZE.x - EDGE_MARGIN),
 		clampf(pos.y, EDGE_MARGIN, MAP_SIZE.y - EDGE_MARGIN)
 	)
+
+
+func _is_city_teleport_placement_active() -> bool:
+	var tree := get_tree()
+	if tree == null:
+		return false
+	var ctrl: Node = tree.root.find_child("CityTeleportController", true, false)
+	return ctrl != null and ctrl.has_method("is_placement_active") and bool(ctrl.call("is_placement_active"))

@@ -38,6 +38,8 @@ func _input_event(_viewport: Viewport, event: InputEvent, _shape_idx: int) -> vo
 
 
 func _open_panel() -> void:
+	if _is_city_teleport_placement_active():
+		return
 	var panel: Node = _find_lair_panel()
 	if panel == null:
 		push_error("[AllianceLair] WildlingLairPanel not found under HUD/")
@@ -78,6 +80,14 @@ func _open_panel() -> void:
 		if wid.is_empty():
 			wid = "lair_%s_L%d" % [species.strip_edges().to_lower(), lair_level]
 		GameEvents.emit_wildling_selected(wid)
+
+
+func _is_city_teleport_placement_active() -> bool:
+	var tree := get_tree()
+	if tree == null:
+		return false
+	var ctrl: Node = tree.root.find_child("CityTeleportController", true, false)
+	return ctrl != null and ctrl.has_method("is_placement_active") and bool(ctrl.call("is_placement_active"))
 
 
 func _find_lair_panel() -> Node:

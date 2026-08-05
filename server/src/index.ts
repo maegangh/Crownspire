@@ -130,6 +130,15 @@ function InitModule(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkrunt
   // Kingdom world castles (stable positions for multiplayer map).
   initializer.registerRpc("crownspire_list_kingdom_castles", rpcListKingdomCastles);
 
+  // Current-kingdom targeted city teleport.
+  initializer.registerRpc("crownspire_teleport_inventory_sync", rpcTeleportInventorySync);
+  initializer.registerRpc("crownspire_teleport_inventory_get", rpcTeleportInventoryGet);
+  initializer.registerRpc("crownspire_teleport_deployment_begin", rpcTeleportDeploymentBegin);
+  initializer.registerRpc("crownspire_teleport_deployment_end", rpcTeleportDeploymentEnd);
+  // Retired: clients could clear the troop ledger to bypass teleport checks.
+  initializer.registerRpc("crownspire_set_troop_activity", rpcSetTroopActivity);
+  initializer.registerRpc("crownspire_city_teleport_relocate", rpcCityTeleportRelocate);
+
   // Phase 5.3 — Alliance Rallies (Wildling Lair).
   initializer.registerRpc("crownspire_rally_create", rpcRallyCreate);
   initializer.registerRpc("crownspire_rally_join", rpcRallyJoin);

@@ -1,6 +1,7 @@
 extends Node2D
 
 const WildlingLairDatabase = preload("res://scripts/World/WildlingLairDatabase.gd")
+const MapPlacementContractScript = preload("res://scripts/World/MapPlacementContract.gd")
 
 @export var resource_node_scene: PackedScene
 @export var wildling_node_scene: PackedScene
@@ -48,6 +49,7 @@ var rng := RandomNumberGenerator.new()
 func _ready() -> void:
 	rng.randomize()
 	_ensure_wildling_lair_spawns_root()
+	_ensure_teleport_controller()
 	await _ensure_and_refresh_castles()
 	if has_node("/root/ResourceTileState"):
 		ResourceTileState.clear_live_nodes()
@@ -58,6 +60,29 @@ func _ready() -> void:
 	if has_node("/root/ResourceTileState"):
 		# After live nodes exist + marches already loaded by autoload order.
 		ResourceTileState.repair_stale_reservations()
+
+
+func _ensure_teleport_controller() -> void:
+	var parent_map: Node = _map_root()
+	if parent_map == null:
+		return
+	if parent_map.get_node_or_null("CityTeleportController") != null:
+		return
+	var ctrl := Node2D.new()
+	ctrl.name = "CityTeleportController"
+	ctrl.set_script(load("res://scripts/World/CityTeleportController.gd"))
+	parent_map.add_child(ctrl)
+	if get_tree() != null and get_tree().has_meta("pending_city_teleport"):
+		call_deferred("_start_pending_teleport", ctrl)
+
+
+func _start_pending_teleport(ctrl: Node) -> void:
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if ctrl != null and is_instance_valid(ctrl) and ctrl.has_method("begin_placement"):
+		ctrl.call("begin_placement")
+	if get_tree() != null and get_tree().has_meta("pending_city_teleport"):
+		get_tree().remove_meta("pending_city_teleport")
 
 
 func _map_root() -> Node:
@@ -111,49 +136,60 @@ func spawn_resources() -> void:
 		var child: Node = resource_spawns.get_child(0)
 		resource_spawns.remove_child(child)
 		child.free()
-
-	if has_node("/root/ResourceTileState") and ResourceTileState.has_saved_tiles():
-		_spawn_resources_from_saved_state()
-		return
-	_spawn_resources_fresh()
+	## Always spawn from crownspire_map_blockers_v1 — never prefer stale saved coordinates.
+	_spawn_resources_from_contract()
 
 
-func _spawn_resources_from_saved_state() -> void:
-	for state_v: Variant in ResourceTileState.get_all_tiles():
-		if typeof(state_v) != TYPE_DICTIONARY:
-			continue
-		var state: Dictionary = state_v
-		var rtype: String = str(state.get("resource_type", "")).strip_edges().to_lower()
-		if rtype not in ["food", "wood", "stone", "iron"]:
-			continue
-		var pos_d: Dictionary = state.get("world_position", {}) as Dictionary
-		var pos := Vector2(float(pos_d.get("x", 0.0)), float(pos_d.get("y", 0.0)))
-		_instantiate_resource_tile(
-			str(state.get("tile_id", "")),
-			rtype,
-			int(state.get("level", 1)),
-			int(state.get("max_amount", get_resource_amount(int(state.get("level", 1))))),
-			int(state.get("remaining_amount", 0)),
-			pos,
-			false
-		)
-
-
-func _spawn_resources_fresh() -> void:
+func _spawn_resources_from_contract() -> void:
 	# Crystal is out of gather scope for Step 3 — only persist Food/Wood/Stone/Iron.
 	var types: Array[String] = ["food", "wood", "stone", "iron"]
-	for _i: int in range(resource_count):
-		var resource_type: String = types[rng.randi_range(0, types.size() - 1)]
-		var level: int = rng.randi_range(1, 7)
-		var amount: int = get_resource_amount(level)
-		var pos: Vector2 = _find_clear_resource_position()
+	var kid: String = _kingdom_id_for_contract()
+	var resources: Array = MapPlacementContractScript.blockers_of_kinds(kid, PackedStringArray(["resource"]))
+	var count: int = mini(resource_count, resources.size())
+	var contract_spots: Array = []
+	for i: int in range(count):
+		contract_spots.append({
+			"index": i,
+			"resource_type": types[i % types.size()],
+			"x": float(resources[i].get("x", 0.0)),
+			"y": float(resources[i].get("y", 0.0)),
+			"level": 1 + (i % 7),
+			"max_amount": get_resource_amount(1 + (i % 7)),
+		})
+	if has_node("/root/ResourceTileState") and ResourceTileState.has_method("reconcile_to_contract_layout"):
+		ResourceTileState.reconcile_to_contract_layout(kid, contract_spots)
+	for spot_v: Variant in contract_spots:
+		var spot: Dictionary = spot_v
+		var resource_type: String = str(spot.get("resource_type", "food"))
+		var level: int = int(spot.get("level", 1))
+		var max_amount: int = int(spot.get("max_amount", get_resource_amount(level)))
+		var pos := Vector2(float(spot.get("x", 0.0)), float(spot.get("y", 0.0)))
 		var tile_id: String = ""
+		var remaining: int = max_amount
 		if has_node("/root/ResourceTileState"):
-			tile_id = ResourceTileState.allocate_tile_id(resource_type)
-		_instantiate_resource_tile(tile_id, resource_type, level, amount, amount, pos, true)
+			if ResourceTileState.has_method("make_contract_tile_id"):
+				tile_id = ResourceTileState.make_contract_tile_id(int(spot.get("index", 0)), resource_type)
+			else:
+				tile_id = ResourceTileState.allocate_tile_id(resource_type)
+			var prior: Dictionary = ResourceTileState.get_tile(tile_id)
+			if not prior.is_empty():
+				remaining = int(prior.get("remaining_amount", remaining))
+				max_amount = int(prior.get("max_amount", max_amount))
+				level = int(prior.get("level", level))
+		_instantiate_resource_tile(tile_id, resource_type, level, max_amount, remaining, pos, true)
 
 	if has_node("/root/ResourceTileState"):
 		ResourceTileState.save_tiles()
+
+
+func _kingdom_id_for_contract() -> String:
+	if has_node("/root/AllianceLairState") and AllianceLairState.has_method("get_kingdom_id"):
+		return str(AllianceLairState.get_kingdom_id())
+	if has_node("/root/AllianceBackend") and AllianceBackend.has_method("get_profile"):
+		var kid: String = str(AllianceBackend.get_profile().get("kingdom_id", "")).strip_edges()
+		if kid != "":
+			return kid
+	return "kingdom_dev_001"
 
 
 func _instantiate_resource_tile(
@@ -269,12 +305,20 @@ func get_wildling_card(level: int) -> Texture2D:
 		return dragon_card
 
 func spawn_wildlings() -> void:
-	for i in range(wildling_count):
-		var level: int = rng.randi_range(1, 30)
-
+	while wildling_spawns.get_child_count() > 0:
+		var child: Node = wildling_spawns.get_child(0)
+		wildling_spawns.remove_child(child)
+		child.free()
+	var kid: String = _kingdom_id_for_contract()
+	var spots: Array = MapPlacementContractScript.blockers_of_kinds(kid, PackedStringArray(["wildling"]))
+	var count: int = mini(wildling_count, spots.size())
+	for i in range(count):
+		var level: int = 1 + (i % 30)
+		if wildling_node_scene == null:
+			return
 		var node: Node2D = wildling_node_scene.instantiate()
 		wildling_spawns.add_child(node)
-		node.position = random_map_position()
+		node.position = Vector2(float(spots[i].get("x", 0.0)), float(spots[i].get("y", 0.0)))
 		node.scale = Vector2(0.68, 0.68)
 		node.z_index = 100
 
@@ -323,12 +367,6 @@ func spawn_wildling_lairs() -> void:
 	if has_node("/root/AllianceLairState"):
 		AllianceLairState.clear_spawn_registry()
 
-	var lair_rng := RandomNumberGenerator.new()
-	if use_deterministic_lair_seed and has_node("/root/AllianceLairState"):
-		lair_rng.seed = AllianceLairState.kingdom_spawn_seed()
-	else:
-		lair_rng.randomize()
-
 	var level_min: int = WildlingLairDatabase.beta_spawn_level_min()
 	var level_max: int = WildlingLairDatabase.beta_spawn_level_max()
 	var spawn_count: int = WildlingLairDatabase.beta_spawn_count()
@@ -337,9 +375,11 @@ func spawn_wildling_lairs() -> void:
 	# Prefer beta band (1–5) even if export still says 10.
 	spawn_count = clampi(spawn_count, 4, 20)
 	var band: int = maxi(1, level_max - level_min + 1)
-	var kingdom_id: String = "kingdom_dev_001"
-	if has_node("/root/AllianceLairState"):
-		kingdom_id = AllianceLairState.get_kingdom_id()
+	var kingdom_id: String = _kingdom_id_for_contract()
+	var lair_spots: Array = MapPlacementContractScript.blockers_of_kinds(
+		kingdom_id, PackedStringArray(["lair"])
+	)
+	spawn_count = mini(spawn_count, lair_spots.size())
 
 	var spawned: int = 0
 	var variant_counts := {"beast": 0, "horror": 0, "ancient": 0}
@@ -348,7 +388,10 @@ func spawn_wildling_lairs() -> void:
 		var def: Dictionary = WildlingLairDatabase.get_level_def(level)
 		if def.is_empty():
 			continue
-		var pos: Vector2 = _find_clear_lair_position_seeded(lair_rng)
+		var pos: Vector2 = Vector2(
+			float(lair_spots[i].get("x", 0.0)),
+			float(lair_spots[i].get("y", 0.0))
+		)
 		var lair_id: String = _make_stable_lair_id(kingdom_id, level, i)
 		var node: Node2D = wildling_lair_node_scene.instantiate()
 		wildling_lair_spawns.add_child(node)
@@ -384,10 +427,10 @@ func spawn_wildling_lairs() -> void:
 		if variant_counts.has(variant):
 			variant_counts[variant] = int(variant_counts[variant]) + 1
 		spawned += 1
-	print("[AllianceLair] Spawned %d lairs kingdom=%s seed=%s variants=%s" % [
+	print("[AllianceLair] Spawned %d lairs kingdom=%s contract=%s variants=%s" % [
 		spawned,
 		kingdom_id,
-		str(lair_rng.seed),
+		MapPlacementContractScript.CONTRACT_ID,
 		str(variant_counts),
 	])
 	_smoke_wildling_lairs()

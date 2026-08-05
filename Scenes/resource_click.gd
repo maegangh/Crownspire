@@ -58,6 +58,8 @@ func _input_event(_viewport: Viewport, event: InputEvent, _shape_idx: int) -> vo
 
 
 func _open_panel() -> void:
+	if _is_city_teleport_placement_active():
+		return
 	# Crystal tiles may still exist from older content; popup can show them but Gather is gated.
 	var panel: Node = _find_resource_panel()
 	if panel == null:
@@ -98,3 +100,11 @@ func _find_resource_panel() -> Node:
 	if panel != null:
 		return panel
 	return get_tree().root.find_child("ResourcePanel", true, false)
+
+
+func _is_city_teleport_placement_active() -> bool:
+	var tree := get_tree()
+	if tree == null:
+		return false
+	var ctrl: Node = tree.root.find_child("CityTeleportController", true, false)
+	return ctrl != null and ctrl.has_method("is_placement_active") and bool(ctrl.call("is_placement_active"))

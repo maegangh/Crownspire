@@ -184,6 +184,52 @@ func get_castle_world_position() -> Vector2:
 	return Vector2.ZERO
 
 
+func has_blocking_deployments() -> bool:
+	## True when any march is away, gathering, returning, in combat, or rally-reserved.
+	for march in get_active_marches():
+		var status: String = str(march.get("status", ""))
+		if status in [STATUS_MARCHING, STATUS_IN_COMBAT, STATUS_GATHERING, STATUS_RETURNING]:
+			return true
+		if str(march.get("type", "")) == "rally_reservation" and status != STATUS_COMPLETED:
+			return true
+	if has_node("/root/RallyBackend") and RallyBackend.has_method("is_in_rally"):
+		if RallyBackend.is_in_rally(""):
+			return true
+	return false
+
+
+func sync_troop_activity_to_server() -> void:
+	## Additive deployment ledger only — cannot wipe server state to bypass teleport.
+	if not has_node("/root/AllianceBackend"):
+		return
+	if not AllianceBackend.has_method("teleport_deployment_begin"):
+		return
+	for march in get_active_marches():
+		var status: String = str(march.get("status", ""))
+		var mid: String = str(march.get("march_id", "")).strip_edges()
+		if mid == "":
+			continue
+		var kind: String = "march"
+		if status == STATUS_GATHERING or str(march.get("march_type", "")) == "gather":
+			kind = "gather"
+		elif str(march.get("march_type", "")).find("rally") >= 0 or str(march.get("type", "")) == "rally_reservation":
+			kind = "rally"
+		elif str(march.get("march_type", "")) == "reinforce":
+			kind = "reinforce"
+		if status in [STATUS_MARCHING, STATUS_IN_COMBAT, STATUS_GATHERING, STATUS_RETURNING]:
+			await AllianceBackend.teleport_deployment_begin(mid, kind)
+		elif str(march.get("type", "")) == "rally_reservation" and status != STATUS_COMPLETED:
+			await AllianceBackend.teleport_deployment_begin(mid, "rally")
+	## Server-authored rallies are checked independently on the relocate RPC.
+
+
+func notify_deployment_ended(deployment_id: String) -> void:
+	if deployment_id.strip_edges() == "":
+		return
+	if has_node("/root/AllianceBackend") and AllianceBackend.has_method("teleport_deployment_end"):
+		AllianceBackend.teleport_deployment_end(deployment_id)
+
+
 ## World aim point for a Wildling (sprite/collision center, not offset root).
 func get_wildling_aim_position(wildling: Node2D) -> Vector2:
 	if wildling == null or not is_instance_valid(wildling):
@@ -409,6 +455,7 @@ func _tick_marches() -> void:
 				remaining.append(march)
 			else:
 				_destroy_visual(str(march.get("march_id", "")))
+				notify_deployment_ended(str(march.get("march_id", "")))
 				march_completed.emit(str(march.get("march_id", "")))
 		active_marches = remaining
 
@@ -1547,6 +1594,7 @@ func _catch_up_offline() -> void:
 				remaining.append(march2)
 			else:
 				_destroy_visual(mid2)
+				notify_deployment_ended(mid2)
 		active_marches = remaining
 
 

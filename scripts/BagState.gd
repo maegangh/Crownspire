@@ -35,6 +35,10 @@ func add_item(item_id: String, amount: int = 1) -> void:
 	var id: String = str(item_id).strip_edges()
 	if id == "":
 		return
+	## Server-authoritative teleport charges — never grant locally after reconcile path.
+	if id == "teleport_advanced_compass":
+		push_warning("[BagState] teleport_advanced_compass is server-authoritative; local add blocked")
+		return
 	var add_amt: int = maxi(0, amount)
 	if add_amt <= 0:
 		return
@@ -51,6 +55,10 @@ func get_item_count(item_id: String) -> int:
 
 func remove_item(item_id: String, amount: int = 1) -> bool:
 	var id: String = str(item_id).strip_edges()
+	## Server-authoritative teleport charges — never consume locally.
+	if id == "teleport_advanced_compass":
+		push_warning("[BagState] teleport_advanced_compass is server-authoritative; local remove blocked")
+		return false
 	var safe_amount: int = maxi(0, amount)
 	if safe_amount <= 0:
 		return true
@@ -63,6 +71,19 @@ func remove_item(item_id: String, amount: int = 1) -> bool:
 		push_error("[BagState] remove_item save failed for %s" % id)
 		return false
 	return true
+
+
+## Mirror server balance into local bag display (teleport inventory).
+func set_item_count_authoritative(item_id: String, count: int) -> void:
+	var id: String = str(item_id).strip_edges()
+	if id == "":
+		return
+	var n: int = maxi(0, count)
+	if n <= 0:
+		items.erase(id)
+	else:
+		items[id] = n
+	save_bag()
 
 
 func save_bag() -> bool:
@@ -171,6 +192,8 @@ func _merge_missing_into_memory(source: Dictionary) -> bool:
 	for raw_key in source.keys():
 		var id: String = str(raw_key).strip_edges()
 		if id == "":
+			continue
+		if id == "teleport_advanced_compass":
 			continue
 		var src_count: int = int(source[raw_key])
 		if src_count <= 0:

@@ -20,6 +20,8 @@ func _input_event(_viewport, event, _shape_idx) -> void:
 		_open_wildling_panel()
 
 func _open_wildling_panel() -> void:
+	if _is_city_teleport_placement_active():
+		return
 	var panel = get_tree().current_scene.get_node_or_null("HUD/WildlingPanel")
 
 	if panel == null:
@@ -38,3 +40,11 @@ func _open_wildling_panel() -> void:
 		if wid.is_empty():
 			wid = "%s_L%d" % [species.strip_edges().to_lower(), level]
 		GameEvents.emit_wildling_selected(wid)
+
+
+func _is_city_teleport_placement_active() -> bool:
+	var tree := get_tree()
+	if tree == null:
+		return false
+	var ctrl: Node = tree.root.find_child("CityTeleportController", true, false)
+	return ctrl != null and ctrl.has_method("is_placement_active") and bool(ctrl.call("is_placement_active"))

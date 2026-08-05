@@ -195,6 +195,10 @@ func _use_item(item_id: String) -> void:
 			used_successfully = _use_hero_item(item_id)
 		"speedup", "boost", "chest":
 			used_successfully = BagState.remove_item(item_id, 1)
+		"teleport":
+			await _use_teleport_item(item_id)
+			refresh_items()
+			return
 		_:
 			print("Use item coming soon:", item_id)
 			return
@@ -206,6 +210,74 @@ func _use_item(item_id: String) -> void:
 	else:
 		selected_item_id = ""
 		_clear_details()
+
+
+func _use_teleport_item(item_id: String) -> void:
+	if item_id != "teleport_advanced_compass":
+		print("Teleport item not hooked up yet:", item_id)
+		return
+	var ab: Node = get_node_or_null("/root/AllianceBackend")
+	if ab == null:
+		print("Teleport requires AllianceBackend")
+		return
+	## Ensure server inventory is reconciled before placement.
+	if ab.has_method("sync_teleport_inventory_from_bag"):
+		var sync_res: Dictionary = await ab.sync_teleport_inventory_from_bag()
+		if not bool(sync_res.get("ok", false)):
+			print("Teleport inventory sync failed:", sync_res.get("error", ""))
+			refresh_items()
+			return
+		if int(sync_res.get("balance", 0)) < 1:
+			print("No Advanced Teleport remaining on server.")
+			refresh_items()
+			return
+	## Close bag UI then open Kingdom Map in placement mode.
+	var manager := get_node_or_null("../../UIManager")
+	if manager == null:
+		var hud := get_tree().root.find_child("GameHUD", true, false)
+		if hud != null:
+			manager = hud.get_node_or_null("UIManager")
+	if manager != null and manager.has_method("close_current_screen"):
+		manager.close_current_screen()
+	elif manager != null and manager.has_method("close_screen"):
+		manager.close_screen()
+	var tree := get_tree()
+	if tree == null:
+		return
+	## Flag for KingdomMap to enter placement after load.
+	if has_node("/root/GameEvents") and GameEvents.has_method("set"):
+		pass
+	tree.set_meta("pending_city_teleport", true)
+	if str(tree.current_scene.name) == "KingdomMap":
+		_start_map_teleport_placement()
+	else:
+		tree.change_scene_to_file.call_deferred("res://Scenes/World/KingdomMap.tscn")
+		call_deferred("_deferred_start_teleport_when_map_ready")
+
+
+func _deferred_start_teleport_when_map_ready() -> void:
+	for _i in range(90):
+		await get_tree().process_frame
+		if get_tree() == null:
+			return
+		if str(get_tree().current_scene.name) == "KingdomMap":
+			_start_map_teleport_placement()
+			return
+
+
+func _start_map_teleport_placement() -> void:
+	var tree := get_tree()
+	if tree == null or tree.current_scene == null:
+		return
+	var ctrl: Node = tree.current_scene.get_node_or_null("CityTeleportController")
+	if ctrl == null:
+		ctrl = tree.root.find_child("CityTeleportController", true, false)
+	if ctrl != null and ctrl.has_method("begin_placement"):
+		ctrl.call("begin_placement")
+		if tree.has_meta("pending_city_teleport"):
+			tree.remove_meta("pending_city_teleport")
+	else:
+		print("CityTeleportController missing on KingdomMap")
 
 
 func _use_resource_item(item_id: String) -> bool:
