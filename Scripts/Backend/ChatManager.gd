@@ -35,7 +35,7 @@ const BLOCK_MUTE_PATH: String = "user://chat_moderation_local.cfg"
 const DISPLAY_NAME_PATH: String = "user://chat_display_name.cfg"
 const REPORTS_PATH: String = "user://chat_reports_pending.cfg"
 const DM_CONV_PATH: String = "user://dm_conversations.cfg"
-const DM_NOTIF_CODE: int = 5002
+const DM_NOTIF_CODE: int = 5004
 
 ## TEMPORARY local-only moderation stores. Migrate to account/backend later.
 ## Block/mute here are client filters only — not server punishment.

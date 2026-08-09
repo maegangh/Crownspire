@@ -3849,8 +3849,11 @@ function rpcCityTeleportRelocate(ctx, logger, nk, payload) {
  * relying on the recipient already being subscribed to a DirectMessage socket
  * channel. The server builds the authoritative DM channel, persists the
  * message, and sends a delivery notification to the recipient.
+ *
+ * Notification code 5004 is reserved for DM delivery (not Rally 5002 / Help 5001 /
+ * Alliance 5003 / Castle 5005).
  */
-var DM_NOTIF_CODE = 5002;
+var DM_NOTIF_CODE = 5004;
 var DM_MAX_TEXT_LENGTH = 280;
 var DM_SUPPORTED_TYPES = {
     TEXT: true,
@@ -3888,6 +3891,9 @@ function rpcDmSend(ctx, logger, nk, payload) {
     if (payloadJson.length > 4096) {
         throw new Error("DM payload too large");
     }
+    // 1s sender→recipient cooldown (preserves old RtAfter notify window; key cannot
+    // collide with rally_*/help_*/dm_notify_* because assertRateLimit keys by action).
+    assertRateLimit(nk, ctx.userId, "dm_send_" + recipientId, 1);
     // Server-backed identity: never trust display name or alliance tag supplied by the client.
     var profile = ensureProfile(nk, logger, ctx.userId);
     var senderName = String(profile.display_name || "Player").substring(0, 64);
