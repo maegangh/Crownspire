@@ -1,7 +1,7 @@
 extends SceneTree
 
 ## Resource-locked quantity defaults + slider max.
-##   Godot --headless --path <project> -s res://scripts/dev/troop_training_resource_lock_smoke.gd
+##   Godot --headless --path <project> -s res://Scripts/dev/troop_training_resource_lock_smoke.gd
 
 var _fail: Array[String] = []
 

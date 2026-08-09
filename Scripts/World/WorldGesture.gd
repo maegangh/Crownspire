@@ -4,7 +4,7 @@ extends RefCounted
 ## Same 24px relative-motion threshold idea as CityGesture, but World-scoped.
 ## Do NOT auto-apply to Wildlings without an explicit follow-up task.
 ##
-## Preload: const WorldGestureUtil = preload("res://scripts/World/WorldGesture.gd")
+## Preload: const WorldGestureUtil = preload("res://Scripts/World/WorldGesture.gd")
 
 const DRAG_THRESHOLD_PX: float = 24.0
 

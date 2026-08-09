@@ -3,7 +3,7 @@ extends Control
 ## Floating chat preview panel — stacked directly above the bottom nav.
 ## Opens ChatScreen on tap. UI-only; uses ChatManager signals for display.
 
-const ChatMessageScript = preload("res://scripts/Backend/ChatMessage.gd")
+const ChatMessageScript = preload("res://Scripts/Backend/ChatMessage.gd")
 
 const COL_INK := Color(0.94, 0.90, 0.82, 1.0)
 const COL_NAME := Color(0.98, 0.95, 0.88, 1.0)

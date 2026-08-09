@@ -2,8 +2,8 @@ extends Control
 
 ## Rally Setup — create a new Alliance Rally or join an existing one.
 
-const MobileScrollUtil = preload("res://scripts/UI/MobileScroll.gd")
-const WildlingLairDatabase = preload("res://scripts/World/WildlingLairDatabase.gd")
+const MobileScrollUtil = preload("res://Scripts/UI/MobileScroll.gd")
+const WildlingLairDatabase = preload("res://Scripts/World/WildlingLairDatabase.gd")
 
 const TOP_SAFE_MARGIN: float = 188.0
 const BOTTOM_SAFE_MARGIN: float = 200.0

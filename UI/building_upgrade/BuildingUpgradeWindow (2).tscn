@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bcj1wm45rrorc"]
 
-[ext_resource type="Script" uid="uid://b0mlp61117qq3" path="res://scripts/BuildingUpgradeWindow.gd" id="1_upg_gd"]
+[ext_resource type="Script" uid="uid://b0mlp61117qq3" path="res://Scripts/BuildingUpgradeWindow.gd" id="1_upg_gd"]
 [ext_resource type="Texture2D" uid="uid://c75ix4ed7rum6" path="res://assets/Buttons/backarrow.png" id="2_close_tex"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_window"]

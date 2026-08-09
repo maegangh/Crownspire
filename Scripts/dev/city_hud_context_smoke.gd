@@ -2,7 +2,7 @@ extends SceneTree
 
 ## Headless smoke: City/World HUD context + resource signal refresh + Events under Shop.
 ## Run:
-##   Godot --headless --path <project> -s res://scripts/dev/city_hud_context_smoke.gd
+##   Godot --headless --path <project> -s res://Scripts/dev/city_hud_context_smoke.gd
 
 func _init() -> void:
 	call_deferred("_run")

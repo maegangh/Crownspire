@@ -3,10 +3,10 @@ extends Control
 ## Crownspire Mail — battle reports inbox + detail.
 ## Rewards are display-only; opening mail never grants anything.
 ##
-## Runtime: GameHUD/ScreenRoot/MailScreen → res://scripts/UI/MailScreen.gd
+## Runtime: GameHUD/ScreenRoot/MailScreen → res://Scripts/UI/MailScreen.gd
 ## Layout sits BETWEEN permanent top HUD and bottom nav (ScreenRoot is under HUD z).
 
-const MobileScrollUtil = preload("res://scripts/UI/MobileScroll.gd")
+const MobileScrollUtil = preload("res://Scripts/UI/MobileScroll.gd")
 
 const COL_INK := Color(0.93, 0.88, 0.76, 1.0)
 const COL_MUTED := Color(0.72, 0.66, 0.55, 1.0)

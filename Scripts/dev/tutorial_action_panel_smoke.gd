@@ -2,7 +2,7 @@ extends SceneTree
 
 ## Verifies action-step instruction cards stay compact (not full-height).
 ##   $env:CROWNSPIR_TUTORIAL_SMOKE="1"
-##   Godot --headless --path <project> -s res://scripts/dev/tutorial_action_panel_smoke.gd
+##   Godot --headless --path <project> -s res://Scripts/dev/tutorial_action_panel_smoke.gd
 
 
 func _initialize() -> void:

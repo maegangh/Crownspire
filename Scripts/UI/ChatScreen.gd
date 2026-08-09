@@ -3,9 +3,9 @@ extends Control
 ## Crownspire Chat UI — Kingdom / Alliance / Direct (private DMs + friends hub).
 ## Uses ChatManager + FriendsBackend. Private never mixes into Kingdom/Alliance.
 
-const MobileScrollUtil = preload("res://scripts/UI/MobileScroll.gd")
-const ChatMessageScript = preload("res://scripts/Backend/ChatMessage.gd")
-const ChatEmojiCatalogScript = preload("res://scripts/UI/ChatEmojiCatalog.gd")
+const MobileScrollUtil = preload("res://Scripts/UI/MobileScroll.gd")
+const ChatMessageScript = preload("res://Scripts/Backend/ChatMessage.gd")
+const ChatEmojiCatalogScript = preload("res://Scripts/UI/ChatEmojiCatalog.gd")
 
 const COL_INK := Color(0.93, 0.88, 0.76, 1.0)
 const COL_MUTED := Color(0.72, 0.66, 0.55, 1.0)

@@ -10,8 +10,8 @@ extends Camera2D
 ## - Pan still uses the same gesture; buildings do not open after a drag.
 ## - Pan/zoom are clamped so the city background always fills the viewport.
 
-const CityGestureUtil = preload("res://scripts/City/CityGesture.gd")
-const BuildingNameplateUtil = preload("res://scripts/City/BuildingNameplate.gd")
+const CityGestureUtil = preload("res://Scripts/City/CityGesture.gd")
+const BuildingNameplateUtil = preload("res://Scripts/City/BuildingNameplate.gd")
 
 @export var ui_manager: Node
 

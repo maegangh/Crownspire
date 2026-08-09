@@ -1,14 +1,14 @@
 extends Control
 
 const HERO_SKILLS_JSON_PATHS := [
-	"res://Data/hero_skills.json",
+	"res://data/hero_skills.json",
 	"res://data/hero_skills.json",
 ]
 
 const PORTRAIT_KEYS := ["portraitPath", "portrait", "portrait_path"]
 const HEROES_JSON_PATHS := [
 	"res://data/heroes.json",
-	"res://Data/heroes.json",
+	"res://data/heroes.json",
 ]
 
 const RARITY_STAR_COUNTS := {

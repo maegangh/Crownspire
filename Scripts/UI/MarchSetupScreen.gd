@@ -356,7 +356,7 @@ func _build_ui() -> void:
 	_march_button.pressed.connect(_on_march_pressed)
 	footer.add_child(_march_button)
 
-	print("[MarchSetupScreen] layout v%d built from res://scripts/UI/MarchSetupScreen.gd" % UI_LAYOUT_VERSION)
+	print("[MarchSetupScreen] layout v%d built from res://Scripts/UI/MarchSetupScreen.gd" % UI_LAYOUT_VERSION)
 
 
 func _section_label(text: String) -> Label:

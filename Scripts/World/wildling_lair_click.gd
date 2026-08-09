@@ -3,7 +3,7 @@ extends Area2D
 ## Alliance Lair click area — TAP opens Lair popup; drag still pans MapCamera.
 ## Uses WorldGesture (same contract as resource tiles). Do not use press-to-open.
 
-const WorldGestureUtil = preload("res://scripts/World/WorldGesture.gd")
+const WorldGestureUtil = preload("res://Scripts/World/WorldGesture.gd")
 
 @export var lair_id: String = ""
 @export var lair_level: int = 1

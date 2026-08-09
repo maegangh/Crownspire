@@ -12,7 +12,7 @@ func _run() -> void:
 	var ok := true
 
 	print("[validate] load ChatEmojiCatalog")
-	var cat_scr: Script = load("res://scripts/UI/ChatEmojiCatalog.gd") as Script
+	var cat_scr: Script = load("res://Scripts/UI/ChatEmojiCatalog.gd") as Script
 	if cat_scr == null:
 		push_error("[validate] ChatEmojiCatalog failed to load")
 		ok = false
@@ -45,7 +45,7 @@ func _run() -> void:
 			ok = false
 
 	print("[validate] load ChatScreen.gd")
-	var scr: Script = load("res://scripts/UI/ChatScreen.gd") as Script
+	var scr: Script = load("res://Scripts/UI/ChatScreen.gd") as Script
 	if scr == null:
 		push_error("[validate] ChatScreen failed to load")
 		ok = false

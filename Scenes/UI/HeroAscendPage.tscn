@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://diw3htjqpvufm"]
 
-[ext_resource type="Script" uid="uid://b4v6vla6tgnjm" path="res://scripts/UI/HeroAscendPage.gd" id="1_2an7y"]
+[ext_resource type="Script" uid="uid://b4v6vla6tgnjm" path="res://Scripts/UI/HeroAscendPage.gd" id="1_2an7y"]
 [ext_resource type="Texture2D" uid="uid://bm2tff4ud7170" path="res://assets/heroes/Icons/360_F_626662441_RfY4UVlXAtjILxxoNbO2ikdcFQNE3Bi4.jpg" id="2_mqftw"]
 [ext_resource type="Texture2D" uid="uid://c75ix4ed7rum6" path="res://assets/Buttons/backarrow.png" id="3_loerx"]
 [ext_resource type="Texture2D" uid="uid://brswrre7481me" path="res://Art/Heroes/Maegan/portrait.png" id="4_ndoo6"]

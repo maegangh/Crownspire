@@ -3,7 +3,7 @@ extends CanvasLayer
 ## Crownspire Hero Recruitment — Royal / Mythic UI.
 ## Draws award shards only; pools must be configured in data/hero_recruitment_pools.json.
 
-const MobileScrollUtil = preload("res://scripts/UI/MobileScroll.gd")
+const MobileScrollUtil = preload("res://Scripts/UI/MobileScroll.gd")
 
 const COL_INK := Color(0.96, 0.95, 0.92, 1.0)
 const COL_MUTED := Color(0.72, 0.78, 0.88, 1.0)

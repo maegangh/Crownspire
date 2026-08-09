@@ -32,7 +32,7 @@ const ROUTE_HOSTILE: String = "HOSTILE"
 const ROUTE_COLOR_FRIENDLY := Color(0.28, 0.86, 0.42, 0.92)
 const ROUTE_COLOR_HOSTILE := Color(0.92, 0.22, 0.24, 0.92)
 
-const MarchRouteLineScript = preload("res://scripts/World/MarchRouteLine.gd")
+const MarchRouteLineScript = preload("res://Scripts/World/MarchRouteLine.gd")
 
 ## Beta placeholder gather rate (resources / second). Tunable — not final economy balance.
 ## Same base rate for Food/Wood/Stone/Iron in Step 2.

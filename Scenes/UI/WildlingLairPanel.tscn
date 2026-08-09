@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://tlf2diafoovg"]
 
-[ext_resource type="Script" path="res://scripts/UI/WildlingLairPanel.gd" id="1_panel"]
+[ext_resource type="Script" path="res://Scripts/UI/WildlingLairPanel.gd" id="1_panel"]
 
 [node name="WildlingLairPanel" type="Control"]
 layout_mode = 3

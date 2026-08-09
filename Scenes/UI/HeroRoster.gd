@@ -3,7 +3,7 @@ extends Control
 ## Hero Roster — Recruited (owned) + Shards (progress, not owned).
 ## Presentation-only layout. Ownership / shard / unlock APIs unchanged.
 
-const MobileScrollUtil = preload("res://scripts/UI/MobileScroll.gd")
+const MobileScrollUtil = preload("res://Scripts/UI/MobileScroll.gd")
 
 const COL_INK := Color(0.96, 0.94, 0.88, 1.0)
 const COL_MUTED := Color(0.78, 0.74, 0.64, 1.0)

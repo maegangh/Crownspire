@@ -32,7 +32,7 @@ static func present(
 	if existing != null:
 		existing.queue_free()
 
-	var popup: Control = (load("res://scripts/UI/BuildingActionPopup.gd") as GDScript).new()
+	var popup: Control = (load("res://Scripts/UI/BuildingActionPopup.gd") as GDScript).new()
 	popup.name = NODE_NAME
 	parent.add_child(popup)
 	popup.call("setup", title, actions)

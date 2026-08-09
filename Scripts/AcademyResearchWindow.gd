@@ -3,7 +3,7 @@ extends Control
 # Crownspire Academy Research Window (AAA Mobile Portrait compliant)
 # Fully ports the AcademyResearchScene.tsx React prototype into a high-fidelity Godot 4.6 scene.
 
-const RESEARCH_NODE_SCENE = preload("res://scenes/ResearchNode.tscn")
+const RESEARCH_NODE_SCENE = preload("res://Scenes/ResearchNode.tscn")
 
 # Node References
 @onready var dark_overlay: ColorRect = $DarkOverlay
@@ -749,7 +749,7 @@ func _is_node_in_current_category(n_id: String) -> bool:
 	return n.get("category", "").to_lower() == active_category.to_lower()
 
 func _apply_category_icon(texture_rect: TextureRect, cat: String) -> void:
-	var path = "res://assets/ui/icons/tech_%s.png" % cat.to_lower()
+	var path = "res://assets/UI/icons/tech_%s.png" % cat.to_lower()
 	if ResourceLoader.exists(path):
 		texture_rect.texture = load(path)
 	else:

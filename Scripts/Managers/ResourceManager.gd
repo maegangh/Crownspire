@@ -4,9 +4,9 @@ extends Node
 ## (activate_building_tap / activate_collect_tap). Area2D signals only help begin the gesture
 ## when picking is not blocked by Controls.
 
-const CityGestureUtil = preload("res://scripts/City/CityGesture.gd")
-const BuildingNameplateUtil = preload("res://scripts/City/BuildingNameplate.gd")
-const BuildingActionPopupScript = preload("res://scripts/UI/BuildingActionPopup.gd")
+const CityGestureUtil = preload("res://Scripts/City/CityGesture.gd")
+const BuildingNameplateUtil = preload("res://Scripts/City/BuildingNameplate.gd")
+const BuildingActionPopupScript = preload("res://Scripts/UI/BuildingActionPopup.gd")
 
 @export var building_level: int = 1
 @export var building_name: String = "Farm"

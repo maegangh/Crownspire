@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cb3df8rxba72k"]
 
-[ext_resource type="Script" uid="uid://cvr4mst7mnprf" path="res://scripts/BonusRow.gd" id="1_5yebg"]
+[ext_resource type="Script" uid="uid://cvr4mst7mnprf" path="res://Scripts/BonusRow.gd" id="1_5yebg"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_row"]
 content_margin_left = 12.0

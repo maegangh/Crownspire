@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://k7r1i3070s58"]
 
 [ext_resource type="Texture2D" uid="uid://wh4338gwgf34" path="res://assets/Wildlings/wildling_wolf.png" id="2_rfpjo"]
-[ext_resource type="Script" uid="uid://5wtdcvt6jlc4" path="res://scripts/wildling_click.gd" id="3_rfpjo"]
+[ext_resource type="Script" uid="uid://5wtdcvt6jlc4" path="res://Scripts/wildling_click.gd" id="3_rfpjo"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_4fnjx"]
 size = Vector2(133, 125)

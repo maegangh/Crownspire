@@ -4,7 +4,7 @@ extends Node2D
 ## Selectable on desktop/mobile via WorldGesture click area.
 ## Rally indicators driven by RallyBackend; HP/active by AllianceLairState.
 
-const WildlingLairDatabase = preload("res://scripts/World/WildlingLairDatabase.gd")
+const WildlingLairDatabase = preload("res://Scripts/World/WildlingLairDatabase.gd")
 const GROUP_NAME := "wildling_lairs"
 
 @export var lair_id: String = ""

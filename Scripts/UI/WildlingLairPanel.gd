@@ -2,7 +2,7 @@ extends Control
 
 ## Compact Wildling Lair world popup — Scout / Attack / Rally.
 
-const WildlingLairDatabase = preload("res://scripts/World/WildlingLairDatabase.gd")
+const WildlingLairDatabase = preload("res://Scripts/World/WildlingLairDatabase.gd")
 
 const TOP_SAFE := 188.0
 const BOTTOM_SAFE := 200.0

@@ -1,6 +1,6 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://scripts/UI/QueueStatusHUD.gd" id="1_queue"]
+[ext_resource type="Script" path="res://Scripts/UI/QueueStatusHUD.gd" id="1_queue"]
 
 [node name="QueueStatusHUD" type="Control"]
 layout_mode = 3

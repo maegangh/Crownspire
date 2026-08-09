@@ -15,7 +15,7 @@
 [ext_resource type="Texture2D" uid="uid://dgoawno6tcx7f" path="res://assets/Wildlings/wildling_troll.png" id="13_qrnde"]
 [ext_resource type="Texture2D" uid="uid://cqu1pyuxbfyn6" path="res://assets/Wildlings/wildling_dragon.png" id="14_va38e"]
 [ext_resource type="Texture2D" uid="uid://bu1lilw8cq10u" path="res://assets/UI/wildling_cards/wolf_card.png" id="15_g547m"]
-[ext_resource type="Script" uid="uid://sqmcnstpnort" path="res://scripts/MapCamera.gd" id="16_6ptn3"]
+[ext_resource type="Script" uid="uid://sqmcnstpnort" path="res://Scripts/MapCamera.gd" id="16_6ptn3"]
 [ext_resource type="Texture2D" uid="uid://cnextpfvf0wsa" path="res://assets/UI/wildling_cards/bear_card.png" id="16_qgij0"]
 [ext_resource type="Texture2D" uid="uid://ctwaupkx6abn3" path="res://assets/UI/wildling_cards/spider_card.png" id="17_jfqr5"]
 [ext_resource type="PackedScene" uid="uid://bh08artiwt8rc" path="res://Scenes/WildlingPanel.tscn" id="17_uo8to"]

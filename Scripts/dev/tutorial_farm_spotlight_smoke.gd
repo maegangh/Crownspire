@@ -2,7 +2,7 @@ extends SceneTree
 
 ## Verifies Farm tutorial spotlight uses Sprite2D bounds, not building-root / HUD top-left.
 ##   $env:CROWNSPIR_TUTORIAL_SMOKE="1"
-##   Godot --headless --path <project> -s res://scripts/dev/tutorial_farm_spotlight_smoke.gd
+##   Godot --headless --path <project> -s res://Scripts/dev/tutorial_farm_spotlight_smoke.gd
 
 
 func _initialize() -> void:
@@ -39,7 +39,7 @@ func _run() -> void:
 		quit(1)
 		return
 
-	var Resolver = load("res://scripts/UI/TutorialTargetResolver.gd")
+	var Resolver = load("res://Scripts/UI/TutorialTargetResolver.gd")
 	var step := {
 		"target_type": "city_building",
 		"target_id": "farm",

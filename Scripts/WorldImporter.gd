@@ -5,7 +5,7 @@
 # File Location: res://Scripts/WorldImporter.gd
 #
 # Handled elements:
-# 1. Loads data dynamically from res://Data/kingdom001.json
+# 1. Loads data dynamically from res://data/kingdom001.json
 # 2. Automatically instantiates map nodes into the Scene hierarchy
 # 3. Scales tiles to Godot 2D coordinates: world_pos = tile_coords * tile_size
 # 4. Spawns beautiful procedural placeholders using vector polygons and colors
@@ -44,7 +44,7 @@ func _ready() -> void:
 	print("[WorldImporter] Initializing production scene build...")
 	
 	# Load JSON Database
-	var data = _load_database_file("res://Data/kingdom001.json")
+	var data = _load_database_file("res://data/kingdom001.json")
 	if data.is_empty():
 		push_error("[WorldImporter] Fatal error: Could not load crownspire database.")
 		return
@@ -680,8 +680,8 @@ func _create_world_element(asset_key: String, fallback_node: Node2D) -> Node2D:
 	var scene_paths = [
 		"res://Scenes/World/Sprites/" + asset_key + ".tscn",
 		"res://Scenes/Sprites/" + asset_key + ".tscn",
-		"res://Assets/Sprites/" + asset_key + ".tscn",
-		"res://Assets/" + asset_key + ".tscn"
+		"res://assets/Sprites/" + asset_key + ".tscn",
+		"res://assets/" + asset_key + ".tscn"
 	]
 	
 	for path in scene_paths:
@@ -696,10 +696,10 @@ func _create_world_element(asset_key: String, fallback_node: Node2D) -> Node2D:
 
 	# 2. Look for an imported 2D Texture (.png / .svg) in asset structures
 	var texture_paths = [
-		"res://Assets/World/" + asset_key + ".png",
-		"res://Assets/Terrain/" + asset_key + ".png",
-		"res://Assets/Objectives/" + asset_key + ".png",
-		"res://Assets/" + asset_key + ".png",
+		"res://assets/World/" + asset_key + ".png",
+		"res://assets/Terrain/" + asset_key + ".png",
+		"res://assets/Objectives/" + asset_key + ".png",
+		"res://assets/" + asset_key + ".png",
 		"res://Textures/" + asset_key + ".png",
 		"res://Sprites/" + asset_key + ".png"
 	]

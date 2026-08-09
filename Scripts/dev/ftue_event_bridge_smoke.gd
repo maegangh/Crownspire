@@ -1,7 +1,7 @@
 extends SceneTree
 
 ## Headless smoke for Sprint 1A GameEvents bridge.
-## Run: Godot --headless --path <project> -s res://scripts/dev/ftue_event_bridge_smoke.gd
+## Run: Godot --headless --path <project> -s res://Scripts/dev/ftue_event_bridge_smoke.gd
 
 var _seen: Dictionary = {}
 var _fail: Array[String] = []

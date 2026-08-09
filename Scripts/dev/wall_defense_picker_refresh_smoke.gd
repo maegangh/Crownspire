@@ -2,7 +2,7 @@ extends SceneTree
 
 ## Headless smoke: Wall Defense picker must not free locked Buttons mid-pressed.
 ## Run:
-##   Godot --headless --path <project> -s res://scripts/dev/wall_defense_picker_refresh_smoke.gd
+##   Godot --headless --path <project> -s res://Scripts/dev/wall_defense_picker_refresh_smoke.gd
 
 func _init() -> void:
 	call_deferred("_run")
@@ -20,7 +20,7 @@ func _run() -> void:
 	if owned.is_empty():
 		hs.call("grant_starter_maegan")
 
-	var screen: Control = (load("res://scripts/UI/WallDefenseScreen.gd") as GDScript).new() as Control
+	var screen: Control = (load("res://Scripts/UI/WallDefenseScreen.gd") as GDScript).new() as Control
 	root.add_child(screen)
 	await process_frame
 	screen.call("on_open")

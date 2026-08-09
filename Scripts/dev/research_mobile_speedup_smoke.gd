@@ -1,7 +1,7 @@
 extends SceneTree
 
 ## Live portrait Research detail must show SPEED UP while a job is running.
-##   Godot --headless --path <project> -s res://scripts/dev/research_mobile_speedup_smoke.gd
+##   Godot --headless --path <project> -s res://Scripts/dev/research_mobile_speedup_smoke.gd
 
 var _fail: Array[String] = []
 

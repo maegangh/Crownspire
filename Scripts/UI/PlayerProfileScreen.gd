@@ -3,7 +3,7 @@ extends Control
 ## Full-screen Player Profile — Crownspire fantasy presentation.
 ## Opened from HUD avatar, Alliance Members, and chat context menus.
 
-const PlayerAvatarCatalog = preload("res://scripts/UI/PlayerAvatarCatalog.gd")
+const PlayerAvatarCatalog = preload("res://Scripts/UI/PlayerAvatarCatalog.gd")
 
 const COL_INK := Color(0.95, 0.92, 0.86, 1.0)
 const COL_MUTED := Color(0.72, 0.68, 0.62, 1.0)

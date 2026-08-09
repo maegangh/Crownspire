@@ -7,7 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://beifcv430cat7" path="res://assets/Wildlings/wildling_bear.png" id="4_jq8pe"]
 [ext_resource type="Texture2D" uid="uid://wh4338gwgf34" path="res://assets/Wildlings/wildling_wolf.png" id="4_vv884"]
 [ext_resource type="Texture2D" uid="uid://ceijq2fh3hsn5" path="res://assets/Wildlings/wildling_boar.png" id="5_236ts"]
-[ext_resource type="Script" uid="uid://5wtdcvt6jlc4" path="res://scripts/wildling_click.gd" id="5_se0l4"]
+[ext_resource type="Script" uid="uid://5wtdcvt6jlc4" path="res://Scripts/wildling_click.gd" id="5_se0l4"]
 [ext_resource type="Texture2D" uid="uid://be4o0ehb1t7f0" path="res://assets/Wildlings/wildling_spider.png" id="6_crkda"]
 [ext_resource type="PackedScene" uid="uid://bh08artiwt8rc" path="res://Scenes/WildlingPanel.tscn" id="6_se0l4"]
 [ext_resource type="Texture2D" uid="uid://cl8e1e2ap6quk" path="res://assets/MarchSkins/image_68a78d6f-removebg-preview.png" id="6_ynlq0"]

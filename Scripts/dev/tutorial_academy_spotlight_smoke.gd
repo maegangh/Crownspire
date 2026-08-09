@@ -2,7 +2,7 @@ extends SceneTree
 
 ## Academy FTUE spotlight must frame Buildings/Academy (building_id=academy), not left towers.
 ##   $env:CROWNSPIR_TUTORIAL_SMOKE="1"
-##   Godot --headless --path <project> -s res://scripts/dev/tutorial_academy_spotlight_smoke.gd
+##   Godot --headless --path <project> -s res://Scripts/dev/tutorial_academy_spotlight_smoke.gd
 
 
 func _initialize() -> void:
@@ -32,7 +32,7 @@ func _run() -> void:
 	var scene: Node = get_current_scene()
 	var academy: Node2D = scene.get_node_or_null("Buildings/Academy") as Node2D if scene else null
 	var dragon: Node2D = scene.get_node_or_null("Buildings/DragonRoost") as Node2D if scene else null
-	var Resolver = load("res://scripts/UI/TutorialTargetResolver.gd")
+	var Resolver = load("res://Scripts/UI/TutorialTargetResolver.gd")
 	if academy == null or hud == null:
 		push_error("[ACADEMY SPOT] Academy/GameHUD missing")
 		quit(1)

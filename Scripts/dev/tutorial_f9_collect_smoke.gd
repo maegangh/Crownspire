@@ -2,7 +2,7 @@ extends SceneTree
 
 ## F9 first-press interactivity + Farm collect-icon targeting.
 ##   $env:CROWNSPIR_TUTORIAL_SMOKE="1"
-##   Godot --headless --path <project> -s res://scripts/dev/tutorial_f9_collect_smoke.gd
+##   Godot --headless --path <project> -s res://Scripts/dev/tutorial_f9_collect_smoke.gd
 
 
 func _initialize() -> void:
@@ -86,7 +86,7 @@ func _run() -> void:
 			farm.call("set_ready_to_collect", true)
 		await process_frame
 
-	var Resolver = load("res://scripts/UI/TutorialTargetResolver.gd")
+	var Resolver = load("res://Scripts/UI/TutorialTargetResolver.gd")
 	var farm_building: Dictionary = Resolver.resolve(hud, {
 		"target_type": "city_building",
 		"target_id": "farm",

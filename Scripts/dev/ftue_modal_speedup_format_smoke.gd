@@ -2,7 +2,7 @@ extends SceneTree
 
 ## Smoke: FTUE closes BuildingUpgradeWindow for COLLECT; formatter absolute units; SPEED UP enabled.
 ##   $env:CROWNSPIR_TUTORIAL_SMOKE="1"
-##   Godot --headless --path <project> -s res://scripts/dev/ftue_modal_speedup_format_smoke.gd
+##   Godot --headless --path <project> -s res://Scripts/dev/ftue_modal_speedup_format_smoke.gd
 
 
 func _initialize() -> void:

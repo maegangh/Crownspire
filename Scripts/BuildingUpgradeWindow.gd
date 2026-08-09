@@ -239,30 +239,30 @@ func _populate_bonuses(lvl: int, max_lvl: int) -> void:
 
 	power_bonus.setup(
 		"Kingdom Power",
-		"res://assets/ui/icons/hud_power.png",
+		"res://assets/UI/icons/hud_power.png",
 		_format_with_commas(current_power),
 		_format_with_commas(next_power),
 		_format_with_commas(power_gain)
 	)
 
 	var stat_name := "Unique Benefit"
-	var stat_icon_path := "res://assets/ui/icons/category_featured.png"
+	var stat_icon_path := "res://assets/UI/icons/category_featured.png"
 
 	match building_id:
 		"citadel", "castle":
 			stat_name = "Hospital Capacity"
 		"farm":
 			stat_name = "Food Production"
-			stat_icon_path = "res://assets/ui/icons/res_food.png"
+			stat_icon_path = "res://assets/UI/icons/res_food.png"
 		"lumber_mill":
 			stat_name = "Wood Production"
-			stat_icon_path = "res://assets/ui/icons/res_wood.png"
+			stat_icon_path = "res://assets/UI/icons/res_wood.png"
 		"quarry":
 			stat_name = "Stone Production"
-			stat_icon_path = "res://assets/ui/icons/res_stone.png"
+			stat_icon_path = "res://assets/UI/icons/res_stone.png"
 		"iron_mine":
 			stat_name = "Iron Production"
-			stat_icon_path = "res://assets/ui/icons/res_iron.png"
+			stat_icon_path = "res://assets/UI/icons/res_iron.png"
 		"academy":
 			stat_name = "Research Speed"
 		"hospital":
@@ -338,13 +338,13 @@ func _populate_requirements(lvl: int, max_lvl: int) -> void:
 	missing_resources_crystal_cost = 0
 
 	if req_food > 0:
-		_add_resource_row("Food", "food", req_food, "res://assets/ui/icons/res_food.png")
+		_add_resource_row("Food", "food", req_food, "res://assets/UI/icons/res_food.png")
 	if req_wood > 0:
-		_add_resource_row("Wood", "wood", req_wood, "res://assets/ui/icons/res_wood.png")
+		_add_resource_row("Wood", "wood", req_wood, "res://assets/UI/icons/res_wood.png")
 	if req_stone > 0:
-		_add_resource_row("Stone", "stone", req_stone, "res://assets/ui/icons/res_stone.png")
+		_add_resource_row("Stone", "stone", req_stone, "res://assets/UI/icons/res_stone.png")
 	if req_iron > 0:
-		_add_resource_row("Iron", "iron", req_iron, "res://assets/ui/icons/res_iron.png")
+		_add_resource_row("Iron", "iron", req_iron, "res://assets/UI/icons/res_iron.png")
 
 	var target_level: int = mini(lvl + 1, max_lvl)
 	if _normalize_building_id(building_id) != "castle":
@@ -407,7 +407,7 @@ func _add_castle_cap_prerequisite_row(required_castle_level: int) -> void:
 	requirements_container.add_child(row)
 	row.setup(
 		"Citadel Keep",
-		"res://assets/ui/icons/hud_power.png",
+		"res://assets/UI/icons/hud_power.png",
 		"Lv. %d" % have_lvl,
 		"Lv. %d" % required_castle_level,
 		missing_str,
@@ -424,7 +424,7 @@ func _add_building_prerequisite_row(prereq_entry: Variant) -> void:
 	if not bool(parsed.get("ok", false)):
 		row.setup(
 			"Building Requirement",
-			"res://assets/ui/icons/category_featured.png",
+			"res://assets/UI/icons/category_featured.png",
 			"—",
 			str(parsed.get("display", "Invalid")),
 			"Invalid",
@@ -444,7 +444,7 @@ func _add_building_prerequisite_row(prereq_entry: Variant) -> void:
 
 	row.setup(
 		display_name,
-		"res://assets/ui/icons/category_featured.png",
+		"res://assets/UI/icons/category_featured.png",
 		"Lv. %d" % have_lvl,
 		"Lv. %d" % need_lvl,
 		missing_str,

@@ -5,7 +5,7 @@ extends Camera2D
 @export var zoom_max: float = 2.5
 @export var zoom_step: float = 0.12
 
-const WorldGestureUtil = preload("res://scripts/World/WorldGesture.gd")
+const WorldGestureUtil = preload("res://Scripts/World/WorldGesture.gd")
 
 var dragging: bool = false
 

@@ -2,8 +2,8 @@ extends Node2D
 
 ## Castle — tap activation via City camera physics query (activate_building_tap).
 
-const CityGestureUtil = preload("res://scripts/City/CityGesture.gd")
-const BuildingNameplateUtil = preload("res://scripts/City/BuildingNameplate.gd")
+const CityGestureUtil = preload("res://Scripts/City/CityGesture.gd")
+const BuildingNameplateUtil = preload("res://Scripts/City/BuildingNameplate.gd")
 
 @export var building_id: String = "castle"
 @export var level_label_path: NodePath

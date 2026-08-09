@@ -5,7 +5,7 @@ extends Node
 ## - Desktop mouse-drag mirrors finger swipe
 ## - Tap-vs-swipe guard so buttons/cards don't fire after a drag
 ##
-## Prefer: preload("res://scripts/UI/MobileScroll.gd").ensure(...)
+## Prefer: preload("res://Scripts/UI/MobileScroll.gd").ensure(...)
 ## class_name is also declared for editor convenience after project scan.
 
 class_name MobileScroll
@@ -36,7 +36,7 @@ static func ensure(host: Node, scroll_container: ScrollContainer, node_name: Str
 		return null
 	var existing: Node = host.get_node_or_null(node_name)
 	if existing == null:
-		existing = (load("res://scripts/UI/MobileScroll.gd") as GDScript).new()
+		existing = (load("res://Scripts/UI/MobileScroll.gd") as GDScript).new()
 		existing.name = node_name
 		host.add_child(existing)
 	if existing.has_method("bind"):

@@ -1,6 +1,6 @@
 extends SceneTree
 
-const MapPlacementContractScript = preload("res://scripts/World/MapPlacementContract.gd")
+const MapPlacementContractScript = preload("res://Scripts/World/MapPlacementContract.gd")
 
 func _initialize() -> void:
 	call_deferred("_run")
@@ -11,21 +11,21 @@ func _run() -> void:
 	await process_frame
 	var ok := true
 	var scripts := [
-		"res://scripts/World/MapPlacementContract.gd",
-		"res://scripts/World/CityTeleportController.gd",
-		"res://scripts/World/WorldCastleLayer.gd",
-		"res://scripts/MapCamera.gd",
+		"res://Scripts/World/MapPlacementContract.gd",
+		"res://Scripts/World/CityTeleportController.gd",
+		"res://Scripts/World/WorldCastleLayer.gd",
+		"res://Scripts/MapCamera.gd",
 		"res://Scenes/World/WorldGenerator.gd",
 		"res://Scenes/World/WorldAutoSpawner.gd",
-		"res://scripts/UI/BagScreen.gd",
-		"res://scripts/BagState.gd",
-		"res://scripts/Backend/AllianceBackend.gd",
-		"res://scripts/MarchState.gd",
-		"res://scripts/ResourceTileState.gd",
-		"res://scripts/World/wildling_lair_click.gd",
-		"res://scripts/World/WildlingNode.gd",
+		"res://Scripts/UI/BagScreen.gd",
+		"res://Scripts/BagState.gd",
+		"res://Scripts/Backend/AllianceBackend.gd",
+		"res://Scripts/MarchState.gd",
+		"res://Scripts/ResourceTileState.gd",
+		"res://Scripts/World/wildling_lair_click.gd",
+		"res://Scripts/World/WildlingNode.gd",
 		"res://WildlingNode.gd",
-		"res://scripts/wildling_click.gd",
+		"res://Scripts/wildling_click.gd",
 		"res://Scenes/resource_click.gd",
 	]
 	for path in scripts:
@@ -39,12 +39,12 @@ func _run() -> void:
 	## Explicit attach for every interaction script used during placement.
 	## Avoid entering tree for Area2D click scripts (their _ready expects a Node2D parent).
 	var attach_paths := {
-		"CityTeleportController": "res://scripts/World/CityTeleportController.gd",
-		"WildlingLairClick": "res://scripts/World/wildling_lair_click.gd",
-		"WildlingClick": "res://scripts/wildling_click.gd",
+		"CityTeleportController": "res://Scripts/World/CityTeleportController.gd",
+		"WildlingLairClick": "res://Scripts/World/wildling_lair_click.gd",
+		"WildlingClick": "res://Scripts/wildling_click.gd",
 		"ResourceClick": "res://Scenes/resource_click.gd",
 		"WildlingNodeRoot": "res://WildlingNode.gd",
-		"WildlingNodeScripts": "res://scripts/World/WildlingNode.gd",
+		"WildlingNodeScripts": "res://Scripts/World/WildlingNode.gd",
 	}
 	for label in attach_paths.keys():
 		var path2: String = attach_paths[label]
@@ -69,7 +69,7 @@ func _run() -> void:
 				host.free()
 
 	## Bag local add/remove blocked for compass.
-	var bag_scr: Script = load("res://scripts/BagState.gd") as Script
+	var bag_scr: Script = load("res://Scripts/BagState.gd") as Script
 	var bag := Node.new()
 	bag.set_script(bag_scr)
 	root.add_child(bag)
@@ -90,7 +90,7 @@ func _run() -> void:
 	bag.queue_free()
 
 	## Resource contract migration: stale coords ignored; depletion preserved by contract id.
-	var rts_scr: Script = load("res://scripts/ResourceTileState.gd") as Script
+	var rts_scr: Script = load("res://Scripts/ResourceTileState.gd") as Script
 	var rts := Node.new()
 	rts.set_script(rts_scr)
 	root.add_child(rts)
@@ -176,7 +176,7 @@ func _run() -> void:
 
 	## Placement controller active flag suppresses world actions.
 	var ctrl := Node2D.new()
-	ctrl.set_script(load("res://scripts/World/CityTeleportController.gd") as Script)
+	ctrl.set_script(load("res://Scripts/World/CityTeleportController.gd") as Script)
 	root.add_child(ctrl)
 	ctrl.call("begin_placement")
 	if not bool(ctrl.call("is_placement_active")):

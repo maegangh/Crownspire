@@ -4,7 +4,7 @@ extends Control
 ## Phase 4: membership/roster/ranks/applications use AllianceBackend when online.
 ## Research/Help remain on local AllianceState (unmigrated) and are labeled accordingly.
 
-const MobileScrollUtil = preload("res://scripts/UI/MobileScroll.gd")
+const MobileScrollUtil = preload("res://Scripts/UI/MobileScroll.gd")
 
 enum ViewMode {
 	LOBBY,
@@ -1276,7 +1276,7 @@ func _build_members_view() -> void:
 
 
 func _make_member_row(member: Dictionary, member_id: String, backend: bool) -> Control:
-	const PlayerAvatarCatalog = preload("res://scripts/UI/PlayerAvatarCatalog.gd")
+	const PlayerAvatarCatalog = preload("res://Scripts/UI/PlayerAvatarCatalog.gd")
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(0, 84)
 	var style := StyleBoxFlat.new()

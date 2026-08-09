@@ -1,6 +1,6 @@
 extends Control
 
-const MobileScrollUtil = preload("res://scripts/UI/MobileScroll.gd")
+const MobileScrollUtil = preload("res://Scripts/UI/MobileScroll.gd")
 const TABS: Array[String] = ["Main", "Daily", "Achievement"]
 
 var current_tab: String = "Main"

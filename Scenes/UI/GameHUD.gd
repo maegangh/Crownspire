@@ -19,7 +19,7 @@ const WorldSearchPanelScene: PackedScene = preload("res://Scenes/UI/WorldSearchP
 @onready var portrait_button: TextureButton = $Control/PlayerPortraitButton
 @onready var right_feature_buttons: VBoxContainer = $Control/RightFeatureButtons
 var _profile_screen: Control = null
-const PlayerAvatarCatalog = preload("res://scripts/UI/PlayerAvatarCatalog.gd")
+const PlayerAvatarCatalog = preload("res://Scripts/UI/PlayerAvatarCatalog.gd")
 @onready var shop_button: TextureButton = $Control/RightFeatureButtons/ShopButton
 @onready var events_button: Button = $Control/RightFeatureButtons/EventsButton
 @onready var events_claim_badge: Label = $Control/RightFeatureButtons/EventsButton/ClaimBadge
@@ -1489,7 +1489,7 @@ func ensure_player_castle_popup() -> Control:
 	if _castle_popup == null:
 		_castle_popup = Control.new()
 		_castle_popup.name = "PlayerCastlePopup"
-		_castle_popup.set_script(load("res://scripts/UI/PlayerCastlePopup.gd"))
+		_castle_popup.set_script(load("res://Scripts/UI/PlayerCastlePopup.gd"))
 		host.add_child(_castle_popup)
 	_castle_popup.z_index = 120
 	return _castle_popup
@@ -1506,7 +1506,7 @@ func _ensure_profile_screen() -> void:
 		_profile_screen.visible = false
 		_profile_screen.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		_profile_screen.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_profile_screen.set_script(load("res://scripts/UI/PlayerProfileScreen.gd"))
+		_profile_screen.set_script(load("res://Scripts/UI/PlayerProfileScreen.gd"))
 		_profile_screen.z_index = 80
 		root.add_child(_profile_screen)
 	if _profile_screen.has_signal("message_requested") and not _profile_screen.is_connected("message_requested", Callable(self, "_on_profile_message_requested")):
@@ -1655,7 +1655,7 @@ func _ensure_chat_preview() -> void:
 	if _chat_preview == null:
 		_chat_preview = Control.new()
 		_chat_preview.name = "ChatPreview"
-		_chat_preview.set_script(load("res://scripts/UI/ChatPreview.gd"))
+		_chat_preview.set_script(load("res://Scripts/UI/ChatPreview.gd"))
 		host.add_child(_chat_preview)
 	# Below BottomBarTexture (70). Mail/Search stay at 50 (above chat, below nav).
 	_chat_preview.z_index = 40
@@ -1759,7 +1759,7 @@ func _ensure_chat_screen() -> void:
 	chat.visible = false
 	chat.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	chat.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	chat.set_script(load("res://scripts/UI/ChatScreen.gd"))
+	chat.set_script(load("res://Scripts/UI/ChatScreen.gd"))
 	root.add_child(chat)
 
 

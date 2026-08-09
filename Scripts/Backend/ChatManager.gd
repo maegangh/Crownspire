@@ -4,8 +4,8 @@ extends Node
 ## Depends on NakamaConnection for client/session/socket only.
 ## Does NOT treat local AllianceState as server-authoritative membership.
 
-const ChatMessageScript = preload("res://scripts/Backend/ChatMessage.gd")
-const ChatTranslationServiceScript = preload("res://scripts/Backend/ChatTranslationService.gd")
+const ChatMessageScript = preload("res://Scripts/Backend/ChatMessage.gd")
+const ChatTranslationServiceScript = preload("res://Scripts/Backend/ChatTranslationService.gd")
 
 signal kingdom_joined(channel_id: String)
 signal kingdom_join_failed(reason: String)

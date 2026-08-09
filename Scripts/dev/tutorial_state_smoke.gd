@@ -4,7 +4,7 @@ extends SceneTree
 ## MUST set CROWNSPIR_TUTORIAL_SMOKE=1 so TutorialState never touches user://tutorial.cfg.
 ## Run:
 ##   $env:CROWNSPIR_TUTORIAL_SMOKE=1
-##   Godot --headless --path <project> -s res://scripts/dev/tutorial_state_smoke.gd
+##   Godot --headless --path <project> -s res://Scripts/dev/tutorial_state_smoke.gd
 
 var _fail: Array[String] = []
 var _ts: Node = null

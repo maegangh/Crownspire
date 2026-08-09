@@ -2,7 +2,7 @@ extends Area2D
 
 ## World resource tile click area. Opens ResourcePanel on TAP only (drag-safe).
 
-const WorldGestureUtil = preload("res://scripts/World/WorldGesture.gd")
+const WorldGestureUtil = preload("res://Scripts/World/WorldGesture.gd")
 
 @export var resource_type: String = "food"
 @export var level: int = 1

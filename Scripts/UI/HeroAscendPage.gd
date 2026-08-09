@@ -1,15 +1,15 @@
 extends Control
 
 const PROGRESS_TEXTURES: Array[String] = [
-	"res://assets/ui/hero_ascension/asc_progress_0.png",
-	"res://assets/ui/hero_ascension/asc_progress_1.png",
-	"res://assets/ui/hero_ascension/asc_progress_2.png",
-	"res://assets/ui/hero_ascension/asc_progress_3.png",
-	"res://assets/ui/hero_ascension/asc_progress_4.png",
-	"res://assets/ui/hero_ascension/asc_progress_5.png",
+	"res://assets/UI/hero_ascension/asc_progress_0.png",
+	"res://assets/UI/hero_ascension/asc_progress_1.png",
+	"res://assets/UI/hero_ascension/asc_progress_2.png",
+	"res://assets/UI/hero_ascension/asc_progress_3.png",
+	"res://assets/UI/hero_ascension/asc_progress_4.png",
+	"res://assets/UI/hero_ascension/asc_progress_5.png",
 ]
 
-const SHARD_ICON_PATH: String = "res://assets/ui/hero_ascension/hero_shard_icon.png"
+const SHARD_ICON_PATH: String = "res://assets/UI/hero_ascension/hero_shard_icon.png"
 
 var hero_data: Dictionary = {}
 

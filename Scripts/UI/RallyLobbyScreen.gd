@@ -2,7 +2,7 @@ extends Control
 
 ## Live Alliance Rally lobby — countdown, participants, Join / Launch Now / Cancel.
 
-const MobileScrollUtil = preload("res://scripts/UI/MobileScroll.gd")
+const MobileScrollUtil = preload("res://Scripts/UI/MobileScroll.gd")
 
 const TOP_SAFE := 188.0
 const BOTTOM_SAFE := 200.0

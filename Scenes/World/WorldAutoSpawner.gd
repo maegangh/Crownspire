@@ -1,7 +1,7 @@
 extends Node2D
 
-const WildlingLairDatabase = preload("res://scripts/World/WildlingLairDatabase.gd")
-const MapPlacementContractScript = preload("res://scripts/World/MapPlacementContract.gd")
+const WildlingLairDatabase = preload("res://Scripts/World/WildlingLairDatabase.gd")
+const MapPlacementContractScript = preload("res://Scripts/World/MapPlacementContract.gd")
 
 @export var resource_node_scene: PackedScene
 @export var wildling_node_scene: PackedScene
@@ -70,7 +70,7 @@ func _ensure_teleport_controller() -> void:
 		return
 	var ctrl := Node2D.new()
 	ctrl.name = "CityTeleportController"
-	ctrl.set_script(load("res://scripts/World/CityTeleportController.gd"))
+	ctrl.set_script(load("res://Scripts/World/CityTeleportController.gd"))
 	parent_map.add_child(ctrl)
 	if get_tree() != null and get_tree().has_meta("pending_city_teleport"):
 		call_deferred("_start_pending_teleport", ctrl)
@@ -111,7 +111,7 @@ func _ensure_and_refresh_castles() -> void:
 	if layer == null:
 		layer = Node2D.new()
 		layer.name = "WorldCastleLayer"
-		layer.set_script(load("res://scripts/World/WorldCastleLayer.gd"))
+		layer.set_script(load("res://Scripts/World/WorldCastleLayer.gd"))
 		parent_map.add_child(layer)
 		# Keep castles above terrain, below HUD.
 		parent_map.move_child(layer, parent_map.get_child_count() - 1)

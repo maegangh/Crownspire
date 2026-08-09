@@ -4,7 +4,7 @@ extends Node2D
 ## Local player uses PlayerCastleMarker; others appear under OtherPlayerCastles.
 ## Castle tap → PlayerCastlePopup. Nameplate tap → PlayerProfileScreen.
 
-const WorldGestureUtil = preload("res://scripts/World/WorldGesture.gd")
+const WorldGestureUtil = preload("res://Scripts/World/WorldGesture.gd")
 
 const CASTLE_TEXTURE_PATH := "res://assets/Buildings/Castle/main_castle.png"
 const MAP_SIZE := Vector2(8192, 8192)
@@ -562,7 +562,7 @@ func _ensure_castle_popup() -> Control:
 		return existing
 	var popup := Control.new()
 	popup.name = "PlayerCastlePopup"
-	popup.set_script(load("res://scripts/UI/PlayerCastlePopup.gd"))
+	popup.set_script(load("res://Scripts/UI/PlayerCastlePopup.gd"))
 	host.add_child(popup)
 	return popup
 

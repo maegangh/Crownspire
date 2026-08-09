@@ -3,8 +3,8 @@ extends Node2D
 ## Kingdom-map placement mode for targeted city teleport (teleport_advanced_compass).
 ## Opens from Bag → KingdomMap; green/red castle preview + bottom Teleport/Cancel.
 
-const MapPlacementContractScript = preload("res://scripts/World/MapPlacementContract.gd")
-const WorldGestureUtil = preload("res://scripts/World/WorldGesture.gd")
+const MapPlacementContractScript = preload("res://Scripts/World/MapPlacementContract.gd")
+const WorldGestureUtil = preload("res://Scripts/World/WorldGesture.gd")
 
 const CASTLE_TEX := "res://assets/Buildings/Castle/main_castle.png"
 const PREVIEW_SCALE := Vector2(0.15, 0.15)

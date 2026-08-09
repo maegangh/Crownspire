@@ -4,7 +4,7 @@ extends RefCounted
 ## Drag is detected from accumulated POINTER RELATIVE motion (not absolute event.position),
 ## because Area2D input_event positions are not reliably in the same space as Camera motion events.
 ##
-## Preload: const CityGestureUtil = preload("res://scripts/City/CityGesture.gd")
+## Preload: const CityGestureUtil = preload("res://Scripts/City/CityGesture.gd")
 
 ## Screen-pixel deadzone for 720×1280 portrait.
 const DRAG_THRESHOLD_PX: float = 24.0

@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://scripts/UI/TutorialOverlay.gd" id="1_overlay"]
+[ext_resource type="Script" path="res://Scripts/UI/TutorialOverlay.gd" id="1_overlay"]
 
 [node name="TutorialOverlay" type="Control"]
 z_index = 250

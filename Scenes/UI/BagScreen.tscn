@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://d1cuopqbf8q1h"]
 
-[ext_resource type="Script" uid="uid://c6h4tfv3ddn8e" path="res://scripts/UI/BagScreen.gd" id="1_2cr07"]
+[ext_resource type="Script" uid="uid://c6h4tfv3ddn8e" path="res://Scripts/UI/BagScreen.gd" id="1_2cr07"]
 [ext_resource type="Texture2D" uid="uid://pd5gm2w3by7" path="res://Art/UI/Placeholder/window_background.jpg" id="2_58bsr"]
 
 [node name="BagScreen" type="Control" unique_id=1121220483]

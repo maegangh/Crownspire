@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://ctk6wysgpgpy0"]
 
-[ext_resource type="Script" uid="uid://c8nuhv1qtsi3g" path="res://scripts/TroopTrainingPanel.gd" id="1_mojgn"]
+[ext_resource type="Script" uid="uid://c8nuhv1qtsi3g" path="res://Scripts/TroopTrainingPanel.gd" id="1_mojgn"]
 
 [node name="TroopTrainingPanel" type="CanvasLayer" unique_id=1106008155]
 script = ExtResource("1_mojgn")

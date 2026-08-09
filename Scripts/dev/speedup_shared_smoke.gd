@@ -2,7 +2,7 @@ extends SceneTree
 
 ## Shared speedup smoke: eligibility, timer reduction, overflow completion, bag consume.
 ##   $env:CROWNSPIR_SPEEDUP_SMOKE="1"
-##   Godot --headless --path <project> -s res://scripts/dev/speedup_shared_smoke.gd
+##   Godot --headless --path <project> -s res://Scripts/dev/speedup_shared_smoke.gd
 
 
 func _initialize() -> void:

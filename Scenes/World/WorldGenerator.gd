@@ -13,7 +13,7 @@ extends Node2D
 @export var forest_count := 35
 @export var rock_count := 30
 
-const MapPlacementContractScript = preload("res://scripts/World/MapPlacementContract.gd")
+const MapPlacementContractScript = preload("res://Scripts/World/MapPlacementContract.gd")
 
 const LAKE_SCENES: Array[PackedScene] = [
 	preload("res://Scenes/Terrain/Water/LakeLarge.tscn"),

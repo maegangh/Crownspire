@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://2rmix2jy1qxc"]
 
-[ext_resource type="Script" uid="uid://cy4fg5llwkk3" path="res://scripts/RequirementRow.gd" id="1_req_gd"]
+[ext_resource type="Script" uid="uid://cy4fg5llwkk3" path="res://Scripts/RequirementRow.gd" id="1_req_gd"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_req_panel"]
 content_margin_left = 14.0

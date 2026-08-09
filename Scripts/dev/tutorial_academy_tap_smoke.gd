@@ -3,7 +3,7 @@ extends SceneTree
 ## KNOWLEDGE step: after TroopTraining, Academy spotlight tap must reach normal
 ## activate_building_tap → building_selected("academy") → TutorialState advance.
 ##   $env:CROWNSPIR_TUTORIAL_SMOKE="1"
-##   Godot --headless --path <project> -s res://scripts/dev/tutorial_academy_tap_smoke.gd
+##   Godot --headless --path <project> -s res://Scripts/dev/tutorial_academy_tap_smoke.gd
 
 var _fail: Array[String] = []
 

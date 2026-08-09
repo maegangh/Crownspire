@@ -10,7 +10,7 @@ func _ready() -> void:
 func load_items() -> void:
 	items.clear()
 
-	var path := "res://Data/items.json"
+	var path := "res://data/Items.json"
 
 	if not FileAccess.file_exists(path):
 		push_error("items.json not found: " + path)

@@ -1,6 +1,6 @@
 extends "res://Scenes/UI/HeroDetailsPanel.gd"
 
-const MobileScrollUtil = preload("res://scripts/UI/MobileScroll.gd")
+const MobileScrollUtil = preload("res://Scripts/UI/MobileScroll.gd")
 
 enum Tab {
 	OVERVIEW,
@@ -273,7 +273,7 @@ func _ensure_page_list(page: Control, list_name: String) -> VBoxContainer:
 
 
 func _load_hero_roster() -> void:
-	for path in [HEROES_JSON_PATH, "res://Data/heroes.json"]:
+	for path in [HEROES_JSON_PATH, "res://data/heroes.json"]:
 		if not FileAccess.file_exists(path):
 			continue
 

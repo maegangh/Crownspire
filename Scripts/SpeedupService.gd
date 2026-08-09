@@ -243,7 +243,7 @@ func open_speedup_popup(timer_category: String, target_id: String) -> void:
 		push_warning("%s No GameHUD — cannot open Speed Up popup" % LOG_PREFIX)
 		return
 	if _popup == null or not is_instance_valid(_popup):
-		var script: Script = load("res://scripts/UI/SpeedUpPopup.gd") as Script
+		var script: Script = load("res://Scripts/UI/SpeedUpPopup.gd") as Script
 		_popup = Control.new()
 		_popup.set_script(script)
 		_popup.name = "SpeedUpPopup"

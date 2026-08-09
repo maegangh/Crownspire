@@ -1,7 +1,7 @@
 extends SceneTree
 
 ## Troop training quantity slider: whole-number HSlider + ±1 for all three buildings.
-##   Godot --headless --path <project> -s res://scripts/dev/troop_training_quantity_slider_smoke.gd
+##   Godot --headless --path <project> -s res://Scripts/dev/troop_training_quantity_slider_smoke.gd
 
 var _fail: Array[String] = []
 

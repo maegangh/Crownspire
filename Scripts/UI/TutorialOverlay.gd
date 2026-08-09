@@ -2,7 +2,7 @@ extends Control
 
 ## Presentation-only FTUE overlay. Reads TutorialState; never mutates gameplay.
 
-const Resolver = preload("res://scripts/UI/TutorialTargetResolver.gd")
+const Resolver = preload("res://Scripts/UI/TutorialTargetResolver.gd")
 const LOG_PREFIX := "[TUTORIAL UI]"
 
 const COLOR_DIM := Color(0.04, 0.08, 0.16, 0.72)

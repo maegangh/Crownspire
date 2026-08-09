@@ -2,7 +2,7 @@ extends SceneTree
 
 ## Isolated TutorialOverlay smoke (does not touch user://tutorial.cfg).
 ##   $env:CROWNSPIR_TUTORIAL_SMOKE="1"
-##   Godot --headless --path <project> -s res://scripts/dev/tutorial_overlay_smoke.gd
+##   Godot --headless --path <project> -s res://Scripts/dev/tutorial_overlay_smoke.gd
 
 var _fail: Array[String] = []
 

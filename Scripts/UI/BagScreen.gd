@@ -1,6 +1,6 @@
 extends Control
 
-const MobileScrollUtil = preload("res://scripts/UI/MobileScroll.gd")
+const MobileScrollUtil = preload("res://Scripts/UI/MobileScroll.gd")
 const ITEM_SLOT_SCENE := preload("res://Scenes/UI/ItemSlot.tscn")
 
 @onready var panel: Panel = $Panel

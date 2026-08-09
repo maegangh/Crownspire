@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cvpygmnlg4c8c"]
 
-[ext_resource type="Script" path="res://scripts/World/WildlingLairNode.gd" id="1_lair"]
-[ext_resource type="Script" path="res://scripts/World/wildling_lair_click.gd" id="2_click"]
+[ext_resource type="Script" path="res://Scripts/World/WildlingLairNode.gd" id="1_lair"]
+[ext_resource type="Script" path="res://Scripts/World/wildling_lair_click.gd" id="2_click"]
 [ext_resource type="Texture2D" path="res://assets/World/WildlingLairs/BeastWildlingLair.png" id="3_tex"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_lair"]
