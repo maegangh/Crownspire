@@ -69,6 +69,9 @@ func _ready():
 	_refresh_portrait_avatar()
 	_refresh_mail_badge()
 	_refresh_events_badge()
+	_refresh_localized_labels()
+	if has_node("/root/LocaleSettings") and not LocaleSettings.locale_changed.is_connected(_on_locale_changed):
+		LocaleSettings.locale_changed.connect(_on_locale_changed)
 	if has_node("/root/GameState") and not GameState.resources_changed.is_connected(_on_resources_changed):
 		GameState.resources_changed.connect(_on_resources_changed)
 	call_deferred("_validate_bottom_nav_hitboxes")
@@ -345,7 +348,7 @@ func _setup_world_search_ui() -> void:
 	if _world_search_button == null:
 		_world_search_button = Button.new()
 		_world_search_button.name = "WorldSearchButton"
-		_world_search_button.text = "🔍\nSEARCH"
+		_world_search_button.text = "🔍\n%s" % tr("HUD_SEARCH")
 		_world_search_button.focus_mode = Control.FOCUS_NONE
 		var fill := StyleBoxFlat.new()
 		fill.bg_color = Color(0.12, 0.11, 0.16, 0.92)
@@ -373,7 +376,7 @@ func _setup_world_search_ui() -> void:
 	if _world_home_button == null:
 		_world_home_button = Button.new()
 		_world_home_button.name = "WorldHomeButton"
-		_world_home_button.text = "🏰\nCASTLE"
+		_world_home_button.text = "🏰\n%s" % tr("HUD_CASTLE")
 		_world_home_button.focus_mode = Control.FOCUS_NONE
 
 		var home_fill := StyleBoxFlat.new()
@@ -602,6 +605,7 @@ func _refresh_mail_badge() -> void:
 func _style_events_button() -> void:
 	if events_button == null:
 		return
+	events_button.text = tr("HUD_EVENTS")
 
 	var fill := StyleBoxFlat.new()
 	fill.bg_color = Color(0.12, 0.16, 0.24, 0.94)
@@ -1422,7 +1426,7 @@ func update_resources():
 	diamond_label.text = format_with_commas(GameState.diamonds)
 
 	power_label.text = format_with_commas(GameState.power)
-	vip_label.text = "VIP %d" % GameState.vip_level
+	vip_label.text = tr("HUD_VIP") % str(GameState.vip_level)
 
 func format_number(value: int) -> String:
 	## Canonical compact resource display for HUD + upgrade requirements.
@@ -1612,7 +1616,35 @@ func _refresh_portrait_avatar() -> void:
 	portrait_button.texture_pressed = portrait_button.texture_normal
 	portrait_button.texture_hover = portrait_button.texture_normal
 	portrait_button.modulate = Color.WHITE
-	portrait_button.tooltip_text = "Player Profile"
+	portrait_button.tooltip_text = tr("HUD_PLAYER_PROFILE_TOOLTIP")
+
+func _on_locale_changed(_locale: String) -> void:
+	_refresh_localized_labels()
+
+
+func _refresh_localized_labels() -> void:
+	if _world_search_button != null and is_instance_valid(_world_search_button):
+		_world_search_button.text = "🔍\n%s" % tr("HUD_SEARCH")
+	if _world_home_button != null and is_instance_valid(_world_home_button):
+		# Keep numeric distance labels; only refresh the CASTLE word label.
+		if not _is_distance_home_label(_world_home_button.text):
+			_world_home_button.text = "🏰\n%s" % tr("HUD_CASTLE")
+	if events_button != null and is_instance_valid(events_button):
+		events_button.text = tr("HUD_EVENTS")
+	if vip_label != null and is_instance_valid(vip_label) and has_node("/root/GameState"):
+		vip_label.text = tr("HUD_VIP") % str(GameState.vip_level)
+	if portrait_button != null and is_instance_valid(portrait_button):
+		portrait_button.tooltip_text = tr("HUD_PLAYER_PROFILE_TOOLTIP")
+
+
+func _is_distance_home_label(text: String) -> bool:
+	# Distance labels look like "🏰\n1.2K" / "🏰\n850" — not the CASTLE word.
+	var parts: PackedStringArray = text.split("\n")
+	if parts.size() < 2:
+		return false
+	var tail: String = parts[1].strip_edges()
+	return tail.is_valid_float() or tail.ends_with("K") or tail.ends_with("M")
+
 
 func _on_shop_pressed():
 	$UIManager.open_screen("ShopScreen")

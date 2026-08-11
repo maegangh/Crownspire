@@ -1,0 +1,99 @@
+keys,en,tr
+UI_LANGUAGE,Language,Dil
+LANGUAGE_ENGLISH,English,İngilizce
+LANGUAGE_TURKISH,Türkçe,Türkçe
+UI_SETTINGS,Settings,Ayarlar
+UI_CONFIRM,Confirm,Onayla
+UI_CANCEL,Cancel,İptal
+UI_CLOSE,Close,Kapat
+UI_BACK,Back,Geri
+UI_SAVE,Save,Kaydet
+UI_YES,Yes,Evet
+UI_NO,No,Hayır
+UI_PLAYER_PROFILE,PLAYER PROFILE,OYUNCU PROFİLİ
+UI_TAB_PROFILE,PROFILE,PROFİL
+UI_TAB_STATS,STATS,İSTATİSTİKLER
+UI_TAB_SETTINGS,SETTINGS,AYARLAR
+HUD_SEARCH,SEARCH,ARA
+HUD_CASTLE,CASTLE,KALE
+HUD_EVENTS,EVENTS,ETKİNLİKLER
+HUD_VIP,VIP %s,VIP %s
+HUD_PLAYER_PROFILE_TOOLTIP,Player Profile,Oyuncu Profili
+PROFILE_ACCOUNT,Account,HESAP
+PROFILE_POWER,Power,GÜÇ
+PROFILE_HIGHEST_POWER,Highest Power,EN YÜKSEK GÜÇ
+PROFILE_KILLS,Kills,ÖLDÜRMELER
+PROFILE_KINGDOM,Kingdom,KRALLIK
+PROFILE_ALLIANCE,Alliance,İTTİFAK
+PROFILE_CITADEL,Citadel,KALE
+PROFILE_VIP,VIP,VIP
+PROFILE_STATUS,Status,DURUM
+PROFILE_ONLINE,Online,ÇEVRİMİÇİ
+PROFILE_OFFLINE,Offline,ÇEVRİMDIŞI
+PROFILE_PUBLIC_GEAR,Public Gear,HERKESE AÇIK EKİPMAN
+PROFILE_NO_PUBLIC_GEAR,No public gear published.,Herkese açık ekipman yayınlanmadı.
+PROFILE_NONE,None,Yok
+PROFILE_LEVEL_FMT,Level %d,Seviye %d
+PROFILE_SUMMARY_FMT,Power %s · VIP %d,Güç %s · VIP %d
+PROFILE_CHANGE_AVATAR,Change Avatar,AVATARI DEĞİŞTİR
+PROFILE_SHARE_LOCATION,Share Location,KONUMU PAYLAŞ
+PROFILE_RENAME,Rename,YENİDEN ADLANDIR
+PROFILE_NAME,Name,Ad
+PROFILE_TITLE,Title,Unvan
+PROFILE_ACHIEVEMENTS,Achievements,Başarılar
+PROFILE_VIEW_ALLIANCE,View Alliance,İttifakı Gör
+PROFILE_MESSAGE,Message,Mesaj
+PROFILE_BLOCK,Block,Engelle
+PROFILE_UNBLOCK,Unblock,Engeli Kaldır
+PROFILE_REPORT,Report,Bildir
+PROFILE_FRIENDS,Friends,Arkadaşlar
+PROFILE_REMOVE_FRIEND,Remove Friend,Arkadaşlıktan Çıkar
+PROFILE_PENDING,Pending,Beklemede
+PROFILE_CANCEL_REQUEST,Cancel Request,İsteği İptal Et
+PROFILE_ACCEPT_FRIEND,Accept Friend,Arkadaşlığı Kabul Et
+PROFILE_DECLINE,Decline,Reddet
+PROFILE_BLOCKED,Blocked,Engellendi
+PROFILE_ADD_FRIEND,Add Friend,Arkadaş Ekle
+PROFILE_CHOOSE_AVATAR,Choose Avatar,Avatar Seç
+PROFILE_NEW_NAME_TIP,New name (free beta),Yeni ad (ücretsiz beta)
+PROFILE_SETTINGS_OTHER_NOTE,Language and account settings are available on your own profile.,Dil ve hesap ayarları kendi profilinizde mevcuttur.
+PROFILE_LOADING,Loading…,Yükleniyor…
+PROFILE_OFFLINE_PROFILE,Offline profile,Çevrimdışı profil
+PROFILE_UNAVAILABLE,Profile unavailable,Profil kullanılamıyor
+PROFILE_NO_ALLIANCE,This commander has no Alliance.,Bu komutanın ittifakı yok.
+PROFILE_FRIENDS_UPDATED,Friends updated.,Arkadaşlar güncellendi.
+PROFILE_FRIENDS_FAILED,Friends action failed.,Arkadaş işlemi başarısız.
+PROFILE_BLOCK_UNAVAILABLE,Block unavailable.,Engelleme kullanılamıyor.
+PROFILE_PLAYER_UNBLOCKED,Player unblocked.,Oyuncunun engeli kaldırıldı.
+PROFILE_UNBLOCK_FAILED,Unblock failed.,Engel kaldırma başarısız.
+PROFILE_PLAYER_BLOCKED,Player blocked.,Oyuncu engellendi.
+PROFILE_BLOCK_FAILED,Block failed.,Engelleme başarısız.
+PROFILE_REPORT_UNAVAILABLE,Report unavailable.,Bildirim kullanılamıyor.
+PROFILE_REPORT_CONFIRM,Report this commander?,Bu komutanı bildirmek istiyor musunuz?
+PROFILE_REPORT_REASON,Report reason,Bildirim nedeni
+PROFILE_REPORT_REASON_SPAM,Spam,Spam
+PROFILE_REPORT_REASON_HARASSMENT,Harassment,Taciz
+PROFILE_REPORT_REASON_OTHER,Other,Diğer
+PROFILE_REPORT_SUBMITTED,Report submitted for review.,Bildirim inceleme için gönderildi.
+PROFILE_REPORT_FAILED,Report failed.,Bildirim başarısız.
+PROFILE_CHAT_UNAVAILABLE,Chat unavailable.,Sohbet kullanılamıyor.
+PROFILE_SHARING_LOCATION,Sharing to Kingdom Chat…,Krallık Sohbetine paylaşılıyor…
+PROFILE_LOCATION_SHARED,Castle location shared to Kingdom Chat.,Kale konumu Krallık Sohbetine paylaşıldı.
+PROFILE_SHARE_FAILED,Share failed.,Paylaşım başarısız.
+PROFILE_RENAME_UNAVAILABLE,Rename unavailable offline.,Yeniden adlandırma çevrimdışıyken kullanılamıyor.
+PROFILE_SAVING_NAME,Saving name…,Ad kaydediliyor…
+PROFILE_NAME_UPDATED,Name updated.,Ad güncellendi.
+PROFILE_RENAME_FAILED,Rename failed,Yeniden adlandırma başarısız
+PROFILE_SAVING_AVATAR,Saving avatar…,Avatar kaydediliyor…
+PROFILE_AVATAR_UPDATED,Avatar updated.,Avatar güncellendi.
+PROFILE_AVATAR_SAVE_UNAVAILABLE,Avatar save unavailable.,Avatar kaydı kullanılamıyor.
+PROFILE_AVATAR_SAVE_FAILED,Avatar save failed,Avatar kaydı başarısız
+PROFILE_SLOT_HEAD,Head,Baş
+PROFILE_SLOT_WEAPON,Weapon,Silah
+PROFILE_SLOT_ACCESSORY,Accessory,Aksesuar
+PROFILE_SLOT_CHEST,Chest,Göğüs
+PROFILE_SLOT_LEGS,Legs,Bacaklar
+PROFILE_SLOT_CHARM,Charm,Tılsım
+PROFILE_SLOT_GENERIC,Slot,Yuva
+PROFILE_EQUIP_COMING_SOON_FMT,%s equipment — Coming Soon (beta placeholder),%s ekipmanı — Yakında (beta)
+PROFILE_CASTLE_SHARE_LABEL_FMT,[Castle] %s,[Kale] %s

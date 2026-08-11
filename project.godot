@@ -51,6 +51,7 @@ SanctuaryState="*res://Scripts/SanctuaryState.gd"
 TutorialState="*res://Scripts/TutorialState.gd"
 SpeedupService="*res://Scripts/SpeedupService.gd"
 EventState="*res://Scripts/EventState.gd"
+LocaleSettings="*res://Scripts/LocaleSettings.gd"
 
 [display]
 
@@ -63,6 +64,11 @@ window/handheld/orientation=1
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/com.heroiclabs.nakama/plugin.cfg")
+
+[internationalization]
+
+locale/translations=PackedStringArray("res://locales/crownspire_ui.en.translation", "res://locales/crownspire_ui.tr.translation")
+locale/fallback="en"
 
 [physics]
 

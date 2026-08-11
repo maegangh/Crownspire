@@ -2,6 +2,7 @@ extends Control
 
 ## Full-screen Player Profile — Crownspire fantasy presentation.
 ## Opened from HUD avatar, Alliance Members, and chat context menus.
+## Mobile layout: Profile | Stats | Settings tabs (do not cram everything onto one page).
 
 const PlayerAvatarCatalog = preload("res://Scripts/UI/PlayerAvatarCatalog.gd")
 
@@ -14,6 +15,27 @@ const COL_PANEL := Color(0.08, 0.10, 0.18, 0.96)
 const COL_BORDER := Color(0.72, 0.58, 0.28, 0.95)
 const COL_OK := Color(0.55, 0.82, 0.58, 1.0)
 const COL_SLOT := Color(0.14, 0.16, 0.28, 0.92)
+const COL_TAB_IDLE := Color(0.12, 0.12, 0.18, 0.95)
+const COL_TAB_ACTIVE := Color(0.22, 0.18, 0.10, 0.98)
+
+## Mobile-readable typography (viewport px @ 720×1280 stretch).
+const FONT_TITLE: int = 24
+const FONT_NAME: int = 22
+const FONT_NAV: int = 18
+const FONT_TAB: int = 18
+const FONT_BUTTON: int = 18
+const FONT_SECTION: int = 18
+const FONT_BODY: int = 18
+const FONT_SECONDARY: int = 16
+const TOUCH_H: int = 52
+const TOUCH_H_SM: int = 48
+const SLOT_W: int = 108
+const SLOT_H: int = 84
+const HERO_MIN_H: int = 420
+
+const TAB_PROFILE: String = "profile"
+const TAB_STATS: String = "stats"
+const TAB_SETTINGS: String = "settings"
 
 signal message_requested(user_id: String, display_name: String)
 signal share_location_requested(profile: Dictionary)
@@ -23,22 +45,48 @@ var _target_user_id: String = ""
 var _is_self: bool = true
 var _profile: Dictionary = {}
 var _built: bool = false
+var _active_tab: String = TAB_PROFILE
+
 var _root: VBoxContainer
-var _hero_stage: Control
-var _lower_card: PanelContainer
-var _content: VBoxContainer
 var _status: Label
-var _avatar_tex: TextureRect
-var _hero_tex: TextureRect
+var _header_back: Button = null
+var _header_title: Label = null
+var _header_close: Button = null
+
+var _tab_row: HBoxContainer = null
+var _tab_btns: Dictionary = {} # tab_id -> Button
+
+var _pages: Control = null
+var _page_profile: VBoxContainer = null
+var _page_stats: VBoxContainer = null
+var _page_settings: VBoxContainer = null
+
+var _hero_stage: Control = null
+var _hero_tex: TextureRect = null
+var _identity_box: VBoxContainer = null
+var _profile_actions: VBoxContainer = null
+var _profile_extra: VBoxContainer = null
+
+var _stats_scroll: ScrollContainer = null
+var _stats_content: VBoxContainer = null
+var _settings_scroll: ScrollContainer = null
+var _settings_content: VBoxContainer = null
+
+var _avatar_tex: TextureRect = null
 var _pending_avatar_id: String = ""
+var _lang_option: OptionButton = null
+var _lang_label: Label = null
+var _settings_title: Label = null
+var _suppress_lang_signal: bool = false
+var _equip_slot_btns: Array = [] # Button nodes for locale refresh
 
 const EQUIP_SLOTS: Array[Dictionary] = [
-	{"id": "head", "label": "Head", "pos": Vector2(0.08, 0.18)},
-	{"id": "weapon", "label": "Weapon", "pos": Vector2(0.08, 0.42)},
-	{"id": "accessory", "label": "Accessory", "pos": Vector2(0.08, 0.66)},
-	{"id": "chest", "label": "Chest", "pos": Vector2(0.78, 0.18)},
-	{"id": "legs", "label": "Legs", "pos": Vector2(0.78, 0.42)},
-	{"id": "charm", "label": "Charm", "pos": Vector2(0.78, 0.66)},
+	{"id": "head", "label_key": "PROFILE_SLOT_HEAD", "pos": Vector2(0.08, 0.18)},
+	{"id": "weapon", "label_key": "PROFILE_SLOT_WEAPON", "pos": Vector2(0.08, 0.42)},
+	{"id": "accessory", "label_key": "PROFILE_SLOT_ACCESSORY", "pos": Vector2(0.08, 0.66)},
+	{"id": "chest", "label_key": "PROFILE_SLOT_CHEST", "pos": Vector2(0.78, 0.18)},
+	{"id": "legs", "label_key": "PROFILE_SLOT_LEGS", "pos": Vector2(0.78, 0.42)},
+	{"id": "charm", "label_key": "PROFILE_SLOT_CHARM", "pos": Vector2(0.78, 0.66)},
 ]
 
 
@@ -59,6 +107,8 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_build()
+	if has_node("/root/LocaleSettings") and not LocaleSettings.locale_changed.is_connected(_on_locale_changed):
+		LocaleSettings.locale_changed.connect(_on_locale_changed)
 
 
 func open_self() -> void:
@@ -85,13 +135,15 @@ func _open_async() -> void:
 	_build()
 	visible = true
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	_status.text = "Loading…"
+	_status.text = tr("PROFILE_LOADING")
+	_active_tab = TAB_PROFILE
 	await _load_profile()
 	if not _is_self:
 		var fb: Node = _friends_backend()
 		if fb != null and fb.has_method("refresh_friends"):
 			await fb.refresh_friends()
 	_rebuild_content()
+	_show_tab(TAB_PROFILE)
 
 
 func _panel_style(bg: Color = COL_PANEL) -> StyleBoxFlat:
@@ -100,10 +152,40 @@ func _panel_style(bg: Color = COL_PANEL) -> StyleBoxFlat:
 	style.border_color = COL_BORDER
 	style.set_border_width_all(2)
 	style.set_corner_radius_all(14)
-	style.content_margin_left = 14
-	style.content_margin_right = 14
-	style.content_margin_top = 12
-	style.content_margin_bottom = 12
+	style.content_margin_left = 16
+	style.content_margin_right = 16
+	style.content_margin_top = 14
+	style.content_margin_bottom = 14
+	return style
+
+
+func _style_button(btn: Button, font_size: int = FONT_BUTTON, min_h: int = TOUCH_H) -> void:
+	if btn == null:
+		return
+	btn.add_theme_font_size_override("font_size", font_size)
+	btn.custom_minimum_size = Vector2(maxi(int(btn.custom_minimum_size.x), 0), min_h)
+	btn.clip_text = false
+
+
+func _style_label(lbl: Label, font_size: int, color: Color = COL_INK) -> void:
+	if lbl == null:
+		return
+	lbl.add_theme_font_size_override("font_size", font_size)
+	lbl.add_theme_color_override("font_color", color)
+	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl.clip_text = false
+
+
+func _tab_style(active: bool) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = COL_TAB_ACTIVE if active else COL_TAB_IDLE
+	style.border_color = COL_GOLD if active else Color(0.45, 0.40, 0.28, 0.85)
+	style.set_border_width_all(2 if active else 1)
+	style.set_corner_radius_all(10)
+	style.content_margin_left = 8
+	style.content_margin_right = 8
+	style.content_margin_top = 8
+	style.content_margin_bottom = 8
 	return style
 
 
@@ -114,7 +196,6 @@ func _build() -> void:
 	for c in get_children():
 		c.queue_free()
 
-	# Soft sapphire / purple ambient background (full screen).
 	var bg := ColorRect.new()
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	bg.color = Color(0.06, 0.07, 0.14, 1.0)
@@ -136,37 +217,120 @@ func _build() -> void:
 	_root.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_root)
 
-	# Top bar
+	# Header
 	var header := HBoxContainer.new()
-	header.custom_minimum_size = Vector2(0, 56)
+	header.custom_minimum_size = Vector2(0, TOUCH_H)
+	header.add_theme_constant_override("separation", 8)
 	_root.add_child(header)
-	var back := Button.new()
-	back.text = "← Back"
-	back.custom_minimum_size = Vector2(110, 48)
-	back.pressed.connect(on_close)
-	header.add_child(back)
-	var title := Label.new()
-	title.text = "PLAYER PROFILE"
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_color_override("font_color", COL_GOLD)
-	title.add_theme_font_size_override("font_size", 24)
-	header.add_child(title)
-	var spacer := Control.new()
-	spacer.custom_minimum_size = Vector2(110, 0)
-	header.add_child(spacer)
+	_header_back = Button.new()
+	_header_back.text = "← %s" % tr("UI_BACK")
+	_header_back.custom_minimum_size = Vector2(120, TOUCH_H)
+	_style_button(_header_back, FONT_NAV, TOUCH_H)
+	_header_back.pressed.connect(on_close)
+	header.add_child(_header_back)
+	_header_title = Label.new()
+	_header_title.text = tr("UI_PLAYER_PROFILE")
+	_header_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_header_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_header_title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_style_label(_header_title, FONT_TITLE, COL_GOLD)
+	header.add_child(_header_title)
+	_header_close = Button.new()
+	_header_close.text = tr("UI_CLOSE")
+	_header_close.custom_minimum_size = Vector2(120, TOUCH_H)
+	_style_button(_header_close, FONT_NAV, TOUCH_H)
+	_header_close.pressed.connect(on_close)
+	header.add_child(_header_close)
 
 	_status = Label.new()
-	_status.add_theme_color_override("font_color", COL_MUTED)
-	_status.add_theme_font_size_override("font_size", 13)
+	_style_label(_status, FONT_SECONDARY, COL_MUTED)
 	_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_root.add_child(_status)
 
-	# Hero stage (center)
+	# Tabs
+	_tab_row = HBoxContainer.new()
+	_tab_row.add_theme_constant_override("separation", 8)
+	_tab_row.custom_minimum_size = Vector2(0, TOUCH_H)
+	_root.add_child(_tab_row)
+	_tab_btns.clear()
+	_add_tab_button(TAB_PROFILE, tr("UI_TAB_PROFILE"))
+	_add_tab_button(TAB_STATS, tr("UI_TAB_STATS"))
+	_add_tab_button(TAB_SETTINGS, tr("UI_TAB_SETTINGS"))
+
+	# Pages host
+	_pages = Control.new()
+	_pages.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_pages.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_root.add_child(_pages)
+
+	_page_profile = _make_page_vbox()
+	_pages.add_child(_page_profile)
+	_page_stats = _make_page_vbox()
+	_pages.add_child(_page_stats)
+	_page_settings = _make_page_vbox()
+	_pages.add_child(_page_settings)
+
+	_build_profile_page_shell()
+	_build_stats_page_shell()
+	_build_settings_page_shell()
+	_show_tab(TAB_PROFILE)
+
+
+func _make_page_vbox() -> VBoxContainer:
+	var page := VBoxContainer.new()
+	page.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	page.add_theme_constant_override("separation", 10)
+	page.visible = false
+	return page
+
+
+func _add_tab_button(tab_id: String, label: String) -> void:
+	var btn := Button.new()
+	btn.text = label
+	btn.toggle_mode = true
+	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_style_button(btn, FONT_TAB, TOUCH_H)
+	btn.add_theme_stylebox_override("normal", _tab_style(false))
+	btn.add_theme_stylebox_override("pressed", _tab_style(true))
+	btn.add_theme_stylebox_override("hover", _tab_style(false))
+	btn.pressed.connect(_on_tab_pressed.bind(tab_id))
+	_tab_row.add_child(btn)
+	_tab_btns[tab_id] = btn
+
+
+func _on_tab_pressed(tab_id: String) -> void:
+	_show_tab(tab_id)
+
+
+func _show_tab(tab_id: String) -> void:
+	_active_tab = tab_id
+	if _page_profile != null:
+		_page_profile.visible = tab_id == TAB_PROFILE
+	if _page_stats != null:
+		_page_stats.visible = tab_id == TAB_STATS
+	if _page_settings != null:
+		_page_settings.visible = tab_id == TAB_SETTINGS
+	for id: Variant in _tab_btns.keys():
+		var btn: Button = _tab_btns[id] as Button
+		if btn == null:
+			continue
+		var active: bool = str(id) == tab_id
+		btn.button_pressed = active
+		btn.add_theme_stylebox_override("normal", _tab_style(active))
+		btn.add_theme_stylebox_override("pressed", _tab_style(true))
+		btn.add_theme_color_override("font_color", COL_GOLD if active else COL_INK)
+
+
+func _build_profile_page_shell() -> void:
+	_identity_box = VBoxContainer.new()
+	_identity_box.add_theme_constant_override("separation", 6)
+	_page_profile.add_child(_identity_box)
+
+	# Large hero + equipment — owns most of the Profile tab height.
 	_hero_stage = Control.new()
 	_hero_stage.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_hero_stage.custom_minimum_size = Vector2(0, 320)
-	_root.add_child(_hero_stage)
+	_hero_stage.custom_minimum_size = Vector2(0, HERO_MIN_H)
+	_page_profile.add_child(_hero_stage)
 
 	var stage_panel := PanelContainer.new()
 	stage_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -179,63 +343,91 @@ func _build() -> void:
 
 	_hero_tex = TextureRect.new()
 	_hero_tex.set_anchors_preset(Control.PRESET_CENTER)
-	_hero_tex.offset_left = -140
-	_hero_tex.offset_right = 140
-	_hero_tex.offset_top = -180
-	_hero_tex.offset_bottom = 180
+	_hero_tex.offset_left = -150
+	_hero_tex.offset_right = 150
+	_hero_tex.offset_top = -190
+	_hero_tex.offset_bottom = 190
 	_hero_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_hero_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	_hero_tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	stage_inner.add_child(_hero_tex)
 
+	_equip_slot_btns.clear()
 	for slot_v in EQUIP_SLOTS:
 		var slot: Dictionary = slot_v
+		var label_key: String = str(slot.get("label_key", "PROFILE_SLOT_GENERIC"))
 		var btn := Button.new()
-		btn.text = str(slot.get("label", "Slot"))
-		btn.custom_minimum_size = Vector2(92, 72)
+		btn.set_meta("label_key", label_key)
+		btn.text = tr(label_key)
+		btn.custom_minimum_size = Vector2(SLOT_W, SLOT_H)
 		btn.focus_mode = Control.FOCUS_NONE
+		btn.clip_text = false
 		var rel: Vector2 = slot.get("pos", Vector2(0.1, 0.2))
 		btn.set_anchors_preset(Control.PRESET_TOP_LEFT)
 		btn.anchor_left = rel.x
 		btn.anchor_top = rel.y
 		btn.anchor_right = rel.x
 		btn.anchor_bottom = rel.y
-		btn.offset_right = 92
-		btn.offset_bottom = 72
+		btn.offset_right = float(SLOT_W)
+		btn.offset_bottom = float(SLOT_H)
 		var slot_style := StyleBoxFlat.new()
 		slot_style.bg_color = COL_SLOT
 		slot_style.border_color = COL_GOLD
 		slot_style.set_border_width_all(2)
 		slot_style.set_corner_radius_all(10)
 		btn.add_theme_stylebox_override("normal", slot_style)
-		btn.add_theme_font_size_override("font_size", 12)
+		btn.add_theme_font_size_override("font_size", FONT_SECONDARY)
 		btn.pressed.connect(func():
-			_status.text = "%s equipment — Coming Soon (beta placeholder)" % str(slot.get("label", "Slot"))
+			var key: String = str(btn.get_meta("label_key", "PROFILE_SLOT_GENERIC"))
+			_status.text = tr("PROFILE_EQUIP_COMING_SOON_FMT") % tr(key)
 		)
 		stage_inner.add_child(btn)
+		_equip_slot_btns.append(btn)
 
-	# Lower profile card
-	_lower_card = PanelContainer.new()
-	_lower_card.size_flags_vertical = Control.SIZE_SHRINK_END
-	_lower_card.custom_minimum_size = Vector2(0, 280)
-	_lower_card.add_theme_stylebox_override("panel", _panel_style())
-	_root.add_child(_lower_card)
+	_profile_actions = VBoxContainer.new()
+	_profile_actions.add_theme_constant_override("separation", 8)
+	_page_profile.add_child(_profile_actions)
 
-	var scroll := ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_lower_card.add_child(scroll)
-	_content = VBoxContainer.new()
-	_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_content.add_theme_constant_override("separation", 8)
-	scroll.add_child(_content)
+	_profile_extra = VBoxContainer.new()
+	_profile_extra.add_theme_constant_override("separation", 8)
+	_page_profile.add_child(_profile_extra)
+
+
+func _build_stats_page_shell() -> void:
+	var card := PanelContainer.new()
+	card.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	card.add_theme_stylebox_override("panel", _panel_style())
+	_page_stats.add_child(card)
+	_stats_scroll = ScrollContainer.new()
+	_stats_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_stats_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	card.add_child(_stats_scroll)
+	_stats_content = VBoxContainer.new()
+	_stats_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_stats_content.add_theme_constant_override("separation", 12)
+	_stats_scroll.add_child(_stats_content)
+
+
+func _build_settings_page_shell() -> void:
+	var card := PanelContainer.new()
+	card.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	card.add_theme_stylebox_override("panel", _panel_style())
+	_page_settings.add_child(card)
+	_settings_scroll = ScrollContainer.new()
+	_settings_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_settings_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	card.add_child(_settings_scroll)
+	_settings_content = VBoxContainer.new()
+	_settings_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_settings_content.add_theme_constant_override("separation", 12)
+	_settings_scroll.add_child(_settings_content)
 
 
 func _load_profile() -> void:
 	var ab: Node = _alliance_backend()
 	if ab == null:
 		_profile = _local_fallback_profile()
-		_status.text = "Offline profile"
+		_status.text = tr("PROFILE_OFFLINE_PROFILE")
 		return
 	if _is_self:
 		if ab.has_method("sync_identity_from_local"):
@@ -244,8 +436,6 @@ func _load_profile() -> void:
 		_profile = ab.get_profile()
 		if _profile.is_empty():
 			_profile = _local_fallback_profile()
-		# Phase 0B2-C: local self profile Citadel always from canonical castle (not stale mirror/server lag).
-		# Remote profiles keep their supplied citadel_level unchanged.
 		_profile["citadel_level"] = _local_canonical_castle_level()
 		_status.text = ""
 		print("[PlayerProfile] loaded user=%s power=%s (self)" % [
@@ -262,11 +452,10 @@ func _load_profile() -> void:
 			])
 		else:
 			_profile = {"user_id": _target_user_id, "display_name": "Unknown"}
-			_status.text = str(res.get("error", "Profile unavailable"))
+			_status.text = str(res.get("error", tr("PROFILE_UNAVAILABLE")))
 
 
 func _local_canonical_castle_level() -> int:
-	# Phase 0B2-C: local player Citadel/Castle completed level.
 	if has_node("/root/ConstructionState") and ConstructionState.has_method("get_canonical_building_level"):
 		return maxi(1, int(ConstructionState.get_canonical_building_level("castle")))
 	return 1
@@ -292,21 +481,39 @@ func _local_fallback_profile() -> Dictionary:
 
 
 func _rebuild_content() -> void:
-	for c in _content.get_children():
-		c.queue_free()
+	_clear_container(_identity_box)
+	_clear_container(_profile_actions)
+	_clear_container(_profile_extra)
+	_clear_container(_stats_content)
+	_clear_container(_settings_content)
 
 	var avatar_id: String = PlayerAvatarCatalog.normalize_id(str(_profile.get("avatar_id", "avatar_01")))
 	_pending_avatar_id = avatar_id
-	var hero_tex: Texture2D = PlayerAvatarCatalog.get_texture(avatar_id, 512)
 	if _hero_tex != null:
-		_hero_tex.texture = hero_tex
+		_hero_tex.texture = PlayerAvatarCatalog.get_texture(avatar_id, 512)
 
+	_rebuild_profile_tab(avatar_id)
+	_rebuild_stats_tab()
+	_rebuild_settings_tab()
+	_show_tab(_active_tab)
+
+
+func _clear_container(node: Node) -> void:
+	if node == null:
+		return
+	for c in node.get_children():
+		c.queue_free()
+
+
+func _rebuild_profile_tab(avatar_id: String) -> void:
+	if _identity_box == null:
+		return
 	var identity := HBoxContainer.new()
 	identity.add_theme_constant_override("separation", 12)
-	_content.add_child(identity)
+	_identity_box.add_child(identity)
 
 	_avatar_tex = TextureRect.new()
-	_avatar_tex.custom_minimum_size = Vector2(96, 96)
+	_avatar_tex.custom_minimum_size = Vector2(88, 88)
 	_avatar_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_avatar_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	_avatar_tex.texture = PlayerAvatarCatalog.get_texture(avatar_id, 256)
@@ -321,108 +528,138 @@ func _rebuild_content() -> void:
 	var name_text: String = str(_profile.get("display_name", "Player"))
 	var name_lbl := Label.new()
 	name_lbl.text = "[%s] %s" % [tag, name_text] if tag != "" else name_text
-	name_lbl.add_theme_color_override("font_color", COL_INK)
-	name_lbl.add_theme_font_size_override("font_size", 22)
+	_style_label(name_lbl, FONT_NAME, COL_INK)
 	id_col.add_child(name_lbl)
+
+	# Small high-value summary only (full table lives on Stats).
+	var summary := Label.new()
+	summary.text = tr("PROFILE_SUMMARY_FMT") % [
+		_format_num(int(_profile.get("power", 0))),
+		int(_profile.get("vip_level", 0)),
+	]
+	_style_label(summary, FONT_SECONDARY, COL_MUTED)
+	id_col.add_child(summary)
 
 	if _is_self:
 		var rename_btn := Button.new()
-		rename_btn.text = "Rename"
-		rename_btn.custom_minimum_size = Vector2(140, 40)
+		rename_btn.text = tr("PROFILE_RENAME")
+		rename_btn.custom_minimum_size = Vector2(160, TOUCH_H_SM)
+		_style_button(rename_btn, FONT_BUTTON, TOUCH_H_SM)
 		rename_btn.pressed.connect(_on_rename_pressed)
 		id_col.add_child(rename_btn)
 
-	_add_stat_row(_content, "Power", _format_num(int(_profile.get("power", 0))))
-	var highest: int = int(_profile.get("highest_power", _profile.get("power", 0)))
-	_add_stat_row(_content, "Highest Power", _format_num(highest))
-	_add_stat_row(_content, "Kills", _format_num(int(_profile.get("kills", 0))))
-	_add_stat_row(_content, "Kingdom", str(_profile.get("kingdom_id", "—")))
-	var alliance: String = str(_profile.get("alliance_name", "")).strip_edges()
-	if alliance == "":
-		alliance = "None"
-	elif tag != "":
-		alliance = "[%s] %s" % [tag, alliance]
-	_add_stat_row(_content, "Alliance", alliance)
-	_add_stat_row(_content, "Citadel", "Level %d" % int(_profile.get("citadel_level", 1)))
-	_add_stat_row(_content, "VIP", "Level %d" % int(_profile.get("vip_level", 0)))
-	var online: String = str(_profile.get("online_status", "offline"))
-	_add_stat_row(_content, "Status", "Online" if online == "online" else "Offline")
-	# Explicitly omit scout/military secrets (troops, resources, garrison, marches).
-
-	_add_public_gear_section()
-
 	var actions := HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 8)
-	_content.add_child(actions)
+	_profile_actions.add_child(actions)
 
 	if _is_self:
 		var avatar_btn := Button.new()
-		avatar_btn.text = "Change Avatar"
+		avatar_btn.text = tr("PROFILE_CHANGE_AVATAR")
 		avatar_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		avatar_btn.custom_minimum_size = Vector2(0, 52)
+		_style_button(avatar_btn, FONT_BUTTON, TOUCH_H)
 		avatar_btn.pressed.connect(_show_avatar_picker)
 		actions.add_child(avatar_btn)
 		var share_self := Button.new()
-		share_self.text = "Share Location"
+		share_self.text = tr("PROFILE_SHARE_LOCATION")
 		share_self.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		share_self.custom_minimum_size = Vector2(0, 52)
+		_style_button(share_self, FONT_BUTTON, TOUCH_H)
 		share_self.pressed.connect(_on_share_location)
 		actions.add_child(share_self)
 	else:
 		var view_all := Button.new()
-		view_all.text = "View Alliance"
+		view_all.text = tr("PROFILE_VIEW_ALLIANCE")
 		view_all.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		view_all.custom_minimum_size = Vector2(0, 52)
+		_style_button(view_all, FONT_BUTTON, TOUCH_H)
 		view_all.pressed.connect(_on_view_alliance)
 		actions.add_child(view_all)
 		var msg_btn := Button.new()
-		msg_btn.text = "Message"
+		msg_btn.text = tr("PROFILE_MESSAGE")
 		msg_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		msg_btn.custom_minimum_size = Vector2(0, 52)
+		_style_button(msg_btn, FONT_BUTTON, TOUCH_H)
 		msg_btn.pressed.connect(func():
 			message_requested.emit(str(_profile.get("user_id", "")), str(_profile.get("display_name", "Player")))
 			on_close()
 		)
 		actions.add_child(msg_btn)
-
-	if not _is_self:
-		_add_friend_action_row()
+		_add_friend_action_row(_profile_actions)
 		var share_other := Button.new()
-		share_other.text = "Share Location"
-		share_other.custom_minimum_size = Vector2(0, 48)
+		share_other.text = tr("PROFILE_SHARE_LOCATION")
+		_style_button(share_other, FONT_BUTTON, TOUCH_H)
 		share_other.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		share_other.pressed.connect(_on_share_location)
-		_content.add_child(share_other)
+		_profile_actions.add_child(share_other)
 		var mod_row := HBoxContainer.new()
 		mod_row.add_theme_constant_override("separation", 8)
-		_content.add_child(mod_row)
+		_profile_actions.add_child(mod_row)
 		var uid: String = str(_profile.get("user_id", ""))
 		var fb_block: Node = _friends_backend()
 		var blocked: bool = fb_block != null and fb_block.has_method("is_blocked") and bool(fb_block.is_blocked(uid))
 		var block_btn := Button.new()
-		block_btn.text = "Unblock" if blocked else "Block"
+		block_btn.text = tr("PROFILE_UNBLOCK") if blocked else tr("PROFILE_BLOCK")
 		block_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		block_btn.custom_minimum_size = Vector2(0, 48)
+		_style_button(block_btn, FONT_BUTTON, TOUCH_H)
 		block_btn.pressed.connect(func(): await _on_block_pressed())
 		mod_row.add_child(block_btn)
 		var report_btn := Button.new()
-		report_btn.text = "Report"
+		report_btn.text = tr("PROFILE_REPORT")
 		report_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		report_btn.custom_minimum_size = Vector2(0, 48)
+		_style_button(report_btn, FONT_BUTTON, TOUCH_H)
 		report_btn.pressed.connect(_on_report_pressed)
 		mod_row.add_child(report_btn)
 
 
+func _rebuild_stats_tab() -> void:
+	if _stats_content == null:
+		return
+	var tag: String = str(_profile.get("alliance_tag", "")).strip_edges()
+	_add_section(_stats_content, tr("PROFILE_ACCOUNT"))
+	_add_stat_row(_stats_content, tr("PROFILE_POWER"), _format_num(int(_profile.get("power", 0))))
+	var highest: int = int(_profile.get("highest_power", _profile.get("power", 0)))
+	_add_stat_row(_stats_content, tr("PROFILE_HIGHEST_POWER"), _format_num(highest))
+	_add_stat_row(_stats_content, tr("PROFILE_KILLS"), _format_num(int(_profile.get("kills", 0))))
+	_add_stat_row(_stats_content, tr("PROFILE_KINGDOM"), str(_profile.get("kingdom_id", "—")))
+	var alliance: String = str(_profile.get("alliance_name", "")).strip_edges()
+	if alliance == "":
+		alliance = tr("PROFILE_NONE")
+	elif tag != "":
+		alliance = "[%s] %s" % [tag, alliance]
+	_add_stat_row(_stats_content, tr("PROFILE_ALLIANCE"), alliance)
+	_add_stat_row(_stats_content, tr("PROFILE_CITADEL"), tr("PROFILE_LEVEL_FMT") % int(_profile.get("citadel_level", 1)))
+	_add_stat_row(_stats_content, tr("PROFILE_VIP"), tr("PROFILE_LEVEL_FMT") % int(_profile.get("vip_level", 0)))
+	var online: String = str(_profile.get("online_status", "offline"))
+	_add_stat_row(_stats_content, tr("PROFILE_STATUS"), tr("PROFILE_ONLINE") if online == "online" else tr("PROFILE_OFFLINE"))
+	_add_public_gear_section(_stats_content)
+	var pad := Control.new()
+	pad.custom_minimum_size = Vector2(0, 24)
+	_stats_content.add_child(pad)
+
+
+func _rebuild_settings_tab() -> void:
+	if _settings_content == null:
+		return
+	if _is_self:
+		_add_language_settings_section(_settings_content)
+	else:
+		var note := Label.new()
+		note.text = tr("PROFILE_SETTINGS_OTHER_NOTE")
+		_style_label(note, FONT_BODY, COL_MUTED)
+		_settings_content.add_child(note)
+	var pad := Control.new()
+	pad.custom_minimum_size = Vector2(0, 24)
+	_settings_content.add_child(pad)
+
+
 func _show_avatar_picker() -> void:
-	_add_section("Choose Avatar")
+	_clear_container(_profile_extra)
+	_add_section(_profile_extra, tr("PROFILE_CHOOSE_AVATAR"))
 	var grid := GridContainer.new()
 	grid.columns = 4
 	grid.add_theme_constant_override("h_separation", 8)
 	grid.add_theme_constant_override("v_separation", 8)
-	_content.add_child(grid)
+	_profile_extra.add_child(grid)
 	for aid in PlayerAvatarCatalog.AVATAR_IDS:
 		var btn := TextureButton.new()
-		btn.custom_minimum_size = Vector2(68, 68)
+		btn.custom_minimum_size = Vector2(72, 72)
 		btn.ignore_texture_size = true
 		btn.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_COVERED
 		btn.texture_normal = PlayerAvatarCatalog.get_texture(aid, 128)
@@ -436,7 +673,7 @@ func _show_avatar_picker() -> void:
 func _on_view_alliance() -> void:
 	var alliance_id: String = str(_profile.get("alliance_id", "")).strip_edges()
 	if alliance_id == "":
-		_status.text = "This commander has no Alliance."
+		_status.text = tr("PROFILE_NO_ALLIANCE")
 		return
 	on_close()
 	var hud := get_tree().root.find_child("GameHUD", true, false)
@@ -446,7 +683,7 @@ func _on_view_alliance() -> void:
 			mgr.call("open_screen", "AllianceScreen")
 
 
-func _add_friend_action_row() -> void:
+func _add_friend_action_row(parent: VBoxContainer) -> void:
 	var uid: String = str(_profile.get("user_id", "")).strip_edges()
 	var fb: Node = _friends_backend()
 	if uid == "" or fb == null or not fb.has_method("get_relationship"):
@@ -454,60 +691,60 @@ func _add_friend_action_row() -> void:
 	var rel: String = str(fb.get_relationship(uid))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
-	_content.add_child(row)
+	parent.add_child(row)
 
 	match rel:
 		"friend":
 			var friends_lbl := Button.new()
-			friends_lbl.text = "Friends"
+			friends_lbl.text = tr("PROFILE_FRIENDS")
 			friends_lbl.disabled = true
 			friends_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			friends_lbl.custom_minimum_size = Vector2(0, 48)
+			_style_button(friends_lbl, FONT_BUTTON, TOUCH_H)
 			row.add_child(friends_lbl)
 			var remove_btn := Button.new()
-			remove_btn.text = "Remove Friend"
+			remove_btn.text = tr("PROFILE_REMOVE_FRIEND")
 			remove_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			remove_btn.custom_minimum_size = Vector2(0, 48)
+			_style_button(remove_btn, FONT_BUTTON, TOUCH_H)
 			remove_btn.pressed.connect(func(): await _friend_op("remove"))
 			row.add_child(remove_btn)
 		"invite_sent":
 			var pending := Button.new()
-			pending.text = "Pending"
+			pending.text = tr("PROFILE_PENDING")
 			pending.disabled = true
 			pending.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			pending.custom_minimum_size = Vector2(0, 48)
+			_style_button(pending, FONT_BUTTON, TOUCH_H)
 			row.add_child(pending)
 			var cancel_btn := Button.new()
-			cancel_btn.text = "Cancel Request"
+			cancel_btn.text = tr("PROFILE_CANCEL_REQUEST")
 			cancel_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			cancel_btn.custom_minimum_size = Vector2(0, 48)
+			_style_button(cancel_btn, FONT_BUTTON, TOUCH_H)
 			cancel_btn.pressed.connect(func(): await _friend_op("cancel"))
 			row.add_child(cancel_btn)
 		"invite_received":
 			var accept_btn := Button.new()
-			accept_btn.text = "Accept Friend"
+			accept_btn.text = tr("PROFILE_ACCEPT_FRIEND")
 			accept_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			accept_btn.custom_minimum_size = Vector2(0, 48)
+			_style_button(accept_btn, FONT_BUTTON, TOUCH_H)
 			accept_btn.pressed.connect(func(): await _friend_op("accept"))
 			row.add_child(accept_btn)
 			var decline_btn := Button.new()
-			decline_btn.text = "Decline"
+			decline_btn.text = tr("PROFILE_DECLINE")
 			decline_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			decline_btn.custom_minimum_size = Vector2(0, 48)
+			_style_button(decline_btn, FONT_BUTTON, TOUCH_H)
 			decline_btn.pressed.connect(func(): await _friend_op("decline"))
 			row.add_child(decline_btn)
 		"blocked":
 			var blocked_lbl := Button.new()
-			blocked_lbl.text = "Blocked"
+			blocked_lbl.text = tr("PROFILE_BLOCKED")
 			blocked_lbl.disabled = true
 			blocked_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			blocked_lbl.custom_minimum_size = Vector2(0, 48)
+			_style_button(blocked_lbl, FONT_BUTTON, TOUCH_H)
 			row.add_child(blocked_lbl)
 		_:
 			var add_btn := Button.new()
-			add_btn.text = "Add Friend"
+			add_btn.text = tr("PROFILE_ADD_FRIEND")
 			add_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			add_btn.custom_minimum_size = Vector2(0, 48)
+			_style_button(add_btn, FONT_BUTTON, TOUCH_H)
 			add_btn.pressed.connect(func(): await _friend_op("add"))
 			row.add_child(add_btn)
 
@@ -532,48 +769,77 @@ func _friend_op(op: String) -> void:
 		_:
 			return
 	if bool(result.get("ok", false)):
-		_status.text = "Friends updated."
+		_status.text = tr("PROFILE_FRIENDS_UPDATED")
 		await _open_async()
 	else:
-		_status.text = str(result.get("error", "Friends action failed."))
+		_status.text = str(result.get("error", tr("PROFILE_FRIENDS_FAILED")))
 
 
 func _on_block_pressed() -> void:
 	var uid: String = str(_profile.get("user_id", "")).strip_edges()
 	var fb: Node = _friends_backend()
 	if uid == "" or fb == null:
-		_status.text = "Block unavailable."
+		_status.text = tr("PROFILE_BLOCK_UNAVAILABLE")
 		return
 	var result: Dictionary
 	if bool(fb.is_blocked(uid)):
 		result = await fb.unblock_player(uid)
-		_status.text = "Player unblocked." if bool(result.get("ok", false)) else str(result.get("error", "Unblock failed."))
+		_status.text = tr("PROFILE_PLAYER_UNBLOCKED") if bool(result.get("ok", false)) else str(result.get("error", tr("PROFILE_UNBLOCK_FAILED")))
 	else:
 		result = await fb.block_player(uid)
-		_status.text = "Player blocked." if bool(result.get("ok", false)) else str(result.get("error", "Block failed."))
+		_status.text = tr("PROFILE_PLAYER_BLOCKED") if bool(result.get("ok", false)) else str(result.get("error", tr("PROFILE_BLOCK_FAILED")))
 	if bool(result.get("ok", false)):
 		await _open_async()
 
 
 func _on_report_pressed() -> void:
-	## Profile report uses chat_report evidence path with synthetic message/channel ids.
 	var uid: String = str(_profile.get("user_id", "")).strip_edges()
 	if uid == "" or not has_node("/root/AllianceBackend"):
-		_status.text = "Report unavailable."
+		_status.text = tr("PROFILE_REPORT_UNAVAILABLE")
 		return
+	var confirm := ConfirmationDialog.new()
+	confirm.title = tr("UI_CONFIRM")
+	confirm.dialog_text = tr("PROFILE_REPORT_CONFIRM")
+	confirm.ok_button_text = tr("UI_YES")
+	confirm.cancel_button_text = tr("UI_NO")
+	add_child(confirm)
+	confirm.confirmed.connect(func():
+		confirm.queue_free()
+		_show_report_reasons(uid)
+	)
+	confirm.canceled.connect(func(): confirm.queue_free())
+	confirm.popup_centered()
+
+
+func _show_report_reasons(uid: String) -> void:
+	_clear_container(_profile_extra)
+	_show_tab(TAB_PROFILE)
 	var ab: Node = _alliance_backend()
 	var reasons: Array = ab.REPORT_REASONS.duplicate() if ab != null else ["spam", "harassment", "other"]
-	_add_section("Report reason")
+	_add_section(_profile_extra, tr("PROFILE_REPORT_REASON"))
 	var grid := VBoxContainer.new()
 	grid.add_theme_constant_override("separation", 6)
-	_content.add_child(grid)
+	_profile_extra.add_child(grid)
 	for reason_v in reasons:
 		var reason: String = str(reason_v)
 		var btn := Button.new()
-		btn.text = reason.replace("_", " ").capitalize()
-		btn.custom_minimum_size = Vector2(0, 44)
+		btn.text = _localize_report_reason(reason)
+		_style_button(btn, FONT_BUTTON, TOUCH_H)
 		btn.pressed.connect(func(): await _submit_profile_report(uid, reason))
 		grid.add_child(btn)
+
+
+func _localize_report_reason(reason: String) -> String:
+	match reason.strip_edges().to_lower():
+		"spam":
+			return tr("PROFILE_REPORT_REASON_SPAM")
+		"harassment":
+			return tr("PROFILE_REPORT_REASON_HARASSMENT")
+		"other":
+			return tr("PROFILE_REPORT_REASON_OTHER")
+		_:
+			# Unknown server reason codes stay as raw identifiers.
+			return reason.replace("_", " ").capitalize()
 
 
 func _submit_profile_report(user_id: String, reason: String) -> void:
@@ -584,33 +850,34 @@ func _submit_profile_report(user_id: String, reason: String) -> void:
 		"message_id": "profile_%s_%d" % [user_id, int(Time.get_unix_time_from_system())],
 		"channel_id": "player_profile",
 		"message_type": "PROFILE",
+		# Server payload text — keep English for moderation tooling.
 		"message_text": "Profile report: %s" % str(_profile.get("display_name", "Player")),
 		"create_time": Time.get_datetime_string_from_system(true),
 		"reason": reason,
 	}
 	var result: Dictionary = await _alliance_backend().submit_chat_report(payload)
 	if bool(result.get("ok", false)):
-		_status.text = "Report submitted for review."
+		_status.text = tr("PROFILE_REPORT_SUBMITTED")
 	else:
-		_status.text = str(result.get("error", "Report failed."))
+		_status.text = str(result.get("error", tr("PROFILE_REPORT_FAILED")))
 
 
-func _add_public_gear_section() -> void:
-	_add_section("Public Gear")
+func _add_public_gear_section(parent: VBoxContainer) -> void:
+	_add_section(parent, tr("PROFILE_PUBLIC_GEAR"))
 	var gear: Array = []
 	if typeof(_profile.get("public_equipment")) == TYPE_ARRAY:
 		gear = _profile.get("public_equipment", [])
 	if gear.is_empty():
 		var empty := Label.new()
-		empty.text = "No public gear published."
-		empty.add_theme_color_override("font_color", COL_MUTED)
-		empty.add_theme_font_size_override("font_size", 13)
-		_content.add_child(empty)
+		empty.text = tr("PROFILE_NO_PUBLIC_GEAR")
+		_style_label(empty, FONT_SECONDARY, COL_MUTED)
+		parent.add_child(empty)
 		return
 	for item_v in gear:
 		if typeof(item_v) != TYPE_DICTIONARY:
 			continue
 		var item: Dictionary = item_v
+		# Slot / item / rarity names are server/content values — leave raw.
 		var slot: String = str(item.get("slot", item.get("gear_slot", "Gear")))
 		var item_name: String = str(item.get("name", item.get("display_name", "Item")))
 		var rarity: String = str(item.get("rarity", ""))
@@ -625,10 +892,8 @@ func _add_public_gear_section() -> void:
 			line += " · +%d" % enhance
 		var row := Label.new()
 		row.text = line
-		row.add_theme_color_override("font_color", COL_INK)
-		row.add_theme_font_size_override("font_size", 13)
-		row.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		_content.add_child(row)
+		_style_label(row, FONT_BODY, COL_INK)
+		parent.add_child(row)
 
 
 func _on_share_location() -> void:
@@ -640,7 +905,7 @@ func _on_share_location() -> void:
 		x = pos.x
 		y = pos.y
 	if not has_node("/root/ChatManager"):
-		_status.text = "Chat unavailable."
+		_status.text = tr("PROFILE_CHAT_UNAVAILABLE")
 		return
 	var cm: Node = get_node("/root/ChatManager")
 	var kid: String = str(_profile.get("kingdom_id", ""))
@@ -651,49 +916,46 @@ func _on_share_location() -> void:
 		"kingdom_id": kid,
 		"x": x,
 		"y": y,
-		"label": "[Castle] %s" % name_text,
+		"label": tr("PROFILE_CASTLE_SHARE_LABEL_FMT") % name_text,
 		"target_type": "player_castle",
 		"target_id": uid,
 		"owner_user_id": uid,
 		"display_name": name_text,
 	}
 	print("[CastlePopup] share requested user=%s kingdom=%s x=%s y=%s" % [uid, kid, str(x), str(y)])
-	_status.text = "Sharing to Kingdom Chat…"
+	_status.text = tr("PROFILE_SHARING_LOCATION")
 	var result: Dictionary = await cm.send_map_location(payload, "kingdom")
 	if bool(result.get("ok", false)):
-		_status.text = "Castle location shared to Kingdom Chat."
+		_status.text = tr("PROFILE_LOCATION_SHARED")
 		_status.add_theme_color_override("font_color", COL_OK)
 	else:
 		_status.add_theme_color_override("font_color", Color(1.0, 0.5, 0.4))
-		_status.text = str(result.get("error", "Share failed."))
+		_status.text = str(result.get("error", tr("PROFILE_SHARE_FAILED")))
 
 
 func _add_stat_row(parent: VBoxContainer, label: String, value: String) -> void:
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 10)
+	row.add_theme_constant_override("separation", 12)
+	row.custom_minimum_size = Vector2(0, 32)
 	var a := Label.new()
 	a.text = label
 	a.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	a.add_theme_color_override("font_color", COL_MUTED)
-	a.add_theme_font_size_override("font_size", 14)
+	_style_label(a, FONT_BODY, COL_MUTED)
 	row.add_child(a)
 	var b := Label.new()
 	b.text = value
 	b.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	b.add_theme_color_override("font_color", COL_INK)
-	b.add_theme_font_size_override("font_size", 14)
-	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_style_label(b, FONT_BODY, COL_INK)
 	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(b)
 	parent.add_child(row)
 
 
-func _add_section(text: String) -> void:
+func _add_section(parent: VBoxContainer, text: String) -> void:
 	var l := Label.new()
 	l.text = text
-	l.add_theme_color_override("font_color", COL_GOLD)
-	l.add_theme_font_size_override("font_size", 16)
-	_content.add_child(l)
+	_style_label(l, FONT_SECTION, COL_GOLD)
+	parent.add_child(l)
 
 
 func _format_num(value: int) -> String:
@@ -709,7 +971,7 @@ func _format_num(value: int) -> String:
 func _on_rename_pressed() -> void:
 	var ab: Node = _alliance_backend()
 	if ab == null or not ab.has_method("set_display_name"):
-		_status.text = "Rename unavailable offline."
+		_status.text = tr("PROFILE_RENAME_UNAVAILABLE")
 		return
 	_prompt_rename()
 
@@ -722,33 +984,36 @@ func _prompt_rename() -> void:
 	add_child(overlay)
 	var panel := PanelContainer.new()
 	panel.set_anchors_preset(Control.PRESET_CENTER)
-	panel.offset_left = -200
-	panel.offset_right = 200
-	panel.offset_top = -90
-	panel.offset_bottom = 90
+	panel.offset_left = -220
+	panel.offset_right = 220
+	panel.offset_top = -110
+	panel.offset_bottom = 110
 	panel.add_theme_stylebox_override("panel", _panel_style())
 	overlay.add_child(panel)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 8)
 	panel.add_child(box)
 	var tip := Label.new()
-	tip.text = "New name (free beta)"
-	tip.add_theme_color_override("font_color", COL_GOLD)
+	tip.text = tr("PROFILE_NEW_NAME_TIP")
+	_style_label(tip, FONT_SECTION, COL_GOLD)
 	box.add_child(tip)
 	var edit := LineEdit.new()
 	edit.text = str(_profile.get("display_name", ""))
-	edit.custom_minimum_size = Vector2(0, 40)
+	edit.custom_minimum_size = Vector2(0, TOUCH_H)
+	edit.add_theme_font_size_override("font_size", FONT_BODY)
 	box.add_child(edit)
 	var row := HBoxContainer.new()
 	box.add_child(row)
 	var cancel := Button.new()
-	cancel.text = "Cancel"
+	cancel.text = tr("UI_CANCEL")
 	cancel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_style_button(cancel, FONT_BUTTON, TOUCH_H)
 	cancel.pressed.connect(func(): overlay.queue_free())
 	row.add_child(cancel)
 	var ok := Button.new()
-	ok.text = "Save"
+	ok.text = tr("UI_SAVE")
 	ok.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_style_button(ok, FONT_BUTTON, TOUCH_H)
 	ok.pressed.connect(func():
 		var name: String = edit.text.strip_edges()
 		overlay.queue_free()
@@ -758,32 +1023,107 @@ func _prompt_rename() -> void:
 	edit.grab_focus()
 
 
+func _add_language_settings_section(parent: VBoxContainer) -> void:
+	_settings_title = Label.new()
+	_settings_title.text = tr("UI_SETTINGS")
+	_style_label(_settings_title, FONT_SECTION, COL_GOLD)
+	parent.add_child(_settings_title)
+
+	var block := VBoxContainer.new()
+	block.add_theme_constant_override("separation", 8)
+	block.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	parent.add_child(block)
+
+	_lang_label = Label.new()
+	_lang_label.text = tr("UI_LANGUAGE")
+	_style_label(_lang_label, FONT_BODY, COL_INK)
+	block.add_child(_lang_label)
+
+	_lang_option = OptionButton.new()
+	_lang_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_lang_option.custom_minimum_size = Vector2(0, TOUCH_H)
+	_lang_option.add_theme_font_size_override("font_size", FONT_BUTTON)
+	_lang_option.clip_text = false
+	_lang_option.add_item(tr("LANGUAGE_ENGLISH"), 0)
+	_lang_option.set_item_metadata(0, "en")
+	_lang_option.add_item(tr("LANGUAGE_TURKISH"), 1)
+	_lang_option.set_item_metadata(1, "tr")
+	_suppress_lang_signal = true
+	var cur: String = "en"
+	if has_node("/root/LocaleSettings"):
+		cur = str(LocaleSettings.get_current_locale())
+	_lang_option.select(1 if cur == "tr" else 0)
+	_suppress_lang_signal = false
+	if not _lang_option.item_selected.is_connected(_on_language_item_selected):
+		_lang_option.item_selected.connect(_on_language_item_selected)
+	block.add_child(_lang_option)
+
+
+func _on_language_item_selected(index: int) -> void:
+	if _suppress_lang_signal or _lang_option == null:
+		return
+	var meta: Variant = _lang_option.get_item_metadata(index)
+	var locale: String = str(meta) if meta != null else "en"
+	if has_node("/root/LocaleSettings"):
+		LocaleSettings.set_player_locale(locale)
+	else:
+		TranslationServer.set_locale(locale)
+
+
+func _on_locale_changed(_locale: String) -> void:
+	_refresh_locale_chrome()
+	if visible and _settings_content != null:
+		# Keep current tab; refresh labels/options without dropping profile data.
+		_rebuild_content()
+
+
+func _refresh_locale_chrome() -> void:
+	if _header_back != null and is_instance_valid(_header_back):
+		_header_back.text = "← %s" % tr("UI_BACK")
+	if _header_title != null and is_instance_valid(_header_title):
+		_header_title.text = tr("UI_PLAYER_PROFILE")
+	if _header_close != null and is_instance_valid(_header_close):
+		_header_close.text = tr("UI_CLOSE")
+	if _tab_btns.has(TAB_PROFILE):
+		(_tab_btns[TAB_PROFILE] as Button).text = tr("UI_TAB_PROFILE")
+	if _tab_btns.has(TAB_STATS):
+		(_tab_btns[TAB_STATS] as Button).text = tr("UI_TAB_STATS")
+	if _tab_btns.has(TAB_SETTINGS):
+		(_tab_btns[TAB_SETTINGS] as Button).text = tr("UI_TAB_SETTINGS")
+	for btn_v in _equip_slot_btns:
+		var btn: Button = btn_v as Button
+		if btn == null or not is_instance_valid(btn):
+			continue
+		var key: String = str(btn.get_meta("label_key", "PROFILE_SLOT_GENERIC"))
+		btn.text = tr(key)
+
+
 func _apply_rename(name: String) -> void:
 	var ab: Node = _alliance_backend()
-	_status.text = "Saving name…"
+	_status.text = tr("PROFILE_SAVING_NAME")
 	var res: Dictionary = await ab.set_display_name(name)
 	if bool(res.get("ok", false)):
-		_status.text = "Name updated."
+		_status.text = tr("PROFILE_NAME_UPDATED")
 		_status.add_theme_color_override("font_color", COL_OK)
 		await _load_profile()
 		_rebuild_content()
 	else:
 		_status.add_theme_color_override("font_color", Color(1.0, 0.5, 0.4))
-		_status.text = str(res.get("error", "Rename failed"))
+		_status.text = str(res.get("error", tr("PROFILE_RENAME_FAILED")))
 
 
 func _on_avatar_picked(avatar_id: String) -> void:
 	var ab: Node = _alliance_backend()
 	if ab == null or not ab.has_method("update_player_identity"):
-		_status.text = "Avatar save unavailable."
+		_status.text = tr("PROFILE_AVATAR_SAVE_UNAVAILABLE")
 		return
-	_status.text = "Saving avatar…"
+	_status.text = tr("PROFILE_SAVING_AVATAR")
 	var res: Dictionary = await ab.update_player_identity({"avatar_id": avatar_id})
 	if bool(res.get("ok", false)):
-		_status.text = "Avatar updated."
+		_status.text = tr("PROFILE_AVATAR_UPDATED")
 		_status.add_theme_color_override("font_color", COL_OK)
 		await _load_profile()
 		_rebuild_content()
 	else:
 		_status.add_theme_color_override("font_color", Color(1.0, 0.5, 0.4))
-		_status.text = str(res.get("error", "Avatar save failed"))
+		_status.text = str(res.get("error", tr("PROFILE_AVATAR_SAVE_FAILED")))
