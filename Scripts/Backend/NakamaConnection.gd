@@ -41,6 +41,8 @@ var _port: int = DEV_PORT
 var _scheme: String = DEV_SCHEME
 var _server_key: String = DEV_SERVER_KEY
 var _last_fail_reason: String = ""
+var _session_store: AccountSessionStore = AccountSessionStore.new()
+var _last_auth_source: String = "" ## restore | refresh | device
 
 
 func _ready() -> void:
@@ -113,6 +115,22 @@ func get_client() -> NakamaClient:
 
 func get_socket() -> NakamaSocket:
 	return _socket
+
+
+func get_last_auth_source() -> String:
+	return _last_auth_source
+
+
+func get_session_store() -> AccountSessionStore:
+	return _session_store
+
+
+func begin_session_store_smoke_isolation() -> void:
+	_session_store.begin_smoke_isolation()
+
+
+func end_session_store_smoke_isolation() -> void:
+	_session_store.end_smoke_isolation()
 
 
 func reconnect_now() -> void:
@@ -340,7 +358,7 @@ func _connect_async() -> void:
 
 	print("[Nakama] Connecting to %s://%s:%d ..." % [_scheme, _host, _port])
 
-	var session: NakamaSession = await _client.authenticate_device_async(device_id)
+	var session: NakamaSession = await _authenticate_session_priority(device_id)
 	if session == null or session.is_exception():
 		var reason: String = "authentication failed"
 		if session != null and session.get_exception() != null:
@@ -350,7 +368,11 @@ func _connect_async() -> void:
 		return
 
 	_session = session
-	print("[Nakama] Authentication successful user=%s" % str(session.user_id))
+	_persist_session_safely(session)
+	print(
+		"[Nakama] Authentication successful user=%s source=%s"
+		% [str(session.user_id), _last_auth_source]
+	)
 	authenticated.emit()
 
 	_socket = nakama.create_socket_from(_client)
@@ -380,6 +402,40 @@ func _connect_async() -> void:
 	_set_state(ConnState.CONNECTED)
 	print("[Nakama] Realtime socket connected")
 	socket_connected.emit()
+
+
+## Session restore → refresh → device auth. Never creates a new guest when a usable session exists.
+func _authenticate_session_priority(device_id: String) -> NakamaSession:
+	var restored: NakamaSession = _session_store.restore_session_object()
+	if restored != null:
+		if not restored.is_expired():
+			_last_auth_source = "restore"
+			print("[Nakama] Restored stored session user=%s" % str(restored.user_id))
+			return restored
+		if (
+			not restored.is_refresh_expired()
+			and str(restored.refresh_token).strip_edges() != ""
+		):
+			print("[Nakama] Stored session expired — refreshing user=%s" % str(restored.user_id))
+			var refreshed: NakamaSession = await _client.session_refresh_async(restored)
+			if refreshed != null and not refreshed.is_exception() and refreshed.is_valid():
+				_last_auth_source = "refresh"
+				print("[Nakama] Session refresh successful user=%s" % str(refreshed.user_id))
+				return refreshed
+			print("[Nakama] Session refresh failed — falling back to device auth")
+		else:
+			print("[Nakama] Stored session unusable — falling back to device auth")
+
+	_last_auth_source = "device"
+	print("[Nakama] Authenticating via device ID")
+	return await _client.authenticate_device_async(device_id)
+
+
+func _persist_session_safely(session: NakamaSession) -> void:
+	if session == null or session.is_exception() or not session.is_valid():
+		return
+	if not _session_store.save_session(session):
+		push_warning("[Nakama] Failed to persist session locally (non-fatal)")
 
 
 func _bind_socket_signals() -> void:
