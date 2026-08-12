@@ -45,6 +45,12 @@ const MapPlacementContractScript = preload("res://Scripts/World/MapPlacementCont
 @onready var wildling_lair_spawns: Node2D = get_node_or_null("WildlingLairSpawns")
 
 var rng := RandomNumberGenerator.new()
+## slot_index -> live WildlingNode (contract-spawned only).
+var _live_wildling_by_slot: Dictionary = {}
+
+func _wildling_spawn_state() -> Node:
+	return get_node_or_null("/root/WildlingSpawnState")
+
 
 func _ready() -> void:
 	rng.randomize()
@@ -54,12 +60,30 @@ func _ready() -> void:
 	if has_node("/root/ResourceTileState"):
 		ResourceTileState.clear_live_nodes()
 		ResourceTileState.process_respawns()
+	var wss: Node = _wildling_spawn_state()
+	if wss != null:
+		if wss.has_method("purge_expired"):
+			wss.call("purge_expired")
+		if wss.has_signal("slot_ready_to_respawn") and not wss.is_connected("slot_ready_to_respawn", _on_wildling_slot_ready_to_respawn):
+			wss.connect("slot_ready_to_respawn", _on_wildling_slot_ready_to_respawn)
 	spawn_resources()
 	spawn_wildlings()
 	spawn_wildling_lairs()
 	if has_node("/root/ResourceTileState"):
 		# After live nodes exist + marches already loaded by autoload order.
 		ResourceTileState.repair_stale_reservations()
+
+
+func _exit_tree() -> void:
+	# Wildling cooldown live-respawn: drop Autoload signal + transient slot map.
+	var wss: Node = _wildling_spawn_state()
+	if wss != null and wss.has_signal("slot_ready_to_respawn"):
+		if wss.is_connected("slot_ready_to_respawn", _on_wildling_slot_ready_to_respawn):
+			wss.disconnect("slot_ready_to_respawn", _on_wildling_slot_ready_to_respawn)
+	_live_wildling_by_slot.clear()
+	# Existing resource-tile live-node cleanup (City↔World scene unload).
+	if has_node("/root/ResourceTileState"):
+		ResourceTileState.clear_live_nodes()
 
 
 func _ensure_teleport_controller() -> void:
@@ -117,11 +141,6 @@ func _ensure_and_refresh_castles() -> void:
 		parent_map.move_child(layer, parent_map.get_child_count() - 1)
 	if layer.has_method("refresh_castles"):
 		await layer.refresh_castles()
-
-
-func _exit_tree() -> void:
-	if has_node("/root/ResourceTileState"):
-		ResourceTileState.clear_live_nodes()
 
 
 func random_map_position() -> Vector2:
@@ -305,33 +324,111 @@ func get_wildling_card(level: int) -> Texture2D:
 		return dragon_card
 
 func spawn_wildlings() -> void:
+	_live_wildling_by_slot.clear()
 	while wildling_spawns.get_child_count() > 0:
 		var child: Node = wildling_spawns.get_child(0)
 		wildling_spawns.remove_child(child)
 		child.free()
 	var kid: String = _kingdom_id_for_contract()
+	var wss: Node = _wildling_spawn_state()
+	if wss != null and wss.has_method("purge_expired"):
+		wss.call("purge_expired")
 	var spots: Array = MapPlacementContractScript.blockers_of_kinds(kid, PackedStringArray(["wildling"]))
 	var count: int = mini(wildling_count, spots.size())
 	for i in range(count):
-		var level: int = 1 + (i % 30)
 		if wildling_node_scene == null:
 			return
-		var node: Node2D = wildling_node_scene.instantiate()
-		wildling_spawns.add_child(node)
-		node.position = Vector2(float(spots[i].get("x", 0.0)), float(spots[i].get("y", 0.0)))
-		node.scale = Vector2(0.68, 0.68)
-		node.z_index = 100
+		var slot_id: String = ""
+		if wss != null and wss.has_method("make_slot_id"):
+			slot_id = str(wss.call("make_slot_id", kid, i))
+			# City→World must not resurrect slots still on cooldown.
+			if wss.has_method("is_slot_on_cooldown") and bool(wss.call("is_slot_on_cooldown", slot_id)):
+				continue
+		_spawn_wildling_at_slot(i, spots[i], kid, slot_id)
 
-		var sprite: Sprite2D = node.get_node_or_null("Sprite2D")
-		if sprite:
-			sprite.texture = get_wildling_texture(level)
 
-		var click = node.get_node_or_null("ClickArea")
-		if click:
-			click.level = level
-			click.power = level * 2500
-			click.species = get_wildling_species(level)
-			click.card_texture = get_wildling_card(level)
+## Live respawn after beta cooldown while the player remains on the World Map.
+func _on_wildling_slot_ready_to_respawn(slot_id: String, kingdom_id: String, slot_index: int) -> void:
+	var kid: String = _kingdom_id_for_contract()
+	if kingdom_id.strip_edges() != "" and kingdom_id.strip_edges() != kid:
+		return
+	if _live_wildling_by_slot.has(slot_index):
+		var existing: Variant = _live_wildling_by_slot[slot_index]
+		if is_instance_valid(existing):
+			return
+		_live_wildling_by_slot.erase(slot_index)
+	var spots: Array = MapPlacementContractScript.blockers_of_kinds(kid, PackedStringArray(["wildling"]))
+	if slot_index < 0 or slot_index >= spots.size() or slot_index >= wildling_count:
+		return
+	var wss: Node = _wildling_spawn_state()
+	if wss != null and wss.has_method("is_slot_on_cooldown") and bool(wss.call("is_slot_on_cooldown", slot_id)):
+		return
+	_spawn_wildling_at_slot(slot_index, spots[slot_index], kid, slot_id)
+
+
+func _spawn_wildling_at_slot(slot_index: int, spot: Dictionary, kingdom_id: String, slot_id: String = "") -> Node2D:
+	if wildling_node_scene == null or wildling_spawns == null:
+		return null
+	var level: int = 1 + (slot_index % 30)
+	var resolved_slot: String = slot_id.strip_edges()
+	var wss: Node = _wildling_spawn_state()
+	if resolved_slot.is_empty() and wss != null and wss.has_method("make_slot_id"):
+		resolved_slot = str(wss.call("make_slot_id", kingdom_id, slot_index))
+	var node: Node2D = wildling_node_scene.instantiate()
+	wildling_spawns.add_child(node)
+	node.position = Vector2(float(spot.get("x", 0.0)), float(spot.get("y", 0.0)))
+	node.scale = Vector2(0.68, 0.68)
+	node.z_index = 100
+	node.set_meta("wildling_slot_id", resolved_slot)
+	node.set_meta("wildling_slot_index", slot_index)
+	node.set_meta("wildling_kingdom_id", kingdom_id)
+	node.name = "WildlingSlot_%d" % slot_index
+
+	var sprite: Sprite2D = node.get_node_or_null("Sprite2D")
+	if sprite:
+		sprite.texture = get_wildling_texture(level)
+
+	var click = node.get_node_or_null("ClickArea")
+	if click:
+		click.level = level
+		click.power = level * 2500
+		click.species = get_wildling_species(level)
+		click.card_texture = get_wildling_card(level)
+		if "spawn_slot_id" in click:
+			click.spawn_slot_id = resolved_slot
+		click.set_meta("wildling_slot_id", resolved_slot)
+		click.set_meta("wildling_slot_index", slot_index)
+
+	_live_wildling_by_slot[slot_index] = node
+	return node
+
+
+## Called when MarchState removes a defeated wildling node mid-session.
+func unregister_wildling_slot(slot_index: int) -> void:
+	if _live_wildling_by_slot.has(slot_index):
+		_live_wildling_by_slot.erase(slot_index)
+
+
+## DEBUG / Shift+F9 — force-respawn tutorial L1 if the World Map is live.
+func debug_respawn_tutorial_l1_if_present() -> bool:
+	if not OS.is_debug_build():
+		return false
+	var kid: String = _kingdom_id_for_contract()
+	var slot_index: int = 0
+	var wss: Node = _wildling_spawn_state()
+	if wss != null:
+		var idx_v: Variant = wss.get("TUTORIAL_L1_SLOT_INDEX")
+		if idx_v != null:
+			slot_index = int(idx_v)
+		if wss.has_method("make_slot_id") and wss.has_method("clear_slot"):
+			wss.call("clear_slot", wss.call("make_slot_id", kid, slot_index))
+	if _live_wildling_by_slot.has(slot_index) and is_instance_valid(_live_wildling_by_slot[slot_index]):
+		return true
+	var spots: Array = MapPlacementContractScript.blockers_of_kinds(kid, PackedStringArray(["wildling"]))
+	if spots.is_empty():
+		return false
+	_spawn_wildling_at_slot(slot_index, spots[slot_index], kid)
+	return true
 
 
 func _ensure_wildling_lair_spawns_root() -> void:

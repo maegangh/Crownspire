@@ -303,6 +303,12 @@ func validate_wildling_dispatch(
 	if wildling == null or not is_instance_valid(wildling) or not wildling.visible:
 		return {"ok": false, "error": "Wildling target no longer exists."}
 
+	var slot_id: String = _wildling_slot_id_from(wildling, target)
+	var wss: Node = get_node_or_null("/root/WildlingSpawnState")
+	if slot_id != "" and wss != null and wss.has_method("is_slot_on_cooldown"):
+		if bool(wss.call("is_slot_on_cooldown", slot_id)):
+			return {"ok": false, "error": "That Wildling was recently defeated."}
+
 	return {"ok": true}
 
 
@@ -330,6 +336,13 @@ func dispatch_wildling_march(
 	if live_wildling != null:
 		target["instance_id"] = live_wildling.get_instance_id()
 		target["node_path"] = str(live_wildling.get_path())
+		var slot_id: String = _wildling_slot_id_from(live_wildling, target)
+		if slot_id != "":
+			target["spawn_slot_id"] = slot_id
+			if live_wildling.has_meta("wildling_slot_index"):
+				target["spawn_slot_index"] = int(live_wildling.get_meta("wildling_slot_index"))
+			if live_wildling.has_meta("wildling_kingdom_id"):
+				target["kingdom_id"] = str(live_wildling.get_meta("wildling_kingdom_id"))
 
 	var hero_payload: Array = []
 	for hid: Variant in hero_ids:
@@ -545,25 +558,41 @@ func _resolve_battle(march: Dictionary) -> void:
 
 	if result.get("victory", false) and wildling_alive:
 		if not is_lair:
+			# Claim slot cooldown before rewards so a second march cannot farm the same spawn.
+			var slot_id: String = _wildling_slot_id_from(wildling, target)
+			var claim: Dictionary = {"ok": true, "ephemeral": true}
+			var wss: Node = get_node_or_null("/root/WildlingSpawnState")
+			if wss != null and slot_id != "" and wss.has_method("try_claim_defeat"):
+				var claim_v: Variant = wss.call("try_claim_defeat", slot_id, str(march.get("march_id", "")))
+				if typeof(claim_v) == TYPE_DICTIONARY:
+					claim = claim_v
 			_defeat_wildling(wildling, target)
-		if not bool(march.get("rewards_granted", false)):
-			var rewards: Dictionary = {}
-			if is_lair and has_node("/root/AllianceLairState"):
-				var claim: String = "solo_%s" % str(march.get("march_id", ""))
-				var grant: Dictionary = AllianceLairState.grant_lair_rewards_once(claim, target)
-				rewards = grant.get("rewards", {})
-			else:
-				rewards = _grant_wildling_rewards(target)
+			var claim_ok: bool = bool(claim.get("ok", false))
+			if claim_ok and not bool(march.get("rewards_granted", false)):
+				var rewards: Dictionary = _grant_wildling_rewards(target)
+				march["rewards_granted"] = true
+				result["rewards"] = rewards
+				if has_node("/root/GameEvents"):
+					var wid: String = slot_id
+					if wid.is_empty():
+						wid = str(target.get("spawn_slot_id", ""))
+					if wid.is_empty():
+						wid = "%s_L%d" % [
+							str(target.get("species", "wildling")),
+							int(target.get("level", 1)),
+						]
+					GameEvents.emit_wildling_defeated(wid)
+			elif not claim_ok:
+				result["rewards"] = {}
+				result["summary"] = str(result.get("summary", "Victory!")) + " (target already claimed)"
+		elif not bool(march.get("rewards_granted", false)):
+			var rewards_lair: Dictionary = {}
+			if has_node("/root/AllianceLairState"):
+				var claim_lair: String = "solo_%s" % str(march.get("march_id", ""))
+				var grant: Dictionary = AllianceLairState.grant_lair_rewards_once(claim_lair, target)
+				rewards_lair = grant.get("rewards", {})
 			march["rewards_granted"] = true
-			result["rewards"] = rewards
-			if has_node("/root/GameEvents") and not is_lair:
-				var wid: String = str(target.get("instance_id", ""))
-				if wid.is_empty():
-					wid = "%s_L%d" % [
-						str(target.get("species", "wildling")),
-						int(target.get("level", 1)),
-					]
-				GameEvents.emit_wildling_defeated(wid)
+			result["rewards"] = rewards_lair
 		if is_lair and has_node("/root/AllianceLairState"):
 			AllianceLairState.apply_battle_outcome(str(target.get("lair_id", march.get("target_id", ""))), true)
 	elif is_lair and has_node("/root/AllianceLairState"):
@@ -957,22 +986,70 @@ func _credit_gather_cargo(march: Dictionary) -> void:
 
 
 func _defeat_wildling(wildling: Node2D, target: Dictionary) -> void:
+	## Immediately disable interaction and free the node. No same-node soft restore.
 	if wildling == null or not is_instance_valid(wildling):
 		return
-	wildling.visible = false
+	_clear_wildling_selection_ui(wildling)
 	var area: Area2D = wildling.get_node_or_null("ClickArea") as Area2D
-	if area:
+	if area != null and is_instance_valid(area):
 		area.input_pickable = false
-	# Soft respawn after delay (existing panel behavior).
-	_respawn_wildling_later(wildling, area, 12.0)
+		area.monitoring = false
+		area.monitorable = false
+		var shape: CollisionShape2D = area.get_node_or_null("CollisionShape2D") as CollisionShape2D
+		if shape != null:
+			shape.disabled = true
+	wildling.visible = false
+	var slot_index: int = -1
+	if wildling.has_meta("wildling_slot_index"):
+		slot_index = int(wildling.get_meta("wildling_slot_index"))
+	elif target.has("spawn_slot_index"):
+		slot_index = int(target.get("spawn_slot_index", -1))
+	var spawner: Node = _find_world_auto_spawner()
+	if spawner != null and slot_index >= 0 and spawner.has_method("unregister_wildling_slot"):
+		spawner.call("unregister_wildling_slot", slot_index)
+	wildling.queue_free()
 
 
-func _respawn_wildling_later(wildling: Node2D, area: Area2D, delay_sec: float) -> void:
-	await get_tree().create_timer(delay_sec).timeout
+func _clear_wildling_selection_ui(wildling: Node2D) -> void:
+	var world: Node = get_tree().current_scene if get_tree() != null else null
+	if world == null:
+		return
+	var panel: Node = world.get_node_or_null("HUD/WildlingPanel")
+	if panel == null:
+		panel = get_tree().root.find_child("WildlingPanel", true, false)
+	if panel == null:
+		return
+	var selected: Variant = panel.get("selected_wildling") if "selected_wildling" in panel else null
+	if selected != null and is_instance_valid(selected) and selected == wildling:
+		if panel.has_method("close_panel"):
+			panel.call("close_panel")
+		panel.set("selected_wildling", null)
+	elif selected != null and not is_instance_valid(selected):
+		if panel.has_method("close_panel"):
+			panel.call("close_panel")
+		panel.set("selected_wildling", null)
+
+
+func _find_world_auto_spawner() -> Node:
+	var world: Node = get_tree().current_scene if get_tree() != null else null
+	if world == null:
+		return null
+	if world.has_method("spawn_wildlings"):
+		return world
+	return world.get_node_or_null("WorldAutoSpawner")
+
+
+func _wildling_slot_id_from(wildling: Node2D, target: Dictionary) -> String:
+	var from_target: String = str(target.get("spawn_slot_id", "")).strip_edges()
+	if from_target != "":
+		return from_target
 	if wildling != null and is_instance_valid(wildling):
-		wildling.visible = true
-		if area != null and is_instance_valid(area):
-			area.input_pickable = true
+		if wildling.has_meta("wildling_slot_id"):
+			return str(wildling.get_meta("wildling_slot_id")).strip_edges()
+		var click: Node = wildling.get_node_or_null("ClickArea")
+		if click != null and click.has_meta("wildling_slot_id"):
+			return str(click.get_meta("wildling_slot_id")).strip_edges()
+	return ""
 
 
 func _grant_wildling_rewards(target: Dictionary) -> Dictionary:
@@ -1611,7 +1688,7 @@ func build_wildling_target(wildling: Node2D, species: String, level: int, power:
 	if wildling == null or not is_instance_valid(wildling):
 		return {}
 	var aim: Vector2 = get_wildling_aim_position(wildling)
-	return {
+	var payload: Dictionary = {
 		"instance_id": wildling.get_instance_id(),
 		"node_path": str(wildling.get_path()),
 		"species": species,
@@ -1619,6 +1696,14 @@ func build_wildling_target(wildling: Node2D, species: String, level: int, power:
 		"power": power,
 		"position": {"x": aim.x, "y": aim.y},
 	}
+	var slot_id: String = _wildling_slot_id_from(wildling, {})
+	if slot_id != "":
+		payload["spawn_slot_id"] = slot_id
+	if wildling.has_meta("wildling_slot_index"):
+		payload["spawn_slot_index"] = int(wildling.get_meta("wildling_slot_index"))
+	if wildling.has_meta("wildling_kingdom_id"):
+		payload["kingdom_id"] = str(wildling.get_meta("wildling_kingdom_id"))
+	return payload
 
 
 ## Build target payload from a live World resource tile (Step 1 handoff to MarchSetup).

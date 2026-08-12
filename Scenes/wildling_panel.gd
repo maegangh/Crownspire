@@ -309,6 +309,7 @@ func show_drops(level: int) -> void:
 func close_panel() -> void:
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	selected_wildling = null
 	_hide_error()
 
 
