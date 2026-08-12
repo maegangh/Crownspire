@@ -27,6 +27,8 @@ var _selected_heroes: Array[String] = []
 var _infantry: int = 0
 var _marksmen: int = 0
 var _cavalry: int = 0
+## Optional exact tier map ({ infantry: {8: 500}, ... }) when supplied by caller/tests.
+var _tier_composition: Dictionary = {}
 var _countdown_sec: int = 60
 var _busy: bool = false
 
@@ -69,12 +71,12 @@ func open_for_lair(lair_payload: Dictionary) -> void:
 	_infantry = 0
 	_marksmen = 0
 	_cavalry = 0
+	_tier_composition = {}
 	_countdown_sec = 60
 	var def: Dictionary = _lair.get("level_def", {}) as Dictionary
 	if def.is_empty():
 		def = WildlingLairDatabase.get_level_def(int(_lair.get("lair_level", _lair.get("den_level", 1))))
 		_lair["level_def"] = def
-	_auto_pick_first_hero()
 	_build_ui()
 	var manager: Node = get_node_or_null("../../UIManager")
 	if manager != null and manager.has_method("open_screen"):
@@ -99,8 +101,8 @@ func open_to_join(rally: Dictionary) -> void:
 	_infantry = 0
 	_marksmen = 0
 	_cavalry = 0
+	_tier_composition = {}
 	_countdown_sec = int(rally.get("countdown_seconds", 60))
-	_auto_pick_first_hero()
 	_build_ui()
 	var manager: Node = get_node_or_null("../../UIManager")
 	if manager != null and manager.has_method("open_screen"):
@@ -116,7 +118,9 @@ func build_rally_create_contract() -> Dictionary:
 	if has_node("/root/MarchState"):
 		power = MarchState.calculate_march_power(_troop_dict(), _selected_heroes)
 	var troop_tiers: Dictionary = {}
-	if has_node("/root/MarchState") and MarchState.has_method("build_troop_tier_composition"):
+	if has_node("/root/MarchState") and MarchState.has_method("resolve_troop_composition"):
+		troop_tiers = MarchState.resolve_troop_composition(_troop_dict())
+	elif has_node("/root/MarchState") and MarchState.has_method("build_troop_tier_composition"):
 		troop_tiers = MarchState.build_troop_tier_composition(_troop_dict())
 	else:
 		troop_tiers = {
@@ -430,7 +434,11 @@ func _refresh() -> void:
 		var defense := 0
 		var hp := 0
 		if has_node("/root/StatResolver") and has_node("/root/MarchState"):
-			var composition: Dictionary = MarchState.build_troop_tier_composition(_troop_dict())
+			var composition: Dictionary = {}
+			if MarchState.has_method("resolve_troop_composition"):
+				composition = MarchState.resolve_troop_composition(_troop_dict())
+			else:
+				composition = MarchState.build_troop_tier_composition(_troop_dict())
 			var stats: Dictionary = StatResolver.resolve_march_combat_stats(composition, _selected_heroes)
 			var totals: Dictionary = stats.get("totals", {}) as Dictionary
 			atk = int(totals.get("attack", 0))
@@ -541,9 +549,6 @@ func _on_create_rally_pressed() -> void:
 	if MarchState.get_active_march_count() >= MarchState.MAX_ACTIVE_MARCHES:
 		_set_status("Cannot join while marching elsewhere (no free slots).", true)
 		return
-	if _selected_heroes.is_empty():
-		_set_status("Select at least one hero.", true)
-		return
 	if _infantry + _marksmen + _cavalry <= 0:
 		_set_status("Select troops.", true)
 		return
@@ -568,8 +573,13 @@ func _on_create_rally_pressed() -> void:
 		_set_status("Joining Rally…", false)
 		result = await RallyBackend.join_rally(str(_join_rally.get("rally_id", "")), {
 			"hero_ids": _selected_heroes.duplicate(),
-			"troop_counts": _troop_dict(),
+			"troop_counts": {
+				"infantry": _infantry,
+				"marksmen": _marksmen,
+				"cavalry": _cavalry,
+			},
 			"troop_tiers": reserved.get("troop_tiers", {}),
+			"tier_composition": reserved.get("troop_tiers", {}),
 			"power": int(reserved.get("power", 0)),
 		})
 	else:
@@ -658,15 +668,28 @@ func _set_troop(kind: String, amount: int) -> void:
 			_marksmen = safe
 		"cavalry":
 			_cavalry = safe
+	# Flat troop edits invalidate any prior explicit tier map.
+	_tier_composition = {}
 
 
-func _troop_dict() -> Dictionary:
-	## Lowercase keys match MarchState.build_troop_tier_composition.
+func _flat_troop_dict() -> Dictionary:
 	return {
 		"infantry": _infantry,
 		"marksmen": _marksmen,
 		"cavalry": _cavalry,
 	}
+
+
+func _troop_dict() -> Dictionary:
+	## Flat totals + tier_composition for MarchState.resolve_troop_composition().
+	var payload: Dictionary = _flat_troop_dict()
+	if not _tier_composition.is_empty():
+		payload["tier_composition"] = _tier_composition.duplicate(true)
+	elif has_node("/root/MarchState") and MarchState.has_method("resolve_troop_composition"):
+		var resolved: Dictionary = MarchState.resolve_troop_composition(payload)
+		if not resolved.is_empty():
+			payload["tier_composition"] = resolved
+	return payload
 
 
 func _timer_label(sec: int) -> String:

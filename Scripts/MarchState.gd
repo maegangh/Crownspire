@@ -252,21 +252,29 @@ func validate_wildling_dispatch(
 	if not gate.get("ok", false):
 		return gate
 
-	var inf: int = int(troops.get("infantry", 0))
-	var mar: int = int(troops.get("marksmen", 0))
-	var cav: int = int(troops.get("cavalry", 0))
+	var flat: Dictionary = troops_flat_totals(troops)
+	var inf: int = int(flat.get("infantry", 0))
+	var mar: int = int(flat.get("marksmen", 0))
+	var cav: int = int(flat.get("cavalry", 0))
 	var total: int = inf + mar + cav
 	if total <= 0:
 		return {"ok": false, "error": "Select at least one troop."}
 
 	if not has_node("/root/TroopState"):
 		return {"ok": false, "error": "TroopState unavailable."}
-	if TroopState.get_available_count("Infantry") < inf:
-		return {"ok": false, "error": "Not enough Infantry."}
-	if TroopState.get_available_count("Marksmen") < mar:
-		return {"ok": false, "error": "Not enough Marksmen."}
-	if TroopState.get_available_count("Cavalry") < cav:
-		return {"ok": false, "error": "Not enough Cavalry."}
+	if troops.has("tier_composition"):
+		var tier_check: Dictionary = validate_tier_availability(
+			normalize_tier_composition(troops.get("tier_composition", {}))
+		)
+		if not bool(tier_check.get("ok", false)):
+			return tier_check
+	else:
+		if TroopState.get_available_count("Infantry") < inf:
+			return {"ok": false, "error": "Not enough Infantry."}
+		if TroopState.get_available_count("Marksmen") < mar:
+			return {"ok": false, "error": "Not enough Marksmen."}
+		if TroopState.get_available_count("Cavalry") < cav:
+			return {"ok": false, "error": "Not enough Cavalry."}
 
 	var capacity: int = get_march_capacity(hero_ids)
 	if total > capacity:
@@ -276,11 +284,11 @@ func validate_wildling_dispatch(
 		return {"ok": false, "error": "Too many heroes (max %d)." % MAX_HEROES_PER_MARCH}
 
 	if has_node("/root/HeroState"):
-		var roster_size: int = HeroState.recruited_heroes.size()
-		if roster_size > 0 and hero_ids.is_empty():
-			return {"ok": false, "error": "Select at least one hero."}
+		# Heroes optional — troops-only wildling marches are valid.
 		for hero_id: Variant in hero_ids:
 			var hid: String = str(hero_id)
+			if hid.is_empty():
+				continue
 			if HeroState.is_hero_on_march(hid):
 				return {"ok": false, "error": "Hero already on a march."}
 			if HeroState.has_method("is_hero_wall_defender") and HeroState.is_hero_wall_defender(hid):
@@ -1706,21 +1714,29 @@ func validate_resource_setup(
 	if not bool(gate.get("ok", false)):
 		return gate
 
-	var inf: int = int(troops.get("infantry", 0))
-	var mar: int = int(troops.get("marksmen", 0))
-	var cav: int = int(troops.get("cavalry", 0))
+	var flat: Dictionary = troops_flat_totals(troops)
+	var inf: int = int(flat.get("infantry", 0))
+	var mar: int = int(flat.get("marksmen", 0))
+	var cav: int = int(flat.get("cavalry", 0))
 	var total: int = inf + mar + cav
 	if total <= 0:
 		return {"ok": false, "error": "Select at least one troop."}
 
 	if not has_node("/root/TroopState"):
 		return {"ok": false, "error": "TroopState unavailable."}
-	if TroopState.get_available_count("Infantry") < inf:
-		return {"ok": false, "error": "Not enough Infantry."}
-	if TroopState.get_available_count("Marksmen") < mar:
-		return {"ok": false, "error": "Not enough Marksmen."}
-	if TroopState.get_available_count("Cavalry") < cav:
-		return {"ok": false, "error": "Not enough Cavalry."}
+	if troops.has("tier_composition"):
+		var tier_check: Dictionary = validate_tier_availability(
+			normalize_tier_composition(troops.get("tier_composition", {}))
+		)
+		if not bool(tier_check.get("ok", false)):
+			return tier_check
+	else:
+		if TroopState.get_available_count("Infantry") < inf:
+			return {"ok": false, "error": "Not enough Infantry."}
+		if TroopState.get_available_count("Marksmen") < mar:
+			return {"ok": false, "error": "Not enough Marksmen."}
+		if TroopState.get_available_count("Cavalry") < cav:
+			return {"ok": false, "error": "Not enough Cavalry."}
 
 	var capacity: int = get_march_capacity(hero_ids)
 	if total > capacity:
@@ -1746,6 +1762,83 @@ func validate_resource_setup(
 
 
 ## Build lowest-tier-first composition for aggregate counts (string tier keys).
+func _sum_tier_map(by_tier: Dictionary) -> int:
+	var total: int = 0
+	if typeof(by_tier) != TYPE_DICTIONARY:
+		return 0
+	for tier_key: Variant in by_tier.keys():
+		total += maxi(0, int(by_tier[tier_key]))
+	return total
+
+
+func composition_flat_totals(composition: Dictionary) -> Dictionary:
+	return {
+		"infantry": _sum_tier_map(composition.get("infantry", {})),
+		"marksmen": _sum_tier_map(composition.get("marksmen", {})),
+		"cavalry": _sum_tier_map(composition.get("cavalry", {})),
+	}
+
+
+func normalize_tier_composition(raw: Dictionary) -> Dictionary:
+	var out: Dictionary = {"infantry": {}, "marksmen": {}, "cavalry": {}}
+	for kind: String in ["infantry", "marksmen", "cavalry"]:
+		var src: Variant = raw.get(kind, {})
+		if typeof(src) != TYPE_DICTIONARY:
+			continue
+		for tier_key: Variant in (src as Dictionary).keys():
+			var qty: int = int((src as Dictionary)[tier_key])
+			if qty > 0:
+				(out[kind] as Dictionary)[str(int(tier_key))] = qty
+	return out
+
+
+func troops_flat_totals(troops: Dictionary) -> Dictionary:
+	if troops.has("tier_composition") and typeof(troops.get("tier_composition")) == TYPE_DICTIONARY:
+		return composition_flat_totals(normalize_tier_composition(troops.get("tier_composition", {})))
+	return {
+		"infantry": int(troops.get("infantry", 0)),
+		"marksmen": int(troops.get("marksmen", 0)),
+		"cavalry": int(troops.get("cavalry", 0)),
+	}
+
+
+func validate_tier_availability(composition: Dictionary) -> Dictionary:
+	if not has_node("/root/TroopState"):
+		return {"ok": false, "error": "TroopState unavailable."}
+	var canon: Dictionary = {
+		"infantry": "Infantry",
+		"marksmen": "Marksmen",
+		"cavalry": "Cavalry",
+	}
+	for kind: String in ["infantry", "marksmen", "cavalry"]:
+		var by_tier: Dictionary = composition.get(kind, {}) as Dictionary
+		if typeof(by_tier) != TYPE_DICTIONARY:
+			continue
+		var display: String = str(canon.get(kind, kind.capitalize()))
+		for tier_key: Variant in by_tier.keys():
+			var need: int = int(by_tier[tier_key])
+			if need <= 0:
+				continue
+			var tier: int = int(tier_key)
+			if TroopState.get_tier_count(display, tier) < need:
+				return {"ok": false, "error": "Not enough %s T%d." % [display, tier]}
+	return {"ok": true}
+
+
+func resolve_troop_composition(troops: Dictionary) -> Dictionary:
+	if troops.has("tier_composition") and typeof(troops.get("tier_composition")) == TYPE_DICTIONARY:
+		var comp: Dictionary = normalize_tier_composition(troops.get("tier_composition", {}))
+		var flat: Dictionary = composition_flat_totals(comp)
+		if int(flat.get("infantry", 0)) > 0 and (comp.get("infantry", {}) as Dictionary).is_empty():
+			return {}
+		if int(flat.get("marksmen", 0)) > 0 and (comp.get("marksmen", {}) as Dictionary).is_empty():
+			return {}
+		if int(flat.get("cavalry", 0)) > 0 and (comp.get("cavalry", {}) as Dictionary).is_empty():
+			return {}
+		return comp
+	return build_troop_tier_composition(troops)
+
+
 func build_troop_tier_composition(troops: Dictionary) -> Dictionary:
 	if not has_node("/root/TroopState"):
 		return {}
@@ -2582,32 +2675,64 @@ func reserve_for_rally(rally_id: String, troops: Dictionary, hero_ids: Array) ->
 		return {"ok": false, "error": "Missing rally id"}
 	if get_active_march_count() >= MAX_ACTIVE_MARCHES:
 		return {"ok": false, "error": "No free march slots."}
+
 	var hero_payload: Array = []
-	for hid in hero_ids:
+	for hid: Variant in hero_ids:
 		var h: String = str(hid)
 		if h == "":
 			continue
 		if has_node("/root/HeroState") and HeroState.is_hero_on_march(h):
 			return {"ok": false, "error": "Hero already marching."}
 		hero_payload.append(h)
-	if hero_payload.is_empty():
-		return {"ok": false, "error": "Select at least one hero."}
-	var flat := {
-		"infantry": int(troops.get("infantry", troops.get("Infantry", 0))),
-		"marksmen": int(troops.get("marksmen", troops.get("Marksmen", 0))),
-		"cavalry": int(troops.get("cavalry", troops.get("Cavalry", 0))),
-	}
-	if flat.infantry + flat.marksmen + flat.cavalry <= 0:
+
+	var flat: Dictionary = troops_flat_totals(troops)
+	var inf: int = int(flat.get("infantry", 0))
+	var mar: int = int(flat.get("marksmen", 0))
+	var cav: int = int(flat.get("cavalry", 0))
+	var total: int = inf + mar + cav
+	if total <= 0:
 		return {"ok": false, "error": "Select troops."}
+
+	if not has_node("/root/TroopState"):
+		return {"ok": false, "error": "TroopState unavailable."}
+	if troops.has("tier_composition") and typeof(troops.get("tier_composition")) == TYPE_DICTIONARY:
+		var tier_check: Dictionary = validate_tier_availability(
+			normalize_tier_composition(troops.get("tier_composition", {}))
+		)
+		if not bool(tier_check.get("ok", false)):
+			return tier_check
+	else:
+		if TroopState.get_available_count("Infantry") < inf:
+			return {"ok": false, "error": "Not enough Infantry."}
+		if TroopState.get_available_count("Marksmen") < mar:
+			return {"ok": false, "error": "Not enough Marksmen."}
+		if TroopState.get_available_count("Cavalry") < cav:
+			return {"ok": false, "error": "Not enough Cavalry."}
+
 	var cap: int = get_march_capacity(hero_payload)
-	if flat.infantry + flat.marksmen + flat.cavalry > cap:
+	if total > cap:
 		return {"ok": false, "error": "Exceeds march capacity."}
-	var composition: Dictionary = build_troop_tier_composition(flat)
+
+	if hero_ids.size() > MAX_HEROES_PER_MARCH:
+		return {"ok": false, "error": "Too many heroes (max %d)." % MAX_HEROES_PER_MARCH}
+
+	# Heroes optional — troops-only rally reservations are valid.
+	if has_node("/root/HeroState"):
+		for hero_id: Variant in hero_ids:
+			var hid: String = str(hero_id)
+			if hid.is_empty():
+				continue
+			if HeroState.get_hero_index(hid) == -1:
+				return {"ok": false, "error": "Unknown hero selected."}
+			if HeroState.has_method("is_hero_wall_defender") and HeroState.is_hero_wall_defender(hid):
+				return {"ok": false, "error": "Hero is assigned to City Defense."}
+
+	var composition: Dictionary = resolve_troop_composition(troops)
 	if composition.is_empty():
 		return {"ok": false, "error": "Could not allocate troop tiers."}
 	if not TroopState.deploy_troops_by_tiers(composition):
 		return {"ok": false, "error": "Failed to deploy troops."}
-	for hid2 in hero_payload:
+	for hid2: Variant in hero_payload:
 		HeroState.set_hero_on_march(str(hid2), true)
 	_rally_reservations[rid] = {
 		"troop_tiers": composition.duplicate(true),
@@ -2615,7 +2740,13 @@ func reserve_for_rally(rally_id: String, troops: Dictionary, hero_ids: Array) ->
 		"troop_counts": flat.duplicate(true),
 	}
 	marches_changed.emit()
-	return {"ok": true, "troop_tiers": composition, "hero_ids": hero_payload, "troop_counts": flat, "power": calculate_march_power(flat, hero_payload)}
+	return {
+		"ok": true,
+		"troop_tiers": composition,
+		"hero_ids": hero_payload,
+		"troop_counts": flat,
+		"power": calculate_march_power(flat, hero_payload),
+	}
 
 
 func refund_rally_reservation(rally_id: String) -> void:
@@ -2663,32 +2794,64 @@ func has_active_rally_march(rally_id: String) -> bool:
 func dispatch_lair_attack_march(lair: Dictionary, troops: Dictionary, hero_ids: Array) -> Dictionary:
 	if get_active_march_count() >= MAX_ACTIVE_MARCHES:
 		return {"ok": false, "error": "Active march limit reached."}
-	var flat := {
-		"infantry": int(troops.get("infantry", troops.get("Infantry", 0))),
-		"marksmen": int(troops.get("marksmen", troops.get("Marksmen", 0))),
-		"cavalry": int(troops.get("cavalry", troops.get("Cavalry", 0))),
-	}
-	if flat.infantry + flat.marksmen + flat.cavalry <= 0:
+
+	var flat: Dictionary = troops_flat_totals(troops)
+	var inf: int = int(flat.get("infantry", 0))
+	var mar: int = int(flat.get("marksmen", 0))
+	var cav: int = int(flat.get("cavalry", 0))
+	var total: int = inf + mar + cav
+	if total <= 0:
 		return {"ok": false, "error": "Select at least one troop."}
+
 	var hero_payload: Array = []
-	for hid in hero_ids:
+	for hid: Variant in hero_ids:
 		var h: String = str(hid)
 		if h == "":
 			continue
 		if has_node("/root/HeroState") and HeroState.is_hero_on_march(h):
 			return {"ok": false, "error": "Hero already on a march."}
 		hero_payload.append(h)
-	if hero_payload.is_empty():
-		return {"ok": false, "error": "Select at least one hero."}
+
+	if not has_node("/root/TroopState"):
+		return {"ok": false, "error": "TroopState unavailable."}
+	if troops.has("tier_composition") and typeof(troops.get("tier_composition")) == TYPE_DICTIONARY:
+		var tier_check: Dictionary = validate_tier_availability(
+			normalize_tier_composition(troops.get("tier_composition", {}))
+		)
+		if not bool(tier_check.get("ok", false)):
+			return tier_check
+	else:
+		if TroopState.get_available_count("Infantry") < inf:
+			return {"ok": false, "error": "Not enough Infantry."}
+		if TroopState.get_available_count("Marksmen") < mar:
+			return {"ok": false, "error": "Not enough Marksmen."}
+		if TroopState.get_available_count("Cavalry") < cav:
+			return {"ok": false, "error": "Not enough Cavalry."}
+
 	var cap: int = get_march_capacity(hero_payload)
-	if flat.infantry + flat.marksmen + flat.cavalry > cap:
+	if total > cap:
 		return {"ok": false, "error": "Troops exceed march capacity (%d)." % cap}
-	var composition: Dictionary = build_troop_tier_composition(flat)
+
+	if hero_ids.size() > MAX_HEROES_PER_MARCH:
+		return {"ok": false, "error": "Too many heroes (max %d)." % MAX_HEROES_PER_MARCH}
+
+	# Heroes optional — troops-only lair attacks are valid.
+	if has_node("/root/HeroState"):
+		for hero_id: Variant in hero_ids:
+			var hid: String = str(hero_id)
+			if hid.is_empty():
+				continue
+			if HeroState.get_hero_index(hid) == -1:
+				return {"ok": false, "error": "Unknown hero selected."}
+			if HeroState.has_method("is_hero_wall_defender") and HeroState.is_hero_wall_defender(hid):
+				return {"ok": false, "error": "Hero is assigned to City Defense."}
+
+	var composition: Dictionary = resolve_troop_composition(troops)
 	if composition.is_empty():
 		return {"ok": false, "error": "Could not allocate troop tiers."}
 	if not TroopState.deploy_troops_by_tiers(composition):
 		return {"ok": false, "error": "Failed to deploy troops."}
-	for hid2 in hero_payload:
+	for hid2: Variant in hero_payload:
 		HeroState.set_hero_on_march(str(hid2), true)
 
 	var start_pos: Vector2 = get_castle_world_position()
@@ -2784,7 +2947,11 @@ func dispatch_rally_march(rally: Dictionary) -> Dictionary:
 			has_troops = true
 			break
 	if composition.is_empty() and has_troops:
-		composition = build_troop_tier_composition(troop_payload)
+		var resolve_payload: Dictionary = troop_payload.duplicate(true)
+		var server_tiers: Variant = my_part.get("troop_tiers", {})
+		if typeof(server_tiers) == TYPE_DICTIONARY and not (server_tiers as Dictionary).is_empty():
+			resolve_payload["tier_composition"] = server_tiers
+		composition = resolve_troop_composition(resolve_payload)
 
 	var start_pos: Vector2 = get_castle_world_position()
 	var target_pos := Vector2(float(rally.get("world_x", 0.0)), float(rally.get("world_y", 0.0)))
