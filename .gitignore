@@ -21,3 +21,13 @@ Desktop.ini
 # Local Godot verification logs (repo root)
 *_parse.log
 *_smoke.log
+
+# Local / generated artifacts (do not commit)
+.DS_Store
+iOS Build/
+Screenshot*.png
+godot_chat_emoji_validate.log
+Scripts/dev/_tmp_*.gd
+Scripts/dev/_tmp_*.gd.uid
+deploy_staging/*.tar.gz
+deploy_staging/*.sha256
