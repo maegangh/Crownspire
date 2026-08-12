@@ -110,12 +110,9 @@ func _start_pending_teleport(ctrl: Node) -> void:
 
 
 func _map_root() -> Node:
-	## KingdomMap attaches this script to WorldRoot itself. Using get_parent() here
-	## parented WorldCastleLayer under /root, so local PlayerCastleMarker never got a ClickArea.
-	if get_node_or_null("PlayerCastleMarker") != null or get_node_or_null("Camera2D") != null:
-		return self
-	return get_parent()
-
+	## KingdomMap attaches this script to WorldRoot itself.
+	## WorldCastleLayer must remain under WorldRoot.
+	return self
 
 func _ensure_and_refresh_castles() -> void:
 	var parent_map: Node = _map_root()

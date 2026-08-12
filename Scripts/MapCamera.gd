@@ -7,6 +7,10 @@ extends Camera2D
 
 const WorldGestureUtil = preload("res://Scripts/World/WorldGesture.gd")
 
+## SceneTree meta set by City→World (GameHUD). Consumed once by WorldCastleLayer after placement.
+const META_ENTER_AT_HOME := "world_enter_at_home"
+const META_ENTER_AT_HOME_SETTLED := "world_enter_at_home_settled"
+
 var dragging: bool = false
 
 @onready var player_castle: Node2D = $"../PlayerCastleMarker"
@@ -27,7 +31,12 @@ func _ready() -> void:
 	if vp != null:
 		vp.physics_object_picking = true
 
-	# Wait until the castle and world have finished loading.
+	# City→World home entry: wait for WorldCastleLayer authoritative placement (no blind frame delay).
+	if _has_pending_enter_at_home():
+		print("[MapCamera] enter-at-home pending — deferring center until castle placement")
+		return
+
+	# Normal World Map open (no explicit home request): center on marker after scene settles.
 	# City↔World change_scene can free this node mid-await; never touch get_tree() blindly.
 	await _await_process_frames(2)
 	if not is_inside_tree():
@@ -40,6 +49,13 @@ func _ready() -> void:
 
 	print("Castle position: ", player_castle.global_position)
 	print("Camera position: ", global_position)
+
+
+func _has_pending_enter_at_home() -> bool:
+	var tree := get_tree()
+	if tree == null or not tree.has_meta(META_ENTER_AT_HOME):
+		return false
+	return bool(tree.get_meta(META_ENTER_AT_HOME))
 
 
 ## Await N process frames safely. Aborts if this camera leaves the SceneTree

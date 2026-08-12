@@ -1823,6 +1823,15 @@ func _on_world_city_pressed():
 	if is_world_screen:
 		get_tree().change_scene_to_file.call_deferred("res://Scenes/City/City.tscn")
 	else:
+		# One-use enter-at-home: World Map must center on authoritative castle after placement.
+		var tree: SceneTree = get_tree()
+		if tree != null:
+			tree.set_meta("world_enter_at_home", true)
+			if tree.has_meta("world_enter_at_home_settled"):
+				tree.remove_meta("world_enter_at_home_settled")
+			# Fresh KingdomMap load — do not inherit prior FTUE wildling focus tracking.
+			if tree.has_meta("ftue_world_focused_wildling_iid"):
+				tree.remove_meta("ftue_world_focused_wildling_iid")
 		get_tree().change_scene_to_file.call_deferred("res://Scenes/World/KingdomMap.tscn")
 
 func format_with_commas(value: int) -> String:

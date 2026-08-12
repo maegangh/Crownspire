@@ -103,6 +103,7 @@ func _refresh_async() -> void:
 	var sy: float = float(self_entry.get("world_y", 4096))
 	_place_local_castle(Vector2(sx, sy), self_id, self_entry)
 	_reserved_positions.append(Vector2(sx, sy))
+	_fulfill_enter_at_home_if_requested(_player_castle_marker())
 
 	while _other_root.get_child_count() > 0:
 		var ch: Node = _other_root.get_child(0)
@@ -134,6 +135,56 @@ func _apply_local_fallback_only() -> void:
 	if marker != null:
 		_reserved_positions.append(marker.global_position)
 	_wire_local_castle_input()
+	# Offline / RPC-fail path still finalizes home for enter-at-home requests.
+	_fulfill_enter_at_home_if_requested(marker)
+
+
+## One-use City→World home centering. Only this layer consumes `world_enter_at_home`.
+func _fulfill_enter_at_home_if_requested(marker: Node2D) -> void:
+	var tree := get_tree()
+	if tree == null:
+		return
+	if not tree.has_meta("world_enter_at_home"):
+		return
+	if not bool(tree.get_meta("world_enter_at_home")):
+		tree.remove_meta("world_enter_at_home")
+		return
+
+	# Consume first so a missing camera cannot leave the request stuck forever.
+	tree.remove_meta("world_enter_at_home")
+	tree.set_meta("world_enter_at_home_settled", true)
+
+	if marker == null or not is_instance_valid(marker):
+		push_warning("[WorldCastle] enter-at-home consumed without PlayerCastleMarker")
+		return
+
+	var cam: Camera2D = _find_world_map_camera()
+	if cam == null:
+		push_warning("[WorldCastle] enter-at-home: MapCamera missing — request cleared")
+		return
+	var home: Vector2 = marker.global_position
+	if cam.has_method("focus_world_position"):
+		cam.call("focus_world_position", home)
+	else:
+		cam.global_position = home
+	print("[WorldCastle] enter-at-home centered camera at %s" % str(home))
+
+
+func _find_world_map_camera() -> Camera2D:
+	var root: Node = _map_root()
+	if root != null:
+		var named: Camera2D = root.get_node_or_null("Camera2D") as Camera2D
+		if named != null:
+			return named
+	var vp: Viewport = get_viewport()
+	if vp != null:
+		var current: Camera2D = vp.get_camera_2d()
+		if current != null:
+			return current
+	var tree := get_tree()
+	if tree == null or tree.root == null:
+		return null
+	return tree.root.find_child("Camera2D", true, false) as Camera2D
 
 
 func _map_root() -> Node:
