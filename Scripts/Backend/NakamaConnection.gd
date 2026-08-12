@@ -7,6 +7,7 @@ signal authenticated
 signal socket_connected
 signal connection_failed(reason: String)
 signal connection_state_changed(state: String) ## connecting | connected | reconnecting | offline
+signal login_gate_needed(reason: String)
 
 enum ConnState { OFFLINE, CONNECTING, CONNECTED, RECONNECTING }
 
@@ -15,6 +16,8 @@ const CONFIG_USER_PATH: String = "user://nakama_config.cfg"
 const DEVICE_ID_PATH_DEFAULT: String = "user://nakama_device_id.cfg"
 const DEVICE_ID_SECTION: String = "device"
 const DEVICE_ID_KEY: String = "id"
+
+const AccountEmailAuthScript = preload("res://Scripts/Backend/AccountEmailAuth.gd")
 
 ## Desktop local defaults.
 const DEV_HOST_DESKTOP: String = "127.0.0.1"
@@ -42,7 +45,12 @@ var _scheme: String = DEV_SCHEME
 var _server_key: String = DEV_SERVER_KEY
 var _last_fail_reason: String = ""
 var _session_store: AccountSessionStore = AccountSessionStore.new()
-var _last_auth_source: String = "" ## restore | refresh | device
+var _last_auth_source: String = "" ## restore | refresh | device | email | link_email | gate_required
+## Phase 4 email auth smoke — never calls production link/login APIs.
+var _email_smoke: bool = false
+var _smoke_email_by_user: Dictionary = {} ## user_id -> email
+var _smoke_user_by_email: Dictionary = {} ## email -> {user_id, password}
+var _smoke_session_user: String = ""
 
 
 func _ready() -> void:
@@ -58,6 +66,8 @@ func _notification(what: int) -> void:
 
 
 func is_authenticated() -> bool:
+	if _email_smoke and _smoke_session_user.strip_edges() != "":
+		return true
 	return _session != null and not _session.is_exception() and _session.is_valid()
 
 
@@ -104,7 +114,9 @@ func get_session() -> NakamaSession:
 
 
 func get_user_id() -> String:
-	if not is_authenticated():
+	if _email_smoke and _smoke_session_user.strip_edges() != "":
+		return _smoke_session_user.strip_edges()
+	if not (_session != null and not _session.is_exception() and _session.is_valid()):
 		return ""
 	return str(_session.user_id)
 
@@ -131,6 +143,158 @@ func begin_session_store_smoke_isolation() -> void:
 
 func end_session_store_smoke_isolation() -> void:
 	_session_store.end_smoke_isolation()
+
+
+func begin_email_auth_smoke_isolation() -> void:
+	_email_smoke = true
+	_smoke_email_by_user.clear()
+	_smoke_user_by_email.clear()
+	_smoke_session_user = ""
+
+
+func end_email_auth_smoke_isolation() -> void:
+	_email_smoke = false
+	_smoke_email_by_user.clear()
+	_smoke_user_by_email.clear()
+	_smoke_session_user = ""
+
+
+func is_email_auth_smoke() -> bool:
+	return _email_smoke
+
+
+func smoke_set_session_user(user_id: String) -> void:
+	_smoke_session_user = user_id.strip_edges()
+	_last_auth_source = "device"
+
+
+## Link email+password to the currently authenticated account (Nakama link_email_async).
+## Does not create a new user. user_id must remain unchanged.
+func link_email_credentials(email: String, password: String) -> Dictionary:
+	var ev: Dictionary = AccountEmailAuthScript.validate_email(email)
+	if not bool(ev.get("ok", false)):
+		return ev
+	var pv: Dictionary = AccountEmailAuthScript.validate_password(password)
+	if not bool(pv.get("ok", false)):
+		return pv
+	var normalized: String = str(ev.get("email", ""))
+	if _email_smoke:
+		return _smoke_link_email(normalized, password)
+	if not is_authenticated() or _client == null or _session == null:
+		return {
+			"ok": false,
+			"error": AccountEmailAuthScript.ERR_NOT_AUTH,
+			"message": AccountEmailAuthScript.user_message_for_code(AccountEmailAuthScript.ERR_NOT_AUTH),
+		}
+	var before: String = str(_session.user_id)
+	var result: NakamaAsyncResult = await _client.link_email_async(_session, normalized, password)
+	password = ""
+	if result == null or result.is_exception():
+		var msg: String = "link failed"
+		if result != null and result.get_exception() != null:
+			msg = str(result.get_exception().message)
+		var mapped: Dictionary = AccountEmailAuthScript.map_nakama_exception(msg)
+		mapped["ok"] = false
+		return mapped
+	if str(_session.user_id) != before:
+		return {
+			"ok": false,
+			"error": AccountEmailAuthScript.ERR_USER_CHANGED,
+			"message": AccountEmailAuthScript.user_message_for_code(AccountEmailAuthScript.ERR_USER_CHANGED),
+		}
+	_last_auth_source = "link_email"
+	_persist_session_safely(_session)
+	print("[Nakama] Email linked to existing account user=%s" % str(_session.user_id).substr(0, 8))
+	return {"ok": true, "user_id": before, "linked": true}
+
+
+## Login with email+password. create=false — never invent a new account here.
+func authenticate_email_login(email: String, password: String) -> Dictionary:
+	var ev: Dictionary = AccountEmailAuthScript.validate_email(email)
+	if not bool(ev.get("ok", false)):
+		return ev
+	var pv: Dictionary = AccountEmailAuthScript.validate_password(password)
+	if not bool(pv.get("ok", false)):
+		return pv
+	var normalized: String = str(ev.get("email", ""))
+	if _email_smoke:
+		return _smoke_login_email(normalized, password)
+	if _client == null:
+		# Ensure client exists even if socket path hasn't finished.
+		_load_endpoint_config()
+		if has_node("/root/Nakama"):
+			var nakama: Node = get_node("/root/Nakama")
+			_client = nakama.create_client(_server_key, _host, _port, _scheme, 8, NakamaLogger.LOG_LEVEL.ERROR)
+	if _client == null:
+		return {
+			"ok": false,
+			"error": AccountEmailAuthScript.ERR_NETWORK,
+			"message": AccountEmailAuthScript.user_message_for_code(AccountEmailAuthScript.ERR_NETWORK),
+		}
+	var session: NakamaSession = await _client.authenticate_email_async(normalized, password, null, false)
+	password = ""
+	if session == null or session.is_exception() or not session.is_valid():
+		var msg: String = "login failed"
+		if session != null and session.get_exception() != null:
+			msg = str(session.get_exception().message)
+		var mapped: Dictionary = AccountEmailAuthScript.map_nakama_exception(msg)
+		mapped["ok"] = false
+		return mapped
+	_session = session
+	_last_auth_source = "email"
+	_persist_session_safely(session)
+	print("[Nakama] Email login successful user=%s" % str(session.user_id).substr(0, 8))
+	authenticated.emit()
+	# Best-effort socket reconnect under new session.
+	if _socket != null:
+		_socket_connected = false
+	call_deferred("_attempt_connection")
+	return {"ok": true, "user_id": str(session.user_id), "auth_source": "email"}
+
+
+func _smoke_link_email(email: String, password: String) -> Dictionary:
+	var uid: String = get_user_id()
+	if uid.is_empty():
+		return {
+			"ok": false,
+			"error": AccountEmailAuthScript.ERR_NOT_AUTH,
+			"message": AccountEmailAuthScript.user_message_for_code(AccountEmailAuthScript.ERR_NOT_AUTH),
+		}
+	if _smoke_user_by_email.has(email) and str((_smoke_user_by_email[email] as Dictionary).get("user_id", "")) != uid:
+		return {
+			"ok": false,
+			"error": AccountEmailAuthScript.ERR_EMAIL_IN_USE,
+			"message": AccountEmailAuthScript.user_message_for_code(AccountEmailAuthScript.ERR_EMAIL_IN_USE),
+		}
+	_smoke_user_by_email[email] = {"user_id": uid, "password": password}
+	_smoke_email_by_user[uid] = email
+	_last_auth_source = "link_email"
+	return {"ok": true, "user_id": uid, "linked": true, "smoke": true}
+
+
+func _smoke_login_email(email: String, password: String) -> Dictionary:
+	if not _smoke_user_by_email.has(email):
+		return {
+			"ok": false,
+			"error": AccountEmailAuthScript.ERR_INVALID_CREDENTIALS,
+			"message": AccountEmailAuthScript.user_message_for_code(AccountEmailAuthScript.ERR_INVALID_CREDENTIALS),
+		}
+	var rec: Dictionary = _smoke_user_by_email[email]
+	if str(rec.get("password", "")) != password:
+		return {
+			"ok": false,
+			"error": AccountEmailAuthScript.ERR_INVALID_CREDENTIALS,
+			"message": AccountEmailAuthScript.user_message_for_code(AccountEmailAuthScript.ERR_INVALID_CREDENTIALS),
+		}
+	var uid: String = str(rec.get("user_id", ""))
+	_smoke_session_user = uid
+	_last_auth_source = "email"
+	# Persist a smoke session marker without writing password — reuse session store user_id only if a
+	# real session exists; otherwise skip token write (smoke restart test uses ownership + smoke user).
+	if _session != null and _session.is_valid() and str(_session.user_id) == uid:
+		_persist_session_safely(_session)
+	authenticated.emit()
+	return {"ok": true, "user_id": uid, "auth_source": "email", "smoke": true}
 
 
 func reconnect_now() -> void:
@@ -359,6 +523,10 @@ func _connect_async() -> void:
 	print("[Nakama] Connecting to %s://%s:%d ..." % [_scheme, _host, _port])
 
 	var session: NakamaSession = await _authenticate_session_priority(device_id)
+	if session == null and _last_auth_source == "gate_required":
+		_fail("login_required")
+		# Do not schedule device-auth reconnect over a known secured account.
+		return
 	if session == null or session.is_exception():
 		var reason: String = "authentication failed"
 		if session != null and session.get_exception() != null:
@@ -404,7 +572,7 @@ func _connect_async() -> void:
 	socket_connected.emit()
 
 
-## Session restore → refresh → device auth. Never creates a new guest when a usable session exists.
+## Session restore → refresh → (gate or device). Never replaces a known secured account with a silent guest.
 func _authenticate_session_priority(device_id: String) -> NakamaSession:
 	var restored: NakamaSession = _session_store.restore_session_object()
 	if restored != null:
@@ -422,9 +590,16 @@ func _authenticate_session_priority(device_id: String) -> NakamaSession:
 				_last_auth_source = "refresh"
 				print("[Nakama] Session refresh successful user=%s" % str(refreshed.user_id))
 				return refreshed
-			print("[Nakama] Session refresh failed — falling back to device auth")
+			print("[Nakama] Session refresh failed — checking login gate")
 		else:
-			print("[Nakama] Stored session unusable — falling back to device auth")
+			print("[Nakama] Stored session unusable — checking login gate")
+
+	var identity: Node = get_node_or_null("/root/AccountIdentityState")
+	if identity != null and bool(identity.call("should_block_guest_device_fallback")):
+		_last_auth_source = "gate_required"
+		print("[Nakama] Known secured account — requesting login gate instead of new guest")
+		login_gate_needed.emit("session_unrecoverable")
+		return null
 
 	_last_auth_source = "device"
 	print("[Nakama] Authenticating via device ID")

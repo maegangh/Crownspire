@@ -639,6 +639,7 @@ func _rebuild_settings_tab() -> void:
 		return
 	if _is_self:
 		_add_language_settings_section(_settings_content)
+		_add_account_settings_section(_settings_content)
 	else:
 		var note := Label.new()
 		note.text = tr("PROFILE_SETTINGS_OTHER_NOTE")
@@ -647,6 +648,23 @@ func _rebuild_settings_tab() -> void:
 	var pad := Control.new()
 	pad.custom_minimum_size = Vector2(0, 24)
 	_settings_content.add_child(pad)
+
+
+func _add_account_settings_section(parent: VBoxContainer) -> void:
+	var section := Label.new()
+	section.text = "Account"
+	_style_label(section, FONT_SECTION, COL_GOLD)
+	parent.add_child(section)
+	var panel_script: GDScript = load("res://Scripts/UI/AccountSettingsPanel.gd") as GDScript
+	if panel_script == null:
+		var missing := Label.new()
+		missing.text = "Account settings unavailable."
+		_style_label(missing, FONT_BODY, COL_MUTED)
+		parent.add_child(missing)
+		return
+	var panel: Control = panel_script.new() as Control
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	parent.add_child(panel)
 
 
 func _show_avatar_picker() -> void:

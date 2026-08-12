@@ -65,6 +65,7 @@ func _ready():
 	_ensure_help_button()
 	_ensure_profile_screen()
 	_bind_profile_avatar()
+	_bind_account_login_gate()
 	_bind_social_notifications()
 	_refresh_portrait_avatar()
 	_refresh_mail_badge()
@@ -1517,6 +1518,27 @@ func _ensure_profile_screen() -> void:
 		_profile_screen.connect("message_requested", Callable(self, "_on_profile_message_requested"))
 	if _profile_screen.has_signal("closed") and not _profile_screen.is_connected("closed", Callable(self, "_on_profile_closed")):
 		_profile_screen.connect("closed", Callable(self, "_on_profile_closed"))
+
+
+func _bind_account_login_gate() -> void:
+	var identity: Node = get_node_or_null("/root/AccountIdentityState")
+	if identity == null:
+		return
+	if identity.has_signal("login_gate_requested") and not identity.login_gate_requested.is_connected(_on_login_gate_requested):
+		identity.login_gate_requested.connect(_on_login_gate_requested)
+	if identity.has_method("should_force_login_gate") and bool(identity.call("should_force_login_gate")):
+		_on_login_gate_requested("boot")
+
+
+func _on_login_gate_requested(_reason: String) -> void:
+	var gate_script: GDScript = load("res://Scripts/UI/AccountLoginGate.gd") as GDScript
+	if gate_script == null or get_tree() == null or get_tree().root == null:
+		return
+	if get_tree().root.get_node_or_null("AccountLoginGate") != null:
+		return
+	var gate: CanvasLayer = gate_script.new() as CanvasLayer
+	gate.name = "AccountLoginGate"
+	get_tree().root.add_child(gate)
 
 
 func _on_profile_message_requested(user_id: String, display_name: String) -> void:
