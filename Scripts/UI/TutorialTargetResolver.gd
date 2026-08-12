@@ -46,20 +46,17 @@ static func rect_for_result(result: Dictionary, padding: float = 12.0) -> Rect2:
 	if control != null and is_instance_valid(control):
 		var gr: Rect2 = control.get_global_rect()
 		return gr.grow(padding)
-	# Collect-icon targets: keep hole centered on the visible icon, sized from ClickArea.
+	# Collect-icon targets: keep hole centered on the visible icon, compact size.
 	if str(result.get("kind", "")) == "resource_collect_icon":
 		var icon: Sprite2D = result.get("collect_icon") as Sprite2D
 		var click: Area2D = result.get("click_area") as Area2D
 		if icon != null and is_instance_valid(icon) and icon.visible:
 			var origin: Vector2 = icon.get_global_transform_with_canvas().origin
 			var click_rect: Rect2 = _area_screen_rect(click)
-			var half: Vector2 = Vector2(40, 40)
+			var half: float = 44.0
 			if click_rect.size.x > 1.0:
-				half = Vector2(
-					maxf(40.0, click_rect.size.x * 0.5 + 12.0),
-					maxf(40.0, click_rect.size.y * 0.5 + 12.0)
-				)
-			return Rect2(origin - half, half * 2.0).grow(padding)
+				half = clampf(maxf(click_rect.size.x, click_rect.size.y) * 0.5 + 8.0, 36.0, 56.0)
+			return Rect2(origin - Vector2(half, half), Vector2(half, half) * 2.0).grow(padding)
 	# World wildling: prefer precomputed click/sprite rect so camera + spotlight agree.
 	if str(result.get("kind", "")) == "world_target":
 		var stored_world: Rect2 = result.get("rect", Rect2()) as Rect2
@@ -230,26 +227,34 @@ static func _resolve_resource_collect_icon(hud: Node, building_id: String) -> Di
 		}
 	_collect_unavailable_logged.erase(building_id)
 
+	# Frame CollectIcon / ClickArea (not building root, not top resource HUD).
+	# Without this, Citadel-first FTUE leaves the camera on the castle and the Farm
+	# collect icon can sit off-screen while the instruction card still shows COLLECT.
+	var focus_world: Vector2 = icon.global_position
+	if click_area != null:
+		var shape: CollisionShape2D = click_area.get_node_or_null("CollisionShape2D") as CollisionShape2D
+		if shape != null:
+			focus_world = shape.global_position
+		else:
+			focus_world = click_area.global_position
+	_focus_city_camera(hud, focus_world)
+
 	# CollectIcon textures are large with transparency — do NOT use full sprite bounds.
-	# City camera collects via ClickArea; center the hole on the visible icon origin.
+	# Keep a compact hole centered on the icon (ClickArea can inflate badly under City scale/zoom
+	# and push the instruction card on top of the Farm on short portrait viewports).
 	var icon_origin: Vector2 = icon.get_global_transform_with_canvas().origin
 	var click_rect: Rect2 = _area_screen_rect(click_area)
-	var screen_rect: Rect2
+	var half: float = 44.0
 	if click_rect.size.x > 1.0 and click_rect.size.y > 1.0:
-		var c: Vector2 = icon_origin
-		var half: Vector2 = Vector2(
-			maxf(40.0, click_rect.size.x * 0.5 + 12.0),
-			maxf(40.0, click_rect.size.y * 0.5 + 12.0)
-		)
-		screen_rect = Rect2(c - half, half * 2.0)
-	else:
-		screen_rect = Rect2(icon_origin - Vector2(40, 40), Vector2(80, 80))
+		half = clampf(maxf(click_rect.size.x, click_rect.size.y) * 0.5 + 8.0, 36.0, 56.0)
+	var screen_rect: Rect2 = Rect2(icon_origin - Vector2(half, half), Vector2(half, half) * 2.0)
 
 	_log(
-		"Resolved resource_collect_icon/%s → %s rect=%s" % [
+		"Resolved resource_collect_icon/%s → %s rect=%s focus=%s" % [
 			building_id,
 			str(icon.get_path()),
 			str(screen_rect),
+			str(focus_world),
 		]
 	)
 	return {

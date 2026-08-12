@@ -130,12 +130,34 @@ func _run() -> void:
 		if final_step != "collect_resources":
 			fail.append("expected collect_resources after citadel path, got %s" % final_step)
 		else:
-			# Resolver-level collect icon targeting on the citadel-first path.
-			if ts.has_method("try_seed_ftue_farm_collect"):
-				ts.call("try_seed_ftue_farm_collect")
+			# Do NOT force set_ready_to_collect — seed must make the real CollectIcon visible
+			# even when grant flag was already set and stored was below threshold.
 			if farm.has_method("set_ready_to_collect"):
-				farm.call("set_ready_to_collect", true)
+				farm.call("set_ready_to_collect", false)
+			# Simulate below-threshold stored so seed has work to do.
+			if "prod_stored" in farm or farm.get("_prod_stored") != null:
+				farm.set("_prod_stored", 10.0)
+			if farm.has_method("_refresh_collect_icon_from_stored"):
+				farm.call("_refresh_collect_icon_from_stored")
 			await process_frame
+			var icon_before: Sprite2D = farm.get_node_or_null("CollectIcon") as Sprite2D
+			if icon_before != null and icon_before.visible:
+				fail.append("precondition: CollectIcon should start hidden before seed")
+
+			# Mark grant flag as already set (regression: must still ensure icon).
+			if ts.has_method("_set_farm_collect_seed_granted"):
+				ts.call("_set_farm_collect_seed_granted", true)
+			if ts.has_method("try_seed_ftue_farm_collect"):
+				var seed_res: Dictionary = ts.call("try_seed_ftue_farm_collect")
+				print("[FARM SPOTLIGHT] seed_res=", seed_res)
+			await process_frame
+			await process_frame
+
+			var icon: Sprite2D = farm.get_node_or_null("CollectIcon") as Sprite2D
+			if icon == null or not icon.visible:
+				fail.append("CollectIcon not visible after FTUE seed (already_granted path)")
+			elif not bool(farm.get("ready_to_collect")):
+				fail.append("Farm ready_to_collect false after FTUE seed")
 
 			var collect_result: Dictionary = Resolver.resolve(hud, {
 				"target_type": "resource_collect_icon",
@@ -145,16 +167,20 @@ func _run() -> void:
 				fail.append("resource_collect_icon/farm failed on collect_resources path")
 			else:
 				var crect: Rect2 = Resolver.rect_for_result(collect_result, 14.0)
-				var icon: Sprite2D = farm.get_node_or_null("CollectIcon") as Sprite2D
-				if icon != null:
-					var icon_c: Vector2 = icon.get_global_transform_with_canvas().origin
-					print("[FARM SPOTLIGHT] collect_spotlight=", crect, " icon=", icon_c)
-					if crect.get_center().distance_to(icon_c) > 50.0:
-						fail.append("collect spotlight not centered on CollectIcon")
+				var icon_c: Vector2 = icon.get_global_transform_with_canvas().origin
+				print("[FARM SPOTLIGHT] collect_spotlight=", crect, " icon=", icon_c)
+				if crect.get_center().distance_to(icon_c) > 50.0:
+					fail.append("collect spotlight not centered on CollectIcon")
+				# Must not land on top resource HUD band.
+				if crect.get_center().y < 90.0:
+					fail.append("collect spotlight in top HUD band: %s" % str(crect))
+				var vp: Vector2 = Vector2(383, 682)
+				if not Rect2(Vector2.ZERO, vp).grow(-8.0).has_point(crect.get_center()):
+					fail.append("collect spotlight center off portrait viewport: %s" % str(crect.get_center()))
 
-			# Overlay on collect_resources after citadel-first path: COLLECT action visible.
+			# Overlay on collect_resources after citadel-first path: COLLECT action + hole.
 			ts.emit_signal("step_changed", "collect_resources")
-			for _w in 4:
+			for _w in 6:
 				await process_frame
 			var cont: Button = overlay.find_child("ContinueButton", true, false) as Button
 			if cont == null or not cont.visible:
@@ -163,8 +189,22 @@ func _run() -> void:
 				fail.append("collect_resources button expected COLLECT got '%s'" % cont.text)
 			else:
 				print("[FARM SPOTLIGHT] COLLECT btn ok after citadel path text=", cont.text)
-			# Overlay hole ↔ CollectIcon alignment is covered by tutorial_f9_collect_smoke.gd
-			# (this test's citadel upgrade path can leave the collect icon off-screen in headless City).
+			var hole: Panel = overlay.find_child("HighlightHole", true, false) as Panel
+			var panel: PanelContainer = overlay.find_child("InstructionPanel", true, false) as PanelContainer
+			if hole == null or not hole.visible:
+				fail.append("collect_resources highlight hole not visible")
+			else:
+				var hg: Rect2 = hole.get_global_rect()
+				var ic2: Vector2 = icon.get_global_transform_with_canvas().origin
+				print("[FARM SPOTLIGHT] overlay hole=", hg, " icon=", ic2, " panel=", panel.position if panel else null)
+				if not hg.has_point(ic2) and hg.get_center().distance_to(ic2) > 48.0:
+					fail.append("overlay hole not over CollectIcon after citadel path")
+				if hg.get_center().y < 90.0:
+					fail.append("overlay hole in top HUD band")
+				if panel != null:
+					var pr: Rect2 = panel.get_global_rect()
+					if pr.intersects(hg.grow(4.0)):
+						fail.append("instruction panel covers CollectIcon hole")
 
 			# Farm select must not advance citadel select_building (when L1 path available).
 			if _citadel_level() < 2:

@@ -75,7 +75,7 @@
       "can_skip": true,
       "mode": "action",
       "title": "COLLECT",
-      "instruction": "Next, tap the Wanderers Farm collect icon to gather food for your city.",
+      "instruction": "Next, tap the Wayfarer's Farm collect icon to gather food for your city.",
       "action_label": "COLLECT",
       "target_type": "resource_collect_icon",
       "target_id": "farm",

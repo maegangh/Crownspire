@@ -427,28 +427,48 @@ func _clear_farm_collect_seed_flag() -> void:
 	_set_farm_collect_seed_granted(false)
 
 
-## Idempotent: ensure Farm stored production meets the CollectIcon threshold once for FTUE.
+## Idempotent: ensure Farm stored production meets the CollectIcon visibility threshold.
+## Grant flag records that FTUE applied the seed, but must NOT skip re-ensuring the live
+## CollectIcon — players can reach collect_resources with the flag set while stored is
+## still below threshold (icon stays invisible, spotlight unresolved).
 func try_seed_ftue_farm_collect() -> Dictionary:
 	if skipped or ftue_completed:
 		return {"ok": false, "reason": "skipped_or_completed"}
-	if _is_farm_collect_seed_granted():
-		return {"ok": true, "already_granted": true}
+	var already_granted: bool = _is_farm_collect_seed_granted()
 	var save_res: Dictionary = ResourceManagerScript.seed_ftue_farm_collect_in_save()
 	if not bool(save_res.get("ok", false)):
 		return save_res
-	# Refresh live Farm node if City is open.
+	# Refresh live Farm node if City is open (prefer Buildings/Farm over find_child).
+	var farm: Node = _find_live_city_farm()
+	if farm != null and farm.has_method("seed_ftue_collect_threshold"):
+		farm.call("seed_ftue_collect_threshold")
+	elif farm != null and farm.has_method("_load_production_state"):
+		farm.call("_load_production_state")
+		farm.call("_apply_production_elapsed")
+		farm.call("_refresh_collect_icon_from_stored")
+	if not already_granted:
+		_set_farm_collect_seed_granted(true)
+		_log("FTUE Farm collect seed applied: %s" % str(save_res))
+	elif bool(save_res.get("seeded", false)):
+		_log("FTUE Farm collect seed re-applied (icon was not ready): %s" % str(save_res))
+	return {
+		"ok": true,
+		"granted": not already_granted,
+		"already_granted": already_granted,
+		"details": save_res,
+	}
+
+
+func _find_live_city_farm() -> Node:
 	var tree := get_tree()
-	if tree != null:
-		var farm: Node = tree.root.find_child("Farm", true, false)
-		if farm != null and farm.has_method("seed_ftue_collect_threshold"):
-			farm.call("seed_ftue_collect_threshold")
-		elif farm != null and farm.has_method("_load_production_state"):
-			farm.call("_load_production_state")
-			farm.call("_apply_production_elapsed")
-			farm.call("_refresh_collect_icon_from_stored")
-	_set_farm_collect_seed_granted(true)
-	_log("FTUE Farm collect seed applied: %s" % str(save_res))
-	return {"ok": true, "granted": true, "details": save_res}
+	if tree == null:
+		return null
+	var scene: Node = tree.current_scene
+	if scene != null:
+		var under_buildings: Node = scene.get_node_or_null("Buildings/Farm")
+		if under_buildings != null:
+			return under_buildings
+	return tree.root.find_child("Farm", true, false)
 
 
 func _maybe_seed_ftue_farm_collect_for_step(step_id: String) -> void:

@@ -192,6 +192,13 @@ func _process(_delta: float) -> void:
 func _retry_dynamic_target() -> void:
 	if _pending_step.is_empty():
 		return
+	# Collect icon may become ready a frame after seed/camera settle — keep ensuring.
+	if (
+		str(_pending_step.get("target_type", "")).strip_edges() == "resource_collect_icon"
+		and has_node("/root/TutorialState")
+		and TutorialState.has_method("try_seed_ftue_farm_collect")
+	):
+		TutorialState.try_seed_ftue_farm_collect()
 	var result: Dictionary = Resolver.resolve(_hud, _pending_step)
 	if not bool(result.get("ok", false)):
 		# Production-safe: L1 wildling on defeat cooldown — do not spin forever silently.
@@ -1013,10 +1020,17 @@ func _action_panel_y(pref: String, hole: Rect2, panel_w: float, panel_h: float, 
 		elif not bot_hits:
 			y = alt_bottom
 		else:
-			# Both collide (tall hole) — park just above bottom HUD without covering more than needed.
-			y = bottom_y
+			# Both collide (compact viewports): tuck just below the hole, allowing a softer
+			# bottom margin so the COLLECT card does not cover the Farm collect icon.
+			var below_hole: float = hole.end.y + 16.0
+			var soft_bottom: float = vp.y - maxf(96.0, BOTTOM_HUD_RESERVE * 0.45) - panel_h - 8.0
+			if below_hole + panel_h <= soft_bottom + panel_h:
+				y = minf(below_hole, soft_bottom)
+			else:
+				var above_hole: float = hole.position.y - panel_h - 16.0
+				y = maxf(8.0, above_hole)
 
-	return clampf(y, top_y, bottom_y)
+	return clampf(y, 8.0, maxf(8.0, vp.y - panel_h - 8.0))
 
 
 # --- UI construction ----------------------------------------------------------

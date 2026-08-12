@@ -74,7 +74,7 @@ func _run() -> void:
 	if not cont.visible or cont.mouse_filter != Control.MOUSE_FILTER_STOP:
 		fail.append("CONTINUE dead after second single F9")
 
-	# --- B) Collect icon targeting ---
+	# --- B) Collect icon targeting (seed must expose real CollectIcon; no forced ready) ---
 	var farm: Node2D = null
 	var scene: Node = get_current_scene()
 	if scene != null:
@@ -83,18 +83,31 @@ func _run() -> void:
 		fail.append("Farm missing")
 	else:
 		if farm.has_method("set_ready_to_collect"):
-			farm.call("set_ready_to_collect", true)
+			farm.call("set_ready_to_collect", false)
+		farm.set("_prod_stored", 10.0)
+		if farm.has_method("_refresh_collect_icon_from_stored"):
+			farm.call("_refresh_collect_icon_from_stored")
+		if ts.has_method("_set_farm_collect_seed_granted"):
+			ts.call("_set_farm_collect_seed_granted", true)
+		if ts.has_method("try_seed_ftue_farm_collect"):
+			ts.call("try_seed_ftue_farm_collect")
+		await process_frame
 		await process_frame
 
 	var Resolver = load("res://Scripts/UI/TutorialTargetResolver.gd")
+	var collect_step := {
+		"target_type": "resource_collect_icon",
+		"target_id": "farm",
+	}
+	# city_building resolve pans to UpgradeArea (can yank camera away) — resolve it
+	# only for shape comparison, then re-resolve collect so framing stays on CollectIcon.
 	var farm_building: Dictionary = Resolver.resolve(hud, {
 		"target_type": "city_building",
 		"target_id": "farm",
 	})
-	var collect: Dictionary = Resolver.resolve(hud, {
-		"target_type": "resource_collect_icon",
-		"target_id": "farm",
-	})
+	var collect: Dictionary = Resolver.resolve(hud, collect_step)
+	collect = Resolver.resolve(hud, collect_step)
+	await process_frame
 	if not bool(collect.get("ok", false)):
 		fail.append("resource_collect_icon/farm failed to resolve")
 	else:
@@ -103,18 +116,25 @@ func _run() -> void:
 		var icon: Sprite2D = farm.get_node_or_null("CollectIcon") as Sprite2D
 		var icon_c: Vector2 = icon.get_global_transform_with_canvas().origin
 		print("[F9/COLLECT] collect rect=", crect, " building rect=", brect)
-		print("[F9/COLLECT] icon path=", icon.get_path(), " canvas=", icon_c)
+		print("[F9/COLLECT] icon path=", icon.get_path(), " canvas=", icon_c, " vis=", icon.visible)
+		if not icon.visible:
+			fail.append("CollectIcon not visible for collect step")
 		if crect.get_center().distance_to(icon_c) > 50.0:
 			fail.append("collect spotlight not centered on CollectIcon")
 		# Must not be the same as the large Farm building spotlight.
 		if crect.get_center().distance_to(brect.get_center()) < 30.0 and crect.get_area() > brect.get_area() * 0.6:
 			fail.append("collect spotlight still looks like Farm building target")
-		if not icon.visible:
-			fail.append("CollectIcon not visible for collect step")
+		if crect.get_center().y < 90.0:
+			fail.append("collect spotlight in top HUD band")
+		var vp: Vector2 = Vector2(383, 682)
+		if not Rect2(Vector2.ZERO, vp).grow(-8.0).has_point(crect.get_center()):
+			fail.append("collect spotlight off portrait viewport")
 
 	# Drive overlay to collect_resources presentation
 	ts.set("current_step_id", "collect_resources")
 	ts.emit_signal("step_changed", "collect_resources")
+	await process_frame
+	await process_frame
 	await process_frame
 	await process_frame
 
@@ -138,6 +158,8 @@ func _run() -> void:
 		print("[F9/COLLECT] overlay hole=", hg, " icon=", ic)
 		if not hg.has_point(ic) and hg.get_center().distance_to(ic) > 48.0:
 			fail.append("overlay hole not over CollectIcon")
+		if panel.get_global_rect().intersects(hg.grow(4.0)):
+			fail.append("instruction panel covers CollectIcon hole")
 
 	# Panel COLLECT path advances tutorial (same as world collect icon).
 	var before_panel: String = str(ts.get("current_step_id"))
