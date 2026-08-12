@@ -26,14 +26,21 @@ func update_level_label():
 		$LevelLabel.text = str(building_level)
 
 func save_building_level():
+	var path: String = _buildings_path()
 	var save = ConfigFile.new()
-	save.load("user://buildings.cfg")
+	save.load(path)
 	save.set_value(building_name, "level", building_level)
-	save.save("user://buildings.cfg")
+	save.save(path)
 	print("Saved Castle level: ", building_level)
 
 func load_building_level():
 	var save = ConfigFile.new()
-	if save.load("user://buildings.cfg") == OK:
+	if save.load(_buildings_path()) == OK:
 		building_level = save.get_value(building_name, "level", 1)
 		print("Loaded Castle level: ", building_level)
+
+
+func _buildings_path() -> String:
+	if has_node("/root/AccountSavePaths"):
+		return AccountSavePaths.path_for("buildings.cfg")
+	return "user://buildings.cfg"

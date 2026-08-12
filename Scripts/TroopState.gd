@@ -1069,12 +1069,12 @@ func save_troops() -> void:
 	save.set_value("training", "marksmen_source_tier", marksmen_source_tier)
 	save.set_value("training", "cavalry_source_tier", cavalry_source_tier)
 
-	save.save("user://troops.cfg")
+	save.save(get_troops_path())
 
 
 func load_troops() -> void:
 	var save: ConfigFile = ConfigFile.new()
-	if save.load("user://troops.cfg") != OK:
+	if save.load(get_troops_path()) != OK:
 		return
 
 	var legacy_inf: int = int(save.get_value("troops", "infantry", 0))
@@ -1146,3 +1146,9 @@ func load_troops() -> void:
 	infantry_source_tier = int(save.get_value("training", "infantry_source_tier", 0))
 	marksmen_source_tier = int(save.get_value("training", "marksmen_source_tier", 0))
 	cavalry_source_tier = int(save.get_value("training", "cavalry_source_tier", 0))
+
+
+func get_troops_path() -> String:
+	if has_node("/root/AccountSavePaths"):
+		return AccountSavePaths.path_for("troops.cfg")
+	return "user://troops.cfg"

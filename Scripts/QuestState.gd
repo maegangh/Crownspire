@@ -20,6 +20,13 @@ func _ready() -> void:
 		GameEvents.research_completed.connect(on_research_completed)
 		GameEvents.wildling_defeated.connect(on_wildling_defeated)
 
+
+func get_save_path() -> String:
+	if has_node("/root/AccountSavePaths"):
+		return AccountSavePaths.path_for("quests.cfg")
+	return SAVE_PATH
+
+
 func load_quest_database() -> void:
 	quests.clear()
 
@@ -230,13 +237,13 @@ func save_quests() -> void:
 			var objective: Dictionary = objectives[i]
 			cfg.set_value(quest_id, "objective_%d_current" % i, int(objective.get("current", 0)))
 
-	cfg.save(SAVE_PATH)
+	cfg.save(get_save_path())
 
 
 func load_quests() -> void:
 	var cfg: ConfigFile = ConfigFile.new()
 
-	if cfg.load(SAVE_PATH) != OK:
+	if cfg.load(get_save_path()) != OK:
 		return
 
 	for quest: Dictionary in quests:

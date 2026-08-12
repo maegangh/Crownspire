@@ -66,11 +66,34 @@ var _last_backup_queue: String = ""
 
 
 func _ready() -> void:
+	refresh_account_save_paths()
 	load_construction_state()
 	_normalize_loaded_jobs()
 	_run_phase0b1_migration_once()
 	_migrate_from_building_cfg()
 	_resolve_due_jobs()
+
+
+## Refresh buildings/queue/savegame paths from AccountSavePaths when not in Phase0B1 sandbox.
+func refresh_account_save_paths() -> void:
+	if str(_buildings_path).begins_with("user://phase0b1_test"):
+		return
+	if not has_node("/root/AccountSavePaths"):
+		_buildings_path = BUILDINGS_CFG
+		_queue_path = SAVE_PATH
+		_savegame_path = SAVEGAME_PATH
+		return
+	_buildings_path = AccountSavePaths.path_for("buildings.cfg")
+	_queue_path = AccountSavePaths.path_for("construction_queue.cfg")
+	_savegame_path = AccountSavePaths.path_for("savegame.save")
+
+
+func get_buildings_path() -> String:
+	return _buildings_path
+
+
+func get_queue_path() -> String:
+	return _queue_path
 
 
 func _process(delta: float) -> void:

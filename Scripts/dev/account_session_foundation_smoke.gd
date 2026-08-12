@@ -113,7 +113,10 @@ func _test_token_redaction(nc: Node) -> void:
 
 
 func _test_ownership_rules(identity: Node) -> void:
+	var asp: Node = root.get_node_or_null("/root/AccountSavePaths")
 	identity.call("begin_smoke_isolation")
+	if asp != null and asp.has_method("begin_smoke_isolation"):
+		asp.call("begin_smoke_isolation")
 	# Fabricate a legacy marker under smoke-only path? has_legacy_local_progression checks real user://.
 	# Ownership rules themselves are tested via claim + mismatch without needing real buildings.cfg.
 	var claim1: Dictionary = identity.call("on_authenticated", "user_aaa", "device")
@@ -140,13 +143,20 @@ func _test_ownership_rules(identity: Node) -> void:
 	_assert(bool(identity.call("has_local_save_mismatch")), "B3: mismatch flag not set")
 	_assert(str(identity.call("get_mismatch_code")) == "LOCAL_SAVE_ACCOUNT_MISMATCH", "B3: code getter")
 	_assert(str(identity.call("get_local_owner_user_id")) == "user_aaa", "B3: owner changed on mismatch")
-	_assert(not bool(identity.call("is_local_progression_safe_to_use")), "B3: safe_to_use should be false")
+	# Phase 2: own empty partition is safe; legacy handoff remains mismatched.
+	if asp != null:
+		_assert(str(asp.call("get_active_user_id")) == "user_bbb", "B3: save context not bound to bbb")
+		var b_path: String = str(asp.call("path_for", "buildings.cfg"))
+		_assert(b_path.find("user_bbb") >= 0, "B3: path not isolated to bbb: %s" % b_path)
+		_assert(b_path.find("user_aaa") < 0, "B3: path leaked aaa partition")
 	_assert(FileAccess.file_exists(marker_path), "B3: local marker deleted")
 	var after := ConfigFile.new()
 	_assert(after.load(marker_path) == OK, "B3: marker unreadable")
 	_assert(str(after.get_value("m", "v", "")) == "keep_me", "B3: marker overwritten")
 	_assert(FileAccess.get_modified_time(marker_path) == before_mtime, "B3: marker mtime changed")
 
+	if asp != null and asp.has_method("end_smoke_isolation"):
+		asp.call("end_smoke_isolation")
 	identity.call("end_smoke_isolation")
 	if FileAccess.file_exists(marker_path):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(marker_path))

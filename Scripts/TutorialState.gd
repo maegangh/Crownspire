@@ -69,6 +69,8 @@ func _ready() -> void:
 func get_save_path() -> String:
 	if _save_path_override != "":
 		return _save_path_override
+	if has_node("/root/AccountSavePaths"):
+		return AccountSavePaths.path_for("tutorial.cfg")
 	return SAVE_PATH
 
 
@@ -367,6 +369,8 @@ func get_grants_path() -> String:
 		return SMOKE_GRANTS_PATH
 	if OS.get_environment("CROWNSPIR_TUTORIAL_SMOKE") == "1":
 		return SMOKE_GRANTS_PATH
+	if has_node("/root/AccountSavePaths"):
+		return AccountSavePaths.path_for("tutorial_grants.cfg")
 	return GRANTS_PATH
 
 
@@ -645,21 +649,13 @@ func _reset_runtime_defaults() -> void:
 
 
 func _detect_existing_gameplay_saves() -> bool:
-	var paths: PackedStringArray = PackedStringArray([
-		"user://resources.cfg",
-		"user://buildings.cfg",
-		"user://troops.cfg",
-		"user://heroes.cfg",
-		"user://quests.cfg",
-		"user://research_queue.cfg",
-		"user://construction_queue.cfg",
-		"user://marches.cfg",
-		"user://alliance.cfg",
-		"user://bag.cfg",
-	])
-	for p: String in paths:
-		if FileAccess.file_exists(p):
-			return true
+	## Bound account: only the active partition decides "progress exists".
+	## Unbound: never inherit stale flat legacy as another account's progress.
+	if has_node("/root/AccountSavePaths"):
+		if AccountSavePaths.is_bound():
+			return AccountSavePaths.has_account_gameplay_progress()
+		return false
+	# Fallback without AccountSavePaths (should not happen in production boot).
 	return false
 
 

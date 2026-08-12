@@ -123,8 +123,9 @@ func spend_resources(food_cost: int, wood_cost: int, stone_cost: int, iron_cost:
 	return true
 
 func save_resources():
+	var path: String = get_resources_path()
 	var save = ConfigFile.new()
-	save.load("user://resources.cfg")
+	save.load(path)
 	save.set_value("resources", "food", food)
 	save.set_value("resources", "wood", wood)
 	save.set_value("resources", "stone", stone)
@@ -132,11 +133,11 @@ func save_resources():
 	save.set_value("resources", "diamonds", diamonds)
 	save.set_value("resources", "power", power)
 	save.set_value("resources", "vip_level", vip_level)
-	save.save("user://resources.cfg")
+	save.save(path)
 
 func load_resources():
 	var save = ConfigFile.new()
-	if save.load("user://resources.cfg") == OK:
+	if save.load(get_resources_path()) == OK:
 		food = save.get_value("resources", "food", 1000)
 		wood = save.get_value("resources", "wood", 1000)
 		stone = save.get_value("resources", "stone", 1000)
@@ -144,3 +145,9 @@ func load_resources():
 		power = save.get_value("resources", "power", 0)
 		vip_level = save.get_value("resources", "vip_level", 1)
 		diamonds = save.get_value("resources", "diamonds", 0)
+
+
+func get_resources_path() -> String:
+	if has_node("/root/AccountSavePaths"):
+		return AccountSavePaths.path_for("resources.cfg")
+	return "user://resources.cfg"

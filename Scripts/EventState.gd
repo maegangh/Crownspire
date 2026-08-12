@@ -36,6 +36,8 @@ func _process(_delta: float) -> void:
 func get_save_path() -> String:
 	if _save_path_override != "":
 		return _save_path_override
+	if has_node("/root/AccountSavePaths"):
+		return AccountSavePaths.path_for("events.cfg")
 	return SAVE_PATH
 
 

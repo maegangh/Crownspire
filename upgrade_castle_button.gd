@@ -1150,16 +1150,22 @@ func save_game():
 		
 	}
 
-	var file = FileAccess.open("user://savegame.save", FileAccess.WRITE)
+	var savegame_path: String = "user://savegame.save"
+	if has_node("/root/AccountSavePaths"):
+		savegame_path = AccountSavePaths.path_for("savegame.save")
+	var file = FileAccess.open(savegame_path, FileAccess.WRITE)
 	file.store_string(JSON.stringify(save_data))
 	file.close()
 
 
 func load_game():
-	if not FileAccess.file_exists("user://savegame.save"):
+	var savegame_path: String = "user://savegame.save"
+	if has_node("/root/AccountSavePaths"):
+		savegame_path = AccountSavePaths.path_for("savegame.save")
+	if not FileAccess.file_exists(savegame_path):
 		return
 
-	var file = FileAccess.open("user://savegame.save", FileAccess.READ)
+	var file = FileAccess.open(savegame_path, FileAccess.READ)
 	var content = file.get_as_text()
 	file.close()
 

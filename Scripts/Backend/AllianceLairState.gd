@@ -325,12 +325,12 @@ func _save_runtime() -> void:
 	cfg.set_value("meta", "schema_version", SCHEMA_VERSION)
 	cfg.set_value("state", "instances", _instances)
 	cfg.set_value("state", "reward_claims", _reward_claims)
-	cfg.save(SAVE_PATH)
+	cfg.save(_save_path())
 
 
 func _load_runtime() -> void:
 	var cfg := ConfigFile.new()
-	if cfg.load(SAVE_PATH) != OK:
+	if cfg.load(_save_path()) != OK:
 		return
 	var kid: String = str(cfg.get_value("meta", "kingdom_id", ""))
 	if kid != "" and kid != get_kingdom_id():
@@ -342,3 +342,9 @@ func _load_runtime() -> void:
 	var claims = cfg.get_value("state", "reward_claims", {})
 	if typeof(claims) == TYPE_DICTIONARY:
 		_reward_claims = claims
+
+
+func _save_path() -> String:
+	if has_node("/root/AccountSavePaths"):
+		return AccountSavePaths.path_for("alliance_lairs_runtime.cfg")
+	return SAVE_PATH

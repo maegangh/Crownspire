@@ -767,11 +767,12 @@ func save_building_level():
 		return
 	if has_node("/root/ConstructionState") and ConstructionState.has_method("normalize_building_id"):
 		id_key = ConstructionState.normalize_building_id(id_key)
+	var path: String = _buildings_cfg_path()
 	var save = ConfigFile.new()
-	save.load("user://buildings.cfg")
+	save.load(path)
 	save.set_value(id_key, "upgrading", upgrading)
 	save.set_value(id_key, "upgrade_finish_time", upgrade_finish_time)
-	save.save("user://buildings.cfg")
+	save.save(path)
 
 func load_building_level():
 	# Phase 0B2-A: completed level from ConstructionState canonical authority only.
@@ -783,12 +784,20 @@ func load_building_level():
 		building_level = 1
 	# Upgrade-job flags only (not completed level). Prefer canonical id section when present.
 	var save = ConfigFile.new()
-	if save.load("user://buildings.cfg") == OK:
+	if save.load(_buildings_cfg_path()) == OK:
 		var flag_section: String = building_name
 		if not id_key.is_empty() and save.has_section(id_key):
 			flag_section = id_key
 		upgrading = bool(save.get_value(flag_section, "upgrading", false))
 		upgrade_finish_time = int(save.get_value(flag_section, "upgrade_finish_time", 0))
+
+
+func _buildings_cfg_path() -> String:
+	if has_node("/root/ConstructionState") and ConstructionState.has_method("get_buildings_path"):
+		return str(ConstructionState.get_buildings_path())
+	if has_node("/root/AccountSavePaths"):
+		return AccountSavePaths.path_for("buildings.cfg")
+	return BUILDINGS_CFG
 
 func open_upgrade_window() -> void:
 	if building_id.is_empty():

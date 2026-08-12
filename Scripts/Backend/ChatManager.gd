@@ -37,6 +37,13 @@ const REPORTS_PATH: String = "user://chat_reports_pending.cfg"
 const DM_CONV_PATH: String = "user://dm_conversations.cfg"
 const DM_NOTIF_CODE: int = 5004
 
+
+func _account_path(file_name: String, fallback: String) -> String:
+	if has_node("/root/AccountSavePaths"):
+		return AccountSavePaths.path_for(file_name)
+	return fallback
+
+
 ## TEMPORARY local-only moderation stores. Migrate to account/backend later.
 ## Block/mute here are client filters only — not server punishment.
 

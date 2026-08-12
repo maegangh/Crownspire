@@ -125,6 +125,11 @@ func should_force_login_gate() -> bool:
 
 
 func is_local_progression_safe_to_use() -> bool:
+	## Phase 2: own partition is safe. Legacy flat handoff remains flagged via has_local_save_mismatch().
+	var asp: Node = get_node_or_null("/root/AccountSavePaths")
+	if asp != null and asp.has_method("can_load_active_partition"):
+		if bool(asp.call("is_bound")) and str(asp.call("get_active_user_id")) == _auth_user_id:
+			return true
 	return not _mismatch_active
 
 
@@ -144,6 +149,10 @@ func on_authenticated(user_id: String, auth_source: String = "device") -> Dictio
 	_auth_user_id = uid
 	_refresh_account_kind_from_nakama()
 	var ownership: Dictionary = _apply_local_ownership_rules(uid)
+	var asp: Node = get_node_or_null("/root/AccountSavePaths")
+	if asp != null and asp.has_method("open_for_authenticated_user"):
+		var save_ctx: Dictionary = asp.call("open_for_authenticated_user", uid, ownership)
+		ownership["save_context"] = save_ctx
 	account_state_changed.emit()
 	return ownership
 

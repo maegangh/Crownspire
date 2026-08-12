@@ -87,6 +87,7 @@ func set_item_count_authoritative(item_id: String, count: int) -> void:
 
 
 func save_bag() -> bool:
+	var path: String = get_save_path()
 	var save := ConfigFile.new()
 	save.set_value(META_SECTION, MIGRATE_INV_FLAG_KEY, _migrated_from_inventory)
 	save.set_value(META_SECTION, MIGRATE_SAVEGAME_FLAG_KEY, _migrated_from_savegame)
@@ -94,16 +95,16 @@ func save_bag() -> bool:
 		var count: int = int(items[item_id])
 		if count > 0:
 			save.set_value("items", str(item_id), count)
-	var err: Error = save.save(SAVE_PATH)
+	var err: Error = save.save(path)
 	if err != OK:
-		push_error("[BagState] save_bag failed path=%s err=%s" % [SAVE_PATH, str(err)])
+		push_error("[BagState] save_bag failed path=%s err=%s" % [path, str(err)])
 		return false
 	return true
 
 
 func load_bag() -> void:
 	var save := ConfigFile.new()
-	if save.load(SAVE_PATH) != OK:
+	if save.load(get_save_path()) != OK:
 		items.clear()
 		_migrated_from_inventory = false
 		_migrated_from_savegame = false
@@ -116,6 +117,12 @@ func load_bag() -> void:
 			var count: int = int(save.get_value("items", item_id, 0))
 			if count > 0:
 				items[str(item_id)] = count
+
+
+func get_save_path() -> String:
+	if has_node("/root/AccountSavePaths"):
+		return AccountSavePaths.path_for("bag.cfg")
+	return SAVE_PATH
 
 
 func has_completed_savegame_inventory_migration() -> bool:

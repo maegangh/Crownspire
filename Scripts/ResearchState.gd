@@ -281,9 +281,16 @@ func _find_job_index(research_id: String) -> int:
 
 # --- Save / load --------------------------------------------------------------
 
+func get_save_path() -> String:
+	if has_node("/root/AccountSavePaths"):
+		return AccountSavePaths.path_for("research_queue.cfg")
+	return SAVE_PATH
+
+
 func save_research_state() -> void:
+	var path: String = get_save_path()
 	var cfg := ConfigFile.new()
-	cfg.load(SAVE_PATH)
+	cfg.load(path)
 	cfg.set_value("meta", "permanent_secondary_research_queue", permanent_secondary_research_queue)
 	# Keep legacy key in sync for older readers.
 	cfg.set_value("meta", "secondary_research_queue_owned", permanent_secondary_research_queue)
@@ -292,12 +299,12 @@ func save_research_state() -> void:
 	cfg.set_value("meta", "military_research_level", military_research_level)
 	cfg.set_value("levels", "json", JSON.stringify(research_levels))
 	cfg.set_value("jobs", "json", JSON.stringify(active_jobs))
-	cfg.save(SAVE_PATH)
+	cfg.save(path)
 
 
 func load_research_state() -> void:
 	var cfg := ConfigFile.new()
-	if cfg.load(SAVE_PATH) != OK:
+	if cfg.load(get_save_path()) != OK:
 		return
 	permanent_secondary_research_queue = bool(cfg.get_value(
 		"meta",
