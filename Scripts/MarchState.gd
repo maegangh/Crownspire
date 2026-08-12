@@ -429,7 +429,7 @@ func _tick_marches() -> void:
 		var mtype: String = str(march.get("march_type", ""))
 		match status:
 			STATUS_MARCHING:
-				_update_visual_progress(march, now_f)
+				# Arrive first so GATHERING/IN_COMBAT visuals never redraw an outbound route.
 				if now >= int(march.get("arrival_timestamp", 0)):
 					if mtype == "gather":
 						_begin_gathering(march)
@@ -440,8 +440,11 @@ func _tick_marches() -> void:
 					else:
 						# Wildling / combat marches: present arrival attack, then resolve once.
 						_begin_combat_presentation(march)
+					_update_visual_progress(march, now_f)
 					active_marches[i] = march
 					changed = true
+				else:
+					_update_visual_progress(march, now_f)
 			STATUS_IN_COMBAT:
 				_update_visual_progress(march, now_f)
 				if mtype == "join_rally" and bool(march.get("rally_waiting_result", false)):
@@ -747,11 +750,14 @@ func _begin_return_at(march: Dictionary, start_unix: int) -> void:
 	)
 	var return_heroes: Array = march.get("hero_ids", []) as Array
 	var travel_sec: int = estimate_travel_seconds(cur_pos, start_pos, return_heroes)
+	_clear_gather_indicator(str(march.get("march_id", "")))
 	march["status"] = STATUS_RETURNING
 	march["departure_timestamp"] = start_unix
 	march["arrival_timestamp"] = start_unix # outbound complete
 	march["return_arrival_timestamp"] = start_unix + travel_sec
-	_update_march_route_visual(march) # return route: target → city
+	# Recreate troop marker at the tile and draw return route immediately.
+	_ensure_visual(march)
+	_update_visual_progress(march, float(start_unix))
 
 
 ## Player recall for gather marches (outbound travel or active gathering).
@@ -892,7 +898,16 @@ func _begin_gathering(march: Dictionary) -> void:
 	march["status"] = STATUS_GATHERING
 	march["gather_started_unix"] = arrival
 	march["gather_end_unix"] = arrival + gather_sec
+	var mid: String = str(march.get("march_id", ""))
+	_destroy_march_marker(mid) # leave the tile clear; GATHER badge only
+	_destroy_route_line(mid)
 	_update_march_route_visual(march) # remove outbound path while stationary gathering
+	var tile_pos: Vector2 = Vector2(
+		float(march.get("target_position", {}).get("x", 0)),
+		float(march.get("target_position", {}).get("y", 0))
+	)
+	_ensure_gather_indicator(march, tile_pos)
+	_update_gather_indicator(mid, float(arrival))
 	# Tile amount is reduced on gather complete; GameState credit only on home return.
 	if has_node("/root/GameEvents"):
 		GameEvents.emit_gathering_started(gather_rtype)
@@ -1139,12 +1154,23 @@ func _find_node_by_instance_id(root: Node, want_id: int) -> Node2D:
 # --- Visuals ---
 
 func _sync_visuals() -> void:
+	var now: float = Time.get_unix_time_from_system()
 	for march: Dictionary in active_marches:
 		var status: String = str(march.get("status", ""))
-		if status in [STATUS_MARCHING, STATUS_RETURNING, STATUS_IN_COMBAT, STATUS_GATHERING]:
+		if status == STATUS_GATHERING:
+			# No troop marker / route while gathering — only the GATHER timer badge.
+			_destroy_march_marker(str(march.get("march_id", "")))
+			_update_march_route_visual(march)
+			var target_pos: Vector2 = Vector2(
+				float(march.get("target_position", {}).get("x", 0)),
+				float(march.get("target_position", {}).get("y", 0))
+			)
+			_ensure_gather_indicator(march, target_pos)
+			_update_gather_indicator(str(march.get("march_id", "")), now)
+		elif status in [STATUS_MARCHING, STATUS_RETURNING, STATUS_IN_COMBAT]:
 			_ensure_visual(march)
 			_update_march_route_visual(march)
-			_update_visual_progress(march, Time.get_unix_time_from_system())
+			_update_visual_progress(march, now)
 
 
 ## True only for KingdomMap / WorldRoot — march icons must not parent under City.
@@ -1221,6 +1247,10 @@ func _forget_dead_map_visuals() -> void:
 func _ensure_visual(march: Dictionary) -> void:
 	var march_id: String = str(march.get("march_id", ""))
 	if march_id == "":
+		return
+	# Gathering parks no troop marker on the tile — only the GATHER badge.
+	if str(march.get("status", "")) == STATUS_GATHERING:
+		_destroy_march_marker(march_id)
 		return
 	if _get_visual(march_id) != null:
 		_update_march_route_visual(march)
@@ -1333,12 +1363,44 @@ func _compute_march_world_position(march: Dictionary, now: float) -> Vector2:
 func _destroy_visual(march_id: String) -> void:
 	_clear_gather_indicator(march_id)
 	_destroy_route_line(march_id)
-	if not _visuals.has(march_id):
+	_destroy_march_marker(march_id)
+
+
+## Hide/free the troop marker for one march ID only. Does not touch gather badges or routes.
+func _destroy_march_marker(march_id: String) -> void:
+	var mid: String = march_id.strip_edges()
+	if mid == "":
 		return
-	var ref: Variant = _visuals[march_id]
-	_visuals.erase(march_id)
-	if is_instance_valid(ref):
-		(ref as Node).queue_free()
+	if _visuals.has(mid):
+		var ref: Variant = _visuals[mid]
+		_visuals.erase(mid)
+		if is_instance_valid(ref):
+			var node: Node = ref as Node
+			# Hide immediately — queue_free is deferred one frame.
+			if node is CanvasItem:
+				(node as CanvasItem).visible = false
+			node.queue_free()
+	_destroy_orphaned_march_marker(mid)
+
+
+func _destroy_orphaned_march_marker(march_id: String) -> void:
+	var mid: String = march_id.strip_edges()
+	if mid == "":
+		return
+	var root: Node2D = _get_marches_root()
+	if root == null:
+		return
+	# Markers are named exactly <march_id> (not Route_* / GatherIndicator_*).
+	for child: Node in root.get_children():
+		if child == null or not is_instance_valid(child):
+			continue
+		if str(child.name) != mid:
+			continue
+		if child is CanvasItem:
+			(child as CanvasItem).visible = false
+		if _visuals.has(mid) and _visuals[mid] == child:
+			_visuals.erase(mid)
+		child.queue_free()
 
 
 func _get_route_line(march_id: String) -> Node2D:
@@ -1401,12 +1463,41 @@ func _update_march_route_visual(march: Dictionary) -> void:
 
 
 func _destroy_route_line(march_id: String) -> void:
-	if not _route_lines.has(march_id):
+	var mid: String = march_id.strip_edges()
+	if mid == "":
 		return
-	var ref: Variant = _route_lines[march_id]
-	_route_lines.erase(march_id)
-	if is_instance_valid(ref):
-		(ref as Node).queue_free()
+	if _route_lines.has(mid):
+		var ref: Variant = _route_lines[mid]
+		_route_lines.erase(mid)
+		if is_instance_valid(ref):
+			var node: Node = ref as Node
+			# Hide immediately — queue_free is deferred one frame.
+			if node is CanvasItem:
+				(node as CanvasItem).visible = false
+			node.queue_free()
+	# Narrow orphan sweep: only Route_<this march_id> under the live Marches root.
+	_destroy_orphaned_route_node(mid)
+
+
+func _destroy_orphaned_route_node(march_id: String) -> void:
+	var mid: String = march_id.strip_edges()
+	if mid == "":
+		return
+	var root: Node2D = _get_marches_root()
+	if root == null:
+		return
+	var want_name: String = "Route_%s" % mid
+	for child: Node in root.get_children():
+		if child == null or not is_instance_valid(child):
+			continue
+		if str(child.name) != want_name:
+			continue
+		if child is CanvasItem:
+			(child as CanvasItem).visible = false
+		# Drop cache if it still pointed here.
+		if _route_lines.has(mid) and _route_lines[mid] == child:
+			_route_lines.erase(mid)
+		child.queue_free()
 
 
 func _update_visual_progress(march: Dictionary, now: float) -> void:
@@ -1417,12 +1508,6 @@ func _update_visual_progress(march: Dictionary, now: float) -> void:
 	if _get_marches_root() == null:
 		_forget_dead_map_visuals()
 		return
-	var icon: Node2D = _get_visual(march_id)
-	if icon == null:
-		_ensure_visual(march)
-		icon = _get_visual(march_id)
-		if icon == null:
-			return
 
 	var start_pos: Vector2 = Vector2(
 		float(march.get("start_position", {}).get("x", 0)),
@@ -1433,6 +1518,21 @@ func _update_visual_progress(march: Dictionary, now: float) -> void:
 		float(march.get("target_position", {}).get("y", 0))
 	)
 	var status: String = str(march.get("status", ""))
+	if status == STATUS_GATHERING:
+		# No troop marker over the tile — GATHER timer + tile occupation only.
+		_destroy_march_marker(march_id)
+		_ensure_gather_indicator(march, target_pos)
+		_update_gather_indicator(march_id, now)
+		_update_march_route_visual(march) # removes outbound route while stationary
+		return
+
+	var icon: Node2D = _get_visual(march_id)
+	if icon == null:
+		_ensure_visual(march)
+		icon = _get_visual(march_id)
+		if icon == null:
+			return
+
 	var from_pos: Vector2
 	var to_pos: Vector2
 	var t0: float
@@ -1445,15 +1545,6 @@ func _update_visual_progress(march: Dictionary, now: float) -> void:
 		to_pos = start_pos
 		t0 = float(march.get("departure_timestamp", now))
 		t1 = float(march.get("return_arrival_timestamp", now + 1))
-	elif status == STATUS_GATHERING:
-		# Hide walking march; show compact tile indicator + timer instead.
-		icon.visible = false
-		icon.scale = Vector2.ONE
-		icon.global_position = target_pos
-		_ensure_gather_indicator(march, target_pos)
-		_update_gather_indicator(march_id, now)
-		_update_march_route_visual(march) # removes outbound route while stationary
-		return
 	elif status == STATUS_IN_COMBAT:
 		_clear_gather_indicator(march_id)
 		icon.visible = true
@@ -2371,6 +2462,7 @@ func _run_route_intent_smoke() -> bool:
 
 
 ## Route exists only while moving (outbound/return); never while GATHERING/IN_COMBAT.
+## Troop marker is hidden during GATHERING and restored on RETURNING.
 func _run_route_lifecycle_smoke() -> bool:
 	var root: Node2D = _get_marches_root()
 	if root == null:
@@ -2386,30 +2478,105 @@ func _run_route_lifecycle_smoke() -> bool:
 		"departure_timestamp": int(Time.get_unix_time_from_system()) - 5,
 		"arrival_timestamp": int(Time.get_unix_time_from_system()) + 30,
 	}
+	_ensure_visual(march)
 	_update_march_route_visual(march)
+	if _get_visual(mid) == null:
+		push_error("[MarchState] smoke: outbound MARCHING must create marker")
+		return false
 	if _get_route_line(mid) == null:
 		push_error("[MarchState] smoke: outbound MARCHING must create route")
 		return false
 	march["status"] = STATUS_GATHERING
-	_update_march_route_visual(march)
+	march["gather_end_unix"] = int(Time.get_unix_time_from_system()) + 30
+	_update_visual_progress(march, Time.get_unix_time_from_system())
+	if not _is_march_marker_absent(mid, root):
+		push_error("[MarchState] smoke: GATHERING must remove marker")
+		_destroy_march_marker(mid)
+		_destroy_route_line(mid)
+		return false
 	if _get_route_line(mid) != null:
 		push_error("[MarchState] smoke: GATHERING must remove route")
 		_destroy_route_line(mid)
 		return false
+	if _get_gather_indicator(mid) == null:
+		push_error("[MarchState] smoke: GATHERING must keep gather timer badge")
+		return false
+	# Simulate World reload/resync during gathering — marker must stay absent.
+	var bak_marches: Array[Dictionary] = active_marches.duplicate(true)
+	active_marches = [march]
+	resync_map_visuals()
+	if not _is_march_marker_absent(mid, root):
+		active_marches = bak_marches
+		push_error("[MarchState] smoke: resync must not recreate marker while GATHERING")
+		_destroy_march_marker(mid)
+		return false
+	if _get_gather_indicator(mid) == null:
+		active_marches = bak_marches
+		push_error("[MarchState] smoke: resync must restore gather timer while GATHERING")
+		return false
+	if _get_route_line(mid) != null:
+		active_marches = bak_marches
+		push_error("[MarchState] smoke: resync must not restore route while GATHERING")
+		_destroy_route_line(mid)
+		return false
+	active_marches = bak_marches
 	march["status"] = STATUS_RETURNING
-	_update_march_route_visual(march)
+	march["departure_timestamp"] = int(Time.get_unix_time_from_system())
+	march["return_arrival_timestamp"] = int(Time.get_unix_time_from_system()) + 30
+	_begin_return_at(march, int(march.get("departure_timestamp", 0)))
+	if _get_visual(mid) == null:
+		push_error("[MarchState] smoke: RETURNING must recreate marker")
+		return false
 	if _get_route_line(mid) == null:
 		push_error("[MarchState] smoke: RETURNING must create route")
 		return false
+	# Resync during return restores marker + route.
+	bak_marches = active_marches.duplicate(true)
+	active_marches = [march]
+	resync_map_visuals()
+	if _get_visual(mid) == null or _get_route_line(mid) == null:
+		active_marches = bak_marches
+		push_error("[MarchState] smoke: resync RETURNING must restore marker+route")
+		return false
+	active_marches = bak_marches
 	march["status"] = STATUS_IN_COMBAT
-	_update_march_route_visual(march)
+	_update_visual_progress(march, Time.get_unix_time_from_system())
+	if _get_visual(mid) == null:
+		push_error("[MarchState] smoke: IN_COMBAT must keep combat marker")
+		_destroy_route_line(mid)
+		return false
 	if _get_route_line(mid) != null:
 		push_error("[MarchState] smoke: IN_COMBAT must remove route")
 		_destroy_route_line(mid)
 		return false
+	# Scoped orphan cleanup must not touch other march markers.
+	var other: String = "__smoke_other_marker__"
+	var keep := Node2D.new()
+	keep.name = other
+	root.add_child(keep)
+	_destroy_march_marker(mid)
+	if root.get_node_or_null(other) == null:
+		push_error("[MarchState] smoke: marker destroy removed another march")
+		return false
+	keep.queue_free()
+	_clear_gather_indicator(mid)
 	_destroy_route_line(mid)
 	print("[MarchState] route lifecycle smoke PASSED")
 	return true
+
+
+## Marker is absent when cache is clear and any deferred free node is already hidden.
+func _is_march_marker_absent(march_id: String, root: Node2D) -> bool:
+	if _get_visual(march_id) != null:
+		return false
+	if root == null:
+		return true
+	var node: Node = root.get_node_or_null(march_id)
+	if node == null:
+		return true
+	if node is CanvasItem and not (node as CanvasItem).visible:
+		return true
+	return false
 
 
 ## Force arrival presentation + single combat resolve (no real-time wait).
