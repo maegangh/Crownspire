@@ -703,8 +703,24 @@ func _max_for_mode() -> int:
 
 
 func _select_default_amount() -> void:
+	## FTUE troop-training steps only: start at 1 so the wallet is not drained before research.
+	if _should_ftue_default_train_one():
+		var cap: int = maxi(0, _max_for_mode())
+		_amount = 1 if cap >= 1 else 0
+		return
 	## Open / tier / mode: select max actually affordable (never over capacity).
 	_amount = maxi(0, _max_for_mode())
+
+
+func _should_ftue_default_train_one() -> bool:
+	if _mode != "train":
+		return false
+	if not has_node("/root/TutorialState"):
+		return false
+	if not TutorialState.is_ftue_active():
+		return false
+	var sid: String = str(TutorialState.get_current_step_id())
+	return sid in ["open_troop_training", "start_troop_training"]
 
 
 func _clamp_amount() -> void:

@@ -200,7 +200,39 @@ func open_research() -> void:
 	if academy_level_badge:
 		academy_level_badge.text = "Hall Lv %d" % _get_canonical_academy_level()
 	_setup_mobile_shell()
-	_mobile_show_home()
+	if _should_focus_ftue_research():
+		var rid: String = "econ_food_prod_1"
+		if has_node("/root/TutorialState"):
+			rid = str(TutorialState.FTUE_RESEARCH_ID)
+		focus_tutorial_research(rid)
+	else:
+		_mobile_show_home()
+
+
+## FTUE: jump straight to the taught research so the player need not hunt the tree.
+func focus_tutorial_research(research_id: String = "econ_food_prod_1") -> void:
+	var rid: String = research_id.strip_edges()
+	if rid.is_empty():
+		rid = "econ_food_prod_1"
+	var node: Dictionary = _find_node_in_db(rid)
+	if node.is_empty():
+		_mobile_show_home()
+		return
+	active_category = _canon_category_title(str(node.get("category", "Economy")))
+	selected_node_id = rid
+	_rebuild_tech_tree()
+	_populate_inspect_card(rid)
+	_mobile_show_detail(rid)
+	_update_resources_display()
+
+
+func _should_focus_ftue_research() -> bool:
+	if not has_node("/root/TutorialState"):
+		return false
+	if not TutorialState.is_ftue_active():
+		return false
+	var sid: String = str(TutorialState.get_current_step_id())
+	return sid in ["open_research", "start_research", "complete_research"]
 
 
 ## Fit MainPanel inside 720×1280 with HUD-safe margins (portrait).

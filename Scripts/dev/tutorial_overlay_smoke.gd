@@ -1,6 +1,6 @@
 extends SceneTree
 
-## Isolated TutorialOverlay smoke (does not touch user://tutorial.cfg).
+## Isolated TutorialOverlay smoke (Citadel-first FTUE; does not touch user://tutorial.cfg).
 ##   $env:CROWNSPIR_TUTORIAL_SMOKE="1"
 ##   Godot --headless --path <project> -s res://Scripts/dev/tutorial_overlay_smoke.gd
 
@@ -10,6 +10,16 @@ var _fail: Array[String] = []
 func _initialize() -> void:
 	print("[TUTORIAL UI SMOKE] start")
 	call_deferred("_run")
+
+
+func _ensure_citadel_l1_for_citadel_steps() -> void:
+	var cs: Node = root.get_node_or_null("/root/ConstructionState")
+	if cs == null:
+		return
+	if not cs.has_method("get_canonical_building_level") or not cs.has_method("debug_reset_citadel_for_ftue_retest"):
+		return
+	if int(cs.call("get_canonical_building_level", "castle")) >= 2:
+		cs.call("debug_reset_citadel_for_ftue_retest")
 
 
 func _run() -> void:
@@ -28,6 +38,8 @@ func _run() -> void:
 	# Let GameHUD + TutorialOverlay bootstrap.
 	for _i in 8:
 		await process_frame
+
+	_ensure_citadel_l1_for_citadel_steps()
 
 	var hud: Node = root.find_child("GameHUD", true, false)
 	_assert(hud != null, "GameHUD missing")
@@ -53,35 +65,47 @@ func _run() -> void:
 	var title: Label = overlay.find_child("StepTitle", true, false) as Label
 	_assert(title != null and title.text.contains("CROWNSPIRE"), "A: welcome title missing")
 
-	# Continue advances once
+	# Continue advances once → Citadel select (L1 path enforced above).
 	var cont: Button = overlay.find_child("ContinueButton", true, false) as Button
 	_assert(cont != null, "A: Continue missing")
 	if cont != null:
 		cont.pressed.emit()
 	await process_frame
-	_assert(str(ts.call("get_current_step_id")) == "select_building", "A: continue did not advance")
+	await process_frame
+	var step_after_intro: String = str(ts.call("get_current_step_id"))
+	_assert(step_after_intro == "select_building", "A: continue did not advance to select_building (got %s)" % step_after_intro)
+	var citadel_step: Dictionary = ts.call("get_current_step")
+	_assert(str(citadel_step.get("target_id", "")) == "castle", "A: select_building must target castle")
 
-	# B — highlight farm target (action step)
+	# B — highlight Citadel target (action step)
 	await process_frame
 	_assert(bool(overlay.visible), "B: overlay hidden on action step")
 	var hl: Panel = overlay.find_child("HighlightHole", true, false) as Panel
 	_assert(hl != null, "B: highlight missing")
-	# Farm should resolve in City
-	if hl != null:
-		_assert(hl.visible or true, "B: highlight visibility note")
+	if hl != null and hl.visible:
+		var hg: Rect2 = hl.get_global_rect()
+		# Citadel spotlight must not sit on profile/avatar band.
+		if hg.get_center().y < 120.0 and hg.get_center().x < 160.0:
+			_fail.append("B: citadel highlight still near top-left profile: %s" % str(hg))
 
-	# Wrong event does not advance (TutorialState)
+	# Wrong event does not advance (Farm must not satisfy Citadel step).
 	var ge: Node = root.get_node_or_null("/root/GameEvents")
 	var step_before: String = str(ts.call("get_current_step_id"))
 	if ge != null:
+		ge.call("emit_building_selected", "farm")
+	await process_frame
+	_assert(str(ts.call("get_current_step_id")) == step_before, "B: farm select advanced citadel step")
+	if ge != null:
 		ge.call("emit_research_completed", "econ_food_prod_1")
 	await process_frame
-	_assert(str(ts.call("get_current_step_id")) == step_before, "B: wrong event advanced")
+	_assert(str(ts.call("get_current_step_id")) == step_before, "B: wrong research event advanced")
 
-	# C — persistence
-	ge.call("emit_building_selected", "farm")
+	# C — persistence via correct Citadel selection
+	if ge != null:
+		ge.call("emit_building_selected", "castle")
 	await process_frame
 	var mid: String = str(ts.call("get_current_step_id"))
+	_assert(mid == "start_building_upgrade", "C: castle select should reach start_building_upgrade")
 	ts.call("save_tutorial_state")
 	ts.set("current_step_id", "")
 	ts.set("ftue_started", false)

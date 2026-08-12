@@ -164,12 +164,19 @@ func on_wildling_defeated(_wildling_id: String = "") -> void:
 	_add_objective_progress("wildling", 1)
 
 
-func on_building_upgraded(_building_id: String, level: int) -> void:
+func on_building_upgraded(building_id: String, level: int) -> void:
+	## GameEvents.building_upgraded(building_id, level) — first arg is the upgraded building.
+	var upgraded_id: String = str(building_id).strip_edges().to_lower()
 	for quest: Dictionary in quests:
 		for objective: Dictionary in quest.get("objectives", []):
-			if str(objective.get("type", "")) == "building":
-				var target: int = int(objective.get("target", 1))
-				objective["current"] = min(max(int(objective.get("current", 0)), level), target)
+			if str(objective.get("type", "")) != "building":
+				continue
+			var required_building: String = str(objective.get("building_id", "")).strip_edges().to_lower()
+			# Objectives with building_id only advance for that building; others keep legacy behavior.
+			if not required_building.is_empty() and required_building != upgraded_id:
+				continue
+			var target: int = int(objective.get("target", 1))
+			objective["current"] = min(max(int(objective.get("current", 0)), level), target)
 
 		_update_completion(quest)
 

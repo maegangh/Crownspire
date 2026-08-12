@@ -117,6 +117,17 @@ func _run() -> void:
 	ts.emit_signal("step_changed", "collect_resources")
 	await process_frame
 	await process_frame
+
+	# COLLECT button must appear inside the tutorial panel (Phase 1A fix).
+	if not cont.visible:
+		fail.append("COLLECT button not visible on collect_resources step")
+	elif cont.text != "COLLECT":
+		fail.append("collect button text expected COLLECT got '%s'" % cont.text)
+	elif cont.disabled or cont.mouse_filter != Control.MOUSE_FILTER_STOP:
+		fail.append("COLLECT button not interactive")
+	else:
+		print("[F9/COLLECT] COLLECT btn ok text=", cont.text, " panel_h=", panel.size.y)
+
 	var hole: Panel = overlay.find_child("HighlightHole", true, false) as Panel
 	if hole == null or not hole.visible:
 		fail.append("collect step highlight missing")
@@ -128,7 +139,20 @@ func _run() -> void:
 		if not hg.has_point(ic) and hg.get_center().distance_to(ic) > 48.0:
 			fail.append("overlay hole not over CollectIcon")
 
-	# Real event path advances tutorial
+	# Panel COLLECT path advances tutorial (same as world collect icon).
+	var before_panel: String = str(ts.get("current_step_id"))
+	overlay.call("_trigger_tutorial_resource_collect", "farm")
+	await process_frame
+	await process_frame
+	var after_panel: String = str(ts.get("current_step_id"))
+	print("[F9/COLLECT] panel COLLECT step ", before_panel, " → ", after_panel)
+	if before_panel == "collect_resources" and after_panel == "collect_resources":
+		fail.append("tutorial did not advance on panel COLLECT")
+
+	# Real event path advances tutorial (world icon / GameEvents).
+	ts.set("current_step_id", "collect_resources")
+	ts.emit_signal("step_changed", "collect_resources")
+	await process_frame
 	var ge: Node = root.get_node_or_null("/root/GameEvents")
 	var before: String = str(ts.get("current_step_id"))
 	if ge != null:

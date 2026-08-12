@@ -8,6 +8,16 @@ const CityGestureUtil = preload("res://Scripts/City/CityGesture.gd")
 const BuildingNameplateUtil = preload("res://Scripts/City/BuildingNameplate.gd")
 const BuildingActionPopupScript = preload("res://Scripts/UI/BuildingActionPopup.gd")
 
+const BUILDINGS_CFG := "user://buildings.cfg"
+
+## Beta city production defaults (no prior economy table existed for CollectIcon).
+const BETA_BASE_CAPACITY: int = 200
+const BETA_CAPACITY_PER_LEVEL: int = 100
+const BETA_BASE_RATE_PER_SEC: float = 1.0
+const COLLECT_VISIBLE_CAPACITY_FRAC: float = 0.25
+const COLLECT_VISIBLE_MIN_STORED: int = 50
+const COLLECT_NEAR_FULL_FRAC: float = 0.95
+
 @export var building_level: int = 1
 @export var building_name: String = "Farm"
 @export var ready_to_collect: bool = true
@@ -19,11 +29,18 @@ const BuildingActionPopupScript = preload("res://Scripts/UI/BuildingActionPopup.
 var upgrading := false
 var upgrade_finish_time := 0
 
+## Lightweight stored production (persisted under building_id in buildings.cfg).
+var _prod_stored: float = 0.0
+var _prod_last_unix: int = 0
+var _prod_tick_accum: float = 0.0
+
 func _ready():
 	load_building_level()
 	check_upgrade_finished()
 	update_level_label()
-	set_ready_to_collect(ready_to_collect)
+	_load_production_state()
+	_apply_production_elapsed()
+	_refresh_collect_icon_from_stored()
 	_ignore_decor_controls()
 
 	if has_node("ClickArea"):
@@ -57,8 +74,17 @@ func _ignore_controls_recursive(node: Node) -> void:
 			_ignore_controls_recursive(child)
 
 
-func _process(_delta):
+func _process(delta: float) -> void:
 	check_upgrade_finished()
+	if not _is_resource_producer():
+		return
+	_prod_tick_accum += delta
+	if _prod_tick_accum < 1.0:
+		return
+	_prod_tick_accum = 0.0
+	_apply_production_elapsed()
+	_refresh_collect_icon_from_stored()
+
 
 func set_ready_to_collect(is_ready: bool):
 	ready_to_collect = is_ready
@@ -114,30 +140,225 @@ func _on_upgrade_area_input_event(_viewport, event, _shape_idx):
 
 
 func _on_collect_tap() -> void:
-	if not ready_to_collect:
+	if not _is_resource_producer():
 		return
-	var collected_type: String = ""
-	if building_name == "Farm":
-		GameState.add_food(collect_amount)
-		collected_type = "food"
-	elif building_name == "LumberMill":
-		GameState.add_wood(collect_amount)
-		collected_type = "wood"
-	elif building_name == "Quarry":
-		GameState.add_stone(collect_amount)
-		collected_type = "stone"
-	elif building_name == "IronMine":
-		GameState.add_iron(collect_amount)
-		collected_type = "iron"
-	else:
+	_apply_production_elapsed()
+	if not _meets_collect_visibility_threshold():
+		_refresh_collect_icon_from_stored()
+		return
+	var amount: int = get_stored_amount_int()
+	if amount <= 0:
+		_refresh_collect_icon_from_stored()
+		return
+	var collected_type: String = get_resource_type()
+	if collected_type.is_empty():
 		return
 
+	match collected_type:
+		"food":
+			GameState.add_food(amount)
+		"wood":
+			GameState.add_wood(amount)
+		"stone":
+			GameState.add_stone(amount)
+		"iron":
+			GameState.add_iron(amount)
+		_:
+			return
+
+	_prod_stored = 0.0
+	_prod_last_unix = int(Time.get_unix_time_from_system())
+	_save_production_state()
 	set_ready_to_collect(false)
-	if has_node("/root/GameEvents") and not collected_type.is_empty():
-		GameEvents.emit_resource_collected(collected_type, collect_amount)
-	get_tree().create_timer(5.0).timeout.connect(func():
-		set_ready_to_collect(true)
-	)
+	_refresh_collect_icon_from_stored()
+	# Keep collect_amount in sync for any UI that still reads the export.
+	collect_amount = amount
+	if has_node("/root/GameEvents"):
+		GameEvents.emit_resource_collected(collected_type, amount)
+
+
+func _is_resource_producer() -> bool:
+	return not get_resource_type().is_empty()
+
+
+func get_resource_type() -> String:
+	var id_key: String = _canonical_building_id()
+	match id_key:
+		"farm":
+			return "food"
+		"lumber_mill":
+			return "wood"
+		"quarry":
+			return "stone"
+		"iron_mine":
+			return "iron"
+	match building_name.strip_edges():
+		"Farm":
+			return "food"
+		"LumberMill":
+			return "wood"
+		"Quarry":
+			return "stone"
+		"IronMine":
+			return "iron"
+	return ""
+
+
+func _canonical_building_id() -> String:
+	var id_key: String = building_id.strip_edges()
+	if id_key.is_empty():
+		return ""
+	if has_node("/root/ConstructionState") and ConstructionState.has_method("normalize_building_id"):
+		return ConstructionState.normalize_building_id(id_key)
+	return id_key.to_lower()
+
+
+func get_storage_capacity() -> int:
+	var lvl: int = maxi(1, building_level)
+	return maxi(COLLECT_VISIBLE_MIN_STORED, BETA_BASE_CAPACITY + (lvl - 1) * BETA_CAPACITY_PER_LEVEL)
+
+
+func get_production_rate_per_sec() -> float:
+	var lvl: int = maxi(1, building_level)
+	return maxf(0.001, BETA_BASE_RATE_PER_SEC * float(lvl))
+
+
+func get_stored_amount_int() -> int:
+	return maxi(0, int(floor(_prod_stored)))
+
+
+func get_collect_visibility_threshold() -> int:
+	var cap: int = get_storage_capacity()
+	return maxi(COLLECT_VISIBLE_MIN_STORED, int(ceil(float(cap) * COLLECT_VISIBLE_CAPACITY_FRAC)))
+
+
+func _meets_collect_visibility_threshold() -> bool:
+	var stored: int = get_stored_amount_int()
+	if stored <= 0:
+		return false
+	var cap: int = get_storage_capacity()
+	if stored >= get_collect_visibility_threshold():
+		return true
+	if stored >= int(ceil(float(cap) * COLLECT_NEAR_FULL_FRAC)):
+		return true
+	return false
+
+
+func _refresh_collect_icon_from_stored() -> void:
+	if not _is_resource_producer():
+		return
+	set_ready_to_collect(_meets_collect_visibility_threshold())
+
+
+func _apply_production_elapsed() -> void:
+	if not _is_resource_producer():
+		return
+	var now: int = int(Time.get_unix_time_from_system())
+	if _prod_last_unix <= 0:
+		_prod_last_unix = now
+		_save_production_state()
+		return
+	var elapsed: int = now - _prod_last_unix
+	if elapsed <= 0:
+		return
+	var cap: float = float(get_storage_capacity())
+	var rate: float = get_production_rate_per_sec()
+	var before: float = _prod_stored
+	_prod_stored = minf(cap, _prod_stored + rate * float(elapsed))
+	_prod_last_unix = now
+	if absf(_prod_stored - before) >= 0.01:
+		_save_production_state()
+
+
+func _load_production_state() -> void:
+	if not _is_resource_producer():
+		return
+	var id_key: String = _canonical_building_id()
+	var now: int = int(Time.get_unix_time_from_system())
+	_prod_stored = 0.0
+	_prod_last_unix = now
+	if id_key.is_empty():
+		return
+	var save := ConfigFile.new()
+	if save.load(BUILDINGS_CFG) != OK:
+		return
+	if not save.has_section(id_key):
+		return
+	var stored_v: Variant = save.get_value(id_key, "prod_stored", 0)
+	var last_v: Variant = save.get_value(id_key, "prod_last_unix", now)
+	var stored_f: float = 0.0
+	if typeof(stored_v) == TYPE_FLOAT or typeof(stored_v) == TYPE_INT:
+		stored_f = float(stored_v)
+	elif typeof(stored_v) == TYPE_STRING and str(stored_v).is_valid_float():
+		stored_f = float(stored_v)
+	var last_i: int = now
+	if typeof(last_v) == TYPE_INT or typeof(last_v) == TYPE_FLOAT:
+		last_i = int(last_v)
+	elif typeof(last_v) == TYPE_STRING and str(last_v).is_valid_int():
+		last_i = int(last_v)
+	if last_i <= 0 or last_i > now + 3600:
+		last_i = now
+	_prod_stored = clampf(stored_f, 0.0, float(get_storage_capacity()))
+	_prod_last_unix = last_i
+
+
+func _save_production_state() -> void:
+	if not _is_resource_producer():
+		return
+	var id_key: String = _canonical_building_id()
+	if id_key.is_empty():
+		return
+	var save := ConfigFile.new()
+	save.load(BUILDINGS_CFG)
+	# Preserve unrelated keys in this section (upgrading flags, levels owned by ConstructionState).
+	save.set_value(id_key, "prod_stored", _prod_stored)
+	save.set_value(id_key, "prod_last_unix", _prod_last_unix)
+	var err: Error = save.save(BUILDINGS_CFG)
+	if err != OK:
+		push_warning("ResourceManager: failed to save production for %s (err=%d)" % [id_key, err])
+
+
+## Idempotent FTUE helper: raise Farm stored to the collect threshold once.
+func seed_ftue_collect_threshold() -> Dictionary:
+	if _canonical_building_id() != "farm":
+		return {"ok": false, "reason": "not_farm"}
+	_apply_production_elapsed()
+	var need: int = get_collect_visibility_threshold()
+	var before: int = get_stored_amount_int()
+	if before >= need:
+		_refresh_collect_icon_from_stored()
+		return {"ok": true, "already_ready": true, "stored": before, "threshold": need}
+	_prod_stored = float(need)
+	_prod_last_unix = int(Time.get_unix_time_from_system())
+	_save_production_state()
+	_refresh_collect_icon_from_stored()
+	return {"ok": true, "seeded": true, "stored": need, "threshold": need}
+
+
+## Persist Farm threshold into buildings.cfg without requiring a live City node.
+static func seed_ftue_farm_collect_in_save() -> Dictionary:
+	var id_key: String = "farm"
+	var lvl: int = 1
+	if Engine.get_main_loop() != null:
+		var tree: SceneTree = Engine.get_main_loop() as SceneTree
+		if tree != null and tree.root != null:
+			var cs: Node = tree.root.get_node_or_null("ConstructionState")
+			if cs != null and cs.has_method("get_canonical_building_level"):
+				lvl = maxi(1, int(cs.call("get_canonical_building_level", id_key)))
+	var capacity: int = maxi(COLLECT_VISIBLE_MIN_STORED, BETA_BASE_CAPACITY + (lvl - 1) * BETA_CAPACITY_PER_LEVEL)
+	var threshold: int = maxi(COLLECT_VISIBLE_MIN_STORED, int(ceil(float(capacity) * COLLECT_VISIBLE_CAPACITY_FRAC)))
+	var now: int = int(Time.get_unix_time_from_system())
+	var save := ConfigFile.new()
+	save.load(BUILDINGS_CFG)
+	var prior: float = float(save.get_value(id_key, "prod_stored", 0))
+	if prior >= float(threshold):
+		return {"ok": true, "already_ready": true, "stored": int(prior), "threshold": threshold}
+	save.set_value(id_key, "prod_stored", float(threshold))
+	save.set_value(id_key, "prod_last_unix", now)
+	var err: Error = save.save(BUILDINGS_CFG)
+	if err != OK:
+		return {"ok": false, "reason": "save_failed", "err": err}
+	return {"ok": true, "seeded": true, "stored": threshold, "threshold": threshold}
 
 
 func _on_upgrade_tap() -> void:
@@ -519,6 +740,9 @@ func check_upgrade_finished():
 		upgrade_finish_time = 0
 		save_building_level() # flags-only under canonical building_id
 	update_level_label()
+	if _is_resource_producer():
+		_prod_stored = minf(_prod_stored, float(get_storage_capacity()))
+		_refresh_collect_icon_from_stored()
 
 func get_upgrade_time_left() -> int:
 	if not upgrading:

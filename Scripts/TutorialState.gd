@@ -11,8 +11,26 @@ signal tutorial_skipped
 
 const SAVE_PATH := "user://tutorial.cfg"
 const SMOKE_SAVE_PATH := "user://tutorial_smoke_test.cfg"
+const GRANTS_PATH := "user://tutorial_grants.cfg"
+const SMOKE_GRANTS_PATH := "user://tutorial_grants_smoke_test.cfg"
 const STEPS_PATH := "res://data/tutorial_ftue.json"
 const CURRENT_TUTORIAL_VERSION := 1
+## One-time Citadel L2 kit — stored outside tutorial.cfg so ordinary F9 cannot re-farm it.
+const CITADEL_KIT_FLAG := "citadel_upgrade_kit_granted_v1"
+const CITADEL_KIT_MIN_FOOD := 2020
+const CITADEL_KIT_MIN_WOOD := 2020
+const CITADEL_KIT_MIN_STONE := 1430
+const CITADEL_KIT_MIN_IRON := 840
+const CITADEL_OBJECTIVE_STEPS := ["select_building", "start_building_upgrade", "complete_building_upgrade"]
+## One-time research kit for Citadel Irrigation I (econ_food_prod_1) — food/wood only.
+const RESEARCH_KIT_FLAG := "research_kit_granted_v1"
+const RESEARCH_KIT_MIN_FOOD := 200
+const RESEARCH_KIT_MIN_WOOD := 150
+const RESEARCH_OBJECTIVE_STEPS := ["open_research", "start_research"]
+const FTUE_RESEARCH_ID := "econ_food_prod_1"
+## One-time Farm collect seed so collect_resources has a valid CollectIcon once.
+const FARM_COLLECT_SEED_FLAG := "ftue_farm_collect_seed_v1"
+const ResourceManagerScript = preload("res://Scripts/Managers/ResourceManager.gd")
 
 var _save_path_override: String = ""
 var _steps: Array[Dictionary] = []
@@ -154,6 +172,10 @@ func begin_ftue() -> bool:
 	if ftue_completed or skipped:
 		return false
 	if ftue_started and not current_step_id.is_empty():
+		_maybe_skip_obsolete_citadel_upgrade_steps()
+		_maybe_grant_citadel_kit_for_step(current_step_id)
+		_maybe_grant_research_kit_for_step(current_step_id)
+		_maybe_seed_ftue_farm_collect_for_step(current_step_id)
 		return true
 	ftue_started = true
 	skipped = false
@@ -162,6 +184,10 @@ func begin_ftue() -> bool:
 	save_tutorial_state()
 	_log("Started FTUE")
 	_log("Step: %s" % current_step_id)
+	_maybe_skip_obsolete_citadel_upgrade_steps()
+	_maybe_grant_citadel_kit_for_step(current_step_id)
+	_maybe_grant_research_kit_for_step(current_step_id)
+	_maybe_seed_ftue_farm_collect_for_step(current_step_id)
 	tutorial_started.emit()
 	step_changed.emit(current_step_id)
 	return true
@@ -188,6 +214,7 @@ func skip_ftue() -> void:
 
 
 ## DEBUG ONLY — resets tutorial.cfg progress. Never touches other saves.
+## Does NOT clear one-time Citadel/research kit grant flags (no resource farming via F9).
 func debug_reset_ftue() -> bool:
 	if not OS.is_debug_build():
 		push_warning("[TUTORIAL] debug_reset_ftue blocked (not a debug build)")
@@ -197,8 +224,294 @@ func debug_reset_ftue() -> bool:
 	if FileAccess.file_exists(path):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
 	save_tutorial_state()
-	_log("Debug reset FTUE (tutorial save only)")
+	_log("Debug reset FTUE (tutorial save only; kit flags preserved)")
 	return true
+
+
+## DEBUG ONLY — full FTUE retest: restores Citadel to L1 (debug only), clears Citadel +
+## research kit flags, tops Citadel minima, resets tutorial progress, and begins FTUE.
+## Does not wipe unrelated account saves (other buildings/troops/research/identity).
+func debug_full_ftue_retest() -> bool:
+	if not OS.is_debug_build():
+		push_warning("[TUTORIAL] debug_full_ftue_retest blocked (not a debug build)")
+		return false
+	if not _debug_prepare_citadel_for_ftue_retest():
+		push_warning(
+			"[TUTORIAL] Shift+F9 aborted — could not restore Citadel to Level 1. "
+			+ "Use a fresh local test profile instead of wiping unrelated account data."
+		)
+		return false
+	_clear_citadel_kit_grant_flag()
+	_clear_research_kit_grant_flag()
+	_clear_farm_collect_seed_flag()
+	_apply_citadel_kit_top_up(true)
+	_debug_clear_tutorial_l1_wildling_cooldown()
+	if not debug_reset_ftue():
+		return false
+	var started: bool = begin_ftue()
+	_log("Debug full FTUE retest prepared (Citadel L1 + kit flags reset + Citadel resources topped)")
+	return started
+
+
+## DEBUG ONLY — clear only the tutorial Level 1 wildling slot cooldown (not all wildlings).
+func _debug_clear_tutorial_l1_wildling_cooldown() -> void:
+	if not OS.is_debug_build():
+		return
+	var wss: Node = get_node_or_null("/root/WildlingSpawnState")
+	if wss != null and wss.has_method("debug_clear_tutorial_l1_cooldown"):
+		var cleared: bool = bool(wss.call("debug_clear_tutorial_l1_cooldown"))
+		_log("Debug cleared tutorial L1 wildling cooldown=%s" % str(cleared))
+	var tree := get_tree()
+	if tree == null:
+		return
+	var scene: Node = tree.current_scene
+	if scene != null and scene.has_method("debug_respawn_tutorial_l1_if_present"):
+		scene.call("debug_respawn_tutorial_l1_if_present")
+
+
+## DEBUG ONLY — Citadel L1 restore required so Shift+F9 can re-test L1→L2 (not L2→L3).
+func _debug_prepare_citadel_for_ftue_retest() -> bool:
+	if not OS.is_debug_build():
+		return false
+	if not has_node("/root/ConstructionState"):
+		push_warning("[TUTORIAL] ConstructionState missing — cannot safely reset Citadel")
+		return false
+	if not ConstructionState.has_method("debug_reset_citadel_for_ftue_retest"):
+		push_warning("[TUTORIAL] ConstructionState lacks debug_reset_citadel_for_ftue_retest")
+		return false
+	return bool(ConstructionState.debug_reset_citadel_for_ftue_retest())
+
+
+## Idempotent top-up for Citadel L2 affordability. Production skip_ftue never calls this.
+func try_grant_citadel_tutorial_resource_kit() -> Dictionary:
+	if skipped:
+		return {"ok": false, "reason": "skipped"}
+	# Never fund a Level 3 purchase when the L2 objective is already satisfied.
+	if _citadel_already_meets_ftue_objective():
+		return {"ok": false, "reason": "citadel_objective_already_met"}
+	if _is_citadel_kit_granted():
+		return {"ok": true, "already_granted": true, "granted": {}}
+	return _apply_citadel_kit_top_up(true)
+
+
+func _maybe_grant_citadel_kit_for_step(step_id: String) -> void:
+	var sid: String = step_id.strip_edges()
+	if not CITADEL_OBJECTIVE_STEPS.has(sid):
+		return
+	var result: Dictionary = try_grant_citadel_tutorial_resource_kit()
+	if bool(result.get("already_granted", false)):
+		return
+	if bool(result.get("ok", false)) and not bool(result.get("already_granted", false)):
+		var granted: Dictionary = result.get("granted", {})
+		if not granted.is_empty():
+			_log("Citadel tutorial kit granted: %s" % str(granted))
+
+
+## True when Citadel Keep already satisfies the FTUE "upgrade to Level 2" objective.
+func _citadel_already_meets_ftue_objective() -> bool:
+	if not has_node("/root/ConstructionState"):
+		return false
+	if not ConstructionState.has_method("get_canonical_building_level"):
+		return false
+	return int(ConstructionState.get_canonical_building_level("castle")) >= 2
+
+
+## Production-safe: if castle is already ≥ L2, do not teach / fund Level 3 as "Level 2".
+## Marks Citadel upgrade steps complete and advances to collect_resources.
+## Returns true when current_step_id changed.
+func reconcile_citadel_ftue_progress() -> bool:
+	return _maybe_skip_obsolete_citadel_upgrade_steps()
+
+
+func _maybe_skip_obsolete_citadel_upgrade_steps() -> bool:
+	if skipped or ftue_completed:
+		return false
+	var sid: String = current_step_id.strip_edges()
+	if sid.is_empty() or not CITADEL_OBJECTIVE_STEPS.has(sid):
+		return false
+	if not _citadel_already_meets_ftue_objective():
+		return false
+	for step_name: String in CITADEL_OBJECTIVE_STEPS:
+		if not completed_steps.has(step_name):
+			completed_steps.append(step_name)
+	current_step_id = "collect_resources"
+	save_tutorial_state()
+	_log("Citadel already >= Level 2 — skipped obsolete L2 upgrade steps → collect_resources")
+	return true
+
+
+## Idempotent top-up for Citadel Irrigation I affordability. Production skip_ftue never calls this.
+func try_grant_research_tutorial_resource_kit() -> Dictionary:
+	if skipped:
+		return {"ok": false, "reason": "skipped"}
+	if _is_research_kit_granted():
+		return {"ok": true, "already_granted": true, "granted": {}}
+	return _apply_research_kit_top_up(true)
+
+
+func _maybe_grant_research_kit_for_step(step_id: String) -> void:
+	var sid: String = step_id.strip_edges()
+	if not RESEARCH_OBJECTIVE_STEPS.has(sid):
+		return
+	var result: Dictionary = try_grant_research_tutorial_resource_kit()
+	if bool(result.get("already_granted", false)):
+		return
+	if bool(result.get("ok", false)) and not bool(result.get("already_granted", false)):
+		var granted: Dictionary = result.get("granted", {})
+		if not granted.is_empty():
+			_log("Research tutorial kit granted: %s" % str(granted))
+
+
+func get_grants_path() -> String:
+	if _save_path_override != "" and _save_path_override == SMOKE_SAVE_PATH:
+		return SMOKE_GRANTS_PATH
+	if OS.get_environment("CROWNSPIR_TUTORIAL_SMOKE") == "1":
+		return SMOKE_GRANTS_PATH
+	return GRANTS_PATH
+
+
+func _is_grant_flag_set(flag_key: String) -> bool:
+	var cfg := ConfigFile.new()
+	var path: String = get_grants_path()
+	if not FileAccess.file_exists(path):
+		return false
+	if cfg.load(path) != OK:
+		return false
+	return bool(cfg.get_value("grants", flag_key, false))
+
+
+func _set_grant_flag(flag_key: String, granted: bool) -> void:
+	var cfg := ConfigFile.new()
+	var path: String = get_grants_path()
+	if FileAccess.file_exists(path):
+		cfg.load(path)
+	cfg.set_value("grants", flag_key, granted)
+	var err: Error = cfg.save(path)
+	if err != OK:
+		push_warning("[TUTORIAL] Failed to save grants %s (err=%d)" % [path, err])
+
+
+func _is_citadel_kit_granted() -> bool:
+	return _is_grant_flag_set(CITADEL_KIT_FLAG)
+
+
+func _set_citadel_kit_granted(granted: bool) -> void:
+	_set_grant_flag(CITADEL_KIT_FLAG, granted)
+
+
+func _clear_citadel_kit_grant_flag() -> void:
+	_set_citadel_kit_granted(false)
+
+
+func _is_research_kit_granted() -> bool:
+	return _is_grant_flag_set(RESEARCH_KIT_FLAG)
+
+
+func _set_research_kit_granted(granted: bool) -> void:
+	_set_grant_flag(RESEARCH_KIT_FLAG, granted)
+
+
+func _clear_research_kit_grant_flag() -> void:
+	_set_research_kit_granted(false)
+
+
+func _is_farm_collect_seed_granted() -> bool:
+	return _is_grant_flag_set(FARM_COLLECT_SEED_FLAG)
+
+
+func _set_farm_collect_seed_granted(granted: bool) -> void:
+	_set_grant_flag(FARM_COLLECT_SEED_FLAG, granted)
+
+
+func _clear_farm_collect_seed_flag() -> void:
+	_set_farm_collect_seed_granted(false)
+
+
+## Idempotent: ensure Farm stored production meets the CollectIcon threshold once for FTUE.
+func try_seed_ftue_farm_collect() -> Dictionary:
+	if skipped or ftue_completed:
+		return {"ok": false, "reason": "skipped_or_completed"}
+	if _is_farm_collect_seed_granted():
+		return {"ok": true, "already_granted": true}
+	var save_res: Dictionary = ResourceManagerScript.seed_ftue_farm_collect_in_save()
+	if not bool(save_res.get("ok", false)):
+		return save_res
+	# Refresh live Farm node if City is open.
+	var tree := get_tree()
+	if tree != null:
+		var farm: Node = tree.root.find_child("Farm", true, false)
+		if farm != null and farm.has_method("seed_ftue_collect_threshold"):
+			farm.call("seed_ftue_collect_threshold")
+		elif farm != null and farm.has_method("_load_production_state"):
+			farm.call("_load_production_state")
+			farm.call("_apply_production_elapsed")
+			farm.call("_refresh_collect_icon_from_stored")
+	_set_farm_collect_seed_granted(true)
+	_log("FTUE Farm collect seed applied: %s" % str(save_res))
+	return {"ok": true, "granted": true, "details": save_res}
+
+
+func _maybe_seed_ftue_farm_collect_for_step(step_id: String) -> void:
+	if step_id.strip_edges() != "collect_resources":
+		return
+	var result: Dictionary = try_seed_ftue_farm_collect()
+	if bool(result.get("already_granted", false)):
+		return
+	if bool(result.get("ok", false)):
+		_log("FTUE Farm collect ready for tutorial")
+
+
+## Top up each resource only up to kit minima. When mark_granted, persist the one-time flag.
+func _apply_citadel_kit_top_up(mark_granted: bool) -> Dictionary:
+	if not has_node("/root/GameState"):
+		return {"ok": false, "reason": "GameState missing"}
+	var granted: Dictionary = {}
+	var food_add: int = maxi(0, CITADEL_KIT_MIN_FOOD - int(GameState.food))
+	var wood_add: int = maxi(0, CITADEL_KIT_MIN_WOOD - int(GameState.wood))
+	var stone_add: int = maxi(0, CITADEL_KIT_MIN_STONE - int(GameState.stone))
+	var iron_add: int = maxi(0, CITADEL_KIT_MIN_IRON - int(GameState.iron))
+	if food_add > 0:
+		GameState.add_food(food_add)
+		granted["food"] = food_add
+	if wood_add > 0:
+		GameState.add_wood(wood_add)
+		granted["wood"] = wood_add
+	if stone_add > 0:
+		GameState.add_stone(stone_add)
+		granted["stone"] = stone_add
+	if iron_add > 0:
+		GameState.add_iron(iron_add)
+		granted["iron"] = iron_add
+	# add_* already saves; ensure one final persist + HUD signal if nothing was added.
+	if granted.is_empty() and GameState.has_method("save_resources"):
+		GameState.save_resources()
+		if GameState.has_signal("resources_changed"):
+			GameState.resources_changed.emit()
+	if mark_granted:
+		_set_citadel_kit_granted(true)
+	return {"ok": true, "already_granted": false, "granted": granted}
+
+
+## Top up food/wood only for Irrigation I. Never touches stone/iron. Deficit-only.
+func _apply_research_kit_top_up(mark_granted: bool) -> Dictionary:
+	if not has_node("/root/GameState"):
+		return {"ok": false, "reason": "GameState missing"}
+	var granted: Dictionary = {}
+	var food_add: int = maxi(0, RESEARCH_KIT_MIN_FOOD - int(GameState.food))
+	var wood_add: int = maxi(0, RESEARCH_KIT_MIN_WOOD - int(GameState.wood))
+	if food_add > 0:
+		GameState.add_food(food_add)
+		granted["food"] = food_add
+	if wood_add > 0:
+		GameState.add_wood(wood_add)
+		granted["wood"] = wood_add
+	if granted.is_empty() and GameState.has_method("save_resources"):
+		GameState.save_resources()
+		if GameState.has_signal("resources_changed"):
+			GameState.resources_changed.emit()
+	if mark_granted:
+		_set_research_kit_granted(true)
+	return {"ok": true, "already_granted": false, "granted": granted}
 
 
 ## Overlay / intro gate — completes intro_welcome only.
@@ -562,6 +875,11 @@ func _complete_current_step() -> void:
 	current_step_id = nxt
 	save_tutorial_state()
 	_log("Next: %s" % current_step_id)
+	if _maybe_skip_obsolete_citadel_upgrade_steps():
+		_log("Next (after Citadel skip): %s" % current_step_id)
+	_maybe_grant_citadel_kit_for_step(current_step_id)
+	_maybe_grant_research_kit_for_step(current_step_id)
+	_maybe_seed_ftue_farm_collect_for_step(current_step_id)
 	step_changed.emit(current_step_id)
 	_busy_advancing = false
 

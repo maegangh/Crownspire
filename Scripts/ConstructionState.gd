@@ -1102,6 +1102,29 @@ func cancel_construction(building_id: String) -> Dictionary:
 	return job
 
 
+## DEBUG ONLY — restore Citadel Keep to Level 1 for Shift+F9 FTUE retest.
+## Touches only castle completed level + any active castle construction job.
+## Does not reset other buildings, resources, troops, research, or account identity.
+func debug_reset_citadel_for_ftue_retest() -> bool:
+	if not OS.is_debug_build():
+		push_warning("[ConstructionState] debug_reset_citadel_for_ftue_retest blocked (not a debug build)")
+		return false
+	var bid: String = "castle"
+	if _find_job_index(bid) >= 0:
+		cancel_construction(bid)
+	_write_building_level(bid, 1)
+	_sync_gamestate_mirror_one(bid, 1)
+	_notify_city_level(bid, 1)
+	_sync_resource_manager_flags(bid, false, 0.0)
+	save_construction_state()
+	var now_level: int = get_canonical_building_level(bid)
+	if now_level != 1:
+		push_warning("[ConstructionState] Citadel debug reset failed — canonical level is %d" % now_level)
+		return false
+	print("[ConstructionState] Debug FTUE retest: Citadel restored to Level 1")
+	return true
+
+
 # =============================================================================
 # Tick / offline resolve
 # =============================================================================

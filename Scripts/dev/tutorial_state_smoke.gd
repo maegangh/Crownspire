@@ -1,6 +1,6 @@
 extends SceneTree
 
-## Isolated TutorialState smoke.
+## Isolated TutorialState smoke (Citadel-first FTUE).
 ## MUST set CROWNSPIR_TUTORIAL_SMOKE=1 so TutorialState never touches user://tutorial.cfg.
 ## Run:
 ##   $env:CROWNSPIR_TUTORIAL_SMOKE=1
@@ -35,12 +35,14 @@ func _run() -> void:
 
 	_test_a_new_state()
 	_test_b_wrong_event()
+	_test_i_citadel_skip_when_l2()
 	_test_c_correct_event()
 	_test_d_save_reload()
 	_test_e_duplicate_event()
 	_test_f_skip()
 	_test_g_debug_reset()
 	_test_h_completed_persists()
+	_test_j_farm_cannot_satisfy_citadel()
 
 	if _fail.is_empty():
 		print("[TUTORIAL SMOKE] PASS")
@@ -54,6 +56,13 @@ func _run() -> void:
 func _assert(cond: bool, msg: String) -> void:
 	if not cond:
 		_fail.append(msg)
+
+
+func _citadel_level() -> int:
+	var cs: Node = root.get_node_or_null("/root/ConstructionState")
+	if cs == null or not cs.has_method("get_canonical_building_level"):
+		return 1
+	return int(cs.call("get_canonical_building_level", "castle"))
 
 
 func _test_a_new_state() -> void:
@@ -71,15 +80,41 @@ func _test_b_wrong_event() -> void:
 	print("[TUTORIAL SMOKE] B wrong event")
 	var before: String = str(_ts.call("get_current_step_id"))
 	_ge.call("emit_building_upgraded", "farm", 2)
-	_assert(str(_ts.call("get_current_step_id")) == before, "B: wrong event advanced step")
+	_assert(str(_ts.call("get_current_step_id")) == before, "B: farm upgrade must not advance intro")
+
+
+func _ensure_citadel_l1() -> void:
+	var cs: Node = root.get_node_or_null("/root/ConstructionState")
+	if cs == null:
+		return
+	if not cs.has_method("get_canonical_building_level") or not cs.has_method("debug_reset_citadel_for_ftue_retest"):
+		return
+	if int(cs.call("get_canonical_building_level", "castle")) >= 2:
+		cs.call("debug_reset_citadel_for_ftue_retest")
+
+
+func _restart_smoke_ftue() -> void:
+	_ts.call("begin_smoke_isolation")
+	_ts.call("load_tutorial_state")
+	_ts.call("begin_ftue")
 
 
 func _test_c_correct_event() -> void:
-	print("[TUTORIAL SMOKE] C correct event")
+	print("[TUTORIAL SMOKE] C correct event (Citadel-first)")
+	_ensure_citadel_l1()
+	_restart_smoke_ftue()
 	_assert(bool(_ts.call("acknowledge_intro")), "C: acknowledge_intro failed")
 	_assert(str(_ts.call("get_current_step_id")) == "select_building", "C: expected select_building")
 	_assert(bool(_ts.call("is_step_completed", "intro_welcome")), "C: intro not marked completed")
+
+	var step: Dictionary = _ts.call("get_current_step")
+	_assert(str(step.get("target_id", "")) == "castle", "C: select_building must target castle")
+
+	var before_farm: String = str(_ts.call("get_current_step_id"))
 	_ge.call("emit_building_selected", "farm")
+	_assert(str(_ts.call("get_current_step_id")) == before_farm, "C: farm select must not advance citadel step")
+
+	_ge.call("emit_building_selected", "castle")
 	_assert(str(_ts.call("get_current_step_id")) == "start_building_upgrade", "C: expected start_building_upgrade")
 
 
@@ -98,17 +133,20 @@ func _test_d_save_reload() -> void:
 
 
 func _test_e_duplicate_event() -> void:
-	print("[TUTORIAL SMOKE] E duplicate event")
-	# Advance once with correct event.
-	_ge.call("emit_building_upgrade_started", "farm", 2)
+	print("[TUTORIAL SMOKE] E duplicate event (Citadel upgrade path)")
+	# Advance once with correct Citadel event.
+	_ge.call("emit_building_upgrade_started", "castle", 2)
 	_assert(str(_ts.call("get_current_step_id")) == "complete_building_upgrade", "E: setup advance failed")
-	# Duplicate of previous event must not skip ahead.
-	_ge.call("emit_building_upgrade_started", "farm", 2)
-	_assert(str(_ts.call("get_current_step_id")) == "complete_building_upgrade", "E: duplicate advanced")
-	# Completing event once → next; second identical completion must not multi-skip.
+	# Farm must not satisfy Citadel completion.
 	_ge.call("emit_building_upgraded", "farm", 2)
-	_assert(str(_ts.call("get_current_step_id")) == "collect_resources", "E: upgrade complete advance failed")
-	_ge.call("emit_building_upgraded", "farm", 3)
+	_assert(str(_ts.call("get_current_step_id")) == "complete_building_upgrade", "E: farm upgrade satisfied citadel step")
+	# Duplicate of previous event must not skip ahead.
+	_ge.call("emit_building_upgrade_started", "castle", 2)
+	_assert(str(_ts.call("get_current_step_id")) == "complete_building_upgrade", "E: duplicate upgrade_started advanced")
+	# Completing Citadel once → Farm collect lesson; duplicate must not multi-skip.
+	_ge.call("emit_building_upgraded", "castle", 2)
+	_assert(str(_ts.call("get_current_step_id")) == "collect_resources", "E: citadel upgrade complete should reach collect_resources")
+	_ge.call("emit_building_upgraded", "castle", 3)
 	_assert(str(_ts.call("get_current_step_id")) == "collect_resources", "E: duplicate upgraded multi-skipped")
 
 
@@ -150,3 +188,36 @@ func _test_h_completed_persists() -> void:
 	_ge.call("emit_research_completed", "econ_food_prod_1")
 	_assert(bool(_ts.call("is_ftue_complete")), "H: event reopened completed FTUE")
 	_assert(not bool(_ts.call("is_ftue_active")), "H: completed became active")
+
+
+func _test_i_citadel_skip_when_l2() -> void:
+	print("[TUTORIAL SMOKE] I citadel skip when already L2+")
+	if _citadel_level() < 2:
+		print("[TUTORIAL SMOKE] I skipped — Citadel not L2+ in this environment")
+		return
+	_ts.call("begin_smoke_isolation")
+	_ts.call("load_tutorial_state")
+	_ts.call("begin_ftue")
+	_ts.call("acknowledge_intro")
+	_assert(
+		str(_ts.call("get_current_step_id")) == "collect_resources",
+		"I: intro should skip obsolete citadel steps → collect_resources when L2+"
+	)
+	for step_name: String in ["select_building", "start_building_upgrade", "complete_building_upgrade"]:
+		_assert(bool(_ts.call("is_step_completed", step_name)), "I: %s should be marked complete after skip" % step_name)
+	# reconcile remains idempotent when already past citadel steps.
+	var changed: bool = bool(_ts.call("reconcile_citadel_ftue_progress"))
+	_assert(not changed, "I: reconcile should be no-op once on collect_resources")
+	_assert(str(_ts.call("get_current_step_id")) == "collect_resources", "I: step changed after no-op reconcile")
+
+
+func _test_j_farm_cannot_satisfy_citadel() -> void:
+	print("[TUTORIAL SMOKE] J farm cannot satisfy citadel objectives")
+	_ensure_citadel_l1()
+	_restart_smoke_ftue()
+	_ts.call("acknowledge_intro")
+	_ge.call("emit_building_selected", "castle")
+	_ge.call("emit_building_upgrade_started", "castle", 2)
+	_assert(str(_ts.call("get_current_step_id")) == "complete_building_upgrade", "J: setup on complete_building_upgrade failed")
+	_ge.call("emit_building_upgraded", "farm", 2)
+	_assert(str(_ts.call("get_current_step_id")) == "complete_building_upgrade", "J: farm L2 must not complete citadel upgrade step")

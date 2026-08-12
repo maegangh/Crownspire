@@ -13,7 +13,8 @@
 		"desc": "Upgrade Castle to Level 2",
 		"current": 0,
 		"target": 2,
-		"type": "building"
+		"type": "building",
+		"building_id": "castle"
 	  }
 	],
 	"rewards": [

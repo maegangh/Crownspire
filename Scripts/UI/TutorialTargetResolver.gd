@@ -60,6 +60,16 @@ static func rect_for_result(result: Dictionary, padding: float = 12.0) -> Rect2:
 					maxf(40.0, click_rect.size.y * 0.5 + 12.0)
 				)
 			return Rect2(origin - half, half * 2.0).grow(padding)
+	# World wildling: prefer precomputed click/sprite rect so camera + spotlight agree.
+	if str(result.get("kind", "")) == "world_target":
+		var stored_world: Rect2 = result.get("rect", Rect2()) as Rect2
+		if stored_world.size.x > 1.0 and stored_world.size.y > 1.0:
+			return stored_world.grow(padding) if padding > 0.0 else stored_world
+		var wnode: Node2D = result.get("node2d") as Node2D
+		if wnode != null and is_instance_valid(wnode):
+			var wrect: Rect2 = _wildling_screen_rect(wnode)
+			if wrect.size.x > 1.0:
+				return wrect.grow(padding) if padding > 0.0 else wrect
 	var node: Node2D = result.get("node2d") as Node2D
 	if node != null and is_instance_valid(node):
 		if str(result.get("kind", "")) == "city_building":
@@ -268,6 +278,7 @@ static func _find_city_building(hud: Node, building_id: String) -> Node2D:
 		if str(child.get("building_id")) == building_id:
 			return child as Node2D
 	var name_map := {
+		"castle": "Castle",
 		"farm": "Farm",
 		"infantry_barracks": "InfantryBarracks",
 		"academy": "Academy",
@@ -316,10 +327,25 @@ static func _resolve_world_target(hud: Node, tid: String) -> Dictionary:
 		_log("Target unresolved: world_target/%s (no scene)" % tid)
 		return {"ok": false, "kind": "world_target", "control": null, "node2d": null, "rect": Rect2(), "label": tid}
 
-	var node: Node2D = null
+	# City→World enter-at-home must finish before FTUE pans to wildlings/resources.
+	if _enter_at_home_blocks_camera(hud.get_tree()):
+		_log("world_target/%s deferred — enter-at-home unresolved" % tid)
+		return {
+			"ok": false,
+			"kind": "world_target",
+			"control": null,
+			"node2d": null,
+			"rect": Rect2(),
+			"label": tid,
+			"pending_home": true,
+		}
+
 	match tid:
 		"wildling_l1", "wildling":
-			node = _find_nearest_wildling(scene, 1)
+			return _resolve_wildling_l1_target(hud, scene, tid)
+
+	var node: Node2D = null
+	match tid:
 		"resource_tile", "resource":
 			node = _find_nearest_resource(scene)
 		_:
@@ -329,7 +355,7 @@ static func _resolve_world_target(hud: Node, tid: String) -> Dictionary:
 		_log("Target unresolved: world_target/%s" % tid)
 		return {"ok": false, "kind": "world_target", "control": null, "node2d": null, "rect": Rect2(), "label": tid}
 
-	# Gentle camera focus when MapCamera API exists.
+	# Non-wildling world targets keep prior root-center behavior.
 	var cam: Camera2D = scene.get_node_or_null("Camera2D") as Camera2D
 	if cam != null and cam.has_method("focus_world_position"):
 		cam.call("focus_world_position", node.global_position)
@@ -342,6 +368,210 @@ static func _resolve_world_target(hud: Node, tid: String) -> Dictionary:
 		"rect": _node2d_screen_rect(node, 0.0),
 		"label": tid,
 	}
+
+
+## True while City→World home centering request is still outstanding.
+static func _enter_at_home_blocks_camera(tree: SceneTree) -> bool:
+	if tree == null or not tree.has_meta("world_enter_at_home"):
+		return false
+	return bool(tree.get_meta("world_enter_at_home"))
+
+
+const META_FOCUSED_WILDLING_IID := "ftue_world_focused_wildling_iid"
+## Usable KingdomMap bounds (matches MapCamera map_size).
+const WORLD_MAP_BOUNDS := Rect2(0.0, 0.0, 8192.0, 8192.0)
+const WORLD_MAP_EDGE_MARGIN := 8.0
+
+
+## Clears transient FTUE wildling focus tracking (scene reload / step change / new home entry).
+static func clear_world_focus_tracking(tree: SceneTree) -> void:
+	if tree == null:
+		return
+	if tree.has_meta(META_FOCUSED_WILDLING_IID):
+		tree.remove_meta(META_FOCUSED_WILDLING_IID)
+
+
+static func _resolve_wildling_l1_target(hud: Node, scene: Node, tid: String) -> Dictionary:
+	var pending: Dictionary = {
+		"ok": false,
+		"kind": "world_target",
+		"control": null,
+		"node2d": null,
+		"rect": Rect2(),
+		"label": tid,
+		"pending_wildling": true,
+	}
+	var node: Node2D = _find_nearest_valid_wildling_l1(scene)
+	if node == null:
+		var on_cooldown: bool = false
+		if hud != null and hud.get_tree() != null:
+			var wss: Node = hud.get_tree().root.get_node_or_null("WildlingSpawnState")
+			if wss != null and wss.has_method("is_tutorial_l1_on_cooldown"):
+				on_cooldown = bool(wss.call("is_tutorial_l1_on_cooldown"))
+		if on_cooldown:
+			_log("world_target/%s unavailable — tutorial L1 slot on defeat cooldown" % tid)
+			pending["unavailable_cooldown"] = true
+			pending["label"] = "wildling_l1_cooldown"
+		else:
+			_log("world_target/%s deferred — no validated L1 wildling yet" % tid)
+		_clear_stale_focused_wildling(hud.get_tree() if hud else null)
+		return pending
+
+	var focus_world: Vector2 = _wildling_focus_world_pos(node)
+	if not _is_valid_world_focus_point(focus_world):
+		_log("world_target/%s deferred — invalid focus point %s" % [tid, str(focus_world)])
+		return pending
+
+	var screen_rect: Rect2 = _wildling_screen_rect(node)
+	if screen_rect.size.x < 1.0 or screen_rect.size.y < 1.0:
+		_log("world_target/%s deferred — empty visual/click rect" % tid)
+		return pending
+
+	var tree: SceneTree = hud.get_tree() if hud != null else null
+	var iid: int = node.get_instance_id()
+	var already_focused: bool = (
+		tree != null
+		and tree.has_meta(META_FOCUSED_WILDLING_IID)
+		and int(tree.get_meta(META_FOCUSED_WILDLING_IID)) == iid
+	)
+
+	if not already_focused:
+		var cam: Camera2D = scene.get_node_or_null("Camera2D") as Camera2D
+		if cam != null and cam.has_method("focus_world_position"):
+			cam.call("focus_world_position", focus_world)
+		elif cam != null:
+			cam.global_position = focus_world
+		if tree != null:
+			tree.set_meta(META_FOCUSED_WILDLING_IID, iid)
+		var castle_dist: float = _distance_from_player_castle(scene, focus_world)
+		_log(
+			"Focused wildling_l1 path=%s focus=%s castle_dist=%.1f (already=%s)" % [
+				str(node.get_path()),
+				str(focus_world),
+				castle_dist,
+				str(already_focused),
+			]
+		)
+	else:
+		_log("wildling_l1 already focused iid=%d — skip re-pan" % iid)
+
+	return {
+		"ok": true,
+		"kind": "world_target",
+		"control": null,
+		"node2d": node,
+		"rect": screen_rect,
+		"focus_world": focus_world,
+		"label": tid,
+	}
+
+
+static func _clear_stale_focused_wildling(tree: SceneTree) -> void:
+	if tree == null or not tree.has_meta(META_FOCUSED_WILDLING_IID):
+		return
+	var iid: int = int(tree.get_meta(META_FOCUSED_WILDLING_IID))
+	var obj: Object = instance_from_id(iid)
+	if obj == null or not is_instance_valid(obj) or not (obj is Node) or not (obj as Node).is_inside_tree():
+		tree.remove_meta(META_FOCUSED_WILDLING_IID)
+
+
+## Click/collision center first (global transform includes root scale + child offsets).
+static func _wildling_focus_world_pos(node: Node2D) -> Vector2:
+	if node == null or not is_instance_valid(node):
+		return Vector2.INF
+	var click: Area2D = node.get_node_or_null("ClickArea") as Area2D
+	if click != null and is_instance_valid(click):
+		var shape: CollisionShape2D = click.get_node_or_null("CollisionShape2D") as CollisionShape2D
+		if shape != null and is_instance_valid(shape) and not shape.disabled:
+			return shape.global_position
+		return click.global_position
+	var sprite: Sprite2D = node.get_node_or_null("Sprite2D") as Sprite2D
+	if sprite != null and is_instance_valid(sprite) and sprite.texture != null:
+		return sprite.global_position
+	# Do not use root — WildlingNode art/hitbox are heavily offset from origin.
+	return Vector2.INF
+
+
+static func _wildling_screen_rect(node: Node2D) -> Rect2:
+	if node == null or not is_instance_valid(node):
+		return Rect2()
+	var click_rect: Rect2 = _area_screen_rect(node.get_node_or_null("ClickArea") as Area2D)
+	if click_rect.size.x > 1.0 and click_rect.size.y > 1.0:
+		return click_rect
+	var sprite_rect: Rect2 = _sprite_screen_rect(node.get_node_or_null("Sprite2D") as Sprite2D)
+	if sprite_rect.size.x > 1.0 and sprite_rect.size.y > 1.0:
+		return sprite_rect
+	return Rect2()
+
+
+static func _is_valid_world_focus_point(pos: Vector2) -> bool:
+	if not pos.is_finite():
+		return false
+	var bounds: Rect2 = WORLD_MAP_BOUNDS.grow(-WORLD_MAP_EDGE_MARGIN)
+	return bounds.has_point(pos)
+
+
+static func _validate_wildling_l1(node: Node2D) -> bool:
+	if node == null or not is_instance_valid(node):
+		return false
+	if not node.is_inside_tree():
+		return false
+	if node.is_queued_for_deletion():
+		return false
+	if not node.visible:
+		return false
+	var sprite: Sprite2D = node.get_node_or_null("Sprite2D") as Sprite2D
+	if sprite == null or not is_instance_valid(sprite) or not sprite.visible:
+		return false
+	if sprite.texture == null:
+		return false
+	var click: Area2D = node.get_node_or_null("ClickArea") as Area2D
+	if click == null or not is_instance_valid(click):
+		return false
+	if not click.visible:
+		return false
+	if not click.input_pickable:
+		return false
+	if not ("level" in click) or int(click.get("level")) != 1:
+		return false
+	var shape: CollisionShape2D = click.get_node_or_null("CollisionShape2D") as CollisionShape2D
+	if shape == null or not is_instance_valid(shape) or shape.disabled or shape.shape == null:
+		return false
+	var focus: Vector2 = _wildling_focus_world_pos(node)
+	if not _is_valid_world_focus_point(focus):
+		return false
+	return true
+
+
+static func _find_nearest_valid_wildling_l1(scene: Node) -> Node2D:
+	var host: Node = scene.get_node_or_null("WildlingSpawns")
+	if host == null:
+		return null
+	var cam: Camera2D = scene.get_viewport().get_camera_2d() if scene.get_viewport() else null
+	var origin: Vector2 = cam.global_position if cam != null else Vector2.ZERO
+	var best: Node2D = null
+	var best_d: float = INF
+	for child: Node in host.get_children():
+		if not (child is Node2D):
+			continue
+		var n: Node2D = child as Node2D
+		if not _validate_wildling_l1(n):
+			continue
+		var focus: Vector2 = _wildling_focus_world_pos(n)
+		var d: float = origin.distance_squared_to(focus)
+		if d < best_d:
+			best_d = d
+			best = n
+	return best
+
+
+static func _distance_from_player_castle(scene: Node, world_pos: Vector2) -> float:
+	if scene == null:
+		return -1.0
+	var marker: Node2D = scene.get_node_or_null("PlayerCastleMarker") as Node2D
+	if marker == null or not is_instance_valid(marker):
+		return -1.0
+	return marker.global_position.distance_to(world_pos)
 
 
 static func _find_nearest_wildling(scene: Node, max_level: int) -> Node2D:

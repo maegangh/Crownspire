@@ -46,6 +46,7 @@ var _hole: Rect2 = Rect2()
 var _showing_completion: bool = false
 var _built: bool = false
 var _is_ack_mode: bool = false
+var _has_panel_action: bool = false
 var _debug_start_token: int = 0
 var _awaiting_dynamic_target: bool = false
 
@@ -81,8 +82,12 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not OS.is_debug_build():
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
-		# F9 — debug reset + begin FTUE (tutorial save only).
-		if event.keycode == KEY_F9:
+		# Shift+F9 — debug full FTUE retest (Citadel→L1, clear kit flags, top Citadel kit).
+		if event.keycode == KEY_F9 and event.shift_pressed:
+			_debug_full_ftue_retest()
+			get_viewport().set_input_as_handled()
+		# F9 — debug reset + begin FTUE (tutorial save only; kit flags preserved).
+		elif event.keycode == KEY_F9:
 			_debug_restart_ftue()
 			get_viewport().set_input_as_handled()
 		# F10 — emergency skip (debug only).
@@ -103,6 +108,19 @@ func _debug_restart_ftue() -> void:
 	TutorialState.begin_ftue()
 	_log("Debug restart FTUE (F9)")
 	# Signals already refresh the step; finalize next frame so chrome hit-targets are valid.
+	call_deferred("_finalize_debug_ftue_start", token)
+
+
+func _debug_full_ftue_retest() -> void:
+	if not has_node("/root/TutorialState"):
+		return
+	_reset_presentation_input_state()
+	_debug_start_token += 1
+	var token: int = _debug_start_token
+	if not TutorialState.debug_full_ftue_retest():
+		_log("Debug full FTUE retest failed")
+		return
+	_log("Debug full FTUE retest (Shift+F9)")
 	call_deferred("_finalize_debug_ftue_start", token)
 
 
@@ -176,10 +194,19 @@ func _retry_dynamic_target() -> void:
 		return
 	var result: Dictionary = Resolver.resolve(_hud, _pending_step)
 	if not bool(result.get("ok", false)):
+		# Production-safe: L1 wildling on defeat cooldown — do not spin forever silently.
+		if bool(result.get("unavailable_cooldown", false)):
+			_body.text = (
+				"The Level 1 Wildling is recovering from a recent battle. "
+				+ "Use Skip to continue, or wait for it to return."
+			)
+			_focus_result = result
 		return
 	_focus_result = result
 	_hole = Resolver.rect_for_result(_focus_result, 14.0)
 	_awaiting_dynamic_target = false
+	# Restore step instruction once the live L1 target is available again.
+	_body.text = str(_pending_step.get("instruction", _body.text))
 	_log("Dynamic target became available: %s" % str(_focus_result.get("label", "")))
 	var block: bool = bool(_pending_step.get("block_unrelated_input", false))
 	var show_pointer: bool = bool(_pending_step.get("show_pointer", false))
@@ -188,6 +215,11 @@ func _retry_dynamic_target() -> void:
 		_set_spotlight_visible(true)
 		_layout_spotlight(_hole)
 		_pointer.visible = show_pointer
+		_place_panel(str(_pending_step.get("preferred_panel_position", "auto")), _hole)
+		_raise_interactive_chrome()
+	elif show_pointer and _hole.size.x > 0.0:
+		# Non-blocking world targets (e.g. select_wildling) still get a pointer after defer.
+		_pointer.visible = true
 		_place_panel(str(_pending_step.get("preferred_panel_position", "auto")), _hole)
 		_raise_interactive_chrome()
 	set_process(_focus_result.get("node2d") != null)
@@ -213,6 +245,7 @@ func _on_tutorial_started() -> void:
 
 func _on_step_changed(step_id: String) -> void:
 	_log("Step changed: %s" % step_id)
+	Resolver.clear_world_focus_tracking(get_tree())
 	_show_step(step_id)
 
 
@@ -237,6 +270,9 @@ func _show_step(step_id: String) -> void:
 	if step_id.is_empty():
 		_close_overlay()
 		return
+	# Drop prior wildling focus tracking when presenting a new step (or reshown step).
+	if step_id != _current_step_id:
+		Resolver.clear_world_focus_tracking(get_tree())
 	_current_step_id = step_id
 	var step: Dictionary = {}
 	if has_node("/root/TutorialState"):
@@ -262,18 +298,69 @@ func _show_step(step_id: String) -> void:
 	_pending_step = step.duplicate(true)
 	_awaiting_dynamic_target = false
 
+	# Citadel-first FTUE: ensure one-time kit before selection/upgrade steps (idempotent).
+	# If castle is already ≥ L2, skip obsolete upgrade steps (never teach Level 3 as Level 2).
+	if (
+		has_node("/root/TutorialState")
+		and TutorialState.has_method("reconcile_citadel_ftue_progress")
+		and step_id in ["select_building", "start_building_upgrade", "complete_building_upgrade"]
+	):
+		if TutorialState.reconcile_citadel_ftue_progress():
+			_show_step(TutorialState.get_current_step_id())
+			return
+	if (
+		has_node("/root/TutorialState")
+		and TutorialState.has_method("try_grant_citadel_tutorial_resource_kit")
+		and step_id in ["select_building", "start_building_upgrade", "complete_building_upgrade"]
+	):
+		TutorialState.try_grant_citadel_tutorial_resource_kit()
+
+	# Research FTUE: one-time Irrigation I kit + focus Academy on that tech.
+	if (
+		has_node("/root/TutorialState")
+		and TutorialState.has_method("try_grant_research_tutorial_resource_kit")
+		and step_id in ["open_research", "start_research"]
+	):
+		TutorialState.try_grant_research_tutorial_resource_kit()
+	if step_id in ["open_research", "start_research", "complete_research"]:
+		_focus_ftue_research_in_academy()
+
+	# Collect FTUE: one-time Farm stored-production seed so CollectIcon is valid once.
+	if (
+		has_node("/root/TutorialState")
+		and TutorialState.has_method("try_seed_ftue_farm_collect")
+		and step_id == "collect_resources"
+	):
+		TutorialState.try_seed_ftue_farm_collect()
+
 	var mode: String = str(step.get("mode", "action"))
 	_title.text = str(step.get("title", "TUTORIAL"))
 	_body.text = str(step.get("instruction", ""))
 	var cont_label: String = str(step.get("continue_label", "CONTINUE"))
-	_continue_btn.text = cont_label
+	var action_label: String = str(step.get("action_label", "")).strip_edges()
 
 	_is_ack_mode = mode == "acknowledge" or step_id == "intro_welcome" or step_id == "ftue_complete"
-	# Acknowledge: CONTINUE visible. Action: player uses the real highlighted target.
-	_continue_btn.visible = _is_ack_mode
-	_continue_btn.disabled = false
-	if _btn_row != null:
-		_btn_row.visible = _is_ack_mode
+	_has_panel_action = not _is_ack_mode and not action_label.is_empty()
+	# Acknowledge: CONTINUE visible. Action: player uses highlighted target unless action_label set.
+	if _has_panel_action:
+		_continue_btn.text = action_label
+		_continue_btn.visible = true
+		_continue_btn.disabled = false
+		_continue_btn.mouse_filter = Control.MOUSE_FILTER_STOP
+		if _btn_row != null:
+			_btn_row.visible = true
+	elif _is_ack_mode:
+		_continue_btn.text = cont_label
+		_continue_btn.visible = true
+		_continue_btn.disabled = false
+		if _btn_row != null:
+			_btn_row.visible = true
+	else:
+		_continue_btn.visible = false
+		_continue_btn.disabled = false
+		if _btn_row != null:
+			_btn_row.visible = false
+	_continue_btn.mouse_filter = Control.MOUSE_FILTER_STOP
 	_skip_btn.visible = not _showing_completion and bool(step.get("can_skip", true))
 	_skip_btn.disabled = false
 	_skip_btn.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -291,9 +378,14 @@ func _show_step(step_id: String) -> void:
 			_hole = Resolver.rect_for_result(_focus_result, 14.0)
 		else:
 			_log("Target unresolved: %s/%s" % [ttype, str(step.get("target_id", ""))])
-			# Dynamic targets (collect icon) may appear later — retry, never fall back to building art.
-			if ttype == "resource_collect_icon":
+			# Dynamic targets may appear later (collect icon) or wait for enter-at-home (world).
+			if ttype == "resource_collect_icon" or ttype == "world_target":
 				_awaiting_dynamic_target = true
+			if bool(_focus_result.get("unavailable_cooldown", false)):
+				_body.text = (
+					"The Level 1 Wildling is recovering from a recent battle. "
+					+ "Use Skip to continue, or wait for it to return."
+				)
 
 	if _is_ack_mode:
 		# Visual full-screen dim blocks gameplay, but stays UNDER chrome (z_index).
@@ -441,6 +533,23 @@ func _safe_close_academy_research_window() -> void:
 		GameState.popup_open = false
 
 
+## While FTUE is on research steps, focus Citadel Irrigation I if Academy is open.
+func _focus_ftue_research_in_academy() -> void:
+	var win: Node = _find_hud_child("AcademyResearchWindow")
+	if win == null and _hud != null and _hud.get_tree() != null:
+		win = _hud.get_tree().root.find_child("AcademyResearchWindow", true, false)
+	if win == null:
+		return
+	if win is CanvasItem and not (win as CanvasItem).visible:
+		return
+	var rid: String = "econ_food_prod_1"
+	if has_node("/root/TutorialState"):
+		rid = str(TutorialState.FTUE_RESEARCH_ID)
+	if win.has_method("focus_tutorial_research"):
+		win.call("focus_tutorial_research", rid)
+		_log("Focused Academy FTUE research: %s" % rid)
+
+
 func _safe_close_troop_training_screen() -> void:
 	var mgr: Node = _hud_ui_manager()
 	if mgr != null and mgr.has_method("get_current_screen_name"):
@@ -536,9 +645,54 @@ func _on_continue_pressed() -> void:
 	if _showing_completion or _current_step_id == "ftue_complete":
 		_close_overlay()
 		return
+	if _has_panel_action:
+		_execute_panel_action()
+		return
 	if _current_step_id == "intro_welcome" and has_node("/root/TutorialState"):
 		TutorialState.acknowledge_intro()
 		# step_changed will refresh UI
+
+
+func _execute_panel_action() -> void:
+	match _current_step_id:
+		"collect_resources":
+			_trigger_tutorial_resource_collect(str(_pending_step.get("target_id", "farm")))
+		_:
+			_log("No panel action handler for step: %s" % _current_step_id)
+
+
+func _trigger_tutorial_resource_collect(building_id: String) -> void:
+	if has_node("/root/TutorialState") and TutorialState.has_method("try_seed_ftue_farm_collect"):
+		TutorialState.try_seed_ftue_farm_collect()
+	var building: Node = _find_city_building(building_id)
+	if building != null and building.has_method("activate_collect_tap"):
+		building.call("activate_collect_tap")
+		_log("Panel COLLECT → activate_collect_tap on %s" % str(building.name))
+		return
+	_log("Panel COLLECT fallback — building unavailable for %s" % building_id)
+	if has_node("/root/GameEvents"):
+		GameEvents.emit_resource_collected("food", 100)
+
+
+func _find_city_building(building_id: String) -> Node:
+	var id_key: String = building_id.strip_edges().to_lower()
+	if id_key.is_empty():
+		return null
+	var scene: Node = get_tree().current_scene
+	if scene == null:
+		return null
+	var buildings: Node = scene.get_node_or_null("Buildings")
+	if buildings == null:
+		return null
+	for child: Node in buildings.get_children():
+		var bid: String = ""
+		if "building_id" in child:
+			bid = str(child.get("building_id")).strip_edges().to_lower()
+		if bid == id_key:
+			return child
+		if child.name.strip_edges().to_lower().replace(" ", "_") == id_key:
+			return child
+	return null
 
 
 func _on_skip_pressed() -> void:
@@ -587,12 +741,16 @@ func _raise_interactive_chrome() -> void:
 	if _panel != null:
 		_panel.z_index = Z_CHROME
 		# Acknowledge: panel/CONTINUE must receive taps.
-		# Action: instruction card is display-only — STOP here swallows city building taps
-		# (especially when measure/layout briefly inflates the panel rect).
+		# Action with panel action (e.g. COLLECT): button row must receive taps.
+		# Action without panel action: instruction card is display-only.
 		_panel.mouse_filter = (
-			Control.MOUSE_FILTER_STOP if _is_ack_mode else Control.MOUSE_FILTER_IGNORE
+			Control.MOUSE_FILTER_STOP if (_is_ack_mode or _has_panel_action) else Control.MOUSE_FILTER_IGNORE
 		)
 		_panel.move_to_front()
+	if _continue_btn != null and _has_panel_action:
+		_continue_btn.z_index = Z_CHROME + 1
+		_continue_btn.mouse_filter = Control.MOUSE_FILTER_STOP
+		_continue_btn.move_to_front()
 	if _skip_btn != null:
 		_skip_btn.z_index = Z_CHROME + 1
 		_skip_btn.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -727,11 +885,19 @@ func _place_action_panel(pref: String, hole: Rect2, vp: Vector2) -> void:
 	_title.add_theme_font_size_override("font_size", 18 if vp.y < 800.0 else 20)
 	_body.add_theme_font_size_override("font_size", 13 if vp.y < 800.0 else 15)
 
-	_continue_btn.visible = false
-	_continue_btn.custom_minimum_size = Vector2.ZERO
-	if _btn_row != null:
-		_btn_row.visible = false
-		_btn_row.custom_minimum_size = Vector2.ZERO
+	if _has_panel_action:
+		_continue_btn.visible = true
+		_continue_btn.custom_minimum_size = Vector2(minf(180.0, panel_w - 48.0), 44.0)
+		_continue_btn.mouse_filter = Control.MOUSE_FILTER_STOP
+		if _btn_row != null:
+			_btn_row.visible = true
+			_btn_row.custom_minimum_size = Vector2.ZERO
+	else:
+		_continue_btn.visible = false
+		_continue_btn.custom_minimum_size = Vector2.ZERO
+		if _btn_row != null:
+			_btn_row.visible = false
+			_btn_row.custom_minimum_size = Vector2.ZERO
 
 	# Explicit wrap width BEFORE height measure (avoids zero-width autowrap blow-up).
 	var title_w: float = maxf(80.0, panel_w - 70.0)
@@ -744,8 +910,8 @@ func _place_action_panel(pref: String, hole: Rect2, vp: Vector2) -> void:
 	_body.custom_minimum_size = Vector2(body_w, 0.0)
 
 	var content_h: float = _measure_action_panel_height(panel_w)
-	# Target ~90–150px on short portrait; hard-cap so action cards stay compact.
-	var max_h: float = minf(150.0, maxf(120.0, vp.y * 0.22))
+	# Target ~90–150px on short portrait; allow slightly taller when panel action row present.
+	var max_h: float = minf(180.0 if _has_panel_action else 150.0, maxf(120.0, vp.y * 0.22))
 	var panel_h: float = clampf(content_h, 88.0, max_h)
 	# Cap label minimums so PanelContainer cannot expand past the compact card.
 	var title_cap: float = 36.0
@@ -755,7 +921,9 @@ func _place_action_panel(pref: String, hole: Rect2, vp: Vector2) -> void:
 	_panel.clip_contents = true
 	_panel.custom_minimum_size = Vector2(panel_w, panel_h)
 	_panel.size = Vector2(panel_w, panel_h)
-	_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_panel.mouse_filter = (
+		Control.MOUSE_FILTER_STOP if _has_panel_action else Control.MOUSE_FILTER_IGNORE
+	)
 
 	var x: float = (vp.x - panel_w) * 0.5
 	var y: float = _action_panel_y(pref, hole, panel_w, panel_h, vp)
@@ -771,7 +939,7 @@ func _place_action_panel(pref: String, hole: Rect2, vp: Vector2) -> void:
 
 
 func _measure_action_panel_height(panel_w: float) -> float:
-	## Title + instruction + padding only (no CONTINUE row).
+	## Title + instruction + optional panel action row + padding.
 	var pad_v: float = 28.0 # StyleBox content margins 14+14
 	var sep: float = 8.0
 	var title_w: float = maxf(80.0, panel_w - 70.0)
@@ -779,7 +947,8 @@ func _measure_action_panel_height(panel_w: float) -> float:
 	var title_h: float = _label_wrapped_height(_title, title_w)
 	var body_h: float = _label_wrapped_height(_body, body_w)
 	var header_h: float = maxf(32.0, title_h)
-	return pad_v + header_h + sep + body_h
+	var action_row_h: float = 52.0 if _has_panel_action else 0.0
+	return pad_v + header_h + sep + body_h + action_row_h
 
 
 func _label_wrapped_height(label: Label, wrap_w: float) -> float:
