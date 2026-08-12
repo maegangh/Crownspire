@@ -13,7 +13,7 @@ const COL_BORDER := Color(0.58, 0.46, 0.28, 0.90)
 const COL_SLOT := Color(0.08, 0.07, 0.10, 0.95)
 const COL_SLOT_BORDER := Color(0.48, 0.40, 0.28, 0.85)
 
-const UI_LAYOUT_VERSION: int = 7
+const UI_LAYOUT_VERSION: int = 8
 ## Keep chrome clear of World top resource bar + bottom nav (portrait-safe).
 const TOP_SAFE_MARGIN: float = 156.0
 const BOTTOM_SAFE_MARGIN: float = 188.0
@@ -21,11 +21,25 @@ const BOTTOM_SAFE_MARGIN: float = 188.0
 const OPEN_SCREEN_ROOT_Z: int = 120
 const IDLE_SCREEN_ROOT_Z: int = 0
 
+const FONT_TROOP: int = 17
+const TOUCH_TROOP: int = 44
+
+const TROOP_KINDS: Array[String] = ["infantry", "marksmen", "cavalry"]
+const TROOP_TYPE_CANON: Dictionary = {
+	"infantry": "Infantry",
+	"marksmen": "Marksmen",
+	"cavalry": "Cavalry",
+}
+const TROOP_ICONS: Dictionary = {
+	"infantry": "res://assets/Buttons/infantry.png",
+	"marksmen": "res://assets/Buttons/marksman.png",
+	"cavalry": "res://assets/Buttons/cavalry.png",
+}
+
 var _target: Dictionary = {}
 var _selected_heroes: Array[String] = []
-var _infantry: int = 0
-var _marksmen: int = 0
-var _cavalry: int = 0
+## Exact tier selection: { "infantry": {"8": 500}, "marksmen": {}, "cavalry": {} }
+var _tier_selection: Dictionary = {}
 var _built_layout_version: int = -1
 
 var _title_label: Label
@@ -38,8 +52,11 @@ var _status_label: Label
 var _hero_slots: Array[Button] = []
 var _hero_portraits: Array[TextureRect] = []
 var _hero_captions: Array[Label] = []
-var _troop_qty_labels: Dictionary = {} # kind -> Label ("Selected: X")
-var _troop_avail_labels: Dictionary = {} # kind -> Label ("Available: Y")
+var _tier_qty_labels: Dictionary = {} # "infantry_8" -> Label
+var _tier_avail_labels: Dictionary = {}
+var _tier_sliders: Dictionary = {} # "infantry_8" -> HSlider
+var _troops_scroll: ScrollContainer = null
+var _troops_list: VBoxContainer = null
 var _march_button: Button
 var _placeholder_texture: Texture2D
 var _heroes_hint: Label
@@ -70,13 +87,7 @@ func on_close() -> void:
 func open_for_target(target: Dictionary) -> void:
 	_target = target.duplicate(true)
 	_selected_heroes.clear()
-	_infantry = 0
-	_marksmen = 0
-	_cavalry = 0
-	# Gathering is troops-first: never auto-select Maegan / any hero.
-	# Wildling hunts may pre-pick one available hero for convenience.
-	if str(_target.get("target_type", "")) != "resource":
-		_auto_pick_first_hero()
+	_tier_selection = _empty_tier_selection()
 	_ensure_current_layout()
 	var manager: Node = get_node_or_null("../../UIManager")
 	if manager != null and manager.has_method("open_screen"):
@@ -111,8 +122,11 @@ func _build_ui() -> void:
 	_hero_slots.clear()
 	_hero_portraits.clear()
 	_hero_captions.clear()
-	_troop_qty_labels.clear()
-	_troop_avail_labels.clear()
+	_tier_qty_labels.clear()
+	_tier_avail_labels.clear()
+	_tier_sliders.clear()
+	_troops_scroll = null
+	_troops_list = null
 	_march_button = null
 	_title_label = null
 	_travel_value_label = null
@@ -273,20 +287,29 @@ func _build_ui() -> void:
 	troops_margin.add_theme_constant_override("margin_bottom", 6)
 	troops_card.add_child(troops_margin)
 
-	var troops_col := VBoxContainer.new()
-	troops_col.name = "TroopRows"
-	troops_col.add_theme_constant_override("separation", 4)
-	troops_margin.add_child(troops_col)
+	var troops_outer := VBoxContainer.new()
+	troops_outer.add_theme_constant_override("separation", 6)
+	troops_margin.add_child(troops_outer)
 
-	_add_troop_row(troops_col, "infantry", "Infantry")
-	_add_troop_row(troops_col, "marksmen", "Marksmen")
-	_add_troop_row(troops_col, "cavalry", "Cavalry")
+	_troops_scroll = ScrollContainer.new()
+	_troops_scroll.name = "TroopListScroll"
+	_troops_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_troops_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	troops_outer.add_child(_troops_scroll)
+
+	_troops_list = VBoxContainer.new()
+	_troops_list.name = "TroopTierList"
+	_troops_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_troops_list.add_theme_constant_override("separation", 6)
+	_troops_scroll.add_child(_troops_list)
+
+	_build_troop_tier_rows(_troops_list)
 
 	var troop_actions := HBoxContainer.new()
 	troop_actions.name = "TroopGlobalActions"
 	troop_actions.add_theme_constant_override("separation", 8)
 	troop_actions.alignment = BoxContainer.ALIGNMENT_CENTER
-	troops_col.add_child(troop_actions)
+	troops_outer.add_child(troop_actions)
 	var select_all_troops := _make_chrome_button("SELECT ALL TROOPS", Vector2(220, 42))
 	select_all_troops.name = "SelectAllTroopsButton"
 	select_all_troops.pressed.connect(_on_select_all_troops)
@@ -453,40 +476,193 @@ func _make_hero_slot(index: int) -> Control:
 	return slot
 
 
-func _add_troop_row(parent: VBoxContainer, kind: String, display_name: String) -> void:
-	## Compact single-row. Selection via SELECT ALL TROOPS / CLEAR only.
-	var block := HBoxContainer.new()
-	block.name = "TroopRow_%s" % kind
-	block.add_theme_constant_override("separation", 8)
-	parent.add_child(block)
+func _empty_tier_selection() -> Dictionary:
+	return {"infantry": {}, "marksmen": {}, "cavalry": {}}
 
-	var name_l := Label.new()
-	name_l.text = display_name
-	name_l.custom_minimum_size = Vector2(96, 0)
-	name_l.add_theme_font_size_override("font_size", 15)
-	name_l.add_theme_color_override("font_color", COL_INK)
-	name_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	block.add_child(name_l)
 
-	var selected_l := Label.new()
-	selected_l.name = "SelectedLabel"
-	selected_l.text = "Selected: 0"
-	selected_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	selected_l.add_theme_font_size_override("font_size", 14)
-	selected_l.add_theme_color_override("font_color", COL_GOLD)
-	selected_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	block.add_child(selected_l)
-	_troop_qty_labels[kind] = selected_l
+func _tier_key(kind: String, tier: int) -> String:
+	return "%s_%d" % [kind, tier]
 
-	var avail := Label.new()
-	avail.name = "AvailableLabel"
-	avail.text = "Avail: 0"
-	avail.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	avail.add_theme_font_size_override("font_size", 13)
-	avail.add_theme_color_override("font_color", COL_MUTED)
-	avail.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	block.add_child(avail)
-	_troop_avail_labels[kind] = avail
+
+func _build_troop_tier_rows(parent: VBoxContainer) -> void:
+	if not has_node("/root/TroopDatabase") or not has_node("/root/TroopState"):
+		return
+	for kind: String in TROOP_KINDS:
+		var canon: String = str(TROOP_TYPE_CANON.get(kind, kind.capitalize()))
+		var tiers: Array[Dictionary] = TroopDatabase.get_tiers_for_type(canon)
+		var owned_any: bool = false
+		for troop_def: Dictionary in tiers:
+			var tier: int = int(troop_def.get("tier", 1))
+			if TroopState.get_tier_count(canon, tier) > 0:
+				owned_any = true
+				break
+		if not owned_any:
+			continue
+		parent.add_child(_section_label(canon.to_upper()))
+		for troop_def: Dictionary in tiers:
+			var tier: int = int(troop_def.get("tier", 1))
+			var avail: int = TroopState.get_tier_count(canon, tier)
+			if avail <= 0:
+				continue
+			var display_name: String = str(troop_def.get("name", "%s T%d" % [canon, tier]))
+			parent.add_child(_make_tier_row(kind, tier, display_name, avail))
+
+
+func _make_tier_row(kind: String, tier: int, display_name: String, available: int) -> Control:
+	var row := HBoxContainer.new()
+	row.name = "TroopTierRow_%s_%d" % [kind, tier]
+	row.add_theme_constant_override("separation", 6)
+	row.custom_minimum_size = Vector2(0, TOUCH_TROOP + 4)
+
+	var icon_tex := TextureRect.new()
+	icon_tex.custom_minimum_size = Vector2(36, 36)
+	icon_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon_tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var icon_path: String = str(TROOP_ICONS.get(kind, ""))
+	if icon_path != "" and ResourceLoader.exists(icon_path):
+		icon_tex.texture = load(icon_path) as Texture2D
+	row.add_child(icon_tex)
+
+	var text_col := VBoxContainer.new()
+	text_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text_col.add_theme_constant_override("separation", 0)
+	text_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(text_col)
+
+	var title := Label.new()
+	title.text = "T%d %s" % [tier, display_name]
+	title.add_theme_font_size_override("font_size", FONT_TROOP)
+	title.add_theme_color_override("font_color", COL_INK)
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	text_col.add_child(title)
+
+	var avail_l := Label.new()
+	avail_l.text = "Available: %s" % _format_number(available)
+	avail_l.add_theme_font_size_override("font_size", FONT_TROOP - 1)
+	avail_l.add_theme_color_override("font_color", COL_MUTED)
+	text_col.add_child(avail_l)
+	_tier_avail_labels[_tier_key(kind, tier)] = avail_l
+
+	var minus := _make_chrome_button("−", Vector2(TOUCH_TROOP, TOUCH_TROOP))
+	minus.add_theme_font_size_override("font_size", 22)
+	minus.pressed.connect(_on_tier_delta.bind(kind, tier, -1))
+	row.add_child(minus)
+
+	var qty_l := Label.new()
+	qty_l.text = "0"
+	qty_l.custom_minimum_size = Vector2(56, TOUCH_TROOP)
+	qty_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	qty_l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	qty_l.add_theme_font_size_override("font_size", FONT_TROOP)
+	qty_l.add_theme_color_override("font_color", COL_GOLD)
+	qty_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(qty_l)
+	_tier_qty_labels[_tier_key(kind, tier)] = qty_l
+
+	var plus := _make_chrome_button("+", Vector2(TOUCH_TROOP, TOUCH_TROOP))
+	plus.add_theme_font_size_override("font_size", 22)
+	plus.pressed.connect(_on_tier_delta.bind(kind, tier, 1))
+	row.add_child(plus)
+
+	var slider := HSlider.new()
+	slider.name = "TierSlider"
+	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slider.custom_minimum_size = Vector2(80, TOUCH_TROOP)
+	slider.min_value = 0.0
+	slider.max_value = float(available)
+	slider.step = 1.0
+	slider.value = 0.0
+	slider.add_theme_font_size_override("font_size", FONT_TROOP - 2)
+	slider.value_changed.connect(_on_tier_slider_changed.bind(kind, tier))
+	row.add_child(slider)
+	_tier_sliders[_tier_key(kind, tier)] = slider
+
+	return row
+
+
+func _on_tier_delta(kind: String, tier: int, delta: int) -> void:
+	var cur: int = _get_tier_selected(kind, tier)
+	_set_tier_selected(kind, tier, cur + delta)
+	_refresh_summary()
+
+
+func _on_tier_slider_changed(kind: String, tier: int, value: float) -> void:
+	_set_tier_selected(kind, tier, int(value))
+	_refresh_tier_labels_only()
+	_refresh_summary()
+
+
+func _get_tier_selected(kind: String, tier: int) -> int:
+	var by_tier: Dictionary = _tier_selection.get(kind, {}) as Dictionary
+	return maxi(0, int(by_tier.get(str(tier), by_tier.get(tier, 0))))
+
+
+func _set_tier_selected(kind: String, tier: int, amount: int) -> void:
+	var canon: String = str(TROOP_TYPE_CANON.get(kind, kind.capitalize()))
+	var available: int = TroopState.get_tier_count(canon, tier) if has_node("/root/TroopState") else 0
+	var max_by_avail: int = available
+	var max_by_cap: int = _remaining_capacity_excluding(kind, tier) + _get_tier_selected(kind, tier)
+	var safe: int = clampi(amount, 0, mini(max_by_avail, max_by_cap))
+	var by_tier: Dictionary = (_tier_selection.get(kind, {}) as Dictionary).duplicate()
+	if safe <= 0:
+		by_tier.erase(str(tier))
+		by_tier.erase(tier)
+	else:
+		by_tier[str(tier)] = safe
+	_tier_selection[kind] = by_tier
+	var key: String = _tier_key(kind, tier)
+	if _tier_qty_labels.has(key):
+		(_tier_qty_labels[key] as Label).text = _format_number(safe)
+	if _tier_sliders.has(key):
+		var slider: HSlider = _tier_sliders[key] as HSlider
+		if not is_equal_approx(slider.value, float(safe)):
+			slider.set_value_no_signal(float(safe))
+
+
+func _remaining_capacity_excluding(kind: String, tier: int) -> int:
+	var capacity: int = MarchState.get_march_capacity(_selected_heroes) if has_node("/root/MarchState") else 0
+	return maxi(0, capacity - _tier_total() + _get_tier_selected(kind, tier))
+
+
+func _tier_total() -> int:
+	var total: int = 0
+	for kind: String in TROOP_KINDS:
+		var by_tier: Dictionary = _tier_selection.get(kind, {}) as Dictionary
+		for tier_key: Variant in by_tier.keys():
+			total += maxi(0, int(by_tier[tier_key]))
+	return total
+
+
+func _refresh_tier_labels_only() -> void:
+	for key: Variant in _tier_qty_labels.keys():
+		var parts: PackedStringArray = str(key).split("_")
+		if parts.size() < 2:
+			continue
+		var tier: int = int(parts[-1])
+		var kind: String = str(key).trim_suffix("_%d" % tier)
+		(_tier_qty_labels[key] as Label).text = _format_number(_get_tier_selected(kind, tier))
+
+
+func _troop_payload() -> Dictionary:
+	var flat: Dictionary = _flat_totals_from_tiers()
+	return {
+		"infantry": int(flat.get("infantry", 0)),
+		"marksmen": int(flat.get("marksmen", 0)),
+		"cavalry": int(flat.get("cavalry", 0)),
+		"tier_composition": MarchState.normalize_tier_composition(_tier_selection) if has_node("/root/MarchState") else _tier_selection.duplicate(true),
+	}
+
+
+func _flat_totals_from_tiers() -> Dictionary:
+	if has_node("/root/MarchState"):
+		return MarchState.composition_flat_totals(_tier_selection)
+	var out: Dictionary = {"infantry": 0, "marksmen": 0, "cavalry": 0}
+	for kind: String in TROOP_KINDS:
+		var by_tier: Dictionary = _tier_selection.get(kind, {}) as Dictionary
+		for tier_key: Variant in by_tier.keys():
+			out[kind] = int(out[kind]) + maxi(0, int(by_tier[tier_key]))
+	return out
 
 
 func _panel_style(bg: Color, border: Color, radius: float, border_w: float) -> StyleBoxFlat:
@@ -541,37 +717,35 @@ func _load_hero_portrait(hero_id: String) -> Texture2D:
 	return _get_placeholder_texture()
 
 
-## Fill Infantry → Marksmen → Cavalry in order, respecting availability + capacity.
+## Fill lowest tier first within each type, respecting availability + capacity.
 func _on_select_all_troops() -> void:
-	_infantry = 0
-	_marksmen = 0
-	_cavalry = 0
-	var capacity: int = (
-		MarchState.get_march_capacity(_selected_heroes) if has_node("/root/MarchState") else 0
-	)
+	_tier_selection = _empty_tier_selection()
+	var capacity: int = MarchState.get_march_capacity(_selected_heroes) if has_node("/root/MarchState") else 0
 	var remaining: int = capacity
-	for kind: String in ["infantry", "marksmen", "cavalry"]:
-		if remaining <= 0:
-			_set_troop(kind, 0)
-			continue
-		var available: int = _available_for_kind(kind)
-		var take: int = mini(available, remaining)
-		_set_troop(kind, take)
-		remaining -= take
+	if not has_node("/root/TroopDatabase") or not has_node("/root/TroopState"):
+		_refresh()
+		return
+	for kind: String in TROOP_KINDS:
+		var canon: String = str(TROOP_TYPE_CANON.get(kind, kind.capitalize()))
+		for troop_def: Dictionary in TroopDatabase.get_tiers_for_type(canon):
+			if remaining <= 0:
+				break
+			var tier: int = int(troop_def.get("tier", 1))
+			var avail: int = TroopState.get_tier_count(canon, tier)
+			if avail <= 0:
+				continue
+			var take: int = mini(avail, remaining)
+			if take > 0:
+				var by_tier: Dictionary = (_tier_selection.get(kind, {}) as Dictionary).duplicate()
+				by_tier[str(tier)] = take
+				_tier_selection[kind] = by_tier
+				remaining -= take
 	_refresh()
 
 
 func _on_clear_troops() -> void:
-	_infantry = 0
-	_marksmen = 0
-	_cavalry = 0
+	_tier_selection = _empty_tier_selection()
 	_refresh()
-
-
-func _available_for_kind(kind: String) -> int:
-	if not has_node("/root/TroopState"):
-		return 0
-	return maxi(0, TroopState.get_available_count(_troop_type_name(kind)))
 
 
 func _on_select_all_heroes() -> void:
@@ -597,39 +771,6 @@ func _on_select_all_heroes() -> void:
 func _on_clear_heroes() -> void:
 	_selected_heroes.clear()
 	_refresh()
-
-
-func _troop_type_name(kind: String) -> String:
-	match kind:
-		"infantry":
-			return "Infantry"
-		"marksmen":
-			return "Marksmen"
-		"cavalry":
-			return "Cavalry"
-	return kind.capitalize()
-
-
-func _get_troop(kind: String) -> int:
-	match kind:
-		"infantry":
-			return _infantry
-		"marksmen":
-			return _marksmen
-		"cavalry":
-			return _cavalry
-	return 0
-
-
-func _set_troop(kind: String, amount: int) -> void:
-	var safe: int = max(0, amount)
-	match kind:
-		"infantry":
-			_infantry = safe
-		"marksmen":
-			_marksmen = safe
-		"cavalry":
-			_cavalry = safe
 
 
 func _on_hero_slot_pressed(index: int) -> void:
@@ -773,12 +914,16 @@ func _refresh_hero_slots() -> void:
 				_heroes_hint.text = "Optional hero assigned — tap slot to clear"
 		elif owned_count <= 0:
 			if _heroes_section_label != null:
-				_heroes_section_label.text = "HEROES"
-			_heroes_hint.text = "No recruited heroes available. Recruit at the Tavern."
+				_heroes_section_label.text = "HEROES — OPTIONAL"
+			_heroes_hint.text = "No heroes required. Troops-only marches are fine."
+		elif _selected_heroes.is_empty():
+			if _heroes_section_label != null:
+				_heroes_section_label.text = "HEROES — OPTIONAL"
+			_heroes_hint.text = "No Hero — tap a slot only if you want a bonus"
 		else:
 			if _heroes_section_label != null:
-				_heroes_section_label.text = "HEROES"
-			_heroes_hint.text = "Tap a slot to assign or clear a hero"
+				_heroes_section_label.text = "HEROES — OPTIONAL"
+			_heroes_hint.text = "Optional hero assigned — tap slot to clear"
 
 	for i: int in range(_hero_slots.size()):
 		if i < _selected_heroes.size():
@@ -803,19 +948,26 @@ func _refresh_hero_slots() -> void:
 
 
 func _troop_dict() -> Dictionary:
-	return {
-		"infantry": _infantry,
-		"marksmen": _marksmen,
-		"cavalry": _cavalry,
-	}
+	return _troop_payload()
 
 
 func _refresh_summary() -> void:
-	_set_troop_labels("infantry", _infantry, "Infantry")
-	_set_troop_labels("marksmen", _marksmen, "Marksmen")
-	_set_troop_labels("cavalry", _cavalry, "Cavalry")
+	_refresh_tier_labels_only()
+	for key: Variant in _tier_avail_labels.keys():
+		var parts: PackedStringArray = str(key).split("_")
+		if parts.size() < 2:
+			continue
+		var tier: int = int(parts[-1])
+		var kind: String = str(key).trim_suffix("_%d" % tier)
+		var canon: String = str(TROOP_TYPE_CANON.get(kind, kind.capitalize()))
+		var avail: int = TroopState.get_tier_count(canon, tier) if has_node("/root/TroopState") else 0
+		(_tier_avail_labels[key] as Label).text = "Available: %s" % _format_number(avail)
+		var slider_key: String = str(key)
+		if _tier_sliders.has(slider_key):
+			var slider: HSlider = _tier_sliders[slider_key] as HSlider
+			slider.max_value = float(mini(avail, _get_tier_selected(kind, tier) + _remaining_capacity_excluding(kind, tier)))
 
-	var total: int = _infantry + _marksmen + _cavalry
+	var total: int = _tier_total()
 	var capacity: int = (
 		MarchState.get_march_capacity(_selected_heroes) if has_node("/root/MarchState") else 0
 	)
@@ -828,12 +980,11 @@ func _refresh_summary() -> void:
 		_travel_value_label.text = _format_travel(
 			MarchState.estimate_travel_seconds(castle, target_pos, _selected_heroes)
 		)
-	# Real StatResolver combat totals — do not show fake class-weight "Power".
 	var atk_s := "0"
 	var def_s := "0"
 	var hp_s := "0"
 	if has_node("/root/MarchState") and has_node("/root/StatResolver") and total > 0:
-		var composition: Dictionary = MarchState.build_troop_tier_composition(_troop_dict())
+		var composition: Dictionary = MarchState.normalize_tier_composition(_tier_selection)
 		if not composition.is_empty():
 			var resolved: Dictionary = StatResolver.resolve_march_combat_stats(
 				composition, _selected_heroes
@@ -849,17 +1000,18 @@ func _refresh_summary() -> void:
 	else:
 		_capacity_value_label.add_theme_color_override("font_color", COL_INK)
 
+	var payload: Dictionary = _troop_payload()
 	var check: Dictionary = {"ok": false, "error": "MarchState unavailable."}
 	if has_node("/root/MarchState"):
 		if str(_target.get("target_type", "")) == "resource":
-			check = MarchState.validate_resource_setup(_target, _troop_dict(), _selected_heroes)
+			check = MarchState.validate_resource_setup(_target, payload, _selected_heroes)
 		else:
-			check = MarchState.validate_wildling_dispatch(_target, _troop_dict(), _selected_heroes)
+			check = MarchState.validate_wildling_dispatch(_target, payload, _selected_heroes)
 
 	_march_button.disabled = not bool(check.get("ok", false))
 	if check.get("ok", false):
 		if str(_target.get("target_type", "")) == "resource":
-			var composition: Dictionary = MarchState.build_troop_tier_composition(_troop_dict())
+			var composition: Dictionary = MarchState.normalize_tier_composition(_tier_selection)
 			var cargo: int = MarchState.calculate_troop_load(composition)
 			var g_amt: int = mini(cargo, int(_target.get("resource_amount", 0)))
 			_status_label.text = "Ready to gather · Cargo %s · Target %s" % [
@@ -872,16 +1024,6 @@ func _refresh_summary() -> void:
 	else:
 		_status_label.text = str(check.get("error", "Cannot march."))
 		_status_label.add_theme_color_override("font_color", COL_WARN)
-
-
-func _set_troop_labels(kind: String, selected: int, troop_type: String) -> void:
-	var avail: int = 0
-	if has_node("/root/TroopState"):
-		avail = maxi(0, TroopState.get_available_count(troop_type))
-	if _troop_qty_labels.has(kind):
-		(_troop_qty_labels[kind] as Label).text = "Selected: %s" % _format_number(selected)
-	if _troop_avail_labels.has(kind):
-		(_troop_avail_labels[kind] as Label).text = "Avail: %s" % _format_number(avail)
 
 
 func _format_number(value: int) -> String:
@@ -976,9 +1118,7 @@ func _close_screens() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_set_screen_root_elevated(false)
 	_target = {}
-	_infantry = 0
-	_marksmen = 0
-	_cavalry = 0
+	_tier_selection = _empty_tier_selection()
 	_selected_heroes.clear()
 
 

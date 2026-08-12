@@ -341,7 +341,7 @@ func dispatch_wildling_march(
 		"marksmen": int(troops.get("marksmen", 0)),
 		"cavalry": int(troops.get("cavalry", 0)),
 	}
-	var composition: Dictionary = build_troop_tier_composition(troops)
+	var composition: Dictionary = resolve_troop_composition(troops)
 	if composition.is_empty():
 		return {"ok": false, "error": "Could not allocate troop tiers."}
 
@@ -1896,7 +1896,7 @@ func dispatch_gather_march(
 	if not bool(check.get("ok", false)):
 		return check
 
-	var composition: Dictionary = build_troop_tier_composition(troops)
+	var composition: Dictionary = resolve_troop_composition(troops)
 	if composition.is_empty():
 		return {"ok": false, "error": "Could not allocate troop tiers."}
 

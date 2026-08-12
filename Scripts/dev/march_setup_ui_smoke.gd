@@ -61,6 +61,10 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 
+	sel_var = setup.get("_selected_heroes")
+	if typeof(sel_var) == TYPE_ARRAY and not (sel_var as Array).is_empty():
+		fail.append("Wildling setup auto-selected heroes (expected none)")
+
 	var back: Button = setup.find_child("BackButton", true, false) as Button
 	var close_btn: Button = setup.find_child("CloseButton", true, false) as Button
 	var select_troops: Button = setup.find_child("SelectAllTroopsButton", true, false) as Button
@@ -78,22 +82,30 @@ func _run() -> void:
 	if march_btn == null:
 		fail.append("MARCH missing")
 
-	# Whole-screen scroll is forbidden — fixed portrait layout only.
-	var content_scroll: Node = setup.find_child("ContentScroll", true, false)
-	if content_scroll is ScrollContainer:
+	# Troop list scroll (tier rows) — not a whole-screen scroll.
+	var troop_scroll: Node = setup.find_child("TroopListScroll", true, false)
+	if troop_scroll == null or not (troop_scroll is ScrollContainer):
+		fail.append("TroopListScroll missing")
+	if setup.find_child("ContentScroll", true, false) is ScrollContainer:
 		fail.append("ContentScroll ScrollContainer must not wrap the whole screen")
-	if setup.find_child("MobileScrollMarchSetup", true, false) != null:
-		fail.append("MobileScrollMarchSetup must be removed with whole-screen scroll")
 
-	# No per-row steppers / old Select All labels inside troop rows.
-	for kind: String in ["infantry", "marksmen", "cavalry"]:
-		var row: Node = setup.find_child("TroopRow_%s" % kind, true, false)
-		if row == null:
-			fail.append("TroopRow_%s missing" % kind)
-			continue
-		for child: Node in row.get_children():
-			if child is Button:
-				fail.append("TroopRow_%s still has Button: %s" % [kind, child.name])
+	# Tier rows should expose +/- controls (not legacy 3-row summary).
+	var tier_row: Node = setup.find_child("TroopTierRow_infantry_1", true, false)
+	if tier_row == null:
+		# Player may not own T1 infantry in smoke session — any tier row is fine.
+		for child: Node in setup.find_child("TroopTierList", true, false).get_children() if setup.find_child("TroopTierList", true, false) else []:
+			if str(child.name).begins_with("TroopTierRow_"):
+				tier_row = child
+				break
+	if tier_row == null:
+		fail.append("no TroopTierRow_* rows built (need owned troops in TroopState)")
+	else:
+		var has_plus: bool = false
+		for c: Node in tier_row.get_children():
+			if c is Button and str((c as Button).text) == "+":
+				has_plus = true
+		if not has_plus:
+			fail.append("tier row missing + button")
 
 	var vp_h: float = setup.get_viewport_rect().size.y
 	if march_btn != null:
