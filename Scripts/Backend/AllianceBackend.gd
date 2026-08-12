@@ -18,6 +18,7 @@ signal profile_changed(profile: Dictionary)
 signal alliance_changed(alliance: Dictionary)
 signal roster_changed(members: Array)
 signal applications_changed(applications: Array)
+signal my_pending_applications_changed(applications: Array)
 signal invites_changed(invites: Array)
 signal permissions_changed(permissions: Dictionary)
 signal operation_failed(reason: String)
@@ -74,6 +75,8 @@ const TELEPORT_ITEM_ID := "teleport_advanced_compass"
 const ENTITLEMENT_BETA_AUTO_HELP := "beta_alliance_auto_help"
 const ENTITLEMENT_PRODUCTION_AUTO_HELP := "alliance_auto_help"
 const HELP_NOTIF_CODE: int = 5001
+const ALLIANCE_NOTIF_CODE: int = 5003
+var _alliance_notif_bound: bool = false
 
 const HELP_TYPE_CONSTRUCTION := "CONSTRUCTION"
 const HELP_TYPE_RESEARCH := "RESEARCH"
@@ -102,6 +105,8 @@ var _profile: Dictionary = {}
 var _alliance: Dictionary = {}
 var _members: Array = []
 var _applications: Array = []
+## Applicant-side pending join requests (Nakama group membership state 3).
+var _my_pending_applications: Array = []
 var _invites: Array = []
 var _permissions: Dictionary = {}
 var _eligible_help: Array = []
@@ -315,6 +320,39 @@ func get_cached_members() -> Array:
 
 func get_cached_applications() -> Array:
 	return _applications.duplicate(true)
+
+
+func get_cached_my_pending_applications() -> Array:
+	return _my_pending_applications.duplicate(true)
+
+
+func is_application_pending(alliance_id: String) -> bool:
+	var aid: String = alliance_id.strip_edges()
+	if aid.is_empty():
+		return false
+	for entry_v: Variant in _my_pending_applications:
+		if typeof(entry_v) != TYPE_DICTIONARY:
+			continue
+		if str((entry_v as Dictionary).get("alliance_id", "")).strip_edges() == aid:
+			return true
+	return false
+
+
+func remember_pending_application(alliance_id: String, alliance_name: String = "", message: String = "") -> void:
+	## Optimistic local mirror after a successful apply / already-sent response.
+	## Authoritative refresh still comes from list_my_pending_applications().
+	var aid: String = alliance_id.strip_edges()
+	if aid.is_empty():
+		return
+	if is_application_pending(aid):
+		return
+	_my_pending_applications.append({
+		"alliance_id": aid,
+		"name": alliance_name.strip_edges(),
+		"status": "pending",
+		"message": message.strip_edges(),
+	})
+	my_pending_applications_changed.emit(_my_pending_applications.duplicate(true))
 
 
 func get_cached_invites() -> Array:
@@ -551,21 +589,106 @@ func apply_to_alliance(alliance_id: String, message: String = "") -> Dictionary:
 
 func join_alliance(alliance_id: String, message: String = "") -> Dictionary:
 	## Open alliances join immediately (pending=false). Apply alliances return pending=true.
+	## Duplicate pending applications also return ok=true + pending=true ("Application already sent.").
 	var ready: Dictionary = await ensure_ready_for_alliance_ops()
 	if not bool(ready.get("ok", false)):
 		return ready
-	var payload: Dictionary = {"alliance_id": alliance_id}
+	var aid: String = alliance_id.strip_edges()
+	var payload: Dictionary = {"alliance_id": aid}
 	if message.strip_edges() != "":
 		payload["message"] = message.strip_edges()
 	var result: Dictionary = await _rpc(RPC_JOIN_ALLIANCE, payload)
-	if bool(result.get("ok", false)) and not bool(result.get("pending", true)):
-		if typeof(result.get("profile")) == TYPE_DICTIONARY:
-			_set_profile(result.get("profile", {}))
-		if typeof(result.get("alliance")) == TYPE_DICTIONARY:
-			_alliance = result.get("alliance", {})
-			alliance_changed.emit(_alliance.duplicate(true))
-		await refresh_membership_caches()
+	if not bool(result.get("ok", false)):
+		return result
+	if bool(result.get("pending", false)):
+		# First apply and duplicate "already sent" both mean APPLICATION PENDING.
+		var pending_aid: String = str(result.get("alliance_id", aid)).strip_edges()
+		if pending_aid.is_empty():
+			pending_aid = aid
+		remember_pending_application(
+			pending_aid,
+			str(result.get("alliance_name", "")),
+			str(result.get("message", ""))
+		)
+		# Normalize confirmation for players; keep already-sent as pending UX, not an error.
+		var msg: String = str(result.get("message", "")).strip_edges()
+		if msg.to_lower().find("already") >= 0:
+			result["message"] = "Application already pending."
+		elif msg.is_empty():
+			result["message"] = "Application sent."
+		result["pending"] = true
+		result["alliance_id"] = pending_aid
+		return result
+	if typeof(result.get("profile")) == TYPE_DICTIONARY:
+		_set_profile(result.get("profile", {}))
+	if typeof(result.get("alliance")) == TYPE_DICTIONARY:
+		_alliance = result.get("alliance", {})
+		alliance_changed.emit(_alliance.duplicate(true))
+	# Joined — clear any pending entry for this alliance.
+	_remove_my_pending(aid)
+	await refresh_membership_caches()
 	return result
+
+
+## Authoritative applicant pending list via Nakama user-groups (state 3 = join request).
+func list_my_pending_applications() -> Dictionary:
+	var nc: Node = _nakama_connection()
+	if nc == null or not nc.is_authenticated():
+		return _fail("Not authenticated")
+	var client: NakamaClient = nc.get_client()
+	var session: NakamaSession = nc.get_session()
+	var user_id: String = str(nc.get_user_id()).strip_edges()
+	if client == null or session == null or user_id.is_empty():
+		return _fail("Missing client/session")
+	# Nakama group membership state 3 = join request / pending application.
+	var raw = await client.list_user_groups_async(session, user_id, 3, 100, null)
+	if raw == null or raw.is_exception():
+		var reason: String = "Could not list pending applications"
+		if raw != null and raw.get_exception() != null:
+			reason = str(raw.get_exception().message)
+		return _fail(reason)
+	var out: Array = []
+	var groups: Array = raw.user_groups if ("user_groups" in raw) else []
+	for ug_v: Variant in groups:
+		if ug_v == null:
+			continue
+		var state: int = int(ug_v.state) if ("state" in ug_v) else -1
+		if state != 3:
+			continue
+		var group = ug_v.group if ("group" in ug_v) else null
+		if group == null:
+			continue
+		var gid: String = str(group.id).strip_edges() if ("id" in group) else ""
+		if gid.is_empty():
+			continue
+		out.append({
+			"alliance_id": gid,
+			"name": str(group.name) if ("name" in group) else "",
+			"status": "pending",
+			"state": state,
+		})
+	_my_pending_applications = out
+	my_pending_applications_changed.emit(_my_pending_applications.duplicate(true))
+	return {"ok": true, "applications": out.duplicate(true)}
+
+
+func _remove_my_pending(alliance_id: String) -> void:
+	var aid: String = alliance_id.strip_edges()
+	if aid.is_empty():
+		return
+	var next: Array = []
+	var changed := false
+	for entry_v: Variant in _my_pending_applications:
+		if typeof(entry_v) != TYPE_DICTIONARY:
+			continue
+		var entry: Dictionary = entry_v
+		if str(entry.get("alliance_id", "")).strip_edges() == aid:
+			changed = true
+			continue
+		next.append(entry)
+	if changed:
+		_my_pending_applications = next
+		my_pending_applications_changed.emit(_my_pending_applications.duplicate(true))
 
 
 func ensure_ready_for_alliance_ops() -> Dictionary:
@@ -588,10 +711,12 @@ func leave_alliance() -> Dictionary:
 		_alliance = {}
 		_members = []
 		_applications = []
+		_my_pending_applications = []
 		_permissions = {}
 		alliance_changed.emit({})
 		roster_changed.emit([])
 		applications_changed.emit([])
+		my_pending_applications_changed.emit([])
 		permissions_changed.emit({})
 	return result
 
@@ -911,6 +1036,46 @@ func _on_help_notification(notification) -> void:
 	await refresh_help_requests()
 
 
+func _bind_alliance_notifications() -> void:
+	var nc: Node = _nakama_connection()
+	if nc == null or _alliance_notif_bound:
+		return
+	var socket = nc.get_socket()
+	if socket == null:
+		return
+	if socket.has_signal("received_notification") and not socket.received_notification.is_connected(_on_alliance_notification):
+		socket.received_notification.connect(_on_alliance_notification)
+	_alliance_notif_bound = true
+
+
+func _on_alliance_notification(notification) -> void:
+	if notification == null:
+		return
+	var code: int = int(notification.code) if ("code" in notification) else -1
+	if code != ALLIANCE_NOTIF_CODE:
+		return
+	var content: Variant = notification.content if ("content" in notification) else {}
+	var event_name: String = ""
+	if typeof(content) == TYPE_DICTIONARY:
+		event_name = str((content as Dictionary).get("event", "")).strip_edges()
+	elif typeof(content) == TYPE_STRING:
+		var parsed: Variant = JSON.parse_string(str(content))
+		if typeof(parsed) == TYPE_DICTIONARY:
+			event_name = str((parsed as Dictionary).get("event", "")).strip_edges()
+	match event_name:
+		"application_received":
+			if has_permission("view_applications"):
+				await list_join_requests()
+		"application_approved", "application_rejected":
+			# Applicant side: refresh pending join requests from Nakama.
+			await list_my_pending_applications()
+			if event_name == "application_approved":
+				await refresh_profile()
+				await refresh_membership_caches()
+		_:
+			pass
+
+
 func _bind_nakama() -> void:
 	var nc: Node = _nakama_connection()
 	if nc == null:
@@ -945,9 +1110,13 @@ func _on_socket_connected() -> void:
 	_bind_help_notifications()
 	_help_socket_bound = false
 	_bind_help_notifications()
+	_alliance_notif_bound = false
+	_bind_alliance_notifications()
 	bind_castle_moved_notifications()
 	call_deferred("_boot_teleport_inventory_sync")
 	_start_presence()
+	# Restore applicant pending applications from Nakama (survives Alliance UI reopen).
+	await list_my_pending_applications()
 	if is_in_backend_alliance():
 		await refresh_membership_caches()
 		await refresh_help_requests()

@@ -1591,12 +1591,12 @@ func _build_applications_view() -> void:
 			actions.add_theme_constant_override("separation", 8)
 			box.add_child(actions)
 			var accept_btn: Button = Button.new()
-			accept_btn.text = "Approve"
+			accept_btn.text = "Accept"
 			accept_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			accept_btn.custom_minimum_size = Vector2(0, 48)
 			accept_btn.pressed.connect(func() -> void:
 				var result: Dictionary = await _alliance_backend().approve_application(uid)
-				_set_flash_status("Application approved." if bool(result.get("ok", false)) else str(result.get("error", "Approve failed.")))
+				_set_flash_status("Application accepted." if bool(result.get("ok", false)) else str(result.get("error", "Accept failed.")))
 				_refresh()
 			)
 			actions.add_child(accept_btn)
@@ -1994,6 +1994,8 @@ func _build_join_view() -> void:
 			_content.add_child(apply_btn)
 
 		var query: String = _search_query
+		# Authoritative pending restore before painting Apply buttons.
+		await _alliance_backend().list_my_pending_applications()
 		var listed: Dictionary = await _alliance_backend().list_alliances(query)
 		var alliances: Array = listed.get("alliances", []) if bool(listed.get("ok", false)) else []
 		if alliances.is_empty():
@@ -2039,9 +2041,16 @@ func _add_alliance_search_card(entry: Dictionary) -> void:
 	if preview != "":
 		_add_panel_label(box, preview)
 	var action_btn: Button = Button.new()
-	action_btn.text = "Join" if is_open else "Apply"
+	var pending: bool = _alliance_backend().is_application_pending(entry_id)
+	if pending:
+		action_btn.text = "APPLICATION PENDING"
+		action_btn.disabled = true
+		action_btn.tooltip_text = "Your application is waiting for alliance approval."
+	else:
+		action_btn.text = "Join" if is_open else "Apply"
+		action_btn.disabled = false
+		action_btn.pressed.connect(_on_join_pressed.bind(entry_id))
 	action_btn.custom_minimum_size = Vector2(0, 52)
-	action_btn.pressed.connect(_on_join_pressed.bind(entry_id))
 	box.add_child(action_btn)
 
 
@@ -2158,7 +2167,13 @@ func _on_join_pressed(target_id: String) -> void:
 			_status_label.text = str(result_b.get("error", "Join failed."))
 			return
 		if bool(result_b.get("pending", false)):
-			_set_flash_status(str(result_b.get("message", "Application sent.")))
+			# Backend pending (first apply or already-sent) → show confirmation + pending UI.
+			var flash: String = str(result_b.get("message", "Application sent.")).strip_edges()
+			if flash.is_empty():
+				flash = "Application sent."
+			_set_flash_status(flash)
+			_status_label.text = flash
+			_view = ViewMode.JOIN
 			_refresh()
 			return
 		if has_node("/root/ChatManager"):
