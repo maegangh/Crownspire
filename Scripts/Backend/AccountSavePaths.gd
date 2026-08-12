@@ -84,6 +84,11 @@ var _legacy_owner_user_id: String = ""
 var _last_migration_result: Dictionary = {}
 var _context_token: int = 0
 var _provisional_bind: bool = false
+## When true, account-owned path_for returns quarantine so empty defaults cannot
+## persist into the real partition before cloud restore completes.
+var _cloud_bootstrap_hold: bool = false
+## Phase 3 smoke only: allow empty-bind bootstrap hold under smoke root.
+var _smoke_bootstrap_hold_enabled: bool = false
 
 
 func _ready() -> void:
@@ -96,9 +101,17 @@ func begin_smoke_isolation() -> void:
 	close_save_context()
 	_root_override = SMOKE_SAVES_ROOT
 	_migration_path_override = SMOKE_DEVICE_MIGRATION_PATH
+	_smoke_bootstrap_hold_enabled = false
+	_cloud_bootstrap_hold = false
 	_clear_dir_recursive(ProjectSettings.globalize_path(SMOKE_SAVES_ROOT))
 	if FileAccess.file_exists(get_device_migration_path()):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(get_device_migration_path()))
+
+
+func enable_smoke_bootstrap_hold(enabled: bool) -> void:
+	_smoke_bootstrap_hold_enabled = enabled
+	if not enabled:
+		_cloud_bootstrap_hold = false
 
 
 func end_smoke_isolation() -> void:
@@ -108,6 +121,8 @@ func end_smoke_isolation() -> void:
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(get_device_migration_path()))
 	_root_override = ""
 	_migration_path_override = ""
+	_smoke_bootstrap_hold_enabled = false
+	_cloud_bootstrap_hold = false
 
 
 func get_saves_root() -> String:
@@ -199,7 +214,7 @@ func is_legacy_flat_reachable_for_gameplay() -> bool:
 
 
 ## Canonical resolver for gameplay systems.
-## Bound → active user partition.
+## Bound → active user partition (or quarantine while cloud bootstrap hold is active).
 ## Unbound → quarantine (empty), NEVER legacy flat or another user's partition.
 func path_for(file_name: String) -> String:
 	var name: String = _normalize_file_name(file_name)
@@ -207,7 +222,30 @@ func path_for(file_name: String) -> String:
 		return legacy_path(name)
 	if not is_bound():
 		return quarantine_path(name)
+	if _cloud_bootstrap_hold:
+		# Hold real partition pristine until AccountCloudSave finishes restore/noop.
+		return quarantine_path(name)
 	return partition_path(name, _active_user_id)
+
+
+func set_cloud_bootstrap_hold(active: bool) -> void:
+	var prev: bool = _cloud_bootstrap_hold
+	_cloud_bootstrap_hold = active
+	if prev != active:
+		print("[AccountSavePaths] cloud_bootstrap_hold=%s user=%s" % [str(active), _short(_active_user_id)])
+
+
+func is_cloud_bootstrap_hold() -> bool:
+	return _cloud_bootstrap_hold
+
+
+func may_persist_account_files() -> bool:
+	## False while empty-partition cloud bootstrap is in progress.
+	if not is_bound():
+		return false
+	if _cloud_bootstrap_hold:
+		return false
+	return true
 
 
 ## Explicit cross-user path — only for switch/migration internals & tests.
@@ -265,6 +303,7 @@ func close_save_context() -> void:
 	_legacy_mismatch = false
 	_legacy_owner_user_id = ""
 	_provisional_bind = false
+	_cloud_bootstrap_hold = false
 	_context_token += 1
 	save_context_changed.emit("")
 
@@ -310,9 +349,16 @@ func open_save_context(user_id: String, opts: Dictionary = {}) -> Dictionary:
 	_last_migration_result = migration
 	_active_user_id = uid
 	_provisional_bind = provisional
+	# Empty partition may need cloud restore before gameplay persists/presents as live.
+	# Under Phase 1/2 smoke isolation, bootstrap hold stays off unless P3 enables it.
+	var allow_hold: bool = (_root_override == "") or _smoke_bootstrap_hold_enabled
+	if allow_hold and not has_account_gameplay_progress(uid):
+		_cloud_bootstrap_hold = true
+	else:
+		_cloud_bootstrap_hold = false
 	_context_token += 1
 	save_context_changed.emit(uid)
-	if do_reload:
+	if do_reload and not _cloud_bootstrap_hold:
 		_reload_bound_gameplay_systems()
 	return {
 		"ok": true,
@@ -321,6 +367,7 @@ func open_save_context(user_id: String, opts: Dictionary = {}) -> Dictionary:
 		"legacy_mismatch": _legacy_mismatch,
 		"migration": migration,
 		"provisional": provisional,
+		"cloud_bootstrap_hold": _cloud_bootstrap_hold,
 	}
 
 
@@ -338,7 +385,8 @@ func open_for_authenticated_user(user_id: String, ownership: Dictionary = {}) ->
 		_provisional_bind = false
 		_legacy_mismatch = bool(opts.get("legacy_mismatch", false))
 		_legacy_owner_user_id = str(opts.get("legacy_owner", ""))
-		if was_provisional:
+		# Do not reload while cloud bootstrap hold is active — AccountCloudSave will.
+		if was_provisional and not _cloud_bootstrap_hold:
 			_reload_bound_gameplay_systems()
 		return {
 			"ok": true,
@@ -347,6 +395,7 @@ func open_for_authenticated_user(user_id: String, ownership: Dictionary = {}) ->
 			"legacy_mismatch": _legacy_mismatch,
 			"migration": _last_migration_result,
 			"confirmed_provisional": was_provisional,
+			"cloud_bootstrap_hold": _cloud_bootstrap_hold,
 		}
 	return open_save_context(uid, opts)
 
@@ -507,6 +556,10 @@ func _on_identity_changed() -> void:
 			"mismatch": mismatch,
 		}
 	)
+
+
+func reload_bound_gameplay_systems() -> void:
+	_reload_bound_gameplay_systems()
 
 
 func _reload_bound_gameplay_systems() -> void:

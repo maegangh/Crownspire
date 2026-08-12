@@ -99,6 +99,8 @@ func save_bag() -> bool:
 	if err != OK:
 		push_error("[BagState] save_bag failed path=%s err=%s" % [path, str(err)])
 		return false
+	if has_node("/root/AccountCloudSave"):
+		AccountCloudSave.mark_dirty("bag")
 	return true
 
 

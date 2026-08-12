@@ -238,6 +238,8 @@ func save_quests() -> void:
 			cfg.set_value(quest_id, "objective_%d_current" % i, int(objective.get("current", 0)))
 
 	cfg.save(get_save_path())
+	if has_node("/root/AccountCloudSave"):
+		AccountCloudSave.mark_dirty("quests")
 
 
 func load_quests() -> void:

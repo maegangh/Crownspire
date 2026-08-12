@@ -443,6 +443,8 @@ func save_events() -> void:
 	var save := ConfigFile.new()
 	save.set_value("progress", "json", JSON.stringify(_progress))
 	save.save(get_save_path())
+	if has_node("/root/AccountCloudSave"):
+		AccountCloudSave.mark_dirty("events")
 
 
 func load_events() -> void:

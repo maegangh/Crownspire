@@ -1070,6 +1070,8 @@ func save_troops() -> void:
 	save.set_value("training", "cavalry_source_tier", cavalry_source_tier)
 
 	save.save(get_troops_path())
+	if has_node("/root/AccountCloudSave"):
+		AccountCloudSave.mark_dirty("troops")
 
 
 func load_troops() -> void:

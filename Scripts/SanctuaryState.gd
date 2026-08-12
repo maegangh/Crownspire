@@ -302,6 +302,8 @@ func save_sanctuary_state() -> void:
 		save.set_value(section, "end_unix", int(wave.get("end_unix", 0)))
 		save.set_value(section, "restored", bool(wave.get("restored", false)))
 	save.save(get_save_path())
+	if has_node("/root/AccountCloudSave"):
+		AccountCloudSave.mark_dirty("sanctuary")
 
 
 func load_sanctuary_state() -> void:

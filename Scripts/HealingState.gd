@@ -402,6 +402,8 @@ func save_healing_state() -> void:
 		save.set_value("queue", "costs", active_job.get("costs", {}))
 		save.set_value("queue", "restored", bool(active_job.get("restored", false)))
 	save.save(get_save_path())
+	if has_node("/root/AccountCloudSave"):
+		AccountCloudSave.mark_dirty("healing")
 
 
 func load_healing_state() -> void:

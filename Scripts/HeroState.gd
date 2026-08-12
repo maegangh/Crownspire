@@ -728,6 +728,8 @@ func save_heroes() -> void:
 	save.set_value("roster", "mythic_free_ready_unix", mythic_free_ready_unix)
 	save.set_value("city_defense", "wall_defender_ids_json", JSON.stringify(wall_defender_ids))
 	save.save(get_save_path())
+	if has_node("/root/AccountCloudSave"):
+		AccountCloudSave.mark_dirty("heroes")
 
 
 func load_heroes() -> void:

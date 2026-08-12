@@ -288,6 +288,8 @@ func save_mail() -> void:
 	save.set_value("meta", "save_version", SAVE_VERSION)
 	save.set_value("inbox", "messages_json", JSON.stringify(messages))
 	save.save(get_save_path())
+	if has_node("/root/AccountCloudSave"):
+		AccountCloudSave.mark_dirty("mail")
 
 
 func load_mail() -> void:

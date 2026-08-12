@@ -393,6 +393,8 @@ func _set_grant_flag(flag_key: String, granted: bool) -> void:
 	var err: Error = cfg.save(path)
 	if err != OK:
 		push_warning("[TUTORIAL] Failed to save grants %s (err=%d)" % [path, err])
+	elif has_node("/root/AccountCloudSave"):
+		AccountCloudSave.mark_dirty("tutorial_grants")
 
 
 func _is_citadel_kit_granted() -> bool:
@@ -608,6 +610,8 @@ func save_tutorial_state() -> void:
 	var err: Error = cfg.save(path)
 	if err != OK:
 		push_warning("[TUTORIAL] Failed to save %s (err=%d)" % [path, err])
+	elif has_node("/root/AccountCloudSave"):
+		AccountCloudSave.mark_dirty("tutorial")
 
 
 func _migrate_if_needed(loaded_version: int) -> void:

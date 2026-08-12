@@ -1699,6 +1699,8 @@ func save_marches() -> void:
 	save.set_value("meta", "save_version", 1)
 	save.set_value("registry", "marches_json", JSON.stringify(active_marches))
 	save.save(get_save_path())
+	if has_node("/root/AccountCloudSave"):
+		AccountCloudSave.mark_dirty("marches")
 
 
 func load_marches() -> void:

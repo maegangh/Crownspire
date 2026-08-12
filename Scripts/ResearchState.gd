@@ -300,6 +300,8 @@ func save_research_state() -> void:
 	cfg.set_value("levels", "json", JSON.stringify(research_levels))
 	cfg.set_value("jobs", "json", JSON.stringify(active_jobs))
 	cfg.save(path)
+	if has_node("/root/AccountCloudSave"):
+		AccountCloudSave.mark_dirty("research")
 
 
 func load_research_state() -> void:

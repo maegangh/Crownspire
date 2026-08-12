@@ -251,6 +251,8 @@ func save_state() -> void:
 	var err: Error = save.save(get_save_path())
 	if err != OK:
 		push_warning("[WildlingSpawnState] save failed: %s" % error_string(err))
+	elif has_node("/root/AccountCloudSave"):
+		AccountCloudSave.mark_dirty("wildling_spawns")
 
 
 func load_state() -> void:

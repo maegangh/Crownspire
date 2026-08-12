@@ -134,6 +134,8 @@ func save_resources():
 	save.set_value("resources", "power", power)
 	save.set_value("resources", "vip_level", vip_level)
 	save.save(path)
+	if has_node("/root/AccountCloudSave"):
+		AccountCloudSave.mark_dirty("resources")
 
 func load_resources():
 	var save = ConfigFile.new()

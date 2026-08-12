@@ -1376,6 +1376,8 @@ func _save_construction_state_internal() -> bool:
 	cfg.set_value("jobs", "json", JSON.stringify(active_jobs))
 	cfg.set_value("quarantine", "json", JSON.stringify(quarantined_jobs))
 	var err: Error = cfg.save(_queue_path)
+	if err == OK and has_node("/root/AccountCloudSave"):
+		AccountCloudSave.mark_dirty("construction")
 	return err == OK
 
 
