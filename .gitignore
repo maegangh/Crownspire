@@ -31,3 +31,6 @@ Scripts/dev/_tmp_*.gd
 Scripts/dev/_tmp_*.gd.uid
 deploy_staging/*.tar.gz
 deploy_staging/*.sha256
+
+# Private beta / device build overrides (never commit production client keys)
+config/nakama_client.local.cfg

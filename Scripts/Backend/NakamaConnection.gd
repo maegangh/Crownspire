@@ -12,6 +12,7 @@ signal login_gate_needed(reason: String)
 enum ConnState { OFFLINE, CONNECTING, CONNECTED, RECONNECTING }
 
 const CONFIG_RES_PATH: String = "res://config/nakama_client.cfg"
+const CONFIG_RES_LOCAL_PATH: String = "res://config/nakama_client.local.cfg"
 const CONFIG_USER_PATH: String = "user://nakama_config.cfg"
 const DEVICE_ID_PATH_DEFAULT: String = "user://nakama_device_id.cfg"
 const DEVICE_ID_SECTION: String = "device"
@@ -355,7 +356,7 @@ func _load_endpoint_config() -> void:
 	if env_key != "":
 		_server_key = env_key
 
-	# 2) Shipped project config (mobile beta LAN IP lives here).
+	# 2) Shipped project config (mobile beta LAN IP lives here). Tracked = local/dev-safe.
 	var res_loaded: Dictionary = _apply_cfg_file(CONFIG_RES_PATH, env_host == "" or (mobile and selected_source != "env"))
 	if bool(res_loaded.get("ok", false)):
 		cfg_host = str(res_loaded.get("host", ""))
@@ -368,31 +369,48 @@ func _load_endpoint_config() -> void:
 			str(FileAccess.file_exists(CONFIG_RES_PATH)),
 		])
 
-	# 3) Per-device override (editable without rebuild). Never let it force loopback on mobile.
+	# 2b) OPTIONAL private beta/local build override (gitignored). Absent → unchanged behavior.
+	# Loaded only if present so normal clones never require it.
+	if FileAccess.file_exists(CONFIG_RES_LOCAL_PATH):
+		var local_loaded: Dictionary = _apply_cfg_file(CONFIG_RES_LOCAL_PATH, true)
+		if bool(local_loaded.get("ok", false)):
+			var lh: String = str(local_loaded.get("host", "")).strip_edges()
+			var lm: String = str(local_loaded.get("mobile_host", "")).strip_edges()
+			if lh != "":
+				cfg_host = lh
+			if lm != "":
+				cfg_mobile_host = lm
+			if bool(local_loaded.get("host_applied", false)):
+				selected_source = "res://config/nakama_client.local.cfg"
+
+	# 3) Per-device override (editable without rebuild). Still wins over packaged configs.
 	var user_loaded: Dictionary = _apply_cfg_file(CONFIG_USER_PATH, true)
 	if bool(user_loaded.get("ok", false)) and bool(user_loaded.get("host_applied", false)):
 		selected_source = "user://nakama_config.cfg"
 
-	# 4) Final mobile safety: if still loopback, force mobile_host from shipped config / fallback.
+	# 4) Final mobile safety: if still loopback, force mobile_host from shipped/local config / fallback.
 	if mobile and _is_loopback_host(_host):
 		if cfg_mobile_host != "" and not _is_loopback_host(cfg_mobile_host):
 			_host = cfg_mobile_host
 			selected_source = "res_mobile_host_fallback"
 		else:
-			# Re-read shipped mobile_host directly as last resort.
+			# Prefer optional local packaged override, then tracked shipped config.
 			var cfg := ConfigFile.new()
-			if cfg.load(CONFIG_RES_PATH) == OK:
-				var mh: String = str(cfg.get_value("server", "mobile_host", "")).strip_edges()
-				if mh != "" and not _is_loopback_host(mh):
-					_host = mh
-					cfg_mobile_host = mh
-					selected_source = "res_mobile_host_reread"
+			var mh: String = ""
+			if FileAccess.file_exists(CONFIG_RES_LOCAL_PATH) and cfg.load(CONFIG_RES_LOCAL_PATH) == OK:
+				mh = str(cfg.get_value("server", "mobile_host", "")).strip_edges()
+			if (mh == "" or _is_loopback_host(mh)) and cfg.load(CONFIG_RES_PATH) == OK:
+				mh = str(cfg.get_value("server", "mobile_host", "")).strip_edges()
+			if mh != "" and not _is_loopback_host(mh):
+				_host = mh
+				cfg_mobile_host = mh
+				selected_source = "res_mobile_host_reread"
 		if _is_loopback_host(_host) and not _is_loopback_host(FALLBACK_MOBILE_HOST):
 			_host = FALLBACK_MOBILE_HOST
 			selected_source = "embedded_fallback_mobile_host"
 			push_warning("[Nakama] Using embedded FALLBACK_MOBILE_HOST=%s (cfg missing or loopback)." % FALLBACK_MOBILE_HOST)
 
-	print("[Nakama] Config loaded host=%s mobile_host=%s selected_host=%s platform=%s mobile=%s source=%s res_exists=%s" % [
+	print("[Nakama] Config loaded host=%s mobile_host=%s selected_host=%s platform=%s mobile=%s source=%s res_exists=%s local_exists=%s" % [
 		cfg_host if cfg_host != "" else str(_read_cfg_value(CONFIG_RES_PATH, "host")),
 		cfg_mobile_host if cfg_mobile_host != "" else str(_read_cfg_value(CONFIG_RES_PATH, "mobile_host")),
 		_host,
@@ -400,10 +418,11 @@ func _load_endpoint_config() -> void:
 		str(mobile),
 		selected_source,
 		str(FileAccess.file_exists(CONFIG_RES_PATH)),
+		str(FileAccess.file_exists(CONFIG_RES_LOCAL_PATH)),
 	])
 
 	if mobile and _is_loopback_host(_host):
-		push_warning("[Nakama] Mobile build still on localhost after config. Set mobile_host in res://config/nakama_client.cfg")
+		push_warning("[Nakama] Mobile build still on localhost after config. Set mobile_host in res://config/nakama_client.cfg or nakama_client.local.cfg")
 
 
 func _read_cfg_value(path: String, key: String) -> String:
