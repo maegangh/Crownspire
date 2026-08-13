@@ -23,6 +23,16 @@ static func resolve(hud: Node, step: Dictionary) -> Dictionary:
 	if ttype.is_empty() or tid.is_empty():
 		return empty
 
+	# Citadel upgrade FTUE: once the upgrade modal is open, spotlight the full modal card
+	# (PopupContainer), not the tiny world UpgradeArea behind the dimmer.
+	var step_id: String = str(step.get("step_id", "")).strip_edges()
+	if step_id == "start_building_upgrade" or (
+		ttype == "city_building" and tid == "castle" and step_id.is_empty()
+	):
+		var modal: Dictionary = resolve_building_upgrade_modal(hud)
+		if bool(modal.get("ok", false)):
+			return modal
+
 	match ttype:
 		"hud_control":
 			return _resolve_hud_control(hud, tid)
@@ -37,6 +47,40 @@ static func resolve(hud: Node, step: Dictionary) -> Dictionary:
 		_:
 			_log("Unknown target_type: %s" % ttype)
 			return empty
+
+
+## Visible BuildingUpgradeWindow card (PopupContainer) — derived from live Control rect.
+static func resolve_building_upgrade_modal(hud: Node) -> Dictionary:
+	var empty: Dictionary = {
+		"ok": false,
+		"kind": "building_upgrade_modal",
+		"control": null,
+		"node2d": null,
+		"rect": Rect2(),
+		"label": "BuildingUpgradeWindow/PopupContainer",
+	}
+	if hud == null:
+		return empty
+	var win: CanvasItem = hud.get_node_or_null("BuildingUpgradeWindow") as CanvasItem
+	if win == null:
+		win = hud.find_child("BuildingUpgradeWindow", true, false) as CanvasItem
+	if win == null or not is_instance_valid(win) or not win.visible:
+		return empty
+	var popup: Control = win.get_node_or_null("PopupContainer") as Control
+	if popup == null or not is_instance_valid(popup) or not popup.visible:
+		return empty
+	var gr: Rect2 = popup.get_global_rect()
+	if gr.size.x < 8.0 or gr.size.y < 8.0:
+		return empty
+	_log("Resolved building upgrade modal → %s rect=%s" % [str(popup.get_path()), str(gr)])
+	return {
+		"ok": true,
+		"kind": "building_upgrade_modal",
+		"control": popup,
+		"node2d": null,
+		"rect": gr,
+		"label": "BuildingUpgradeWindow/PopupContainer",
+	}
 
 
 static func rect_for_result(result: Dictionary, padding: float = 12.0) -> Rect2:

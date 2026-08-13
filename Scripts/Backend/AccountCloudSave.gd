@@ -124,12 +124,112 @@ func list_excluded_files() -> PackedStringArray:
 
 ## True once empty-partition cloud bootstrap has finished (or local already had progress).
 func is_gameplay_live() -> bool:
+	if has_blocked_conflict():
+		return false
 	var asp: Node = _asp()
 	if asp == null or not bool(asp.call("is_bound")):
 		return false
 	if bool(asp.call("is_cloud_bootstrap_hold")):
 		return false
 	return true
+
+
+## Player-facing conflict resolution after ambiguous local/cloud divergence.
+## Does not auto-overwrite: requires explicit "use_cloud" or "use_local".
+func apply_conflict_choice(choice: String) -> Dictionary:
+	var pick: String = choice.strip_edges().to_lower()
+	if pick == "keep_local" or pick == "keep_device":
+		pick = "use_local"
+	if pick != "use_cloud" and pick != "use_local":
+		return {"ok": false, "error": "invalid_choice", "message": "Choose use_cloud or use_local."}
+	if not has_blocked_conflict():
+		return {"ok": false, "error": "no_conflict", "message": "No blocked cloud conflict to resolve."}
+	var asp: Node = _asp()
+	if asp == null or not bool(asp.call("is_bound")):
+		return _fail(ERR_UNBOUND)
+	var uid: String = str(asp.call("get_active_user_id"))
+	if uid.is_empty() or uid == AccountSavePaths.UNBOUND_SENTINEL:
+		return _fail(ERR_UNBOUND)
+	if not _smoke_mode:
+		var auth: String = _session_user_id()
+		if auth.is_empty():
+			return _fail(ERR_NOT_AUTH)
+		if auth != uid:
+			return _fail(ERR_FOREIGN)
+
+	# Clear sticky block so restore/upload can proceed; restore only on use_cloud.
+	var prior: Dictionary = _blocked_conflict.duplicate(true)
+	_blocked_conflict.clear()
+
+	if pick == "use_cloud":
+		var cloud: Dictionary = await download_cloud_save(uid)
+		if not bool(cloud.get("ok", false)):
+			_blocked_conflict = prior
+			return {"ok": false, "error": str(cloud.get("error", "download_failed")), "choice": pick, "download": cloud}
+		if not bool(cloud.get("exists", false)):
+			_blocked_conflict = prior
+			return {"ok": false, "error": "cloud_missing", "choice": pick}
+		var payload: Dictionary = cloud.get("payload", {})
+		var restored: Dictionary = restore_payload_to_partition(payload, uid)
+		if not bool(restored.get("ok", false)):
+			_blocked_conflict = prior
+			return {"ok": false, "error": str(restored.get("error", "restore_failed")), "choice": pick, "restore": restored}
+		if str(cloud.get("version", "")) != "":
+			var m: Dictionary = _read_local_meta(uid)
+			m["storage_version"] = str(cloud.get("version", ""))
+			_write_local_meta(uid, m)
+		_finish_bootstrap(true)
+		var ok_cloud := {
+			"ok": true,
+			"choice": "use_cloud",
+			"action": "use_cloud",
+			"restore": restored,
+			"gameplay_live": is_gameplay_live(),
+		}
+		_last_result = ok_cloud
+		cloud_sync_completed.emit(ok_cloud)
+		return ok_cloud
+
+	# use_local — keep device partition; adopt cloud OCC version then upload local as newer.
+	var cloud_l: Dictionary = await download_cloud_save(uid)
+	if bool(cloud_l.get("ok", false)) and bool(cloud_l.get("exists", false)):
+		var cloud_payload: Dictionary = cloud_l.get("payload", {})
+		var cloud_rev: int = int(cloud_payload.get("revision", 0))
+		var m2: Dictionary = _read_local_meta(uid)
+		if str(cloud_l.get("version", "")) != "":
+			m2["storage_version"] = str(cloud_l.get("version", ""))
+		var local_rev: int = int(m2.get("local_revision", 0))
+		m2["local_revision"] = maxi(local_rev, cloud_rev) + 1
+		m2["local_updated_unix"] = int(Time.get_unix_time_from_system())
+		_write_local_meta(uid, m2)
+	var up: Dictionary = await upload_user_partition(uid)
+	if not bool(up.get("ok", false)):
+		# Upload may re-block; preserve whatever block state upload set, else restore prior.
+		if not has_blocked_conflict():
+			_blocked_conflict = prior
+		return {
+			"ok": false,
+			"error": str(up.get("error", CONFLICT_AMBIGUOUS)),
+			"choice": "use_local",
+			"upload": up,
+			"blocked": has_blocked_conflict(),
+		}
+	_finish_bootstrap(true)
+	var ok_local := {
+		"ok": true,
+		"choice": "use_local",
+		"action": "upload",
+		"upload": up,
+		"gameplay_live": is_gameplay_live(),
+	}
+	_last_result = ok_local
+	cloud_sync_completed.emit(ok_local)
+	return ok_local
+
+
+## Smoke / UI helper — clear sticky block only (does not mutate saves).
+func clear_blocked_conflict() -> void:
+	_blocked_conflict.clear()
 
 
 ## Smoke-only: simulate another device writing cloud without updating this device's meta.
@@ -469,8 +569,14 @@ func restore_payload_to_partition(payload: Dictionary, user_id: String = "") -> 
 ## Releases cloud bootstrap hold when finished so gameplay can go live without restart.
 func sync_after_auth() -> Dictionary:
 	if has_blocked_conflict():
-		_finish_bootstrap(false)
-		return {"ok": false, "error": CONFLICT_AMBIGUOUS, "blocked": _blocked_conflict}
+		# Sticky conflict awaits explicit player choice — do not release hold / auto-overwrite.
+		return {
+			"ok": false,
+			"error": CONFLICT_AMBIGUOUS,
+			"blocked": _blocked_conflict.duplicate(true),
+			"conflict": true,
+			"needs_resolution": true,
+		}
 	var asp: Node = _asp()
 	if asp == null or not bool(asp.call("is_bound")):
 		return _fail(ERR_UNBOUND)
@@ -512,8 +618,13 @@ func sync_after_auth() -> Dictionary:
 	if not bool(valid.get("ok", false)):
 		_blocked_conflict = valid
 		cloud_conflict.emit(str(valid.get("error", CONFLICT_CORRUPT)), valid)
-		_finish_bootstrap(false)
-		return valid
+		return {
+			"ok": false,
+			"error": str(valid.get("error", CONFLICT_CORRUPT)),
+			"conflict": true,
+			"needs_resolution": true,
+			"blocked": valid,
+		}
 
 	var decision: Dictionary = resolve_conflict(meta, payload)
 	var action: String = str(decision.get("action", "noop"))
@@ -538,8 +649,15 @@ func sync_after_auth() -> Dictionary:
 			_blocked_conflict = decision
 			cloud_conflict.emit(str(decision.get("code", CONFLICT_AMBIGUOUS)), decision)
 			push_warning("[AccountCloudSave] %s — refusing automatic overwrite" % str(decision.get("code", CONFLICT_AMBIGUOUS)))
-			_finish_bootstrap(false)
-			return {"ok": false, "error": str(decision.get("code", CONFLICT_AMBIGUOUS)), "decision": decision}
+			# Keep bootstrap hold if active; do not auto-release while unresolved.
+			return {
+				"ok": false,
+				"error": str(decision.get("code", CONFLICT_AMBIGUOUS)),
+				"decision": decision,
+				"conflict": true,
+				"needs_resolution": true,
+				"gameplay_live": is_gameplay_live(),
+			}
 		_:
 			_finish_bootstrap(true)
 			return {"ok": true, "action": "noop", "decision": decision, "gameplay_live": is_gameplay_live()}
@@ -604,6 +722,11 @@ func _on_save_context_changed(user_id: String) -> void:
 func _deferred_auth_sync() -> void:
 	if _smoke_mode:
 		return
+	# Email login owns sync_after_auth while AUTHENTICATING — avoid parallel race.
+	var identity: Node = get_node_or_null("/root/AccountIdentityState")
+	if identity != null and identity.has_method("get_auth_phase"):
+		if str(identity.call("get_auth_phase")) == "AUTHENTICATING":
+			return
 	var nc: Node = get_node_or_null("/root/NakamaConnection")
 	if nc == null or not bool(nc.call("is_authenticated")):
 		return

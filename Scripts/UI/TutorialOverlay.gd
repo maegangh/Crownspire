@@ -184,7 +184,25 @@ func _process(_delta: float) -> void:
 	if _awaiting_dynamic_target:
 		_retry_dynamic_target()
 		return
-	if bool(_focus_result.get("ok", false)) and _focus_result.get("node2d") != null:
+	# Citadel upgrade: retarget between castle hitbox and full upgrade modal as it opens/closes.
+	if _current_step_id == "start_building_upgrade" and not _pending_step.is_empty():
+		var upgraded: Dictionary = Resolver.resolve(_hud, _pending_step)
+		if bool(upgraded.get("ok", false)):
+			var prev_kind: String = str(_focus_result.get("kind", ""))
+			var next_kind: String = str(upgraded.get("kind", ""))
+			_focus_result = upgraded
+			_hole = Resolver.rect_for_result(_focus_result, 14.0)
+			if prev_kind != next_kind:
+				_log("Citadel upgrade focus → %s" % str(_focus_result.get("label", "")))
+			if bool(_pending_step.get("block_unrelated_input", false)) and _hole.size.x > 0.0:
+				_apply_full_dim(false)
+				_set_spotlight_visible(true)
+				_layout_spotlight(_hole)
+				_pointer.visible = bool(_pending_step.get("show_pointer", false))
+			return
+	if bool(_focus_result.get("ok", false)) and (
+		_focus_result.get("node2d") != null or _focus_result.get("control") != null
+	):
 		_refresh_focus_rect()
 		_layout_spotlight(_hole)
 
@@ -406,7 +424,12 @@ func _show_step(step_id: String) -> void:
 		_set_spotlight_visible(true)
 		_layout_spotlight(_hole)
 		_pointer.visible = show_pointer
-		set_process(_focus_result.get("node2d") != null or _awaiting_dynamic_target)
+		set_process(
+			_focus_result.get("node2d") != null
+			or _focus_result.get("control") != null
+			or _awaiting_dynamic_target
+			or _current_step_id == "start_building_upgrade"
+		)
 	elif _awaiting_dynamic_target:
 		# Instruction only — no incorrect Farm-building spotlight.
 		_apply_full_dim(false)
@@ -449,12 +472,16 @@ func _dismiss_obstructing_modals_for_step(step: Dictionary) -> void:
 	if step_id in ["complete_building_upgrade", "collect_resources"]:
 		needs_external = true
 
+	# Keep BuildingUpgradeWindow open during Citadel upgrade-start — spotlight follows PopupContainer.
+	var keep_upgrade_modal: bool = step_id == "start_building_upgrade"
+
 	if needs_external:
 		# Must clear GameHUD/UIManager ownership — visual-only on_close leaves
 		# is_screen_open() true and PopupBackground STOP-blocking city taps.
 		_safe_close_hud_screen_if_open()
 		_safe_close_building_action_popup()
-		_safe_close_building_upgrade_window()
+		if not keep_upgrade_modal:
+			_safe_close_building_upgrade_window()
 		_safe_close_academy_research_window()
 		_safe_close_troop_training_screen()
 		_safe_close_march_setup_screen()
@@ -465,7 +492,8 @@ func _dismiss_obstructing_modals_for_step(step: Dictionary) -> void:
 			_safe_close_troop_training_screen()
 		if tid.findn("Academy") < 0 and tid.findn("Research") < 0:
 			_safe_close_academy_research_window()
-		_safe_close_building_upgrade_window()
+		if not keep_upgrade_modal:
+			_safe_close_building_upgrade_window()
 
 
 func _hud_ui_manager() -> Node:

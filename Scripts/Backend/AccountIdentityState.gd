@@ -133,9 +133,16 @@ func is_secured() -> bool:
 	return _account_kind == AccountKind.SECURED
 
 
+func is_known_secured() -> bool:
+	return _known_secured
+
+
 func is_authenticating() -> bool:
 	return _auth_phase == AuthPhase.AUTHENTICATING
 
+
+func get_auth_phase() -> String:
+	return "AUTHENTICATING" if _auth_phase == AuthPhase.AUTHENTICATING else "IDLE"
 
 func get_linked_providers() -> Dictionary:
 	return _linked_providers.duplicate(true)
@@ -354,6 +361,7 @@ func login_with_email(email: String, password: String) -> Dictionary:
 	if cloud != null and cloud.has_method("sync_after_auth"):
 		cloud_res = await cloud.call("sync_after_auth")
 	_set_auth_phase(AuthPhase.IDLE)
+	# Auth succeeded — keep gate dismissible. Conflict is a post-auth resolution step, not login failure.
 	_boot_gate_mode = BootGateMode.AUTO_CONTINUE
 	var ok_res := {
 		"ok": true,
@@ -368,23 +376,36 @@ func login_with_email(email: String, password: String) -> Dictionary:
 		"gameplay_live": cloud != null and cloud.has_method("is_gameplay_live") and bool(cloud.call("is_gameplay_live")),
 	}
 	if cloud != null and cloud.has_method("has_blocked_conflict") and bool(cloud.call("has_blocked_conflict")):
-		ok_res["ok"] = false
+		ok_res["conflict"] = true
+		ok_res["needs_resolution"] = true
 		ok_res["error"] = AccountEmailAuthScript.ERR_CLOUD_CONFLICT
 		ok_res["message"] = AccountEmailAuthScript.user_message_for_code(AccountEmailAuthScript.ERR_CLOUD_CONFLICT)
-		_last_email_error = ok_res
+		# Keep SHOW_GATE semantics for UI until conflict is resolved (no silent guest).
+		_boot_gate_mode = BootGateMode.SHOW_GATE
+		_last_email_error = {
+			"ok": true,
+			"logged_in": true,
+			"conflict": true,
+			"error": AccountEmailAuthScript.ERR_CLOUD_CONFLICT,
+			"message": ok_res["message"],
+		}
 	else:
+		ok_res["conflict"] = false
 		_last_email_error = {}
 	account_state_changed.emit()
 	email_auth_completed.emit(ok_res)
 	print(
-		"[AccountIdentity] Email login user=%s switched_from=%s"
-		% [_short_id(new_uid), _short_id(previous_uid)]
+		"[AccountIdentity] Email login user=%s switched_from=%s conflict=%s"
+		% [_short_id(new_uid), _short_id(previous_uid), str(ok_res.get("conflict", false))]
 	)
 	return ok_res
 
 
 func warn_before_login_switch() -> Dictionary:
 	## UI helper: guest with progress may become unrecoverable if device data is lost.
+	## Never show guest-warning copy on a forced secured-account reauth gate.
+	if _known_secured or _boot_gate_mode == BootGateMode.SHOW_GATE or should_block_guest_device_fallback():
+		return {"warn": false}
 	if not is_guest():
 		return {"warn": false}
 	var asp: Node = get_node_or_null("/root/AccountSavePaths")
