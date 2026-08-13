@@ -306,7 +306,7 @@
 	  "iron": 0,
 	  "valor": 0
 	},
-	"trainingTimeSec": 5,
+	"trainingTimeSec": 4,
 	"upkeep": 0.1,
 	"unlockRequirement": "Marksmen Camp Lv. 1",
 	"description": "Light skirmish slingers throwing stones at short distances."
@@ -354,7 +354,7 @@
 	  "iron": 15,
 	  "valor": 0
 	},
-	"trainingTimeSec": 16,
+	"trainingTimeSec": 15,
 	"upkeep": 0.45,
 	"unlockRequirement": "Marksmen Camp Lv. 6",
 	"description": "Armored ranged squad with hand-cranked steel bow winches. Pierces thick steel plate."
@@ -378,7 +378,7 @@
 	  "iron": 30,
 	  "valor": 0
 	},
-	"trainingTimeSec": 32,
+	"trainingTimeSec": 30,
 	"upkeep": 0.8,
 	"unlockRequirement": "Marksmen Camp Lv. 10",
 	"description": "Elite archers shooting silverwood arrows that pierce standard armor over huge leagues."
@@ -402,7 +402,7 @@
 	  "iron": 80,
 	  "valor": 0
 	},
-	"trainingTimeSec": 64,
+	"trainingTimeSec": 60,
 	"upkeep": 1.3,
 	"unlockRequirement": "Marksmen Camp Lv. 14",
 	"description": "Stealthy assassins whose poison darts weaken high value frontline leaders in seconds."
@@ -426,7 +426,7 @@
 	  "iron": 200,
 	  "valor": 0
 	},
-	"trainingTimeSec": 128,
+	"trainingTimeSec": 120,
 	"upkeep": 2.2,
 	"unlockRequirement": "Marksmen Camp Lv. 18",
 	"description": "Fleet-footed arrowsmiths who double-shoot during dynamic retreat movements."
@@ -450,7 +450,7 @@
 	  "iron": 450,
 	  "valor": 0
 	},
-	"trainingTimeSec": 256,
+	"trainingTimeSec": 240,
 	"upkeep": 3.8,
 	"unlockRequirement": "Marksmen Camp Lv. 22",
 	"description": "Devastating giant arbalest artillery operators capable of pinning whole armies."
@@ -474,7 +474,7 @@
 	  "iron": 1000,
 	  "valor": 10
 	},
-	"trainingTimeSec": 480,
+	"trainingTimeSec": 450,
 	"upkeep": 6.5,
 	"unlockRequirement": "Marksmen Camp Lv. 26",
 	"description": "Rangers wielding sun-kissed recurves who incinerate target covers with light."
@@ -498,7 +498,7 @@
 	  "iron": 2000,
 	  "valor": 25
 	},
-	"trainingTimeSec": 960,
+	"trainingTimeSec": 900,
 	"upkeep": 11,
 	"unlockRequirement": "Marksmen Camp Lv. 30",
 	"description": "Wind-spirit archers whose gale arrows alter wind currents for absolute direct accuracy."
@@ -522,7 +522,7 @@
 	  "iron": 5000,
 	  "valor": 60
 	},
-	"trainingTimeSec": 1920,
+	"trainingTimeSec": 1800,
 	"upkeep": 20,
 	"unlockRequirement": "Marksmen Camp Lv. 33",
 	"description": "Heavy dwarven matchlock gunners with telescoping scopes that split thick dragon shields."
@@ -546,7 +546,7 @@
 	  "iron": 10000,
 	  "valor": 150
 	},
-	"trainingTimeSec": 3840,
+	"trainingTimeSec": 3600,
 	"upkeep": 35,
 	"unlockRequirement": "Marksmen Camp Lv. 36",
 	"description": "Magical archers casting thunderstorm arrows that chain lightning through dense battle ranks."
@@ -570,7 +570,7 @@
 	  "iron": 20000,
 	  "valor": 400
 	},
-	"trainingTimeSec": 7680,
+	"trainingTimeSec": 7200,
 	"upkeep": 65,
 	"unlockRequirement": "Marksmen Camp Lv. 40",
 	"description": "The ultimate sniper drawing cosmic arrows from space voids, bypassing defender shields."
@@ -594,7 +594,7 @@
 	  "iron": 0,
 	  "valor": 0
 	},
-	"trainingTimeSec": 6,
+	"trainingTimeSec": 4,
 	"upkeep": 0.15,
 	"unlockRequirement": "Cavalry Stable Lv. 1",
 	"description": "Fast-moving cavalry designed for border patrols and map scouting."
@@ -618,7 +618,7 @@
 	  "iron": 0,
 	  "valor": 0
 	},
-	"trainingTimeSec": 10,
+	"trainingTimeSec": 8,
 	"upkeep": 0.3,
 	"unlockRequirement": "Cavalry Stable Lv. 3",
 	"description": "Saber-wielding horsemen who flank archers and run down routed infantry."
@@ -642,7 +642,7 @@
 	  "iron": 40,
 	  "valor": 0
 	},
-	"trainingTimeSec": 18,
+	"trainingTimeSec": 15,
 	"upkeep": 0.55,
 	"unlockRequirement": "Cavalry Stable Lv. 6",
 	"description": "Frontline lance riders with iron horse vests whose charges smash ranks."
@@ -666,7 +666,7 @@
 	  "iron": 90,
 	  "valor": 0
 	},
-	"trainingTimeSec": 36,
+	"trainingTimeSec": 30,
 	"upkeep": 1,
 	"unlockRequirement": "Cavalry Stable Lv. 10",
 	"description": "Heavy shock cavalry wielding dense swords. Excellent frontline protectors."
@@ -690,7 +690,7 @@
 	  "iron": 200,
 	  "valor": 0
 	},
-	"trainingTimeSec": 72,
+	"trainingTimeSec": 60,
 	"upkeep": 1.6,
 	"unlockRequirement": "Cavalry Stable Lv. 14",
 	"description": "Unstoppable heavy horse wall, fully covered in scale-mail steel plates."
@@ -714,7 +714,7 @@
 	  "iron": 400,
 	  "valor": 0
 	},
-	"trainingTimeSec": 144,
+	"trainingTimeSec": 120,
 	"upkeep": 2.6,
 	"unlockRequirement": "Cavalry Stable Lv. 18",
 	"description": "Swift wild riders who strike at extreme speed and vanish."
@@ -738,7 +738,7 @@
 	  "iron": 900,
 	  "valor": 0
 	},
-	"trainingTimeSec": 288,
+	"trainingTimeSec": 240,
 	"upkeep": 4.5,
 	"unlockRequirement": "Cavalry Stable Lv. 22",
 	"description": "Prestige horseguards outfitted in golden armor with crushing broad-maces."
@@ -762,7 +762,7 @@
 	  "iron": 1800,
 	  "valor": 12
 	},
-	"trainingTimeSec": 540,
+	"trainingTimeSec": 450,
 	"upkeep": 7.5,
 	"unlockRequirement": "Cavalry Stable Lv. 26",
 	"description": "Pistol-drawn light cavalry whose dynamic hit-and-run volleys cause absolute confusion."
@@ -786,7 +786,7 @@
 	  "iron": 3500,
 	  "valor": 30
 	},
-	"trainingTimeSec": 1080,
+	"trainingTimeSec": 900,
 	"upkeep": 12.5,
 	"unlockRequirement": "Cavalry Stable Lv. 30",
 	"description": "An anointed saint of war whose holy strikes protect partners and terrorize dark fiends."
@@ -810,7 +810,7 @@
 	  "iron": 7000,
 	  "valor": 70
 	},
-	"trainingTimeSec": 2160,
+	"trainingTimeSec": 1800,
 	"upkeep": 22,
 	"unlockRequirement": "Cavalry Stable Lv. 33",
 	"description": "Gargantuan heavily-harnessed destriers armed with steel horns to pierce phalanxes."
@@ -834,7 +834,7 @@
 	  "iron": 14000,
 	  "valor": 180
 	},
-	"trainingTimeSec": 4320,
+	"trainingTimeSec": 3600,
 	"upkeep": 40,
 	"unlockRequirement": "Cavalry Stable Lv. 36",
 	"description": "Astral riders traversing space rifts to drop from orbit onto helpless frontlines."
@@ -858,7 +858,7 @@
 	  "iron": 28000,
 	  "valor": 500
 	},
-	"trainingTimeSec": 8640,
+	"trainingTimeSec": 7200,
 	"upkeep": 75,
 	"unlockRequirement": "Cavalry Stable Lv. 40",
 	"description": "The ultimate war-rider mounting massive purebred dragons that breathe divine fire."

@@ -586,6 +586,10 @@ func _reload_bound_gameplay_systems() -> void:
 	var lair: Node = get_node_or_null("/root/AllianceLairState")
 	if lair != null and lair.has_method("_load_runtime"):
 		lair.call("_load_runtime")
+	# Power cache must be rebuilt from restored progression (never trust stale resources.cfg power).
+	var gs: Node = get_node_or_null("/root/GameState")
+	if gs != null and gs.has_method("recalculate_player_power"):
+		gs.call("recalculate_player_power", true)
 
 
 func _call_load(node_path: String, method: String) -> void:

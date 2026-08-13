@@ -264,9 +264,14 @@ func get_training_cost(troop_type: String, tier: int = 1, amount: int = 1) -> Di
 
 
 func get_training_time(troop_type: String, tier: int = 1, amount: int = 1) -> int:
+	## base_tier_time × quantity ÷ training_speed_modifier (modifier reserved for future VIP/research/buffs).
 	var troop: Dictionary = get_troop(troop_type, tier)
 	var base_time: int = int(troop.get("trainingTimeSec", 1))
-	return max(base_time * amount, 1)
+	var training_speed_modifier: float = 1.0
+	if training_speed_modifier <= 0.0:
+		training_speed_modifier = 1.0
+	var raw: float = float(base_time) * float(maxi(1, amount)) / training_speed_modifier
+	return maxi(1, int(ceil(raw)))
 
 
 func get_power_gain(troop_type: String, tier: int = 1, amount: int = 1) -> int:
