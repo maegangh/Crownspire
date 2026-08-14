@@ -29,8 +29,10 @@ const ANTI_SCOUT_DURATION_SEC: int = 24 * 60 * 60
 ## BEGINNER_PROTECTION_DURATION_SEC stays 0 until product locks a value.
 ##
 ## Peace Shield / Anti-Scout:
-##   Items boost_shield_peace_3d / boost_anti_scout_24h live in client BagState only.
-##   Server inventory authority does NOT exist for these yet — no public activate RPC.
+##   Authoritative inventory: crownspire_teleport_inventory (grant-only; NEVER bag-imported).
+##   Public use RPCs: crownspire_use_peace_shield / crownspire_use_anti_scout.
+##   Stacking (PRODUCT): expires_at = max(now, current) + duration (EXTEND).
+##   Local CityProtectionState mirrors server expiry after confirmed use only.
 const BEGINNER_PROTECTION_DURATION_SEC: int = 0
 const BEGINNER_PROTECTION_PRODUCT_LOCKED: bool = false
 
@@ -107,7 +109,8 @@ func local_snapshot(at_unix: int = -1) -> Dictionary:
 	}
 
 
-## Activate Peace Shield from bag use. Duration from Items.json design (3 days).
+## Activate Peace Shield from bag use (LOCAL / smoke only).
+## Live Bag UX must call AllianceBackend.use_peace_shield and apply_server_peace_shield.
 func activate_peace_shield_from_item() -> Dictionary:
 	var now: int = now_unix()
 	var base: int = maxi(now, peace_shield_expires_at)
@@ -124,6 +127,19 @@ func activate_anti_scout_from_item() -> Dictionary:
 	save_protection()
 	protection_changed.emit()
 	return {"ok": true, "expires_at": anti_scout_expires_at, "duration_sec": ANTI_SCOUT_DURATION_SEC}
+
+
+## Apply authoritative server Peace Shield expiry (EXTEND already computed server-side).
+func apply_server_peace_shield(expires_at: int) -> void:
+	peace_shield_expires_at = maxi(0, expires_at)
+	save_protection()
+	protection_changed.emit()
+
+
+func apply_server_anti_scout(expires_at: int) -> void:
+	anti_scout_expires_at = maxi(0, expires_at)
+	save_protection()
+	protection_changed.emit()
 
 
 ## Test / future product hook — do not call from live UX until duration is locked.

@@ -81,7 +81,7 @@ function InitModule(ctx, logger, nk, initializer) {
     initializer.registerRpc("crownspire_presence_heartbeat", rpcPresenceHeartbeat);
     // Kingdom world castles (stable positions for multiplayer map).
     initializer.registerRpc("crownspire_list_kingdom_castles", rpcListKingdomCastles);
-    // Current-kingdom targeted city teleport.
+    // Current-kingdom targeted city teleport + secure consumable inventory.
     initializer.registerRpc("crownspire_teleport_inventory_sync", rpcTeleportInventorySync);
     initializer.registerRpc("crownspire_teleport_inventory_get", rpcTeleportInventoryGet);
     initializer.registerRpc("crownspire_teleport_deployment_begin", rpcTeleportDeploymentBegin);
@@ -89,6 +89,16 @@ function InitModule(ctx, logger, nk, initializer) {
     // Retired: clients could clear the troop ledger to bypass teleport checks.
     initializer.registerRpc("crownspire_set_troop_activity", rpcSetTroopActivity);
     initializer.registerRpc("crownspire_city_teleport_relocate", rpcCityTeleportRelocate);
+    // Closed-beta secure consumable grant — only when server env explicitly enables it.
+    // Production-beta enable: runtime.env CROWNSPIRE_ENABLE_BETA_GRANTS=true and
+    // CROWNSPIRE_BETA_GRANT_SECRET=<server-only secret>. Default: not registered.
+    if (isBetaSecureGrantsEnabled(ctx) && getBetaGrantSecret(ctx).length >= 16) {
+        initializer.registerRpc("crownspire_dev_grant_secure_consumable", rpcDevGrantSecureConsumable);
+        logger.info("Beta secure consumable grant RPC registered (CROWNSPIRE_ENABLE_BETA_GRANTS=true).");
+    }
+    else {
+        logger.info("Beta secure consumable grant RPC NOT registered (flag/secret gate closed).");
+    }
     // Phase 5.3 — Alliance Rallies (Wildling Lair).
     initializer.registerRpc("crownspire_rally_create", rpcRallyCreate);
     initializer.registerRpc("crownspire_rally_join", rpcRallyJoin);
@@ -100,10 +110,11 @@ function InitModule(ctx, logger, nk, initializer) {
     initializer.registerRpc("crownspire_rally_complete", rpcRallyComplete);
     // Phase 6 — Direct Message delivery through authenticated server RPC.
     initializer.registerRpc("crownspire_dm_send", rpcDmSend);
-    // Phase 5.6 — Hostile validation (read-only) + voluntary beginner clear only.
-    // Peace Shield / Anti-Scout / Beginner GRANT RPCs are NOT registered: no server
-    // item inventory authority for those boosts yet (BagState is client-local).
+    // Phase 5.6 — Hostile validation + authoritative Peace Shield / Anti-Scout use + beginner clear.
+    // Free activate_* / beginner GRANT RPCs are NOT registered.
     initializer.registerRpc("crownspire_validate_hostile_action", rpcValidateHostileAction);
+    initializer.registerRpc("crownspire_use_peace_shield", rpcUsePeaceShield);
+    initializer.registerRpc("crownspire_use_anti_scout", rpcUseAntiScout);
     initializer.registerRpc("crownspire_clear_own_beginner_protection", rpcClearOwnBeginnerProtection);
     logger.info("Crownspire runtime loaded (Phase 3+4+5+5.1+5.3+6+castles identity/alliance/help/social/rallies/dm-rpc). LOCAL DEVELOPMENT ONLY.");
 }
@@ -3110,12 +3121,19 @@ function rpcListKingdomCastles(ctx, logger, nk, payload) {
  * Contract blockers: crownspire_map_blockers_v1 (matches MapPlacementContract.gd).
  */
 var TELEPORT_ITEM_ID = "teleport_advanced_compass";
+/** Multiplayer-authority consumables share teleport inventory OCC storage. */
+var PEACE_SHIELD_INV_ITEM_ID = "boost_shield_peace_3d";
+var ANTI_SCOUT_INV_ITEM_ID = "boost_anti_scout_24h";
 var TELEPORT_INV_COLLECTION = "crownspire_teleport_inventory";
 var TELEPORT_OPS_COLLECTION = "crownspire_teleport_ops";
 var TELEPORT_DEPLOY_COLLECTION = "crownspire_teleport_deployments";
 var TELEPORT_LOCK_COLLECTION = "crownspire_kingdom_teleport_lock";
 var CASTLE_MOVED_NOTIF_CODE = 5005;
 var LOCK_TTL_SEC = 20;
+var SECURE_CONSUMABLE_ALLOWLIST = {};
+SECURE_CONSUMABLE_ALLOWLIST[TELEPORT_ITEM_ID] = true;
+SECURE_CONSUMABLE_ALLOWLIST[PEACE_SHIELD_INV_ITEM_ID] = true;
+SECURE_CONSUMABLE_ALLOWLIST[ANTI_SCOUT_INV_ITEM_ID] = true;
 var MAP_CONTRACT_ID = "crownspire_map_blockers_v1";
 var WORLD_MAP_SIZE_T = 8192;
 var CASTLE_EDGE_MARGIN_T = 900;
@@ -3143,6 +3161,24 @@ var OP_REGISTRY_UPDATED = "registry_updated";
 var OP_PROFILE_UPDATED = "profile_updated";
 var OP_COMPLETED = "completed";
 var OP_FAILED = "failed";
+function isSecureConsumableItemId(itemId) {
+    return SECURE_CONSUMABLE_ALLOWLIST[String(itemId || "")] === true;
+}
+function normalizeInvRecord(rec, userId) {
+    var out = rec && typeof rec === "object" ? rec : {};
+    out.user_id = String(out.user_id || userId);
+    if (!out.balances || typeof out.balances !== "object")
+        out.balances = {};
+    out.reconciled = !!out.reconciled;
+    out.import_fingerprint = String(out.import_fingerprint || "");
+    if (!out.item_reconciled || typeof out.item_reconciled !== "object")
+        out.item_reconciled = {};
+    if (!out.item_import_fingerprints || typeof out.item_import_fingerprints !== "object") {
+        out.item_import_fingerprints = {};
+    }
+    out.updated_at = typeof out.updated_at === "number" ? out.updated_at : 0;
+    return out;
+}
 function fnv1a32Teleport(text) {
     var h = 2166136261;
     var s = String(text || "");
@@ -3280,31 +3316,86 @@ function storageWriteVersioned(nk, collection, key, userId, value, version, perm
 }
 function readTeleportInvObj(nk, userId) {
     var obj = storageReadOne(nk, TELEPORT_INV_COLLECTION, userId, userId);
-    if (obj)
+    if (obj) {
+        obj.value = normalizeInvRecord(obj.value, userId);
         return obj;
+    }
     return {
-        value: {
+        value: normalizeInvRecord({
             user_id: userId,
             balances: {},
             reconciled: false,
             import_fingerprint: "",
+            item_reconciled: {},
+            item_import_fingerprints: {},
             updated_at: 0,
-        },
+        }, userId),
         version: "*",
     };
 }
-function getTeleportBalance(rec) {
-    var n = Number(rec.balances[TELEPORT_ITEM_ID] || 0);
+function getSecureBalance(rec, itemId) {
+    if (!isSecureConsumableItemId(itemId))
+        return 0;
+    var n = Number((rec.balances || {})[itemId] || 0);
     return isFinite(n) && n > 0 ? Math.floor(n) : 0;
 }
-function setTeleportBalance(rec, amount) {
+function setSecureBalance(rec, itemId, amount) {
+    if (!isSecureConsumableItemId(itemId))
+        return;
     if (!rec.balances)
         rec.balances = {};
     var n = Math.max(0, Math.floor(amount));
     if (n <= 0)
-        delete rec.balances[TELEPORT_ITEM_ID];
+        delete rec.balances[itemId];
     else
-        rec.balances[TELEPORT_ITEM_ID] = n;
+        rec.balances[itemId] = n;
+}
+function getTeleportBalance(rec) {
+    return getSecureBalance(rec, TELEPORT_ITEM_ID);
+}
+function setTeleportBalance(rec, amount) {
+    setSecureBalance(rec, TELEPORT_ITEM_ID, amount);
+}
+function isGrantOnlySecureItem(itemId) {
+    return itemId === PEACE_SHIELD_INV_ITEM_ID || itemId === ANTI_SCOUT_INV_ITEM_ID;
+}
+function isSecureItemReconciled(rec, itemId) {
+    if (itemId === TELEPORT_ITEM_ID)
+        return !!rec.reconciled;
+    // Peace Shield / Anti-Scout are grant-only — never bag-reconciled. Always usable for balance checks.
+    if (isGrantOnlySecureItem(itemId))
+        return true;
+    return !!(rec.item_reconciled && rec.item_reconciled[itemId]);
+}
+function markSecureItemReconciled(rec, itemId, fingerprint) {
+    if (itemId === TELEPORT_ITEM_ID) {
+        rec.reconciled = true;
+        rec.import_fingerprint = fingerprint;
+        return;
+    }
+    if (!rec.item_reconciled)
+        rec.item_reconciled = {};
+    if (!rec.item_import_fingerprints)
+        rec.item_import_fingerprints = {};
+    rec.item_reconciled[itemId] = true;
+    rec.item_import_fingerprints[itemId] = fingerprint;
+}
+function publicSecureBalances(rec) {
+    var _a;
+    return _a = {},
+        _a[TELEPORT_ITEM_ID] = getSecureBalance(rec, TELEPORT_ITEM_ID),
+        _a[PEACE_SHIELD_INV_ITEM_ID] = getSecureBalance(rec, PEACE_SHIELD_INV_ITEM_ID),
+        _a[ANTI_SCOUT_INV_ITEM_ID] = getSecureBalance(rec, ANTI_SCOUT_INV_ITEM_ID),
+        _a;
+}
+function publicSecureReconciled(rec) {
+    var _a;
+    return _a = {},
+        _a[TELEPORT_ITEM_ID] = isSecureItemReconciled(rec, TELEPORT_ITEM_ID),
+        // Grant-only items report ready=true; bag import is never used.
+        _a[PEACE_SHIELD_INV_ITEM_ID] = true,
+        _a[ANTI_SCOUT_INV_ITEM_ID] = true,
+        _a;
 }
 function readRegistryObj(nk, kingdomId) {
     var obj = storageReadOne(nk, KINGDOM_CASTLE_COLLECTION, kingdomId, SYSTEM_USER);
@@ -3508,42 +3599,91 @@ function restoreRegistryCoords(nk, profile, worldX, worldY) {
     profile.world_y = worldY;
     applyRegistryMove(nk, profile, worldX, worldY);
 }
-function consumeInventoryCAS(nk, userId) {
+function consumeSecureItemCAS(nk, userId, itemId) {
+    if (!isSecureConsumableItemId(itemId))
+        throw Err("Unsupported secure consumable.");
     for (var attempt = 0; attempt < 8; attempt++) {
         var invObj = readTeleportInvObj(nk, userId);
-        var inv = invObj.value;
-        if (!inv.reconciled)
+        var inv = normalizeInvRecord(invObj.value, userId);
+        // Advanced Teleport still requires historical one-time bag reconcile.
+        // Peace Shield / Anti-Scout are grant-only (never bag-imported).
+        if (itemId === TELEPORT_ITEM_ID && !inv.reconciled) {
             throw Err("Teleport inventory not reconciled. Open the Bag once while online.");
-        var bal = getTeleportBalance(inv);
-        if (bal < 1)
-            throw Err("No Advanced Teleport remaining.");
-        setTeleportBalance(inv, bal - 1);
+        }
+        var bal = getSecureBalance(inv, itemId);
+        if (bal < 1) {
+            if (itemId === TELEPORT_ITEM_ID)
+                throw Err("No Advanced Teleport remaining.");
+            if (itemId === PEACE_SHIELD_INV_ITEM_ID)
+                throw Err("No Peace Shields available.");
+            if (itemId === ANTI_SCOUT_INV_ITEM_ID)
+                throw Err("No Anti-Scout items available.");
+            throw Err("No items remaining.");
+        }
+        setSecureBalance(inv, itemId, bal - 1);
         inv.updated_at = nowUnix();
         try {
             storageWriteVersioned(nk, TELEPORT_INV_COLLECTION, userId, userId, inv, invObj.version, 1);
-            return getTeleportBalance(inv);
+            return getSecureBalance(inv, itemId);
+        }
+        catch (_e) {
+            // retry OCC
+        }
+    }
+    throw Err("Secure inventory busy. Try again.");
+}
+function refundSecureItemCAS(nk, userId, itemId) {
+    if (!isSecureConsumableItemId(itemId))
+        throw Err("Unsupported secure consumable.");
+    for (var attempt = 0; attempt < 8; attempt++) {
+        var invObj = readTeleportInvObj(nk, userId);
+        var inv = normalizeInvRecord(invObj.value, userId);
+        setSecureBalance(inv, itemId, getSecureBalance(inv, itemId) + 1);
+        inv.updated_at = nowUnix();
+        try {
+            storageWriteVersioned(nk, TELEPORT_INV_COLLECTION, userId, userId, inv, invObj.version, 1);
+            return getSecureBalance(inv, itemId);
         }
         catch (_e) {
             // retry
         }
     }
-    throw Err("Teleport inventory busy. Try again.");
+    throw Err("Failed to refund secure consumable.");
+}
+/** TRUSTED INTERNAL — beta/admin grant into authoritative inventory. Never trust client counts. */
+function trustedGrantSecureConsumableCAS(nk, userId, itemId, amount) {
+    if (!isSecureConsumableItemId(itemId))
+        throw Err("Unsupported secure consumable.");
+    var add = Math.max(0, Math.floor(amount));
+    if (add <= 0)
+        throw Err("amount must be a positive integer.");
+    if (add > 99)
+        throw Err("amount exceeds max grant.");
+    for (var attempt = 0; attempt < 8; attempt++) {
+        var invObj = readTeleportInvObj(nk, userId);
+        var inv = normalizeInvRecord(invObj.value, userId);
+        // Grants also mark the item reconciled so use is possible without bag import.
+        if (!isSecureItemReconciled(inv, itemId)) {
+            markSecureItemReconciled(inv, itemId, "grant_v1:" + String(add) + ":" + String(nowUnix()));
+        }
+        var next = getSecureBalance(inv, itemId) + add;
+        setSecureBalance(inv, itemId, next);
+        inv.updated_at = nowUnix();
+        try {
+            storageWriteVersioned(nk, TELEPORT_INV_COLLECTION, userId, userId, inv, invObj.version, 1);
+            return getSecureBalance(inv, itemId);
+        }
+        catch (_e) {
+            // retry
+        }
+    }
+    throw Err("Secure inventory grant busy.");
+}
+function consumeInventoryCAS(nk, userId) {
+    return consumeSecureItemCAS(nk, userId, TELEPORT_ITEM_ID);
 }
 function refundInventoryCAS(nk, userId) {
-    for (var attempt = 0; attempt < 8; attempt++) {
-        var invObj = readTeleportInvObj(nk, userId);
-        var inv = invObj.value;
-        setTeleportBalance(inv, getTeleportBalance(inv) + 1);
-        inv.updated_at = nowUnix();
-        try {
-            storageWriteVersioned(nk, TELEPORT_INV_COLLECTION, userId, userId, inv, invObj.version, 1);
-            return getTeleportBalance(inv);
-        }
-        catch (_e) {
-            // retry
-        }
-    }
-    throw Err("Failed to refund teleport item.");
+    return refundSecureItemCAS(nk, userId, TELEPORT_ITEM_ID);
 }
 function advanceTeleportSaga(nk, logger, profile, opObj, requestId) {
     var op = opObj.value;
@@ -3691,13 +3831,20 @@ function rpcTeleportInventorySync(ctx, logger, nk, payload) {
     if (!isStrictNonNegInt(body.local_count))
         throw Err("local_count must be a non-negative integer.");
     var clientCount = body.local_count;
+    // SECURITY: Peace Shield / Anti-Scout must NEVER be imported from client Bag counts.
+    // local_counts (if present) are ignored for balance mutation — grant-only inventory.
+    // Advanced Teleport keeps historical one-time bag reconcile via local_count only.
     for (var attempt = 0; attempt < 8; attempt++) {
         var invObj = readTeleportInvObj(nk, ctx.userId);
-        var rec = invObj.value;
+        var rec = normalizeInvRecord(invObj.value, ctx.userId);
+        var dirty = false;
         if (!rec.reconciled) {
             setTeleportBalance(rec, clientCount);
-            rec.reconciled = true;
-            rec.import_fingerprint = "bag_v1:" + String(clientCount) + ":" + String(nowUnix());
+            markSecureItemReconciled(rec, TELEPORT_ITEM_ID, "bag_v1:" + String(clientCount) + ":" + String(nowUnix()));
+            dirty = true;
+            logger.info("Teleport inventory reconciled user=%s imported=%d", ctx.userId, clientCount);
+        }
+        if (dirty) {
             rec.updated_at = nowUnix();
             try {
                 storageWriteVersioned(nk, TELEPORT_INV_COLLECTION, ctx.userId, ctx.userId, rec, invObj.version, 1);
@@ -3705,14 +3852,17 @@ function rpcTeleportInventorySync(ctx, logger, nk, payload) {
             catch (_e) {
                 continue;
             }
-            logger.info("Teleport inventory reconciled user=%s imported=%d", ctx.userId, clientCount);
         }
-        var latest = readTeleportInvObj(nk, ctx.userId).value;
+        var latest = normalizeInvRecord(readTeleportInvObj(nk, ctx.userId).value, ctx.userId);
         return JSON.stringify({
             ok: true,
             item_id: TELEPORT_ITEM_ID,
             balance: getTeleportBalance(latest),
             reconciled: true,
+            balances: publicSecureBalances(latest),
+            item_reconciled: publicSecureReconciled(latest),
+            // Explicit: client bag claims for PvP protection items are not authoritative.
+            protection_bag_import: false,
             contract_id: MAP_CONTRACT_ID,
         });
     }
@@ -3721,13 +3871,77 @@ function rpcTeleportInventorySync(ctx, logger, nk, payload) {
 function rpcTeleportInventoryGet(ctx, _logger, nk, _payload) {
     if (!ctx.userId)
         throw Err("Unauthenticated");
-    var rec = readTeleportInvObj(nk, ctx.userId).value;
+    var rec = normalizeInvRecord(readTeleportInvObj(nk, ctx.userId).value, ctx.userId);
     return JSON.stringify({
         ok: true,
         item_id: TELEPORT_ITEM_ID,
         balance: getTeleportBalance(rec),
         reconciled: !!rec.reconciled,
+        balances: publicSecureBalances(rec),
+        item_reconciled: publicSecureReconciled(rec),
+        protection_bag_import: false,
     });
+}
+/**
+ * CLOSED BETA ONLY — grant allowlisted Peace Shield / Anti-Scout into authoritative inventory.
+ *
+ * Registration gate (InitModule): CROWNSPIRE_ENABLE_BETA_GRANTS must be exactly "true".
+ * Auth gate: CROWNSPIRE_BETA_GRANT_SECRET must be non-empty and match payload.dev_secret.
+ * Neither value is shipped to Godot/clients. Ordinary clients cannot enable this.
+ * Grants bind to ctx.userId only (forged target rejected).
+ */
+function rpcDevGrantSecureConsumable(ctx, logger, nk, payload) {
+    if (!ctx.userId)
+        throw Err("Unauthenticated");
+    if (!isBetaSecureGrantsEnabled(ctx)) {
+        throw Err("Forbidden");
+    }
+    var expectedSecret = getBetaGrantSecret(ctx);
+    if (!expectedSecret) {
+        throw Err("Forbidden");
+    }
+    var data = {};
+    try {
+        data = payload && payload.length > 0 ? JSON.parse(payload) : {};
+    }
+    catch (_e) {
+        throw Err("Invalid JSON");
+    }
+    var provided = String(data["dev_secret"] || "");
+    if (provided.length < 16 || provided !== expectedSecret) {
+        throw Err("Forbidden");
+    }
+    var itemId = String(data["item_id"] || "").trim();
+    if (itemId !== PEACE_SHIELD_INV_ITEM_ID && itemId !== ANTI_SCOUT_INV_ITEM_ID) {
+        throw Err("Unsupported item_id for secure grant.");
+    }
+    if (!isStrictNonNegInt(data["amount"]) || data["amount"] < 1) {
+        throw Err("amount must be a positive integer.");
+    }
+    var forged = String(data["user_id"] || data["target_user_id"] || "").trim();
+    if (forged !== "" && forged !== ctx.userId) {
+        throw Err("Cannot grant secure consumables to another user via this RPC.");
+    }
+    ensureProfile(nk, logger, ctx.userId);
+    var balance = trustedGrantSecureConsumableCAS(nk, ctx.userId, itemId, data["amount"]);
+    // Do not log secrets. Log item id + resulting balance only.
+    logger.info("Beta secure grant user=%s item=%s balance=%d", ctx.userId, itemId, balance);
+    var rec = normalizeInvRecord(readTeleportInvObj(nk, ctx.userId).value, ctx.userId);
+    return JSON.stringify({
+        ok: true,
+        item_id: itemId,
+        balance: balance,
+        balances: publicSecureBalances(rec),
+        item_reconciled: publicSecureReconciled(rec),
+    });
+}
+function isBetaSecureGrantsEnabled(ctx) {
+    var env = ctx && ctx.env ? ctx.env : {};
+    return String(env["CROWNSPIRE_ENABLE_BETA_GRANTS"] || "") === "true";
+}
+function getBetaGrantSecret(ctx) {
+    var env = ctx && ctx.env ? ctx.env : {};
+    return String(env["CROWNSPIRE_BETA_GRANT_SECRET"] || "");
 }
 /** Additive deployment ledger — clients cannot wipe deployments in one call. */
 function rpcTeleportDeploymentBegin(ctx, _logger, nk, payload) {
@@ -3887,23 +4101,36 @@ function rpcCityTeleportRelocate(ctx, logger, nk, payload) {
  * Crownspire — Hostile player-castle action validation + protection authority
  * LOCAL DEVELOPMENT ONLY. Concatenated into build/index.js.
  *
- * Public RPC surface (protection hardening):
+ * Public RPC surface (protection + secure consumables):
  *  - crownspire_validate_hostile_action  (READ-ONLY gate)
+ *  - crownspire_use_peace_shield         (spend 1 authoritative Peace Shield → EXTEND expiry)
+ *  - crownspire_use_anti_scout           (spend 1 authoritative Anti-Scout → EXTEND expiry)
  *  - crownspire_clear_own_beginner_protection (optional voluntary clear; cannot increase expiry)
  *
- * NOT registered for ordinary clients (no server item inventory for these yet):
- *  - Peace Shield activation / Anti-Scout activation / Beginner grant-extend
- * Internal trusted helpers are retained for future inventory/admin lifecycle only.
+ * NOT registered for ordinary clients:
+ *  - free activate_peace_shield / activate_anti_scout (no spend)
+ *  - beginner grant/extend
+ *  - any target_user_id mutation of self-protection
+ *
+ * PRODUCT — Peace Shield / Anti-Scout stacking (EXTEND):
+ *  expires_at = max(now, current_expires_at) + item_duration
  *
  * PRODUCT — Peace Shield mid-flight:
  *  Shield blocks NEW hostile launches only. Already-dispatched marches continue.
+ *
+ * PRODUCT — Anti-Scout:
+ *  Blocks Scout only; does not block Attack.
  */
 var PEACE_SHIELD_ITEM_ID = "boost_shield_peace_3d";
 var ANTI_SCOUT_ITEM_ID = "boost_anti_scout_24h";
-/** Design duration from Items.json — used only by trusted helpers, never by public RPC. */
+/** Design duration from Items.json — used only by trusted helpers / use RPCs, never client-supplied. */
 var PEACE_SHIELD_DURATION_SEC = 3 * 24 * 60 * 60;
 var ANTI_SCOUT_DURATION_SEC = 24 * 60 * 60;
 var INV_AUTHORITY_REQUIRED = "Server inventory authority is required before this protection can be activated.";
+/**
+ * Guard for free/arbitrary activate payloads (no inventory spend).
+ * Legitimate activation is crownspire_use_peace_shield / crownspire_use_anti_scout only.
+ */
 function protectionActive(expiresAt, now) {
     var exp = typeof expiresAt === "number" ? expiresAt : 0;
     return exp > now;
@@ -4167,7 +4394,7 @@ function rpcClearOwnBeginnerProtection(ctx, logger, nk, payload) {
 }
 /**
  * TRUSTED INTERNAL ONLY — never register as a public client RPC.
- * Requires future server inventory spend for Peace Shield item.
+ * PRODUCT stacking = EXTEND: expires = max(now, current) + duration.
  */
 function trustedApplyPeaceShield(profile, now, durationSec) {
     var dur = durationSec > 0 ? Math.floor(durationSec) : PEACE_SHIELD_DURATION_SEC;
@@ -4180,6 +4407,7 @@ function trustedApplyPeaceShield(profile, now, durationSec) {
 }
 /**
  * TRUSTED INTERNAL ONLY — never register as a public client RPC.
+ * PRODUCT stacking = EXTEND (same as Peace Shield).
  */
 function trustedApplyAntiScout(profile, now, durationSec) {
     var dur = durationSec > 0 ? Math.floor(durationSec) : ANTI_SCOUT_DURATION_SEC;
@@ -4189,6 +4417,182 @@ function trustedApplyAntiScout(profile, now, durationSec) {
     var base = Math.max(now, current);
     profile.anti_scout_expires_at = base + dur;
     profile.updated_at = now;
+}
+function parseProtectionUsePayload(payload) {
+    try {
+        return payload && payload.length > 0 ? JSON.parse(payload) : {};
+    }
+    catch (_e) {
+        throw Err("Invalid payload");
+    }
+}
+function rejectForgedProtectionUseFields(ctxUserId, data) {
+    var forgedTarget = String(data["target_user_id"] || data["user_id"] || "").trim();
+    if (forgedTarget !== "" && forgedTarget !== String(ctxUserId || "").trim()) {
+        return {
+            ok: false,
+            code: "forbidden_target",
+            reason: "Cannot modify another player's protection.",
+            error: "Cannot modify another player's protection.",
+        };
+    }
+    if (typeof data["duration_sec"] === "number" || typeof data["expires_at"] === "number") {
+        return {
+            ok: false,
+            code: "arbitrary_duration_forbidden",
+            reason: "Client-supplied protection duration/expiry is not allowed.",
+            error: "Client-supplied protection duration/expiry is not allowed.",
+        };
+    }
+    return null;
+}
+/**
+ * Spend 1 authoritative Peace Shield → EXTEND peace_shield_expires_at for ctx.userId only.
+ */
+function rpcUsePeaceShield(ctx, logger, nk, payload) {
+    if (!ctx.userId)
+        throw Err("Unauthenticated");
+    var data = parseProtectionUsePayload(payload);
+    var forged = rejectForgedProtectionUseFields(ctx.userId, data);
+    if (forged)
+        return JSON.stringify(Object.assign({ authority_verified: true }, forged));
+    var invProbe = normalizeInvRecord(readTeleportInvObj(nk, ctx.userId).value, ctx.userId);
+    if (getSecureBalance(invProbe, PEACE_SHIELD_ITEM_ID) < 1) {
+        return JSON.stringify({
+            ok: false,
+            authority_verified: true,
+            code: "insufficient",
+            reason: "No Peace Shields available.",
+            error: "No Peace Shields available.",
+        });
+    }
+    var remaining = 0;
+    try {
+        remaining = consumeSecureItemCAS(nk, ctx.userId, PEACE_SHIELD_ITEM_ID);
+    }
+    catch (e) {
+        var msg = e instanceof Error ? String(e.message || e) : String(e);
+        var code = msg.indexOf("No Peace Shields") >= 0 ? "insufficient" : "inventory_busy";
+        return JSON.stringify({
+            ok: false,
+            authority_verified: true,
+            code: code,
+            reason: msg.indexOf("No Peace Shields") >= 0 ? "No Peace Shields available." : "Unable to activate Peace Shield right now.",
+            error: msg.indexOf("No Peace Shields") >= 0 ? "No Peace Shields available." : "Unable to activate Peace Shield right now.",
+        });
+    }
+    try {
+        var profile = ensureProfile(nk, logger, ctx.userId);
+        var now = nowUnix();
+        trustedApplyPeaceShield(profile, now, PEACE_SHIELD_DURATION_SEC);
+        writeProfile(nk, profile);
+        upsertKingdomCastleEntry(nk, profile);
+        var expiresAt = Number(profile.peace_shield_expires_at || 0);
+        logger.info("Peace Shield used user=%s expires_at=%d remaining=%d", ctx.userId, expiresAt, remaining);
+        return JSON.stringify({
+            ok: true,
+            authority_verified: true,
+            code: "activated",
+            item_id: PEACE_SHIELD_ITEM_ID,
+            duration_sec: PEACE_SHIELD_DURATION_SEC,
+            expires_at: expiresAt,
+            remaining: remaining,
+            balance: remaining,
+            peace_shield_expires_at: expiresAt,
+            peace_shield_active: expiresAt > now,
+            profile: publicProfile(profile),
+        });
+    }
+    catch (e) {
+        try {
+            refundSecureItemCAS(nk, ctx.userId, PEACE_SHIELD_ITEM_ID);
+        }
+        catch (refundErr) {
+            logger.error("Peace Shield refund failed: %s", String(refundErr));
+        }
+        logger.error("Peace Shield activate failed: %s", String(e));
+        return JSON.stringify({
+            ok: false,
+            authority_verified: true,
+            code: "activate_failed",
+            reason: "Unable to activate Peace Shield right now.",
+            error: "Unable to activate Peace Shield right now.",
+        });
+    }
+}
+/**
+ * Spend 1 authoritative Anti-Scout → EXTEND anti_scout_expires_at for ctx.userId only.
+ */
+function rpcUseAntiScout(ctx, logger, nk, payload) {
+    if (!ctx.userId)
+        throw Err("Unauthenticated");
+    var data = parseProtectionUsePayload(payload);
+    var forged = rejectForgedProtectionUseFields(ctx.userId, data);
+    if (forged)
+        return JSON.stringify(Object.assign({ authority_verified: true }, forged));
+    var invProbe = normalizeInvRecord(readTeleportInvObj(nk, ctx.userId).value, ctx.userId);
+    if (getSecureBalance(invProbe, ANTI_SCOUT_ITEM_ID) < 1) {
+        return JSON.stringify({
+            ok: false,
+            authority_verified: true,
+            code: "insufficient",
+            reason: "No Anti-Scout items available.",
+            error: "No Anti-Scout items available.",
+        });
+    }
+    var remaining = 0;
+    try {
+        remaining = consumeSecureItemCAS(nk, ctx.userId, ANTI_SCOUT_ITEM_ID);
+    }
+    catch (e) {
+        var msg = e instanceof Error ? String(e.message || e) : String(e);
+        var insufficient = msg.indexOf("No Anti-Scout") >= 0;
+        return JSON.stringify({
+            ok: false,
+            authority_verified: true,
+            code: insufficient ? "insufficient" : "inventory_busy",
+            reason: insufficient ? "No Anti-Scout items available." : "Unable to activate Anti-Scout right now.",
+            error: insufficient ? "No Anti-Scout items available." : "Unable to activate Anti-Scout right now.",
+        });
+    }
+    try {
+        var profile = ensureProfile(nk, logger, ctx.userId);
+        var now = nowUnix();
+        trustedApplyAntiScout(profile, now, ANTI_SCOUT_DURATION_SEC);
+        writeProfile(nk, profile);
+        upsertKingdomCastleEntry(nk, profile);
+        var expiresAt = Number(profile.anti_scout_expires_at || 0);
+        logger.info("Anti-Scout used user=%s expires_at=%d remaining=%d", ctx.userId, expiresAt, remaining);
+        return JSON.stringify({
+            ok: true,
+            authority_verified: true,
+            code: "activated",
+            item_id: ANTI_SCOUT_ITEM_ID,
+            duration_sec: ANTI_SCOUT_DURATION_SEC,
+            expires_at: expiresAt,
+            remaining: remaining,
+            balance: remaining,
+            anti_scout_expires_at: expiresAt,
+            anti_scout_active: expiresAt > now,
+            profile: publicProfile(profile),
+        });
+    }
+    catch (e) {
+        try {
+            refundSecureItemCAS(nk, ctx.userId, ANTI_SCOUT_ITEM_ID);
+        }
+        catch (refundErr) {
+            logger.error("Anti-Scout refund failed: %s", String(refundErr));
+        }
+        logger.error("Anti-Scout activate failed: %s", String(e));
+        return JSON.stringify({
+            ok: false,
+            authority_verified: true,
+            code: "activate_failed",
+            reason: "Unable to activate Anti-Scout right now.",
+            error: "Unable to activate Anti-Scout right now.",
+        });
+    }
 }
 /**
  * TRUSTED INTERNAL ONLY — account lifecycle / admin tooling.

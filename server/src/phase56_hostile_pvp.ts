@@ -2,26 +2,40 @@
  * Crownspire — Hostile player-castle action validation + protection authority
  * LOCAL DEVELOPMENT ONLY. Concatenated into build/index.js.
  *
- * Public RPC surface (protection hardening):
+ * Public RPC surface (protection + secure consumables):
  *  - crownspire_validate_hostile_action  (READ-ONLY gate)
+ *  - crownspire_use_peace_shield         (spend 1 authoritative Peace Shield → EXTEND expiry)
+ *  - crownspire_use_anti_scout           (spend 1 authoritative Anti-Scout → EXTEND expiry)
  *  - crownspire_clear_own_beginner_protection (optional voluntary clear; cannot increase expiry)
  *
- * NOT registered for ordinary clients (no server item inventory for these yet):
- *  - Peace Shield activation / Anti-Scout activation / Beginner grant-extend
- * Internal trusted helpers are retained for future inventory/admin lifecycle only.
+ * NOT registered for ordinary clients:
+ *  - free activate_peace_shield / activate_anti_scout (no spend)
+ *  - beginner grant/extend
+ *  - any target_user_id mutation of self-protection
+ *
+ * PRODUCT — Peace Shield / Anti-Scout stacking (EXTEND):
+ *  expires_at = max(now, current_expires_at) + item_duration
  *
  * PRODUCT — Peace Shield mid-flight:
  *  Shield blocks NEW hostile launches only. Already-dispatched marches continue.
+ *
+ * PRODUCT — Anti-Scout:
+ *  Blocks Scout only; does not block Attack.
  */
 
 const PEACE_SHIELD_ITEM_ID = "boost_shield_peace_3d";
 const ANTI_SCOUT_ITEM_ID = "boost_anti_scout_24h";
-/** Design duration from Items.json — used only by trusted helpers, never by public RPC. */
+/** Design duration from Items.json — used only by trusted helpers / use RPCs, never client-supplied. */
 const PEACE_SHIELD_DURATION_SEC = 3 * 24 * 60 * 60;
 const ANTI_SCOUT_DURATION_SEC = 24 * 60 * 60;
 
 const INV_AUTHORITY_REQUIRED =
   "Server inventory authority is required before this protection can be activated.";
+
+/**
+ * Guard for free/arbitrary activate payloads (no inventory spend).
+ * Legitimate activation is crownspire_use_peace_shield / crownspire_use_anti_scout only.
+ */
 
 function protectionActive(expiresAt: any, now: number): boolean {
   const exp = typeof expiresAt === "number" ? expiresAt : 0;
@@ -312,7 +326,7 @@ function rpcClearOwnBeginnerProtection(
 
 /**
  * TRUSTED INTERNAL ONLY — never register as a public client RPC.
- * Requires future server inventory spend for Peace Shield item.
+ * PRODUCT stacking = EXTEND: expires = max(now, current) + duration.
  */
 function trustedApplyPeaceShield(profile: CrownspireProfile, now: number, durationSec: number): void {
   const dur = durationSec > 0 ? Math.floor(durationSec) : PEACE_SHIELD_DURATION_SEC;
@@ -326,6 +340,7 @@ function trustedApplyPeaceShield(profile: CrownspireProfile, now: number, durati
 
 /**
  * TRUSTED INTERNAL ONLY — never register as a public client RPC.
+ * PRODUCT stacking = EXTEND (same as Peace Shield).
  */
 function trustedApplyAntiScout(profile: CrownspireProfile, now: number, durationSec: number): void {
   const dur = durationSec > 0 ? Math.floor(durationSec) : ANTI_SCOUT_DURATION_SEC;
@@ -335,6 +350,204 @@ function trustedApplyAntiScout(profile: CrownspireProfile, now: number, duration
   const base = Math.max(now, current);
   (profile as any).anti_scout_expires_at = base + dur;
   profile.updated_at = now;
+}
+
+function parseProtectionUsePayload(payload: string): any {
+  try {
+    return payload && payload.length > 0 ? JSON.parse(payload) : {};
+  } catch (_e) {
+    throw Err("Invalid payload");
+  }
+}
+
+function rejectForgedProtectionUseFields(
+  ctxUserId: string,
+  data: any
+): { ok: false; code: string; reason: string; error: string } | null {
+  const forgedTarget = String(data["target_user_id"] || data["user_id"] || "").trim();
+  if (forgedTarget !== "" && forgedTarget !== String(ctxUserId || "").trim()) {
+    return {
+      ok: false,
+      code: "forbidden_target",
+      reason: "Cannot modify another player's protection.",
+      error: "Cannot modify another player's protection.",
+    };
+  }
+  if (typeof data["duration_sec"] === "number" || typeof data["expires_at"] === "number") {
+    return {
+      ok: false,
+      code: "arbitrary_duration_forbidden",
+      reason: "Client-supplied protection duration/expiry is not allowed.",
+      error: "Client-supplied protection duration/expiry is not allowed.",
+    };
+  }
+  return null;
+}
+
+/**
+ * Spend 1 authoritative Peace Shield → EXTEND peace_shield_expires_at for ctx.userId only.
+ */
+function rpcUsePeaceShield(
+  ctx: nkruntime.Context,
+  logger: nkruntime.Logger,
+  nk: nkruntime.Nakama,
+  payload: string
+): string {
+  if (!ctx.userId) throw Err("Unauthenticated");
+  const data = parseProtectionUsePayload(payload);
+  const forged = rejectForgedProtectionUseFields(ctx.userId, data);
+  if (forged) return JSON.stringify(Object.assign({ authority_verified: true }, forged));
+
+  const invProbe = normalizeInvRecord(readTeleportInvObj(nk, ctx.userId).value, ctx.userId);
+  if (getSecureBalance(invProbe, PEACE_SHIELD_ITEM_ID) < 1) {
+    return JSON.stringify({
+      ok: false,
+      authority_verified: true,
+      code: "insufficient",
+      reason: "No Peace Shields available.",
+      error: "No Peace Shields available.",
+    });
+  }
+
+  let remaining = 0;
+  try {
+    remaining = consumeSecureItemCAS(nk, ctx.userId, PEACE_SHIELD_ITEM_ID);
+  } catch (e) {
+    const msg = e instanceof Error ? String(e.message || e) : String(e);
+    const code = msg.indexOf("No Peace Shields") >= 0 ? "insufficient" : "inventory_busy";
+    return JSON.stringify({
+      ok: false,
+      authority_verified: true,
+      code: code,
+      reason: msg.indexOf("No Peace Shields") >= 0 ? "No Peace Shields available." : "Unable to activate Peace Shield right now.",
+      error: msg.indexOf("No Peace Shields") >= 0 ? "No Peace Shields available." : "Unable to activate Peace Shield right now.",
+    });
+  }
+
+  try {
+    const profile = ensureProfile(nk, logger, ctx.userId);
+    const now = nowUnix();
+    trustedApplyPeaceShield(profile, now, PEACE_SHIELD_DURATION_SEC);
+    writeProfile(nk, profile);
+    upsertKingdomCastleEntry(nk, profile);
+    const expiresAt = Number((profile as any).peace_shield_expires_at || 0);
+    logger.info(
+      "Peace Shield used user=%s expires_at=%d remaining=%d",
+      ctx.userId,
+      expiresAt,
+      remaining
+    );
+    return JSON.stringify({
+      ok: true,
+      authority_verified: true,
+      code: "activated",
+      item_id: PEACE_SHIELD_ITEM_ID,
+      duration_sec: PEACE_SHIELD_DURATION_SEC,
+      expires_at: expiresAt,
+      remaining: remaining,
+      balance: remaining,
+      peace_shield_expires_at: expiresAt,
+      peace_shield_active: expiresAt > now,
+      profile: publicProfile(profile),
+    });
+  } catch (e) {
+    try {
+      refundSecureItemCAS(nk, ctx.userId, PEACE_SHIELD_ITEM_ID);
+    } catch (refundErr) {
+      logger.error("Peace Shield refund failed: %s", String(refundErr));
+    }
+    logger.error("Peace Shield activate failed: %s", String(e));
+    return JSON.stringify({
+      ok: false,
+      authority_verified: true,
+      code: "activate_failed",
+      reason: "Unable to activate Peace Shield right now.",
+      error: "Unable to activate Peace Shield right now.",
+    });
+  }
+}
+
+/**
+ * Spend 1 authoritative Anti-Scout → EXTEND anti_scout_expires_at for ctx.userId only.
+ */
+function rpcUseAntiScout(
+  ctx: nkruntime.Context,
+  logger: nkruntime.Logger,
+  nk: nkruntime.Nakama,
+  payload: string
+): string {
+  if (!ctx.userId) throw Err("Unauthenticated");
+  const data = parseProtectionUsePayload(payload);
+  const forged = rejectForgedProtectionUseFields(ctx.userId, data);
+  if (forged) return JSON.stringify(Object.assign({ authority_verified: true }, forged));
+
+  const invProbe = normalizeInvRecord(readTeleportInvObj(nk, ctx.userId).value, ctx.userId);
+  if (getSecureBalance(invProbe, ANTI_SCOUT_ITEM_ID) < 1) {
+    return JSON.stringify({
+      ok: false,
+      authority_verified: true,
+      code: "insufficient",
+      reason: "No Anti-Scout items available.",
+      error: "No Anti-Scout items available.",
+    });
+  }
+
+  let remaining = 0;
+  try {
+    remaining = consumeSecureItemCAS(nk, ctx.userId, ANTI_SCOUT_ITEM_ID);
+  } catch (e) {
+    const msg = e instanceof Error ? String(e.message || e) : String(e);
+    const insufficient = msg.indexOf("No Anti-Scout") >= 0;
+    return JSON.stringify({
+      ok: false,
+      authority_verified: true,
+      code: insufficient ? "insufficient" : "inventory_busy",
+      reason: insufficient ? "No Anti-Scout items available." : "Unable to activate Anti-Scout right now.",
+      error: insufficient ? "No Anti-Scout items available." : "Unable to activate Anti-Scout right now.",
+    });
+  }
+
+  try {
+    const profile = ensureProfile(nk, logger, ctx.userId);
+    const now = nowUnix();
+    trustedApplyAntiScout(profile, now, ANTI_SCOUT_DURATION_SEC);
+    writeProfile(nk, profile);
+    upsertKingdomCastleEntry(nk, profile);
+    const expiresAt = Number((profile as any).anti_scout_expires_at || 0);
+    logger.info(
+      "Anti-Scout used user=%s expires_at=%d remaining=%d",
+      ctx.userId,
+      expiresAt,
+      remaining
+    );
+    return JSON.stringify({
+      ok: true,
+      authority_verified: true,
+      code: "activated",
+      item_id: ANTI_SCOUT_ITEM_ID,
+      duration_sec: ANTI_SCOUT_DURATION_SEC,
+      expires_at: expiresAt,
+      remaining: remaining,
+      balance: remaining,
+      anti_scout_expires_at: expiresAt,
+      anti_scout_active: expiresAt > now,
+      profile: publicProfile(profile),
+    });
+  } catch (e) {
+    try {
+      refundSecureItemCAS(nk, ctx.userId, ANTI_SCOUT_ITEM_ID);
+    } catch (refundErr) {
+      logger.error("Anti-Scout refund failed: %s", String(refundErr));
+    }
+    logger.error("Anti-Scout activate failed: %s", String(e));
+    return JSON.stringify({
+      ok: false,
+      authority_verified: true,
+      code: "activate_failed",
+      reason: "Unable to activate Anti-Scout right now.",
+      error: "Unable to activate Anti-Scout right now.",
+    });
+  }
 }
 
 /**

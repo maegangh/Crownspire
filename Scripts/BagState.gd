@@ -31,13 +31,25 @@ func _deferred_boot_migration() -> void:
 	migrate_from_inventory_state_once()
 
 
+## Server-authoritative multiplayer-security consumables (teleport inventory collection).
+const SERVER_AUTH_ITEM_IDS: Dictionary = {
+	"teleport_advanced_compass": true,
+	"boost_shield_peace_3d": true,
+	"boost_anti_scout_24h": true,
+}
+
+
+func _is_server_auth_item(item_id: String) -> bool:
+	return bool(SERVER_AUTH_ITEM_IDS.get(str(item_id).strip_edges(), false))
+
+
 func add_item(item_id: String, amount: int = 1) -> void:
 	var id: String = str(item_id).strip_edges()
 	if id == "":
 		return
-	## Server-authoritative teleport charges — never grant locally after reconcile path.
-	if id == "teleport_advanced_compass":
-		push_warning("[BagState] teleport_advanced_compass is server-authoritative; local add blocked")
+	## Server-authoritative secure consumables — never grant locally after reconcile path.
+	if _is_server_auth_item(id):
+		push_warning("[BagState] %s is server-authoritative; local add blocked" % id)
 		return
 	var add_amt: int = maxi(0, amount)
 	if add_amt <= 0:
@@ -55,9 +67,9 @@ func get_item_count(item_id: String) -> int:
 
 func remove_item(item_id: String, amount: int = 1) -> bool:
 	var id: String = str(item_id).strip_edges()
-	## Server-authoritative teleport charges — never consume locally.
-	if id == "teleport_advanced_compass":
-		push_warning("[BagState] teleport_advanced_compass is server-authoritative; local remove blocked")
+	## Server-authoritative secure consumables — never consume locally.
+	if _is_server_auth_item(id):
+		push_warning("[BagState] %s is server-authoritative; local remove blocked" % id)
 		return false
 	var safe_amount: int = maxi(0, amount)
 	if safe_amount <= 0:
@@ -73,7 +85,7 @@ func remove_item(item_id: String, amount: int = 1) -> bool:
 	return true
 
 
-## Mirror server balance into local bag display (teleport inventory).
+## Mirror server balance into local bag display (secure consumable inventory).
 func set_item_count_authoritative(item_id: String, count: int) -> void:
 	var id: String = str(item_id).strip_edges()
 	if id == "":

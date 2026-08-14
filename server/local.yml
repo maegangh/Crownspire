@@ -24,6 +24,12 @@ runtime:
   js_entrypoint: "build/index.js"
   # LOCAL DEVELOPMENT ONLY
   http_key: "defaulthttpkey"
+  # Optional closed-beta secure consumable grants (Peace Shield / Anti-Scout).
+  # Default: DISABLED (RPC not registered). To enable on a server:
+  #   env:
+  #     - "CROWNSPIRE_ENABLE_BETA_GRANTS=true"
+  #     - "CROWNSPIRE_BETA_GRANT_SECRET=<server-only-secret-min-16-chars>"
+  # Never put CROWNSPIRE_BETA_GRANT_SECRET in Godot, APK, or client config.
 
 metrics:
   reporting_freq_sec: 60

@@ -66,9 +66,13 @@ const RPC_TELEPORT_DEPLOY_END := "crownspire_teleport_deployment_end"
 const RPC_SET_TROOP_ACTIVITY := "crownspire_set_troop_activity"
 const RPC_CITY_TELEPORT_RELOCATE := "crownspire_city_teleport_relocate"
 const RPC_VALIDATE_HOSTILE_ACTION := "crownspire_validate_hostile_action"
+const RPC_USE_PEACE_SHIELD := "crownspire_use_peace_shield"
+const RPC_USE_ANTI_SCOUT := "crownspire_use_anti_scout"
 const RPC_CLEAR_OWN_BEGINNER_PROTECTION := "crownspire_clear_own_beginner_protection"
 const CASTLE_MOVED_NOTIF_CODE: int = 5005
 const TELEPORT_ITEM_ID := "teleport_advanced_compass"
+const PEACE_SHIELD_ITEM_ID := "boost_shield_peace_3d"
+const ANTI_SCOUT_ITEM_ID := "boost_anti_scout_24h"
 
 ## TODO (Production): Replace beta_alliance_auto_help with production
 ## alliance_auto_help entitlement verified through Google Play Billing.
@@ -120,6 +124,8 @@ var _presence_timer: Timer = null
 const PRESENCE_INTERVAL_SEC: float = 30.0
 var _cached_kingdom_castles: Array = []
 var _teleport_balance: int = -1
+var _peace_shield_balance: int = 0
+var _anti_scout_balance: int = 0
 var _castle_moved_bound: bool = false
 
 
@@ -474,26 +480,41 @@ func validate_hostile_action(action: String, target_user_id: String) -> Dictiona
 	return result
 
 
-## Peace Shield / Anti-Scout server activation is DISABLED until server inventory
-## authority exists (only teleport currently has crownspire_teleport_inventory).
+## Authoritative Peace Shield use: server authenticates, spends 1, EXTENDs expiry.
+func use_peace_shield() -> Dictionary:
+	var result: Dictionary = await _rpc(RPC_USE_PEACE_SHIELD, {})
+	if bool(result.get("ok", false)):
+		var remaining: int = int(result.get("remaining", result.get("balance", 0)))
+		_mirror_protection_item_display(PEACE_SHIELD_ITEM_ID, remaining)
+		if has_node("/root/CityProtectionState") and CityProtectionState.has_method("apply_server_peace_shield"):
+			CityProtectionState.apply_server_peace_shield(int(result.get("expires_at", 0)))
+		if typeof(result.get("profile")) == TYPE_DICTIONARY:
+			_profile = (result.get("profile") as Dictionary).duplicate(true)
+			profile_changed.emit(_profile.duplicate(true))
+	return result
+
+
+## Authoritative Anti-Scout use: server authenticates, spends 1, EXTENDs expiry.
+func use_anti_scout() -> Dictionary:
+	var result: Dictionary = await _rpc(RPC_USE_ANTI_SCOUT, {})
+	if bool(result.get("ok", false)):
+		var remaining: int = int(result.get("remaining", result.get("balance", 0)))
+		_mirror_protection_item_display(ANTI_SCOUT_ITEM_ID, remaining)
+		if has_node("/root/CityProtectionState") and CityProtectionState.has_method("apply_server_anti_scout"):
+			CityProtectionState.apply_server_anti_scout(int(result.get("expires_at", 0)))
+		if typeof(result.get("profile")) == TYPE_DICTIONARY:
+			_profile = (result.get("profile") as Dictionary).duplicate(true)
+			profile_changed.emit(_profile.duplicate(true))
+	return result
+
+
+## Legacy names — redirect to authoritative use RPCs (ignore client duration).
 func activate_peace_shield(_duration_sec: int = 0) -> Dictionary:
-	return {
-		"ok": false,
-		"authority_verified": true,
-		"code": "inventory_authority_required",
-		"reason": "Peace Shield requires server inventory authority (not yet available).",
-		"error": "Peace Shield requires server inventory authority (not yet available).",
-	}
+	return await use_peace_shield()
 
 
 func activate_anti_scout(_duration_sec: int = 0) -> Dictionary:
-	return {
-		"ok": false,
-		"authority_verified": true,
-		"code": "inventory_authority_required",
-		"reason": "Anti-Scout requires server inventory authority (not yet available).",
-		"error": "Anti-Scout requires server inventory authority (not yet available).",
-	}
+	return await use_anti_scout()
 
 
 ## Ordinary clients cannot grant/extend Beginner Protection.
@@ -517,27 +538,63 @@ func get_teleport_balance() -> int:
 	return _teleport_balance
 
 
+func get_peace_shield_balance() -> int:
+	return _peace_shield_balance
+
+
+func get_anti_scout_balance() -> int:
+	return _anti_scout_balance
+
+
+## Never decrease local Bag display for Peace/Anti (preserves non-authoritative local copies).
+## Only raise local display when server has more (e.g. after beta grant).
+func _mirror_protection_item_display(item_id: String, server_bal: int) -> void:
+	if item_id == PEACE_SHIELD_ITEM_ID:
+		_peace_shield_balance = maxi(0, server_bal)
+	elif item_id == ANTI_SCOUT_ITEM_ID:
+		_anti_scout_balance = maxi(0, server_bal)
+	if not has_node("/root/BagState") or not BagState.has_method("set_item_count_authoritative"):
+		return
+	var local: int = int(BagState.get_item_count(item_id))
+	if server_bal > local:
+		BagState.set_item_count_authoritative(item_id, server_bal)
+
+
+func _apply_secure_inventory_result(result: Dictionary) -> void:
+	if not bool(result.get("ok", false)):
+		return
+	_teleport_balance = int(result.get("balance", _teleport_balance))
+	if has_node("/root/BagState") and BagState.has_method("set_item_count_authoritative"):
+		BagState.set_item_count_authoritative(TELEPORT_ITEM_ID, _teleport_balance)
+	var balances: Variant = result.get("balances", {})
+	if typeof(balances) == TYPE_DICTIONARY:
+		var b: Dictionary = balances
+		if b.has(PEACE_SHIELD_ITEM_ID):
+			_mirror_protection_item_display(PEACE_SHIELD_ITEM_ID, int(b.get(PEACE_SHIELD_ITEM_ID, 0)))
+		if b.has(ANTI_SCOUT_ITEM_ID):
+			_mirror_protection_item_display(ANTI_SCOUT_ITEM_ID, int(b.get(ANTI_SCOUT_ITEM_ID, 0)))
+
+
 func sync_teleport_inventory_from_bag() -> Dictionary:
-	## One-time reconcile of local bag count into server-authoritative balance.
+	## Teleport: one-time bag reconcile. Peace/Anti: NEVER send bag counts for import.
 	var local_count: int = 0
 	if has_node("/root/BagState"):
 		local_count = int(BagState.get_item_count(TELEPORT_ITEM_ID))
 	var result: Dictionary = await _rpc(RPC_TELEPORT_INV_SYNC, {"local_count": local_count})
-	if bool(result.get("ok", false)):
-		_teleport_balance = int(result.get("balance", 0))
-		if has_node("/root/BagState") and BagState.has_method("set_item_count_authoritative"):
-			BagState.set_item_count_authoritative(TELEPORT_ITEM_ID, _teleport_balance)
+	_apply_secure_inventory_result(result)
 	return result
 
 
 func refresh_teleport_inventory() -> Dictionary:
 	var result: Dictionary = await _rpc(RPC_TELEPORT_INV_GET, {})
 	if bool(result.get("ok", false)):
-		_teleport_balance = int(result.get("balance", 0))
-		if bool(result.get("reconciled", false)) and has_node("/root/BagState") \
-				and BagState.has_method("set_item_count_authoritative"):
-			BagState.set_item_count_authoritative(TELEPORT_ITEM_ID, _teleport_balance)
+		_apply_secure_inventory_result(result)
 	return result
+
+
+func refresh_secure_protection_inventory() -> Dictionary:
+	## Read-only authoritative balances for Peace Shield / Anti-Scout (no bag import).
+	return await refresh_teleport_inventory()
 
 
 func set_troop_activity(active_marches: int, gathering: bool, reinforcements: bool = false) -> Dictionary:

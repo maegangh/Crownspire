@@ -137,7 +137,7 @@ function InitModule(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkrunt
   // Kingdom world castles (stable positions for multiplayer map).
   initializer.registerRpc("crownspire_list_kingdom_castles", rpcListKingdomCastles);
 
-  // Current-kingdom targeted city teleport.
+  // Current-kingdom targeted city teleport + secure consumable inventory.
   initializer.registerRpc("crownspire_teleport_inventory_sync", rpcTeleportInventorySync);
   initializer.registerRpc("crownspire_teleport_inventory_get", rpcTeleportInventoryGet);
   initializer.registerRpc("crownspire_teleport_deployment_begin", rpcTeleportDeploymentBegin);
@@ -145,6 +145,15 @@ function InitModule(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkrunt
   // Retired: clients could clear the troop ledger to bypass teleport checks.
   initializer.registerRpc("crownspire_set_troop_activity", rpcSetTroopActivity);
   initializer.registerRpc("crownspire_city_teleport_relocate", rpcCityTeleportRelocate);
+  // Closed-beta secure consumable grant — only when server env explicitly enables it.
+  // Production-beta enable: runtime.env CROWNSPIRE_ENABLE_BETA_GRANTS=true and
+  // CROWNSPIRE_BETA_GRANT_SECRET=<server-only secret>. Default: not registered.
+  if (isBetaSecureGrantsEnabled(ctx) && getBetaGrantSecret(ctx).length >= 16) {
+    initializer.registerRpc("crownspire_dev_grant_secure_consumable", rpcDevGrantSecureConsumable);
+    logger.info("Beta secure consumable grant RPC registered (CROWNSPIRE_ENABLE_BETA_GRANTS=true).");
+  } else {
+    logger.info("Beta secure consumable grant RPC NOT registered (flag/secret gate closed).");
+  }
 
   // Phase 5.3 — Alliance Rallies (Wildling Lair).
   initializer.registerRpc("crownspire_rally_create", rpcRallyCreate);
@@ -159,10 +168,11 @@ function InitModule(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkrunt
   // Phase 6 — Direct Message delivery through authenticated server RPC.
   initializer.registerRpc("crownspire_dm_send", rpcDmSend);
 
-  // Phase 5.6 — Hostile validation (read-only) + voluntary beginner clear only.
-  // Peace Shield / Anti-Scout / Beginner GRANT RPCs are NOT registered: no server
-  // item inventory authority for those boosts yet (BagState is client-local).
+  // Phase 5.6 — Hostile validation + authoritative Peace Shield / Anti-Scout use + beginner clear.
+  // Free activate_* / beginner GRANT RPCs are NOT registered.
   initializer.registerRpc("crownspire_validate_hostile_action", rpcValidateHostileAction);
+  initializer.registerRpc("crownspire_use_peace_shield", rpcUsePeaceShield);
+  initializer.registerRpc("crownspire_use_anti_scout", rpcUseAntiScout);
   initializer.registerRpc("crownspire_clear_own_beginner_protection", rpcClearOwnBeginnerProtection);
 
   logger.info("Crownspire runtime loaded (Phase 3+4+5+5.1+5.3+6+castles identity/alliance/help/social/rallies/dm-rpc). LOCAL DEVELOPMENT ONLY.");

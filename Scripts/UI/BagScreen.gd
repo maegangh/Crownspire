@@ -179,7 +179,7 @@ func _on_use_pressed() -> void:
 	if selected_item_id == "":
 		return
 
-	_use_item(selected_item_id)
+	await _use_item(selected_item_id)
 
 
 func _use_item(item_id: String) -> void:
@@ -196,6 +196,15 @@ func _use_item(item_id: String) -> void:
 		"speedup", "chest":
 			used_successfully = BagState.remove_item(item_id, 1)
 		"boost":
+			if item_id == "boost_shield_peace_3d" or item_id == "boost_anti_scout_24h":
+				await _use_secure_protection_item(item_id)
+				refresh_items()
+				if BagState.get_item_count(item_id) > 0:
+					_show_details(item_id)
+				else:
+					selected_item_id = ""
+					_clear_details()
+				return
 			used_successfully = _use_boost_item(item_id)
 		"teleport":
 			await _use_teleport_item(item_id)
@@ -214,30 +223,64 @@ func _use_item(item_id: String) -> void:
 		_clear_details()
 
 
-func _use_boost_item(item_id: String) -> bool:
-	## Peace Shield / Anti-Scout: BagState is client-local inventory only.
-	## Server has no authoritative spend path yet — do NOT call grant RPCs
-	## (those are unregistered). Local CityProtectionState is UI/local-gate only;
-	## multiplayer hostile validation will not see free server shields.
+func _bag_toast(message: String) -> void:
+	print("[Bag] %s" % message)
+	if ui_manager != null and ui_manager.has_method("show_toast"):
+		ui_manager.call("show_toast", message)
+
+
+func _use_secure_protection_item(item_id: String) -> void:
+	## Authoritative path only. Never remove local bag first. Never import local counts.
+	var ab: Node = get_node_or_null("/root/AllianceBackend")
+	if ab == null:
+		_bag_toast("Unable to activate right now.")
+		return
+	## Refresh authoritative balances (does not create server inventory from local Bag).
+	if ab.has_method("refresh_secure_protection_inventory"):
+		var inv_res: Dictionary = await ab.refresh_secure_protection_inventory()
+		if not bool(inv_res.get("ok", false)):
+			_bag_toast("Unable to activate right now.")
+			return
+	var server_bal: int = 0
+	if item_id == "boost_shield_peace_3d" and ab.has_method("get_peace_shield_balance"):
+		server_bal = int(ab.get_peace_shield_balance())
+	elif item_id == "boost_anti_scout_24h" and ab.has_method("get_anti_scout_balance"):
+		server_bal = int(ab.get_anti_scout_balance())
+	if server_bal < 1:
+		if item_id == "boost_shield_peace_3d":
+			_bag_toast("No multiplayer Peace Shields available.")
+		else:
+			_bag_toast("No multiplayer Anti-Scout available.")
+		return
+	var result: Dictionary = {}
 	if item_id == "boost_shield_peace_3d":
-		if not has_node("/root/CityProtectionState"):
-			print("CityProtectionState missing")
-			return false
-		if not BagState.remove_item(item_id, 1):
-			return false
-		var act: Dictionary = CityProtectionState.activate_peace_shield_from_item()
-		print("[Bag] Peace Shield LOCAL only expires_at=%s (server inventory authority pending)" % str(act.get("expires_at", 0)))
-		return true
+		result = await ab.use_peace_shield()
+		if bool(result.get("ok", false)):
+			_bag_toast("Peace Shield active for 3 days.")
+		else:
+			var code: String = str(result.get("code", ""))
+			if code == "insufficient":
+				_bag_toast("No multiplayer Peace Shields available.")
+			else:
+				_bag_toast(str(result.get("reason", "Unable to activate Peace Shield right now.")))
+		return
 	if item_id == "boost_anti_scout_24h":
-		if not has_node("/root/CityProtectionState"):
-			print("CityProtectionState missing")
-			return false
-		if not BagState.remove_item(item_id, 1):
-			return false
-		var act2: Dictionary = CityProtectionState.activate_anti_scout_from_item()
-		print("[Bag] Anti-Scout LOCAL only expires_at=%s (server inventory authority pending)" % str(act2.get("expires_at", 0)))
-		return true
-	# Other boosts still consume without buff authority (pre-existing behavior).
+		result = await ab.use_anti_scout()
+		if bool(result.get("ok", false)):
+			_bag_toast("Anti-Scout active for 24 hours.")
+		else:
+			var code2: String = str(result.get("code", ""))
+			if code2 == "insufficient":
+				_bag_toast("No multiplayer Anti-Scout available.")
+			else:
+				_bag_toast(str(result.get("reason", "Unable to activate Anti-Scout right now.")))
+
+
+func _use_boost_item(item_id: String) -> bool:
+	## Other boosts still consume without buff authority (pre-existing behavior).
+	## Peace Shield / Anti-Scout use _use_secure_protection_item instead.
+	if item_id == "boost_shield_peace_3d" or item_id == "boost_anti_scout_24h":
+		return false
 	return BagState.remove_item(item_id, 1)
 
 

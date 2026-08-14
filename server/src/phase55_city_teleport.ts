@@ -13,12 +13,20 @@
  */
 
 const TELEPORT_ITEM_ID = "teleport_advanced_compass";
+/** Multiplayer-authority consumables share teleport inventory OCC storage. */
+const PEACE_SHIELD_INV_ITEM_ID = "boost_shield_peace_3d";
+const ANTI_SCOUT_INV_ITEM_ID = "boost_anti_scout_24h";
 const TELEPORT_INV_COLLECTION = "crownspire_teleport_inventory";
 const TELEPORT_OPS_COLLECTION = "crownspire_teleport_ops";
 const TELEPORT_DEPLOY_COLLECTION = "crownspire_teleport_deployments";
 const TELEPORT_LOCK_COLLECTION = "crownspire_kingdom_teleport_lock";
 const CASTLE_MOVED_NOTIF_CODE = 5005;
 const LOCK_TTL_SEC = 20;
+
+const SECURE_CONSUMABLE_ALLOWLIST: { [id: string]: boolean } = {};
+SECURE_CONSUMABLE_ALLOWLIST[TELEPORT_ITEM_ID] = true;
+SECURE_CONSUMABLE_ALLOWLIST[PEACE_SHIELD_INV_ITEM_ID] = true;
+SECURE_CONSUMABLE_ALLOWLIST[ANTI_SCOUT_INV_ITEM_ID] = true;
 
 const MAP_CONTRACT_ID = "crownspire_map_blockers_v1";
 const WORLD_MAP_SIZE_T = 8192;
@@ -58,9 +66,31 @@ interface StorageObj {
 interface TeleportInvRecord {
   user_id: string;
   balances: { [itemId: string]: number };
+  /** Legacy one-time bag import flag for Advanced Teleport. */
   reconciled: boolean;
   import_fingerprint: string;
+  /** Per-item one-time bag import flags for non-teleport secure consumables. */
+  item_reconciled?: { [itemId: string]: boolean };
+  item_import_fingerprints?: { [itemId: string]: string };
   updated_at: number;
+}
+
+function isSecureConsumableItemId(itemId: string): boolean {
+  return SECURE_CONSUMABLE_ALLOWLIST[String(itemId || "")] === true;
+}
+
+function normalizeInvRecord(rec: any, userId: string): TeleportInvRecord {
+  const out: TeleportInvRecord = rec && typeof rec === "object" ? rec : ({} as TeleportInvRecord);
+  out.user_id = String(out.user_id || userId);
+  if (!out.balances || typeof out.balances !== "object") out.balances = {};
+  out.reconciled = !!out.reconciled;
+  out.import_fingerprint = String(out.import_fingerprint || "");
+  if (!out.item_reconciled || typeof out.item_reconciled !== "object") out.item_reconciled = {};
+  if (!out.item_import_fingerprints || typeof out.item_import_fingerprints !== "object") {
+    out.item_import_fingerprints = {};
+  }
+  out.updated_at = typeof out.updated_at === "number" ? out.updated_at : 0;
+  return out;
 }
 
 interface MapBlocker {
@@ -248,29 +278,87 @@ function storageWriteVersioned(
 
 function readTeleportInvObj(nk: nkruntime.Nakama, userId: string): StorageObj {
   const obj = storageReadOne(nk, TELEPORT_INV_COLLECTION, userId, userId);
-  if (obj) return obj;
+  if (obj) {
+    obj.value = normalizeInvRecord(obj.value, userId);
+    return obj;
+  }
   return {
-    value: {
-      user_id: userId,
-      balances: {},
-      reconciled: false,
-      import_fingerprint: "",
-      updated_at: 0,
-    } as TeleportInvRecord,
+    value: normalizeInvRecord(
+      {
+        user_id: userId,
+        balances: {},
+        reconciled: false,
+        import_fingerprint: "",
+        item_reconciled: {},
+        item_import_fingerprints: {},
+        updated_at: 0,
+      },
+      userId
+    ),
     version: "*",
   };
 }
 
-function getTeleportBalance(rec: TeleportInvRecord): number {
-  const n = Number(rec.balances[TELEPORT_ITEM_ID] || 0);
+function getSecureBalance(rec: TeleportInvRecord, itemId: string): number {
+  if (!isSecureConsumableItemId(itemId)) return 0;
+  const n = Number((rec.balances || {})[itemId] || 0);
   return isFinite(n) && n > 0 ? Math.floor(n) : 0;
 }
 
-function setTeleportBalance(rec: TeleportInvRecord, amount: number): void {
+function setSecureBalance(rec: TeleportInvRecord, itemId: string, amount: number): void {
+  if (!isSecureConsumableItemId(itemId)) return;
   if (!rec.balances) rec.balances = {};
   const n = Math.max(0, Math.floor(amount));
-  if (n <= 0) delete rec.balances[TELEPORT_ITEM_ID];
-  else rec.balances[TELEPORT_ITEM_ID] = n;
+  if (n <= 0) delete rec.balances[itemId];
+  else rec.balances[itemId] = n;
+}
+
+function getTeleportBalance(rec: TeleportInvRecord): number {
+  return getSecureBalance(rec, TELEPORT_ITEM_ID);
+}
+
+function setTeleportBalance(rec: TeleportInvRecord, amount: number): void {
+  setSecureBalance(rec, TELEPORT_ITEM_ID, amount);
+}
+
+function isGrantOnlySecureItem(itemId: string): boolean {
+  return itemId === PEACE_SHIELD_INV_ITEM_ID || itemId === ANTI_SCOUT_INV_ITEM_ID;
+}
+
+function isSecureItemReconciled(rec: TeleportInvRecord, itemId: string): boolean {
+  if (itemId === TELEPORT_ITEM_ID) return !!rec.reconciled;
+  // Peace Shield / Anti-Scout are grant-only — never bag-reconciled. Always usable for balance checks.
+  if (isGrantOnlySecureItem(itemId)) return true;
+  return !!(rec.item_reconciled && rec.item_reconciled[itemId]);
+}
+
+function markSecureItemReconciled(rec: TeleportInvRecord, itemId: string, fingerprint: string): void {
+  if (itemId === TELEPORT_ITEM_ID) {
+    rec.reconciled = true;
+    rec.import_fingerprint = fingerprint;
+    return;
+  }
+  if (!rec.item_reconciled) rec.item_reconciled = {};
+  if (!rec.item_import_fingerprints) rec.item_import_fingerprints = {};
+  rec.item_reconciled[itemId] = true;
+  rec.item_import_fingerprints[itemId] = fingerprint;
+}
+
+function publicSecureBalances(rec: TeleportInvRecord): { [itemId: string]: number } {
+  return {
+    [TELEPORT_ITEM_ID]: getSecureBalance(rec, TELEPORT_ITEM_ID),
+    [PEACE_SHIELD_INV_ITEM_ID]: getSecureBalance(rec, PEACE_SHIELD_INV_ITEM_ID),
+    [ANTI_SCOUT_INV_ITEM_ID]: getSecureBalance(rec, ANTI_SCOUT_INV_ITEM_ID),
+  };
+}
+
+function publicSecureReconciled(rec: TeleportInvRecord): { [itemId: string]: boolean } {
+  return {
+    [TELEPORT_ITEM_ID]: isSecureItemReconciled(rec, TELEPORT_ITEM_ID),
+    // Grant-only items report ready=true; bag import is never used.
+    [PEACE_SHIELD_INV_ITEM_ID]: true,
+    [ANTI_SCOUT_INV_ITEM_ID]: true,
+  };
 }
 
 function readRegistryObj(nk: nkruntime.Nakama, kingdomId: string): StorageObj {
@@ -499,39 +587,89 @@ function restoreRegistryCoords(
   applyRegistryMove(nk, profile, worldX, worldY);
 }
 
-function consumeInventoryCAS(nk: nkruntime.Nakama, userId: string): number {
+function consumeSecureItemCAS(nk: nkruntime.Nakama, userId: string, itemId: string): number {
+  if (!isSecureConsumableItemId(itemId)) throw Err("Unsupported secure consumable.");
   for (let attempt = 0; attempt < 8; attempt++) {
     const invObj = readTeleportInvObj(nk, userId);
-    const inv = invObj.value as TeleportInvRecord;
-    if (!inv.reconciled) throw Err("Teleport inventory not reconciled. Open the Bag once while online.");
-    const bal = getTeleportBalance(inv);
-    if (bal < 1) throw Err("No Advanced Teleport remaining.");
-    setTeleportBalance(inv, bal - 1);
+    const inv = normalizeInvRecord(invObj.value, userId);
+    // Advanced Teleport still requires historical one-time bag reconcile.
+    // Peace Shield / Anti-Scout are grant-only (never bag-imported).
+    if (itemId === TELEPORT_ITEM_ID && !inv.reconciled) {
+      throw Err("Teleport inventory not reconciled. Open the Bag once while online.");
+    }
+    const bal = getSecureBalance(inv, itemId);
+    if (bal < 1) {
+      if (itemId === TELEPORT_ITEM_ID) throw Err("No Advanced Teleport remaining.");
+      if (itemId === PEACE_SHIELD_INV_ITEM_ID) throw Err("No Peace Shields available.");
+      if (itemId === ANTI_SCOUT_INV_ITEM_ID) throw Err("No Anti-Scout items available.");
+      throw Err("No items remaining.");
+    }
+    setSecureBalance(inv, itemId, bal - 1);
     inv.updated_at = nowUnix();
     try {
       storageWriteVersioned(nk, TELEPORT_INV_COLLECTION, userId, userId, inv, invObj.version, 1);
-      return getTeleportBalance(inv);
+      return getSecureBalance(inv, itemId);
+    } catch (_e) {
+      // retry OCC
+    }
+  }
+  throw Err("Secure inventory busy. Try again.");
+}
+
+function refundSecureItemCAS(nk: nkruntime.Nakama, userId: string, itemId: string): number {
+  if (!isSecureConsumableItemId(itemId)) throw Err("Unsupported secure consumable.");
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const invObj = readTeleportInvObj(nk, userId);
+    const inv = normalizeInvRecord(invObj.value, userId);
+    setSecureBalance(inv, itemId, getSecureBalance(inv, itemId) + 1);
+    inv.updated_at = nowUnix();
+    try {
+      storageWriteVersioned(nk, TELEPORT_INV_COLLECTION, userId, userId, inv, invObj.version, 1);
+      return getSecureBalance(inv, itemId);
     } catch (_e) {
       // retry
     }
   }
-  throw Err("Teleport inventory busy. Try again.");
+  throw Err("Failed to refund secure consumable.");
+}
+
+/** TRUSTED INTERNAL — beta/admin grant into authoritative inventory. Never trust client counts. */
+function trustedGrantSecureConsumableCAS(
+  nk: nkruntime.Nakama,
+  userId: string,
+  itemId: string,
+  amount: number
+): number {
+  if (!isSecureConsumableItemId(itemId)) throw Err("Unsupported secure consumable.");
+  const add = Math.max(0, Math.floor(amount));
+  if (add <= 0) throw Err("amount must be a positive integer.");
+  if (add > 99) throw Err("amount exceeds max grant.");
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const invObj = readTeleportInvObj(nk, userId);
+    const inv = normalizeInvRecord(invObj.value, userId);
+    // Grants also mark the item reconciled so use is possible without bag import.
+    if (!isSecureItemReconciled(inv, itemId)) {
+      markSecureItemReconciled(inv, itemId, "grant_v1:" + String(add) + ":" + String(nowUnix()));
+    }
+    const next = getSecureBalance(inv, itemId) + add;
+    setSecureBalance(inv, itemId, next);
+    inv.updated_at = nowUnix();
+    try {
+      storageWriteVersioned(nk, TELEPORT_INV_COLLECTION, userId, userId, inv, invObj.version, 1);
+      return getSecureBalance(inv, itemId);
+    } catch (_e) {
+      // retry
+    }
+  }
+  throw Err("Secure inventory grant busy.");
+}
+
+function consumeInventoryCAS(nk: nkruntime.Nakama, userId: string): number {
+  return consumeSecureItemCAS(nk, userId, TELEPORT_ITEM_ID);
 }
 
 function refundInventoryCAS(nk: nkruntime.Nakama, userId: string): number {
-  for (let attempt = 0; attempt < 8; attempt++) {
-    const invObj = readTeleportInvObj(nk, userId);
-    const inv = invObj.value as TeleportInvRecord;
-    setTeleportBalance(inv, getTeleportBalance(inv) + 1);
-    inv.updated_at = nowUnix();
-    try {
-      storageWriteVersioned(nk, TELEPORT_INV_COLLECTION, userId, userId, inv, invObj.version, 1);
-      return getTeleportBalance(inv);
-    } catch (_e) {
-      // retry
-    }
-  }
-  throw Err("Failed to refund teleport item.");
+  return refundSecureItemCAS(nk, userId, TELEPORT_ITEM_ID);
 }
 
 function advanceTeleportSaga(
@@ -702,27 +840,38 @@ function rpcTeleportInventorySync(
   if (!isStrictNonNegInt(body.local_count)) throw Err("local_count must be a non-negative integer.");
   const clientCount = body.local_count as number;
 
+  // SECURITY: Peace Shield / Anti-Scout must NEVER be imported from client Bag counts.
+  // local_counts (if present) are ignored for balance mutation — grant-only inventory.
+  // Advanced Teleport keeps historical one-time bag reconcile via local_count only.
+
   for (let attempt = 0; attempt < 8; attempt++) {
     const invObj = readTeleportInvObj(nk, ctx.userId);
-    const rec = invObj.value as TeleportInvRecord;
+    const rec = normalizeInvRecord(invObj.value, ctx.userId);
+    let dirty = false;
     if (!rec.reconciled) {
       setTeleportBalance(rec, clientCount);
-      rec.reconciled = true;
-      rec.import_fingerprint = "bag_v1:" + String(clientCount) + ":" + String(nowUnix());
+      markSecureItemReconciled(rec, TELEPORT_ITEM_ID, "bag_v1:" + String(clientCount) + ":" + String(nowUnix()));
+      dirty = true;
+      logger.info("Teleport inventory reconciled user=%s imported=%d", ctx.userId, clientCount);
+    }
+    if (dirty) {
       rec.updated_at = nowUnix();
       try {
         storageWriteVersioned(nk, TELEPORT_INV_COLLECTION, ctx.userId, ctx.userId, rec, invObj.version, 1);
       } catch (_e) {
         continue;
       }
-      logger.info("Teleport inventory reconciled user=%s imported=%d", ctx.userId, clientCount);
     }
-    const latest = readTeleportInvObj(nk, ctx.userId).value as TeleportInvRecord;
+    const latest = normalizeInvRecord(readTeleportInvObj(nk, ctx.userId).value, ctx.userId);
     return JSON.stringify({
       ok: true,
       item_id: TELEPORT_ITEM_ID,
       balance: getTeleportBalance(latest),
       reconciled: true,
+      balances: publicSecureBalances(latest),
+      item_reconciled: publicSecureReconciled(latest),
+      // Explicit: client bag claims for PvP protection items are not authoritative.
+      protection_bag_import: false,
       contract_id: MAP_CONTRACT_ID,
     });
   }
@@ -736,13 +885,83 @@ function rpcTeleportInventoryGet(
   _payload: string
 ): string {
   if (!ctx.userId) throw Err("Unauthenticated");
-  const rec = readTeleportInvObj(nk, ctx.userId).value as TeleportInvRecord;
+  const rec = normalizeInvRecord(readTeleportInvObj(nk, ctx.userId).value, ctx.userId);
   return JSON.stringify({
     ok: true,
     item_id: TELEPORT_ITEM_ID,
     balance: getTeleportBalance(rec),
     reconciled: !!rec.reconciled,
+    balances: publicSecureBalances(rec),
+    item_reconciled: publicSecureReconciled(rec),
+    protection_bag_import: false,
   });
+}
+
+/**
+ * CLOSED BETA ONLY — grant allowlisted Peace Shield / Anti-Scout into authoritative inventory.
+ *
+ * Registration gate (InitModule): CROWNSPIRE_ENABLE_BETA_GRANTS must be exactly "true".
+ * Auth gate: CROWNSPIRE_BETA_GRANT_SECRET must be non-empty and match payload.dev_secret.
+ * Neither value is shipped to Godot/clients. Ordinary clients cannot enable this.
+ * Grants bind to ctx.userId only (forged target rejected).
+ */
+function rpcDevGrantSecureConsumable(
+  ctx: nkruntime.Context,
+  logger: nkruntime.Logger,
+  nk: nkruntime.Nakama,
+  payload: string
+): string {
+  if (!ctx.userId) throw Err("Unauthenticated");
+  if (!isBetaSecureGrantsEnabled(ctx)) {
+    throw Err("Forbidden");
+  }
+  const expectedSecret = getBetaGrantSecret(ctx);
+  if (!expectedSecret) {
+    throw Err("Forbidden");
+  }
+  let data: any = {};
+  try {
+    data = payload && payload.length > 0 ? JSON.parse(payload) : {};
+  } catch (_e) {
+    throw Err("Invalid JSON");
+  }
+  const provided = String(data["dev_secret"] || "");
+  if (provided.length < 16 || provided !== expectedSecret) {
+    throw Err("Forbidden");
+  }
+  const itemId = String(data["item_id"] || "").trim();
+  if (itemId !== PEACE_SHIELD_INV_ITEM_ID && itemId !== ANTI_SCOUT_INV_ITEM_ID) {
+    throw Err("Unsupported item_id for secure grant.");
+  }
+  if (!isStrictNonNegInt(data["amount"]) || (data["amount"] as number) < 1) {
+    throw Err("amount must be a positive integer.");
+  }
+  const forged = String(data["user_id"] || data["target_user_id"] || "").trim();
+  if (forged !== "" && forged !== ctx.userId) {
+    throw Err("Cannot grant secure consumables to another user via this RPC.");
+  }
+  ensureProfile(nk, logger, ctx.userId);
+  const balance = trustedGrantSecureConsumableCAS(nk, ctx.userId, itemId, data["amount"] as number);
+  // Do not log secrets. Log item id + resulting balance only.
+  logger.info("Beta secure grant user=%s item=%s balance=%d", ctx.userId, itemId, balance);
+  const rec = normalizeInvRecord(readTeleportInvObj(nk, ctx.userId).value, ctx.userId);
+  return JSON.stringify({
+    ok: true,
+    item_id: itemId,
+    balance: balance,
+    balances: publicSecureBalances(rec),
+    item_reconciled: publicSecureReconciled(rec),
+  });
+}
+
+function isBetaSecureGrantsEnabled(ctx: nkruntime.Context): boolean {
+  const env = ctx && ctx.env ? ctx.env : {};
+  return String(env["CROWNSPIRE_ENABLE_BETA_GRANTS"] || "") === "true";
+}
+
+function getBetaGrantSecret(ctx: nkruntime.Context): string {
+  const env = ctx && ctx.env ? ctx.env : {};
+  return String(env["CROWNSPIRE_BETA_GRANT_SECRET"] || "");
 }
 
 /** Additive deployment ledger — clients cannot wipe deployments in one call. */
