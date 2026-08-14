@@ -44,6 +44,7 @@ signal closed
 var _target_user_id: String = ""
 var _is_self: bool = true
 var _profile: Dictionary = {}
+var _world_seed: Dictionary = {}
 var _built: bool = false
 var _active_tab: String = TAB_PROFILE
 
@@ -114,11 +115,13 @@ func _ready() -> void:
 func open_self() -> void:
 	_target_user_id = ""
 	_is_self = true
+	_world_seed = {}
 	await _open_async()
 
 
-func open_user(user_id: String) -> void:
+func open_user(user_id: String, world_seed: Dictionary = {}) -> void:
 	_target_user_id = user_id.strip_edges()
+	_world_seed = world_seed.duplicate(true) if not world_seed.is_empty() else {}
 	var nc: Node = _nakama_connection()
 	var local_id: String = nc.get_user_id() if nc != null else ""
 	_is_self = _target_user_id == "" or _target_user_id == local_id
@@ -426,7 +429,13 @@ func _build_settings_page_shell() -> void:
 func _load_profile() -> void:
 	var ab: Node = _alliance_backend()
 	if ab == null:
-		_profile = _local_fallback_profile()
+		if _is_self:
+			_profile = _local_fallback_profile()
+		else:
+			_profile = {"user_id": _target_user_id}
+			var castle_offline: Dictionary = _remote_world_castle_record(_target_user_id)
+			_merge_remote_identity_from_world(_profile, castle_offline)
+			_profile["power"] = resolve_remote_display_power(_profile, castle_offline)
 		_status.text = tr("PROFILE_OFFLINE_PROFILE")
 		return
 	if _is_self:
@@ -444,21 +453,104 @@ func _load_profile() -> void:
 	else:
 		print("[PlayerProfile] requesting public profile user=%s" % _target_user_id)
 		var res: Dictionary = await ab.get_public_profile(_target_user_id)
+		var castle: Dictionary = _remote_world_castle_record(_target_user_id)
 		if bool(res.get("ok", false)) and typeof(res.get("profile")) == TYPE_DICTIONARY:
 			_profile = res.get("profile", {})
 			_status.text = ""
-			print("[PlayerProfile] loaded user=%s power=%s" % [
-				str(_profile.get("user_id", "")), str(_profile.get("power", 0)),
-			])
 		else:
-			_profile = {"user_id": _target_user_id, "display_name": "Unknown"}
+			_profile = {"user_id": _target_user_id}
+			_merge_remote_identity_from_world(_profile, castle)
 			_status.text = str(res.get("error", tr("PROFILE_UNAVAILABLE")))
+		# Remote power: public profile first, else kingdom-castle projection.
+		# Never GameState.power for another player.
+		_profile["power"] = resolve_remote_display_power(_profile, castle)
+		print("[PlayerProfile] loaded user=%s power=%s" % [
+			str(_profile.get("user_id", "")), str(_profile.get("power", 0)),
+		])
 
 
 func _local_canonical_castle_level() -> int:
 	if has_node("/root/ConstructionState") and ConstructionState.has_method("get_canonical_building_level"):
 		return maxi(1, int(ConstructionState.get_canonical_building_level("castle")))
 	return 1
+
+
+func _remote_world_castle_record(user_id: String) -> Dictionary:
+	var uid: String = user_id.strip_edges()
+	var castle: Dictionary = {}
+	var ab: Node = _alliance_backend()
+	if ab != null and ab.has_method("get_cached_castle_for_user"):
+		var cached: Variant = ab.call("get_cached_castle_for_user", uid)
+		if typeof(cached) == TYPE_DICTIONARY:
+			castle = cached
+	var seed: Dictionary = {}
+	if not _world_seed.is_empty() and (uid == "" or str(_world_seed.get("user_id", "")) == uid):
+		seed = _world_seed.duplicate(true)
+	if castle.is_empty():
+		return seed
+	if seed.is_empty():
+		return castle
+	var castle_power: int = coerce_social_stat(castle.get("power", null))
+	var seed_power: int = coerce_social_stat(seed.get("power", null))
+	if castle_power <= 0 and seed_power > 0:
+		castle = castle.duplicate(true)
+		castle["power"] = seed_power
+	return castle
+
+
+func _merge_remote_identity_from_world(profile: Dictionary, castle: Dictionary) -> void:
+	if castle.is_empty():
+		if str(profile.get("display_name", "")) == "":
+			profile["display_name"] = "Unknown"
+		return
+	for key: String in [
+		"display_name", "alliance_id", "alliance_tag", "alliance_name",
+		"kingdom_id", "avatar_id", "citadel_level", "vip_level", "world_x", "world_y",
+	]:
+		if not castle.has(key):
+			continue
+		var existing: Variant = profile.get(key, null)
+		var missing: bool = existing == null or str(existing).strip_edges() == ""
+		if key == "citadel_level" or key == "vip_level":
+			missing = coerce_social_stat(existing) <= 0
+		if missing:
+			profile[key] = castle[key]
+	if str(profile.get("display_name", "")) == "":
+		profile["display_name"] = "Unknown"
+
+
+## Coerce a server social snapshot field. Missing/invalid → 0 (never fabricated).
+static func coerce_social_stat(value: Variant) -> int:
+	match typeof(value):
+		TYPE_NIL:
+			return 0
+		TYPE_INT:
+			return maxi(0, int(value))
+		TYPE_FLOAT:
+			if not is_finite(float(value)):
+				return 0
+			return maxi(0, int(value))
+		TYPE_STRING:
+			var s: String = str(value).strip_edges()
+			if s.is_valid_int():
+				return maxi(0, int(s))
+			if s.is_valid_float():
+				return maxi(0, int(float(s)))
+			return 0
+		_:
+			return 0
+
+
+## Public profile power wins when nonzero. Else kingdom-castle/world payload power.
+## Both are the same server-maintained social power field — not a second formula.
+static func resolve_remote_display_power(public_profile: Dictionary, world_castle: Dictionary = {}) -> int:
+	var pub_power: int = coerce_social_stat(public_profile.get("power", null)) if not public_profile.is_empty() else 0
+	if pub_power > 0:
+		return pub_power
+	var castle_power: int = coerce_social_stat(world_castle.get("power", null)) if not world_castle.is_empty() else 0
+	if castle_power > 0:
+		return castle_power
+	return 0
 
 
 func _local_fallback_profile() -> Dictionary:

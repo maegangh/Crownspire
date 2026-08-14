@@ -18,6 +18,8 @@ const COL_WARN := Color(0.92, 0.55, 0.35, 1.0)
 var _payload: Dictionary = {}
 var _is_self: bool = false
 var _built: bool = false
+## False until the opening touch/mouse cycle has fully finished.
+var _actions_armed: bool = false
 
 var _dim: ColorRect
 var _window: PanelContainer
@@ -50,21 +52,64 @@ func open_for_castle(payload: Dictionary) -> void:
 		str(_payload.get("world_x", _payload.get("x", 0))),
 		str(_payload.get("world_y", _payload.get("y", 0))),
 	])
+	_actions_armed = false
 	_refresh()
 	visible = true
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	if _dim != null:
 		_dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	_set_action_buttons_enabled(false)
 	print("[PlayerCastlePopup] opened owner=%s self=%s" % [uid, str(_is_self)])
+	call_deferred("_arm_popup_actions")
 
 
 func close_panel() -> void:
+	_actions_armed = false
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if _dim != null:
 		_dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if _share_row != null:
 		_share_row.visible = false
+
+
+func are_actions_armed() -> bool:
+	return _actions_armed
+
+
+func get_visible_action_labels() -> PackedStringArray:
+	var labels: PackedStringArray = PackedStringArray()
+	if _actions == null:
+		return labels
+	for c in _actions.get_children():
+		var btn: Button = c as Button
+		if btn != null:
+			labels.append(btn.text)
+	return labels
+
+
+func get_status_text() -> String:
+	return str(_status.text) if _status != null else ""
+
+
+func _arm_popup_actions() -> void:
+	if not visible:
+		return
+	_actions_armed = true
+	_set_action_buttons_enabled(true)
+
+
+func _set_action_buttons_enabled(enabled: bool) -> void:
+	if _actions != null:
+		for c in _actions.get_children():
+			var btn: Button = c as Button
+			if btn != null:
+				btn.disabled = not enabled
+	if _share_row != null:
+		for c2 in _share_row.get_children():
+			var sbtn: Button = c2 as Button
+			if sbtn != null:
+				sbtn.disabled = not enabled
 
 
 func _build() -> void:
@@ -80,6 +125,8 @@ func _build() -> void:
 	_dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	_dim.gui_input.connect(func(e: InputEvent):
+		if not _actions_armed:
+			return
 		if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT:
 			close_panel()
 		elif e is InputEventScreenTouch and e.pressed:
@@ -171,9 +218,11 @@ func _refresh() -> void:
 	_status.add_theme_color_override("font_color", COL_MUTED)
 	_share_row.visible = false
 	for c in _actions.get_children():
-		c.queue_free()
+		_actions.remove_child(c)
+		c.free()
 	for c in _share_row.get_children():
-		c.queue_free()
+		_share_row.remove_child(c)
+		c.free()
 
 	_add_action("Profile", _on_profile)
 	if not _is_self:
@@ -199,22 +248,28 @@ func _add_action(label: String, cb: Callable) -> void:
 	btn.add_theme_stylebox_override("pressed", st)
 	btn.add_theme_color_override("font_color", COL_INK)
 	btn.pressed.connect(cb)
+	btn.disabled = not _actions_armed
 	_actions.add_child(btn)
 
 
 func _on_profile() -> void:
+	if not _actions_armed:
+		return
 	var uid: String = str(_payload.get("user_id", "")).strip_edges()
 	print("[CastlePopup] profile requested user=%s" % uid)
+	var seed: Dictionary = _payload.duplicate(true)
 	close_panel()
 	var hud := _game_hud()
 	if hud != null and hud.has_method("open_player_profile"):
 		if _is_self or uid == "":
 			hud.call("open_player_profile", "")
 		else:
-			hud.call("open_player_profile", uid)
+			hud.call("open_player_profile", uid, seed)
 
 
 func _on_message() -> void:
+	if not _actions_armed:
+		return
 	var uid: String = str(_payload.get("user_id", "")).strip_edges()
 	var name_text: String = str(_payload.get("display_name", "Player"))
 	close_panel()
@@ -224,6 +279,8 @@ func _on_message() -> void:
 
 
 func _on_scout() -> void:
+	if not _actions_armed:
+		return
 	_status.text = "Scouting…"
 	_status.add_theme_color_override("font_color", COL_MUTED)
 	var target: Dictionary = _castle_target_payload()
@@ -264,6 +321,8 @@ func _on_scout() -> void:
 
 
 func _on_attack() -> void:
+	if not _actions_armed:
+		return
 	_status.text = "Preparing attack…"
 	_status.add_theme_color_override("font_color", COL_MUTED)
 	var target: Dictionary = _castle_target_payload()
@@ -315,6 +374,8 @@ func _find_march_setup() -> Node:
 
 
 func _on_share_pressed() -> void:
+	if not _actions_armed:
+		return
 	# Reveal channel chooser (Kingdom / Alliance when available).
 	for c in _share_row.get_children():
 		c.queue_free()

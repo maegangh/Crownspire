@@ -1466,7 +1466,7 @@ func _on_portrait_pressed():
 	open_player_profile()
 
 
-func open_player_profile(user_id: String = "") -> void:
+func open_player_profile(user_id: String = "", world_seed: Dictionary = {}) -> void:
 	_ensure_profile_screen()
 	if _profile_screen == null:
 		return
@@ -1483,7 +1483,7 @@ func open_player_profile(user_id: String = "") -> void:
 	if user_id.strip_edges() == "":
 		await _profile_screen.open_self()
 	else:
-		await _profile_screen.open_user(user_id)
+		await _profile_screen.open_user(user_id, world_seed)
 
 
 func ensure_player_castle_popup() -> Control:

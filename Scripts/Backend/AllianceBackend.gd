@@ -432,6 +432,19 @@ func get_cached_kingdom_castles() -> Array:
 	return _cached_kingdom_castles.duplicate(true)
 
 
+func get_cached_castle_for_user(user_id: String) -> Dictionary:
+	var uid: String = user_id.strip_edges()
+	if uid == "":
+		return {}
+	for entry_v: Variant in _cached_kingdom_castles:
+		if typeof(entry_v) != TYPE_DICTIONARY:
+			continue
+		var entry: Dictionary = entry_v
+		if str(entry.get("user_id", "")).strip_edges() == uid:
+			return entry.duplicate(true)
+	return {}
+
+
 ## Server-authoritative hostile action gate (attack/scout).
 ## Fail-closed: never returns a soft empty dict. Offline / unauthenticated /
 ## RPC failure → authority_verified=false + "Unable to verify…".

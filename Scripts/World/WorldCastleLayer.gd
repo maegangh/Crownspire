@@ -2,7 +2,8 @@ extends Node2D
 
 ## Spawns and refreshes real kingdom player castles on the world map.
 ## Local player uses PlayerCastleMarker; others appear under OtherPlayerCastles.
-## Castle tap → PlayerCastlePopup. Nameplate tap → PlayerProfileScreen.
+## Castle body AND nameplate tap → PlayerCastlePopup first.
+## Full PlayerProfileScreen opens only from the popup Profile action.
 
 const WorldGestureUtil = preload("res://Scripts/World/WorldGesture.gd")
 
@@ -26,6 +27,8 @@ var _castle_texture: Texture2D
 var _refreshing: bool = false
 var _reserved_positions: Array[Vector2] = []
 var _kingdom_id: String = ""
+## Last castle-pointer route: "popup" or "profile". Tests inspect this.
+var _last_castle_tap_route: String = ""
 
 
 func _ready() -> void:
@@ -283,8 +286,8 @@ func _ensure_local_nameplate(marker: Node2D) -> void:
 func _on_local_nameplate_pressed() -> void:
 	var marker: Node2D = _player_castle_marker()
 	var uid: String = str(marker.get_meta("user_id", "")) if marker != null else ""
-	print("[WorldCastle] nameplate tap owner=%s → profile" % uid)
-	_open_profile(uid)
+	print("[WorldCastle] nameplate tap owner=%s → popup" % uid)
+	_open_local_castle_popup()
 
 
 func _wire_local_castle_input() -> void:
@@ -317,27 +320,7 @@ func _wire_local_castle_input() -> void:
 
 
 func _on_local_castle_input(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:
-	if _is_city_teleport_placement_active():
-		return
-	var marker: Node2D = _player_castle_marker()
-	var uid: String = str(marker.get_meta("user_id", "")) if marker != null else ""
-	if event is InputEventScreenTouch:
-		if event.pressed:
-			print("[WorldCastle] press owner=%s" % uid)
-			WorldGestureUtil.begin_press(event.position)
-		elif WorldGestureUtil.consume_release_as_tap():
-			print("[WorldCastle] release owner=%s" % uid)
-			print("[WorldCastle] tap accepted")
-			_open_local_castle_popup()
-		return
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		if event.pressed:
-			print("[WorldCastle] press owner=%s" % uid)
-			WorldGestureUtil.begin_press(event.position)
-		elif WorldGestureUtil.consume_release_as_tap():
-			print("[WorldCastle] release owner=%s" % uid)
-			print("[WorldCastle] tap accepted")
-			_open_local_castle_popup()
+	_handle_castle_pointer_event(event, _open_local_castle_popup)
 
 
 func _open_local_castle_popup() -> void:
@@ -416,8 +399,8 @@ func _spawn_other_castle(entry: Dictionary, pos: Vector2) -> void:
 	var name_btn := _make_nameplate_button()
 	name_btn.text = plate_text
 	name_btn.pressed.connect(func():
-		print("[WorldCastle] nameplate tap owner=%s → profile" % uid)
-		_open_profile(uid)
+		print("[WorldCastle] nameplate tap owner=%s → popup" % uid)
+		_open_castle_popup(castle_payload)
 	)
 	plate_host.add_child(name_btn)
 	_position_nameplate(plate_host, sprite, node)
@@ -435,23 +418,7 @@ func _spawn_other_castle(entry: Dictionary, pos: Vector2) -> void:
 	shape.disabled = false
 	area.add_child(shape)
 	area.input_event.connect(func(_viewport, event, _shape_idx):
-		if event is InputEventScreenTouch:
-			if event.pressed:
-				print("[WorldCastle] press owner=%s" % uid)
-				WorldGestureUtil.begin_press(event.position)
-			elif WorldGestureUtil.consume_release_as_tap():
-				print("[WorldCastle] release owner=%s" % uid)
-				print("[WorldCastle] tap accepted")
-				_open_castle_popup(castle_payload)
-			return
-		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-			if event.pressed:
-				print("[WorldCastle] press owner=%s" % uid)
-				WorldGestureUtil.begin_press(event.position)
-			elif WorldGestureUtil.consume_release_as_tap():
-				print("[WorldCastle] release owner=%s" % uid)
-				print("[WorldCastle] tap accepted")
-				_open_castle_popup(castle_payload)
+		_handle_castle_pointer_event(event, func(): _open_castle_popup(castle_payload))
 	)
 
 
@@ -585,21 +552,59 @@ func _opaque_texture_rect(tex: Texture2D) -> Rect2:
 	return _opaque_uv_rect
 
 
+func _handle_castle_pointer_event(event: InputEvent, on_tap: Callable) -> void:
+	if event == null or _is_city_teleport_placement_active():
+		return
+	# Android emulates a mouse event (device -1) for the same physical touch.
+	# Handling both would open the popup and then click-through the new GUI.
+	if event is InputEventMouseButton and event.device < 0:
+		return
+	var is_touch: bool = event is InputEventScreenTouch
+	var is_mouse: bool = event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT
+	if not is_touch and not is_mouse:
+		return
+	if event.pressed:
+		print("[WorldCastle] press")
+		WorldGestureUtil.begin_press(event.position)
+		_consume_world_pointer(event)
+		return
+	if WorldGestureUtil.consume_release_as_tap():
+		print("[WorldCastle] release")
+		print("[WorldCastle] tap accepted")
+		_consume_world_pointer(event)
+		on_tap.call()
+	else:
+		_consume_world_pointer(event)
+
+
+func _consume_world_pointer(_event: InputEvent) -> void:
+	var vp: Viewport = get_viewport()
+	if vp != null:
+		vp.set_input_as_handled()
+
+
 func _open_castle_popup(payload: Dictionary) -> void:
 	if _is_city_teleport_placement_active():
 		return
+	_last_castle_tap_route = "popup"
 	print("[WorldCastle] opening PlayerCastlePopup owner=%s" % str(payload.get("user_id", "")))
 	var popup: Control = _ensure_castle_popup()
 	if popup != null and popup.has_method("open_for_castle"):
-		popup.call("open_for_castle", payload)
+		# Defer so this touch's emulated mouse-up cannot land on the new Profile button.
+		popup.call_deferred("open_for_castle", payload)
 		print("[PlayerCastlePopup] opened owner=%s" % str(payload.get("user_id", "")))
 	else:
 		push_error("[WorldCastle] PlayerCastlePopup missing open_for_castle")
 
 
+func get_last_castle_tap_route() -> String:
+	return _last_castle_tap_route
+
+
 func _open_profile(user_id: String) -> void:
 	if user_id == "":
 		return
+	_last_castle_tap_route = "profile"
 	print("[CastlePopup] profile requested user=%s" % user_id)
 	var hud := get_tree().root.find_child("GameHUD", true, false)
 	if hud != null and hud.has_method("open_player_profile"):
