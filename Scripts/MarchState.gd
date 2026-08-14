@@ -38,6 +38,8 @@ const MarchRouteLineScript = preload("res://Scripts/World/MarchRouteLine.gd")
 ## Same base rate for Food/Wood/Stone/Iron in Step 2.
 const BASE_GATHER_RATE_PER_SEC: float = 50.0
 const MIN_GATHER_SECONDS: int = 1
+## Fail-closed multiplayer hostile message when Nakama authority is unavailable.
+const HOSTILE_AUTHORITY_UNAVAILABLE_MSG := "Unable to verify this target right now. Please try again."
 
 ## Legacy single-timer API (WorldMap / monster popup).
 var march_active: bool = false
@@ -67,7 +69,7 @@ func get_route_visual_type(march: Dictionary) -> String:
 	match mtype:
 		"wildling_hunt", "gather", "join_rally", "reinforce", "returning":
 			return ROUTE_FRIENDLY
-		"attack_city", "attack_resource_tile", "hostile_rally", "pvp_attack":
+		"attack_city", "attack_resource_tile", "hostile_rally", "pvp_attack", "scout_city":
 			return ROUTE_HOSTILE
 		_:
 			# Unknown future types: default friendly (safer for current beta).
@@ -435,12 +437,14 @@ func _tick_marches() -> void:
 				if now >= int(march.get("arrival_timestamp", 0)):
 					if mtype == "gather":
 						_begin_gathering(march)
+					elif mtype == "scout_city":
+						_resolve_scout(march)
 					elif mtype == "join_rally":
 						_begin_combat_presentation(march)
 						# Resolve via rally path on next combat tick / immediately after presentation.
 						march["rally_pending_resolve"] = true
 					else:
-						# Wildling / combat marches: present arrival attack, then resolve once.
+						# Wildling / PvP / combat marches: present arrival attack, then resolve once.
 						_begin_combat_presentation(march)
 					_update_visual_progress(march, now_f)
 					active_marches[i] = march
@@ -512,7 +516,12 @@ func _resolve_battle(march: Dictionary) -> void:
 
 	march["status"] = STATUS_IN_COMBAT
 	var target: Dictionary = march.get("target_data", {})
-	var is_lair: bool = str(march.get("target_type", "")) == "wildling_lair" or target.has("lair_id")
+	var target_type: String = str(march.get("target_type", ""))
+	if target_type == "player_castle" or str(march.get("march_type", "")) == "pvp_attack":
+		_resolve_pvp_battle(march)
+		return
+
+	var is_lair: bool = target_type == "wildling_lair" or target.has("lair_id")
 	var wildling: Node2D = null if is_lair else _resolve_wildling_node(target)
 	var wildling_alive: bool = is_lair or (wildling != null and is_instance_valid(wildling) and wildling.visible)
 	var hero_ids: Array = march.get("hero_ids", []) as Array
@@ -669,10 +678,18 @@ func _create_battle_mail_report(march: Dictionary, result: Dictionary) -> void:
 		return
 	if not has_node("/root/MailManager"):
 		return
+	var mid: String = str(march.get("march_id", ""))
+	var created: bool = false
+	if str(march.get("target_type", "")) == "player_castle" or str(march.get("march_type", "")) == "pvp_attack":
+		if MailManager.has_method("add_pvp_battle_report"):
+			created = bool(MailManager.add_pvp_battle_report(march, result))
+		if created or (MailManager.has_method("has_pvp_report_for_march") and MailManager.has_pvp_report_for_march(mid)):
+			march["mail_report_created"] = true
+		return
 	if not MailManager.has_method("add_wildling_battle_report"):
 		return
-	var created: bool = bool(MailManager.add_wildling_battle_report(march, result))
-	if created or MailManager.has_report_for_march(str(march.get("march_id", ""))):
+	created = bool(MailManager.add_wildling_battle_report(march, result))
+	if created or MailManager.has_report_for_march(mid):
 		march["mail_report_created"] = true
 
 
@@ -3438,6 +3455,459 @@ func _finish_joiner_rally_battle(march: Dictionary, result: Dictionary) -> void:
 			var shared: Dictionary = result.get("rewards", {})
 			if typeof(shared) == TYPE_DICTIONARY and not shared.is_empty():
 				march["rewards_granted"] = true
+	_create_battle_mail_report(march, result)
+	march_battle_resolved.emit(str(march.get("march_id", "")), result)
+	_begin_return(march)
+
+
+# --- Player castle PvP / Scout (extends existing march + combat resolver) ---
+
+func build_player_castle_target(payload: Dictionary) -> Dictionary:
+	var uid: String = str(payload.get("user_id", "")).strip_edges()
+	if uid == "":
+		return {}
+	var x: float = float(payload.get("world_x", payload.get("x", 0)))
+	var y: float = float(payload.get("world_y", payload.get("y", 0)))
+	var out: Dictionary = {
+		"target_type": "player_castle",
+		"user_id": uid,
+		"target_user_id": uid,
+		"display_name": str(payload.get("display_name", "Lord")),
+		"alliance_id": str(payload.get("alliance_id", "")),
+		"alliance_tag": str(payload.get("alliance_tag", "")),
+		"alliance_name": str(payload.get("alliance_name", "")),
+		"kingdom_id": str(payload.get("kingdom_id", "")),
+		"world_x": x,
+		"world_y": y,
+		"position": {"x": x, "y": y},
+		"power": int(payload.get("power", 0)),
+		"citadel_level": int(payload.get("citadel_level", 1)),
+		"avatar_id": str(payload.get("avatar_id", "avatar_01")),
+		"peace_shield_expires_at": int(payload.get("peace_shield_expires_at", 0)),
+		"anti_scout_expires_at": int(payload.get("anti_scout_expires_at", 0)),
+		"beginner_protection_expires_at": int(payload.get("beginner_protection_expires_at", 0)),
+		"beginner_protection_cleared": bool(payload.get("beginner_protection_cleared", false)),
+		"peace_shield_active": bool(payload.get("peace_shield_active", false)),
+		"anti_scout_active": bool(payload.get("anti_scout_active", false)),
+		"beginner_protection_active": bool(payload.get("beginner_protection_active", false)),
+		"resolved": bool(payload.get("resolved", true)),
+	}
+	if payload.has("peace_shield_active") or payload.has("beginner_protection_active"):
+		pass
+	elif has_node("/root/CityProtectionState"):
+		var flags: Dictionary = CityProtectionState.protection_flags_for_target(out)
+		out["peace_shield_active"] = bool(flags.get("peace_shield_active", false))
+		out["anti_scout_active"] = bool(flags.get("anti_scout_active", false))
+		out["beginner_protection_active"] = bool(flags.get("beginner_protection_active", false))
+	return out
+
+
+func evaluate_hostile_city_action(action: String, target: Dictionary) -> Dictionary:
+	## Local UI feedback only — never sufficient for multiplayer hostile dispatch.
+	if has_node("/root/HostileActionGate"):
+		return HostileActionGate.evaluate(action, target)
+	return {"ok": false, "error": "HostileActionGate unavailable.", "reason": "HostileActionGate unavailable."}
+
+
+## Build a smoke/test authority stamp (never used by live UI).
+func make_smoke_hostile_authority(ok: bool, target: Dictionary = {}, code: String = "", reason: String = "") -> Dictionary:
+	if ok:
+		return {
+			"ok": true,
+			"authority_verified": true,
+			"code": "allowed",
+			"reason": "",
+			"target": target.duplicate(true),
+			"smoke": true,
+		}
+	var r: String = reason.strip_edges()
+	if r == "":
+		r = HOSTILE_AUTHORITY_UNAVAILABLE_MSG
+	return {
+		"ok": false,
+		"authority_verified": code != "authority_unavailable",
+		"code": code if code != "" else "denied",
+		"reason": r,
+		"error": r,
+		"target": target.duplicate(true),
+		"smoke": true,
+	}
+
+
+## Final multiplayer gate: requires definitive server (or smoke) authority stamp.
+## Local HostileActionGate alone is never enough.
+func require_hostile_authority(authority: Dictionary) -> Dictionary:
+	if typeof(authority) != TYPE_DICTIONARY or authority.is_empty():
+		return {
+			"ok": false,
+			"code": "authority_unavailable",
+			"reason": HOSTILE_AUTHORITY_UNAVAILABLE_MSG,
+			"error": HOSTILE_AUTHORITY_UNAVAILABLE_MSG,
+		}
+	if not bool(authority.get("authority_verified", false)):
+		return {
+			"ok": false,
+			"code": "authority_unavailable",
+			"reason": HOSTILE_AUTHORITY_UNAVAILABLE_MSG,
+			"error": HOSTILE_AUTHORITY_UNAVAILABLE_MSG,
+		}
+	if not bool(authority.get("ok", false)):
+		var r: String = str(authority.get("reason", authority.get("error", ""))).strip_edges()
+		if r == "":
+			r = HOSTILE_AUTHORITY_UNAVAILABLE_MSG
+		return {
+			"ok": false,
+			"code": str(authority.get("code", "denied")),
+			"reason": r,
+			"error": r,
+			"target": authority.get("target", {}),
+		}
+	return {"ok": true, "target": authority.get("target", {}), "authority": authority}
+
+
+func validate_pvp_attack_dispatch(target: Dictionary, troops: Dictionary, hero_ids: Array) -> Dictionary:
+	## Local troop/slot checks only. Hostile eligibility must still pass require_hostile_authority.
+	var gate: Dictionary = can_start_wildling_march()
+	if not bool(gate.get("ok", false)):
+		return gate
+
+	var flat: Dictionary = troops_flat_totals(troops)
+	var inf: int = int(flat.get("infantry", 0))
+	var mar: int = int(flat.get("marksmen", 0))
+	var cav: int = int(flat.get("cavalry", 0))
+	var total: int = inf + mar + cav
+	if total <= 0:
+		return {"ok": false, "error": "Select at least one troop.", "reason": "Select at least one troop."}
+
+	if not has_node("/root/TroopState"):
+		return {"ok": false, "error": "TroopState unavailable."}
+	if troops.has("tier_composition"):
+		var tier_check: Dictionary = validate_tier_availability(
+			normalize_tier_composition(troops.get("tier_composition", {}))
+		)
+		if not bool(tier_check.get("ok", false)):
+			return tier_check
+	else:
+		if TroopState.get_available_count("Infantry") < inf:
+			return {"ok": false, "error": "Not enough Infantry."}
+		if TroopState.get_available_count("Marksmen") < mar:
+			return {"ok": false, "error": "Not enough Marksmen."}
+		if TroopState.get_available_count("Cavalry") < cav:
+			return {"ok": false, "error": "Not enough Cavalry."}
+
+	var capacity: int = get_march_capacity(hero_ids)
+	if total > capacity:
+		return {"ok": false, "error": "Troops exceed march capacity (%d)." % capacity}
+
+	if hero_ids.size() > MAX_HEROES_PER_MARCH:
+		return {"ok": false, "error": "Too many heroes (max %d)." % MAX_HEROES_PER_MARCH}
+
+	if has_node("/root/HeroState"):
+		for hero_id: Variant in hero_ids:
+			var hid: String = str(hero_id)
+			if hid.is_empty():
+				continue
+			if HeroState.is_hero_on_march(hid):
+				return {"ok": false, "error": "Hero already on a march."}
+			if HeroState.has_method("is_hero_wall_defender") and HeroState.is_hero_wall_defender(hid):
+				return {"ok": false, "error": "Hero is assigned to City Defense."}
+			if HeroState.get_hero_index(hid) == -1:
+				return {"ok": false, "error": "Unknown hero selected."}
+
+	if str(target.get("user_id", "")).strip_edges() == "":
+		return {"ok": false, "error": "Invalid player castle target.", "reason": "Invalid player castle target."}
+	if not target.has("world_x") and not target.has("position"):
+		return {"ok": false, "error": "Invalid player castle target.", "reason": "Invalid player castle target."}
+	return {"ok": true}
+
+
+## authority: result of AllianceBackend.validate_hostile_action (or make_smoke_hostile_authority).
+## PRODUCT: Peace Shield blocks NEW launches only. Already-dispatched marches continue.
+func dispatch_pvp_attack_march(
+	target: Dictionary,
+	troops: Dictionary,
+	hero_ids: Array,
+	authority: Dictionary = {}
+) -> Dictionary:
+	var auth: Dictionary = require_hostile_authority(authority)
+	if not bool(auth.get("ok", false)):
+		return auth
+
+	var built: Dictionary = build_player_castle_target(target)
+	if built.is_empty():
+		return {"ok": false, "error": "Invalid player castle target.", "reason": "Invalid player castle target."}
+	var auth_target: Variant = auth.get("target", {})
+	if typeof(auth_target) == TYPE_DICTIONARY:
+		for k: Variant in (auth_target as Dictionary).keys():
+			built[k] = (auth_target as Dictionary)[k]
+
+	# Local UI gate may already have filtered; still refuse obvious self/forged IDs.
+	var local_gate: Dictionary = evaluate_hostile_city_action("attack", built)
+	if not bool(local_gate.get("ok", false)) and str(local_gate.get("code", "")) in ["self", "invalid_target", "stale_target"]:
+		return local_gate
+
+	var check: Dictionary = validate_pvp_attack_dispatch(built, troops, hero_ids)
+	if not bool(check.get("ok", false)):
+		return check
+
+	var start_pos: Vector2 = get_castle_world_position()
+	var target_pos: Vector2 = Vector2(float(built.get("world_x", 0)), float(built.get("world_y", 0)))
+	var hero_payload: Array = []
+	for hid: Variant in hero_ids:
+		hero_payload.append(str(hid))
+	var travel_sec: int = estimate_travel_seconds(start_pos, target_pos, hero_payload)
+	var now: int = int(Time.get_unix_time_from_system())
+	var troop_payload: Dictionary = {
+		"infantry": int(troops.get("infantry", 0)),
+		"marksmen": int(troops.get("marksmen", 0)),
+		"cavalry": int(troops.get("cavalry", 0)),
+	}
+	var composition: Dictionary = resolve_troop_composition(troops)
+	if composition.is_empty():
+		return {"ok": false, "error": "Could not allocate troop tiers."}
+	# Authority already accepted — only now reserve troops.
+	if not TroopState.deploy_troops_by_tiers(composition):
+		return {"ok": false, "error": "Failed to deploy troops by tier."}
+	for hid: Variant in hero_payload:
+		if has_node("/root/HeroState"):
+			HeroState.set_hero_on_march(str(hid), true)
+
+	var combat_preview: Dictionary = {}
+	if has_node("/root/StatResolver") and StatResolver.has_method("resolve_march_combat_stats"):
+		combat_preview = StatResolver.resolve_march_combat_stats(composition, hero_payload)
+
+	var march_id: String = "march_%d_%d" % [now, randi() % 100000]
+	var march: Dictionary = {
+		"march_id": march_id,
+		"march_type": "pvp_attack",
+		"owner_id": "local_player",
+		"target_id": str(built.get("user_id", "")),
+		"target_type": "player_castle",
+		"target_data": built.duplicate(true),
+		"start_position": {"x": start_pos.x, "y": start_pos.y},
+		"target_position": {"x": target_pos.x, "y": target_pos.y},
+		"departure_timestamp": now,
+		"arrival_timestamp": now + travel_sec,
+		"return_arrival_timestamp": 0,
+		"status": STATUS_MARCHING,
+		"hero_ids": hero_payload,
+		"troops": troop_payload.duplicate(true),
+		"original_troops": troop_payload.duplicate(true),
+		"troop_tiers": composition.duplicate(true),
+		"original_troop_tiers": composition.duplicate(true),
+		"surviving_troops": troop_payload.duplicate(true),
+		"surviving_troop_tiers": composition.duplicate(true),
+		"wounded_troop_tiers": {"infantry": {}, "marksmen": {}, "cavalry": {}},
+		"wounded_recorded": false,
+		"march_power": calculate_march_power(troop_payload, hero_payload),
+		"combat_stats_preview": combat_preview,
+		"battle_resolved": false,
+		"battle_result": {},
+		"rewards_granted": false,
+		"mail_report_created": false,
+		## Launch-time authority stamp. Mid-flight Peace Shield must NOT cancel this march.
+		"hostile_authority_at_launch": {
+			"verified": true,
+			"action": "attack",
+			"target_user_id": str(built.get("user_id", "")),
+			"launched_unix": now,
+		},
+		"pvp_combat_authority": "temporary_public_power_beta",
+	}
+	active_marches.append(march)
+	save_marches()
+	_ensure_visual(march)
+	_update_march_route_visual(march)
+	marches_changed.emit()
+	if has_node("/root/GameEvents"):
+		GameEvents.emit_march_dispatched(march)
+	return {"ok": true, "march_id": march_id, "travel_seconds": travel_sec}
+
+
+func validate_scout_dispatch(target: Dictionary) -> Dictionary:
+	var gate: Dictionary = can_start_wildling_march()
+	if not bool(gate.get("ok", false)):
+		return gate
+	if str(target.get("user_id", "")).strip_edges() == "":
+		return {"ok": false, "error": "Invalid player castle target.", "reason": "Invalid player castle target."}
+	if not target.has("world_x") and not target.has("position"):
+		return {"ok": false, "error": "Invalid player castle target.", "reason": "Invalid player castle target."}
+	return {"ok": true}
+
+
+## authority required — fail-closed. Launch-time rule matches Attack (no mid-flight cancel).
+func dispatch_scout_march(target: Dictionary, authority: Dictionary = {}) -> Dictionary:
+	var auth: Dictionary = require_hostile_authority(authority)
+	if not bool(auth.get("ok", false)):
+		return auth
+
+	var built: Dictionary = build_player_castle_target(target)
+	if built.is_empty():
+		return {"ok": false, "error": "Invalid player castle target.", "reason": "Invalid player castle target."}
+	var auth_target: Variant = auth.get("target", {})
+	if typeof(auth_target) == TYPE_DICTIONARY:
+		for k: Variant in (auth_target as Dictionary).keys():
+			built[k] = (auth_target as Dictionary)[k]
+
+	var local_gate: Dictionary = evaluate_hostile_city_action("scout", built)
+	if not bool(local_gate.get("ok", false)) and str(local_gate.get("code", "")) in ["self", "invalid_target", "stale_target"]:
+		return local_gate
+
+	var check: Dictionary = validate_scout_dispatch(built)
+	if not bool(check.get("ok", false)):
+		return check
+
+	var start_pos: Vector2 = get_castle_world_position()
+	var target_pos: Vector2 = Vector2(float(built.get("world_x", 0)), float(built.get("world_y", 0)))
+	# Scouts travel slightly faster than army marches (no hero buffs).
+	var travel_sec: int = maxi(1, int(ceil(estimate_travel_seconds(start_pos, target_pos, []) * 0.75)))
+	var now: int = int(Time.get_unix_time_from_system())
+	var march_id: String = "scout_%d_%d" % [now, randi() % 100000]
+	var empty_troops := {"infantry": 0, "marksmen": 0, "cavalry": 0}
+	var empty_tiers := {"infantry": {}, "marksmen": {}, "cavalry": {}}
+	var march: Dictionary = {
+		"march_id": march_id,
+		"march_type": "scout_city",
+		"owner_id": "local_player",
+		"target_id": str(built.get("user_id", "")),
+		"target_type": "player_castle",
+		"target_data": built.duplicate(true),
+		"start_position": {"x": start_pos.x, "y": start_pos.y},
+		"target_position": {"x": target_pos.x, "y": target_pos.y},
+		"departure_timestamp": now,
+		"arrival_timestamp": now + travel_sec,
+		"return_arrival_timestamp": 0,
+		"status": STATUS_MARCHING,
+		"hero_ids": [],
+		"troops": empty_troops.duplicate(true),
+		"original_troops": empty_troops.duplicate(true),
+		"troop_tiers": empty_tiers.duplicate(true),
+		"original_troop_tiers": empty_tiers.duplicate(true),
+		"surviving_troops": empty_troops.duplicate(true),
+		"surviving_troop_tiers": empty_tiers.duplicate(true),
+		"wounded_troop_tiers": empty_tiers.duplicate(true),
+		"wounded_recorded": true,
+		"battle_resolved": false,
+		"scout_resolved": false,
+		"battle_result": {},
+		"rewards_granted": false,
+		"mail_report_created": false,
+		## Launch-time authority. Mid-flight Peace Shield does not cancel this scout.
+		"hostile_authority_at_launch": {
+			"verified": true,
+			"action": "scout",
+			"target_user_id": str(built.get("user_id", "")),
+			"launched_unix": now,
+		},
+	}
+	active_marches.append(march)
+	save_marches()
+	_ensure_visual(march)
+	_update_march_route_visual(march)
+	marches_changed.emit()
+	if has_node("/root/GameEvents"):
+		GameEvents.emit_march_dispatched(march)
+	return {"ok": true, "march_id": march_id, "travel_seconds": travel_sec}
+
+
+func _resolve_scout(march: Dictionary) -> void:
+	if bool(march.get("scout_resolved", false)) or bool(march.get("battle_resolved", false)):
+		_begin_return(march)
+		return
+	var target: Dictionary = march.get("target_data", {})
+	if typeof(target) != TYPE_DICTIONARY:
+		target = {}
+	# Launch-time authority rule: do NOT cancel for shields activated after dispatch.
+	# Report uses the public snapshot captured at launch (no invented garrison).
+	var intel: Dictionary = {
+		"display_name": str(target.get("display_name", "Lord")),
+		"user_id": str(target.get("user_id", "")),
+		"alliance_tag": str(target.get("alliance_tag", "")),
+		"alliance_name": str(target.get("alliance_name", "")),
+		"citadel_level": int(target.get("citadel_level", 1)),
+		"power": int(target.get("power", 0)),
+		"world_x": float(target.get("world_x", 0)),
+		"world_y": float(target.get("world_y", 0)),
+		"kingdom_id": str(target.get("kingdom_id", "")),
+		"note": "Scout intel limited to public city identity and location (launch snapshot).",
+	}
+	var result: Dictionary = {
+		"victory": true,
+		"summary": "Scout report ready.",
+		"blocked": false,
+		"block_reason": "",
+		"intel": intel,
+	}
+	march["battle_result"] = result
+	march["scout_resolved"] = true
+	march["battle_resolved"] = true
+	march["status"] = STATUS_IN_COMBAT
+	_create_scout_mail_report(march, result)
+	march_battle_resolved.emit(str(march.get("march_id", "")), result)
+	_begin_return(march)
+
+
+func _create_scout_mail_report(march: Dictionary, result: Dictionary) -> void:
+	if bool(march.get("mail_report_created", false)):
+		return
+	if not has_node("/root/MailManager"):
+		return
+	if not MailManager.has_method("add_scout_report"):
+		return
+	var mid: String = str(march.get("march_id", ""))
+	var created: bool = bool(MailManager.add_scout_report(march, result))
+	if created or (MailManager.has_method("has_scout_report_for_march") and MailManager.has_scout_report_for_march(mid)):
+		march["mail_report_created"] = true
+
+
+## TEMPORARY BETA: defender stats from public citadel/power — not real garrison authority.
+## No mid-flight Peace Shield cancel. No plunder/loot economy from this approximation.
+func _resolve_pvp_battle(march: Dictionary) -> void:
+	var target: Dictionary = march.get("target_data", {})
+	if typeof(target) != TYPE_DICTIONARY:
+		target = {}
+	var hero_ids: Array = march.get("hero_ids", []) as Array
+	var tiers: Dictionary = march.get("original_troop_tiers", march.get("troop_tiers", {})) as Dictionary
+	if typeof(tiers) != TYPE_DICTIONARY or tiers.is_empty():
+		tiers = _legacy_tiers_from_flat(march.get("original_troops", march.get("troops", {})))
+
+	var result: Dictionary
+	if has_node("/root/WildlingCombatResolver") and has_node("/root/StatResolver"):
+		var player_stats: Dictionary = StatResolver.resolve_march_combat_stats(tiers, hero_ids)
+		var dstats: Dictionary = WildlingCombatResolver.get_city_defense_stats(
+			int(target.get("citadel_level", 1)),
+			int(target.get("power", 0))
+		)
+		result = WildlingCombatResolver.resolve_battle(player_stats, dstats, tiers)
+		result["player_march_stats"] = player_stats
+		result["defender_stats"] = dstats
+		result["combat_authority"] = "temporary_public_power_beta"
+		if result.has("wildling_stats"):
+			result["defender_combat_stats"] = result.get("wildling_stats", {})
+		if bool(result.get("victory", false)):
+			result["summary"] = "Victory! Enemy city defenses broken. (Beta: public-power defense)"
+		else:
+			result["summary"] = "Defeat. Your survivors retreat from the enemy city. (Beta: public-power defense)"
+	else:
+		result = {
+			"victory": false,
+			"summary": "Combat resolver unavailable.",
+			"surviving_troops": (march.get("original_troops", {}) as Dictionary).duplicate(true),
+			"surviving_troop_tiers": tiers.duplicate(true),
+			"wounded_troop_tiers": {"infantry": {}, "marksmen": {}, "cavalry": {}},
+			"losses": {"infantry": 0, "marksmen": 0, "cavalry": 0},
+			"wounded": {"infantry": 0, "marksmen": 0, "cavalry": 0},
+		}
+
+	# Explicit: no plunder / resource steal from prototype defense resolution.
+	result["rewards"] = {}
+	result["plunder"] = {}
+	march["battle_result"] = result
+	march["battle_resolved"] = true
+	march["surviving_troops"] = result.get("surviving_troops", {}).duplicate(true)
+	march["surviving_troop_tiers"] = result.get("surviving_troop_tiers", tiers).duplicate(true)
+	march["wounded_troop_tiers"] = result.get("wounded_troop_tiers", {}).duplicate(true)
+	_record_wounded_from_march(march)
 	_create_battle_mail_report(march, result)
 	march_battle_resolved.emit(str(march.get("march_id", "")), result)
 	_begin_return(march)

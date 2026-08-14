@@ -38,6 +38,7 @@ const ACCOUNT_OWNED: PackedStringArray = [
 	"resource_tiles.cfg",
 	"alliance.cfg",
 	"alliance_lairs_runtime.cfg",
+	"city_protection.cfg",
 	"savegame.save",
 	"chat_display_name.cfg",
 	"chat_moderation_local.cfg",

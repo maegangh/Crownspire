@@ -115,6 +115,10 @@ func _auto_pick_first_hero() -> void:
 func _is_gather_target() -> bool:
 	return str(_target.get("target_type", "")) == "resource"
 
+
+func _is_player_castle_target() -> bool:
+	return str(_target.get("target_type", "")) == "player_castle"
+
 func _build_ui() -> void:
 	for child: Node in get_children():
 		remove_child(child)
@@ -812,10 +816,13 @@ func _next_available_hero_id() -> String:
 
 func _refresh() -> void:
 	var is_resource: bool = str(_target.get("target_type", "")) == "resource"
+	var is_city: bool = _is_player_castle_target()
 	var castle: Vector2 = MarchState.get_castle_world_position() if has_node("/root/MarchState") else Vector2.ZERO
 	var pos: Dictionary = _target.get("position", {})
 	if pos.is_empty() and _target.has("world_position"):
 		pos = _target.get("world_position", {})
+	if pos.is_empty() and (_target.has("world_x") or _target.has("world_y")):
+		pos = {"x": float(_target.get("world_x", 0)), "y": float(_target.get("world_y", 0))}
 	var target_pos := Vector2(float(pos.get("x", 0)), float(pos.get("y", 0)))
 	var travel: int = (
 		MarchState.estimate_travel_seconds(castle, target_pos, _selected_heroes)
@@ -825,7 +832,12 @@ func _refresh() -> void:
 	var dist: int = int(castle.distance_to(target_pos))
 
 	if _title_label != null:
-		_title_label.text = "GATHER" if is_resource else "MARCH SETUP"
+		if is_resource:
+			_title_label.text = "GATHER"
+		elif is_city:
+			_title_label.text = "ATTACK CITY"
+		else:
+			_title_label.text = "MARCH SETUP"
 
 	if is_resource:
 		var display: String = str(_target.get("display_name", _target.get("resource_type", "Resource")))
@@ -841,6 +853,22 @@ func _refresh() -> void:
 		]
 		if _march_button:
 			_march_button.text = "GATHER"
+	elif is_city:
+		var city_name: String = str(_target.get("display_name", "Lord")).strip_edges()
+		if city_name == "":
+			city_name = "Lord"
+		var tag: String = str(_target.get("alliance_tag", "")).strip_edges()
+		var citadel: int = int(_target.get("citadel_level", 1))
+		var power_c: int = int(_target.get("power", 0))
+		_target_name_label.text = ("[%s] %s" % [tag, city_name]) if tag != "" else city_name
+		_target_meta_label.text = "Citadel Lv.%d  ·  Power %s  ·  Dist %d  ·  Travel %s" % [
+			citadel,
+			_format_power(power_c),
+			dist,
+			_format_travel(travel),
+		]
+		if _march_button:
+			_march_button.text = "ATTACK"
 	else:
 		var species: String = str(_target.get("species", "Wildling")).capitalize()
 		var level_w: int = int(_target.get("level", 1))
@@ -1005,6 +1033,12 @@ func _refresh_summary() -> void:
 	if has_node("/root/MarchState"):
 		if str(_target.get("target_type", "")) == "resource":
 			check = MarchState.validate_resource_setup(_target, payload, _selected_heroes)
+		elif _is_player_castle_target():
+			check = MarchState.validate_pvp_attack_dispatch(_target, payload, _selected_heroes)
+			if bool(check.get("ok", false)):
+				var local_ui: Dictionary = MarchState.evaluate_hostile_city_action("attack", _target)
+				if not bool(local_ui.get("ok", false)):
+					check = local_ui
 		else:
 			check = MarchState.validate_wildling_dispatch(_target, payload, _selected_heroes)
 
@@ -1018,11 +1052,13 @@ func _refresh_summary() -> void:
 				_format_number(cargo),
 				_format_number(g_amt),
 			]
+		elif _is_player_castle_target():
+			_status_label.text = "Ready to attack city."
 		else:
 			_status_label.text = "Ready to march."
 		_status_label.add_theme_color_override("font_color", COL_OK)
 	else:
-		_status_label.text = str(check.get("error", "Cannot march."))
+		_status_label.text = str(check.get("reason", check.get("error", "Cannot march.")))
 		_status_label.add_theme_color_override("font_color", COL_WARN)
 
 
@@ -1075,6 +1111,54 @@ func _on_march_pressed() -> void:
 		)
 		if not bool(lair_result.get("ok", false)):
 			_status_label.text = str(lair_result.get("error", "Lair attack failed."))
+			_status_label.add_theme_color_override("font_color", COL_WARN)
+			_refresh_summary()
+			return
+		_close_to_map()
+		return
+
+	if _is_player_castle_target():
+		# Local troop checks + local UI eligibility feedback.
+		var city_check: Dictionary = MarchState.validate_pvp_attack_dispatch(
+			_target, _troop_dict(), _selected_heroes
+		)
+		if not bool(city_check.get("ok", false)):
+			_status_label.text = str(city_check.get("reason", city_check.get("error", "Cannot attack.")))
+			_status_label.add_theme_color_override("font_color", COL_WARN)
+			_refresh_summary()
+			return
+		var local_gate: Dictionary = MarchState.evaluate_hostile_city_action("attack", _target)
+		if not bool(local_gate.get("ok", false)):
+			_status_label.text = str(local_gate.get("reason", local_gate.get("error", "Cannot attack.")))
+			_status_label.add_theme_color_override("font_color", COL_WARN)
+			_refresh_summary()
+			return
+		# FINAL server authority — before any troop reservation / march create.
+		if not has_node("/root/AllianceBackend") or not AllianceBackend.has_method("validate_hostile_action"):
+			_status_label.text = MarchState.HOSTILE_AUTHORITY_UNAVAILABLE_MSG
+			_status_label.add_theme_color_override("font_color", COL_WARN)
+			_refresh_summary()
+			return
+		var remote: Dictionary = await AllianceBackend.validate_hostile_action(
+			"attack", str(_target.get("user_id", ""))
+		)
+		if not bool(remote.get("ok", false)) or not bool(remote.get("authority_verified", false)):
+			_status_label.text = str(remote.get("reason", remote.get("error",
+				MarchState.HOSTILE_AUTHORITY_UNAVAILABLE_MSG)))
+			_status_label.add_theme_color_override("font_color", COL_WARN)
+			_refresh_summary()
+			return
+		if typeof(remote.get("target")) == TYPE_DICTIONARY:
+			var snap: Dictionary = remote.get("target", {})
+			for k: Variant in snap.keys():
+				_target[k] = snap[k]
+			if has_node("/root/CityProtectionState"):
+				CityProtectionState.cache_remote_protection(str(_target.get("user_id", "")), snap)
+		var city_result: Dictionary = MarchState.dispatch_pvp_attack_march(
+			_target, _troop_dict(), _selected_heroes, remote
+		)
+		if not bool(city_result.get("ok", false)):
+			_status_label.text = str(city_result.get("reason", city_result.get("error", "Attack failed.")))
 			_status_label.add_theme_color_override("font_color", COL_WARN)
 			_refresh_summary()
 			return

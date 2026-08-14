@@ -100,6 +100,11 @@ function InitModule(ctx, logger, nk, initializer) {
     initializer.registerRpc("crownspire_rally_complete", rpcRallyComplete);
     // Phase 6 — Direct Message delivery through authenticated server RPC.
     initializer.registerRpc("crownspire_dm_send", rpcDmSend);
+    // Phase 5.6 — Hostile player-castle validation + city protection (register in InitModule only).
+    initializer.registerRpc("crownspire_validate_hostile_action", rpcValidateHostileAction);
+    initializer.registerRpc("crownspire_activate_peace_shield", rpcActivatePeaceShield);
+    initializer.registerRpc("crownspire_activate_anti_scout", rpcActivateAntiScout);
+    initializer.registerRpc("crownspire_set_beginner_protection", rpcSetBeginnerProtection);
     logger.info("Crownspire runtime loaded (Phase 3+4+5+5.1+5.3+6+castles identity/alliance/help/social/rallies/dm-rpc). LOCAL DEVELOPMENT ONLY.");
 }
 // ---------------------------------------------------------------------------
@@ -344,6 +349,23 @@ function publicProfile(profile) {
         online_status: online ? "online" : "offline",
         world_x: typeof profile.world_x === "number" ? profile.world_x : 0,
         world_y: typeof profile.world_y === "number" ? profile.world_y : 0,
+        peace_shield_expires_at: typeof profile.peace_shield_expires_at === "number"
+            ? profile.peace_shield_expires_at
+            : 0,
+        anti_scout_expires_at: typeof profile.anti_scout_expires_at === "number"
+            ? profile.anti_scout_expires_at
+            : 0,
+        beginner_protection_expires_at: typeof profile.beginner_protection_expires_at === "number"
+            ? profile.beginner_protection_expires_at
+            : 0,
+        beginner_protection_cleared: Boolean(profile.beginner_protection_cleared),
+        peace_shield_active: typeof profile.peace_shield_expires_at === "number" &&
+            profile.peace_shield_expires_at > now,
+        anti_scout_active: typeof profile.anti_scout_expires_at === "number" &&
+            profile.anti_scout_expires_at > now,
+        beginner_protection_active: !Boolean(profile.beginner_protection_cleared) &&
+            typeof profile.beginner_protection_expires_at === "number" &&
+            profile.beginner_protection_expires_at > now,
         created_at: profile.created_at,
         updated_at: profile.updated_at,
         profile_version: profile.profile_version,
@@ -3004,9 +3026,21 @@ function upsertKingdomCastleEntry(nk, profile) {
     var kingdomId = String(profile.kingdom_id || DEV_KINGDOM_ID);
     ensureCastleCoords(nk, profile);
     var reg = readKingdomCastleRegistry(nk, kingdomId);
+    var now = nowUnix();
+    var peaceExp = typeof profile.peace_shield_expires_at === "number"
+        ? profile.peace_shield_expires_at
+        : 0;
+    var antiExp = typeof profile.anti_scout_expires_at === "number"
+        ? profile.anti_scout_expires_at
+        : 0;
+    var begExp = typeof profile.beginner_protection_expires_at === "number"
+        ? profile.beginner_protection_expires_at
+        : 0;
+    var begCleared = Boolean(profile.beginner_protection_cleared);
     var entry = {
         user_id: profile.user_id,
         display_name: profile.display_name || "",
+        alliance_id: profile.alliance_id || "",
         alliance_tag: profile.alliance_tag || "",
         alliance_name: profile.alliance_name || "",
         avatar_id: profile.avatar_id || "avatar_01",
@@ -3014,7 +3048,14 @@ function upsertKingdomCastleEntry(nk, profile) {
         world_y: Number(profile.world_y),
         citadel_level: typeof profile.citadel_level === "number" ? profile.citadel_level : 1,
         power: typeof profile.power === "number" ? profile.power : 0,
-        updated_at: nowUnix(),
+        peace_shield_expires_at: peaceExp,
+        anti_scout_expires_at: antiExp,
+        beginner_protection_expires_at: begExp,
+        beginner_protection_cleared: begCleared,
+        peace_shield_active: peaceExp > now,
+        anti_scout_active: antiExp > now,
+        beginner_protection_active: !begCleared && begExp > now,
+        updated_at: now,
     };
     var found = false;
     for (var i = 0; i < reg.castles.length; i++) {
@@ -3841,6 +3882,256 @@ function rpcCityTeleportRelocate(ctx, logger, nk, payload) {
     }
     var result = advanceTeleportSaga(nk, logger, profile, opObj, requestId);
     return JSON.stringify(result);
+}
+/**
+ * Crownspire — Hostile player-castle action validation (PvP foundation)
+ * LOCAL DEVELOPMENT ONLY. Concatenated into build/index.js.
+ *
+ * Authoritative reject for scout/attack against:
+ *  - self
+ *  - same alliance
+ *  - peace shield
+ *  - beginner protection
+ *  - missing/stale target profile
+ *
+ * PRODUCT — Peace Shield mid-flight:
+ *  Shield blocks NEW hostile launches only. An attack/scout already validated
+ *  and dispatched continues to resolve even if the defender activates a shield
+ *  after launch.
+ *
+ * Does NOT run combat or marches. Client MarchState still owns travel/combat
+ * until a future combat-authority phase. Realm Standing is intentionally omitted.
+ */
+var PEACE_SHIELD_DURATION_SEC = 3 * 24 * 60 * 60;
+var ANTI_SCOUT_DURATION_SEC = 24 * 60 * 60;
+function protectionActive(expiresAt, now) {
+    var exp = typeof expiresAt === "number" ? expiresAt : 0;
+    return exp > now;
+}
+function hostileTargetSnapshot(profile, now) {
+    var peaceExp = typeof profile.peace_shield_expires_at === "number"
+        ? profile.peace_shield_expires_at
+        : 0;
+    var antiExp = typeof profile.anti_scout_expires_at === "number"
+        ? profile.anti_scout_expires_at
+        : 0;
+    var begExp = typeof profile.beginner_protection_expires_at === "number"
+        ? profile.beginner_protection_expires_at
+        : 0;
+    var begCleared = Boolean(profile.beginner_protection_cleared);
+    return {
+        user_id: profile.user_id,
+        display_name: profile.display_name || "",
+        kingdom_id: profile.kingdom_id || "",
+        alliance_id: profile.alliance_id || "",
+        alliance_tag: profile.alliance_tag || "",
+        alliance_name: profile.alliance_name || "",
+        world_x: typeof profile.world_x === "number" ? profile.world_x : 0,
+        world_y: typeof profile.world_y === "number" ? profile.world_y : 0,
+        citadel_level: typeof profile.citadel_level === "number" ? profile.citadel_level : 1,
+        power: typeof profile.power === "number" ? profile.power : 0,
+        peace_shield_expires_at: peaceExp,
+        anti_scout_expires_at: antiExp,
+        beginner_protection_expires_at: begExp,
+        beginner_protection_cleared: begCleared,
+        peace_shield_active: protectionActive(peaceExp, now),
+        anti_scout_active: protectionActive(antiExp, now),
+        beginner_protection_active: !begCleared && protectionActive(begExp, now),
+        resolved: true,
+    };
+}
+function evaluateHostileAction(action, attacker, target, now) {
+    var act = String(action || "").trim().toLowerCase();
+    if (act !== "attack" && act !== "scout") {
+        return { ok: false, code: "invalid_action", reason: "Unsupported hostile action." };
+    }
+    if (!target || !target.user_id) {
+        return { ok: false, code: "invalid_target", reason: "Target castle could not be resolved." };
+    }
+    if (attacker.user_id === target.user_id) {
+        return { ok: false, code: "self", reason: "Cannot target your own city." };
+    }
+    var aAlliance = String(attacker.alliance_id || "").trim();
+    var tAlliance = String(target.alliance_id || "").trim();
+    if (aAlliance !== "" && tAlliance !== "" && aAlliance === tAlliance) {
+        return {
+            ok: false,
+            code: "same_alliance",
+            reason: act === "scout" ? "Cannot scout an alliance member." : "Cannot attack an alliance member.",
+        };
+    }
+    var snap = hostileTargetSnapshot(target, now);
+    if (snap.peace_shield_active) {
+        return { ok: false, code: "peace_shield", reason: "This city is protected by a Peace Shield." };
+    }
+    if (snap.beginner_protection_active) {
+        return { ok: false, code: "beginner_protection", reason: "This city is under Beginner Protection." };
+    }
+    if (act === "scout" && snap.anti_scout_active) {
+        return { ok: false, code: "anti_scout", reason: "This city is protected by Anti-Scout." };
+    }
+    return { ok: true, code: "allowed", reason: "" };
+}
+function rpcValidateHostileAction(ctx, logger, nk, payload) {
+    if (!ctx.userId)
+        throw Err("Unauthenticated");
+    var data = {};
+    try {
+        data = payload ? JSON.parse(payload) : {};
+    }
+    catch (_e) {
+        throw Err("Invalid payload");
+    }
+    var action = String(data["action"] || "").trim().toLowerCase();
+    var targetId = String(data["target_user_id"] || data["user_id"] || "").trim();
+    if (!targetId) {
+        return JSON.stringify({
+            ok: false,
+            code: "invalid_target",
+            reason: "Target castle could not be resolved.",
+            error: "Target castle could not be resolved.",
+        });
+    }
+    var attacker = ensureProfile(nk, logger, ctx.userId);
+    var target;
+    try {
+        target = ensureProfile(nk, logger, targetId);
+    }
+    catch (_e) {
+        return JSON.stringify({
+            ok: false,
+            code: "stale_target",
+            reason: "Target castle is no longer available.",
+            error: "Target castle is no longer available.",
+        });
+    }
+    var now = nowUnix();
+    var gate = evaluateHostileAction(action, attacker, target, now);
+    var snap = hostileTargetSnapshot(target, now);
+    if (!gate.ok) {
+        return JSON.stringify({
+            ok: false,
+            authority_verified: true,
+            code: gate.code,
+            reason: gate.reason,
+            error: gate.reason,
+            action: action,
+            target: snap,
+        });
+    }
+    return JSON.stringify({
+        ok: true,
+        authority_verified: true,
+        code: "allowed",
+        reason: "",
+        action: action,
+        target: snap,
+    });
+}
+/** Activate Peace Shield on the caller's city (item consumption is client-side for beta). */
+function rpcActivatePeaceShield(ctx, logger, nk, payload) {
+    if (!ctx.userId)
+        throw Err("Unauthenticated");
+    var data = {};
+    try {
+        data = payload ? JSON.parse(payload) : {};
+    }
+    catch (_e) {
+        throw Err("Invalid payload");
+    }
+    var duration = typeof data["duration_sec"] === "number" && data["duration_sec"] > 0
+        ? Math.floor(data["duration_sec"])
+        : PEACE_SHIELD_DURATION_SEC;
+    var profile = ensureProfile(nk, logger, ctx.userId);
+    var now = nowUnix();
+    var current = typeof profile.peace_shield_expires_at === "number"
+        ? profile.peace_shield_expires_at
+        : 0;
+    var base = Math.max(now, current);
+    profile.peace_shield_expires_at = base + duration;
+    profile.updated_at = now;
+    writeProfile(nk, profile);
+    upsertKingdomCastleEntry(nk, profile);
+    return JSON.stringify({
+        ok: true,
+        expires_at: profile.peace_shield_expires_at,
+        duration_sec: duration,
+        profile: publicProfile(profile),
+    });
+}
+function rpcActivateAntiScout(ctx, logger, nk, payload) {
+    if (!ctx.userId)
+        throw Err("Unauthenticated");
+    var data = {};
+    try {
+        data = payload ? JSON.parse(payload) : {};
+    }
+    catch (_e) {
+        throw Err("Invalid payload");
+    }
+    var duration = typeof data["duration_sec"] === "number" && data["duration_sec"] > 0
+        ? Math.floor(data["duration_sec"])
+        : ANTI_SCOUT_DURATION_SEC;
+    var profile = ensureProfile(nk, logger, ctx.userId);
+    var now = nowUnix();
+    var current = typeof profile.anti_scout_expires_at === "number"
+        ? profile.anti_scout_expires_at
+        : 0;
+    var base = Math.max(now, current);
+    profile.anti_scout_expires_at = base + duration;
+    profile.updated_at = now;
+    writeProfile(nk, profile);
+    upsertKingdomCastleEntry(nk, profile);
+    return JSON.stringify({
+        ok: true,
+        expires_at: profile.anti_scout_expires_at,
+        duration_sec: duration,
+        profile: publicProfile(profile),
+    });
+}
+/**
+ * Dev / future product hook for beginner protection.
+ * Duration must be supplied — server refuses unexplained defaults.
+ */
+function rpcSetBeginnerProtection(ctx, logger, nk, payload) {
+    if (!ctx.userId)
+        throw Err("Unauthenticated");
+    var data = {};
+    try {
+        data = payload ? JSON.parse(payload) : {};
+    }
+    catch (_e) {
+        throw Err("Invalid payload");
+    }
+    var profile = ensureProfile(nk, logger, ctx.userId);
+    var now = nowUnix();
+    if (data["clear"] === true) {
+        profile.beginner_protection_expires_at = 0;
+        profile.beginner_protection_cleared = true;
+    }
+    else if (typeof data["expires_at"] === "number") {
+        profile.beginner_protection_expires_at = Math.floor(data["expires_at"]);
+        profile.beginner_protection_cleared = profile.beginner_protection_expires_at <= now;
+    }
+    else if (typeof data["duration_sec"] === "number" && data["duration_sec"] > 0) {
+        profile.beginner_protection_expires_at = now + Math.floor(data["duration_sec"]);
+        profile.beginner_protection_cleared = false;
+    }
+    else {
+        return JSON.stringify({
+            ok: false,
+            error: "beginner_protection requires expires_at or duration_sec (product value not locked).",
+        });
+    }
+    profile.updated_at = now;
+    writeProfile(nk, profile);
+    upsertKingdomCastleEntry(nk, profile);
+    return JSON.stringify({
+        ok: true,
+        beginner_protection_expires_at: profile.beginner_protection_expires_at || 0,
+        beginner_protection_cleared: Boolean(profile.beginner_protection_cleared),
+        profile: publicProfile(profile),
+    });
 }
 /**
  * Crownspire Phase 6 — Direct Message RPC delivery.

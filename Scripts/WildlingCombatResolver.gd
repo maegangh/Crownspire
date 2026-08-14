@@ -27,6 +27,29 @@ func get_wildling_combat_stats(level: int, species: String = "") -> Dictionary:
 	}
 
 
+## TEMPORARY BETA / PROTOTYPE — NOT final competitive PvP combat authority.
+## Derives defender stats from public citadel_level + power only.
+## There is NO server-authoritative defender garrison/troop snapshot yet.
+## Do not award plunder/loot from this approximation. Replace with real
+## garrison authority before competitive PvP economy.
+func get_city_defense_stats(citadel_level: int, power: int) -> Dictionary:
+	var lv: int = clampi(citadel_level, 1, 40)
+	var pwr: float = maxf(0.0, float(power))
+	# Scale public power into combat stats; citadel level floors early cities.
+	var atk: float = maxf(40.0, roundf(30.0 * float(lv) + pwr * 0.08))
+	var deff: float = maxf(25.0, roundf(25.0 * float(lv) + pwr * 0.06))
+	var hp: float = maxf(800.0, roundf(500.0 * float(lv) + pwr * 0.35))
+	return {
+		"level": lv,
+		"species": "player_city",
+		"attack": atk,
+		"defense": deff,
+		"health": hp,
+		"power": int(pwr),
+		"authority": "temporary_public_power_beta",
+	}
+
+
 ## Resolve one Wildling battle from StatResolver march stats + troop_tiers.
 ## troop_tiers: { infantry:{tier:qty}, marksmen:{}, cavalry:{} }
 func resolve_battle(

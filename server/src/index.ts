@@ -76,6 +76,13 @@ interface CrownspireProfile {
   /** Stable world-map castle coordinates (kingdom map). */
   world_x?: number;
   world_y?: number;
+  /** Unix seconds — Peace Shield expiry (0 = inactive). */
+  peace_shield_expires_at?: number;
+  /** Unix seconds — Anti-Scout expiry (0 = inactive). */
+  anti_scout_expires_at?: number;
+  /** Unix seconds — Beginner Protection expiry (0 = inactive). Product duration TBD. */
+  beginner_protection_expires_at?: number;
+  beginner_protection_cleared?: boolean;
   created_at: number;
   updated_at: number;
   profile_version: number;
@@ -151,6 +158,12 @@ function InitModule(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkrunt
 
   // Phase 6 — Direct Message delivery through authenticated server RPC.
   initializer.registerRpc("crownspire_dm_send", rpcDmSend);
+
+  // Phase 5.6 — Hostile player-castle validation + city protection (register in InitModule only).
+  initializer.registerRpc("crownspire_validate_hostile_action", rpcValidateHostileAction);
+  initializer.registerRpc("crownspire_activate_peace_shield", rpcActivatePeaceShield);
+  initializer.registerRpc("crownspire_activate_anti_scout", rpcActivateAntiScout);
+  initializer.registerRpc("crownspire_set_beginner_protection", rpcSetBeginnerProtection);
 
   logger.info("Crownspire runtime loaded (Phase 3+4+5+5.1+5.3+6+castles identity/alliance/help/social/rallies/dm-rpc). LOCAL DEVELOPMENT ONLY.");
 }
@@ -415,6 +428,29 @@ function publicProfile(profile: CrownspireProfile): any {
     online_status: online ? "online" : "offline",
     world_x: typeof (profile as any).world_x === "number" ? (profile as any).world_x : 0,
     world_y: typeof (profile as any).world_y === "number" ? (profile as any).world_y : 0,
+    peace_shield_expires_at:
+      typeof (profile as any).peace_shield_expires_at === "number"
+        ? (profile as any).peace_shield_expires_at
+        : 0,
+    anti_scout_expires_at:
+      typeof (profile as any).anti_scout_expires_at === "number"
+        ? (profile as any).anti_scout_expires_at
+        : 0,
+    beginner_protection_expires_at:
+      typeof (profile as any).beginner_protection_expires_at === "number"
+        ? (profile as any).beginner_protection_expires_at
+        : 0,
+    beginner_protection_cleared: Boolean((profile as any).beginner_protection_cleared),
+    peace_shield_active:
+      typeof (profile as any).peace_shield_expires_at === "number" &&
+      (profile as any).peace_shield_expires_at > now,
+    anti_scout_active:
+      typeof (profile as any).anti_scout_expires_at === "number" &&
+      (profile as any).anti_scout_expires_at > now,
+    beginner_protection_active:
+      !Boolean((profile as any).beginner_protection_cleared) &&
+      typeof (profile as any).beginner_protection_expires_at === "number" &&
+      (profile as any).beginner_protection_expires_at > now,
     created_at: profile.created_at,
     updated_at: profile.updated_at,
     profile_version: profile.profile_version,

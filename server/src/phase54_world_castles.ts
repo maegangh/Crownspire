@@ -72,9 +72,24 @@ function upsertKingdomCastleEntry(nk: nkruntime.Nakama, profile: CrownspireProfi
   const kingdomId = String(profile.kingdom_id || DEV_KINGDOM_ID);
   ensureCastleCoords(nk, profile);
   const reg = readKingdomCastleRegistry(nk, kingdomId);
+  const now = nowUnix();
+  const peaceExp =
+    typeof (profile as any).peace_shield_expires_at === "number"
+      ? (profile as any).peace_shield_expires_at
+      : 0;
+  const antiExp =
+    typeof (profile as any).anti_scout_expires_at === "number"
+      ? (profile as any).anti_scout_expires_at
+      : 0;
+  const begExp =
+    typeof (profile as any).beginner_protection_expires_at === "number"
+      ? (profile as any).beginner_protection_expires_at
+      : 0;
+  const begCleared = Boolean((profile as any).beginner_protection_cleared);
   const entry = {
     user_id: profile.user_id,
     display_name: profile.display_name || "",
+    alliance_id: profile.alliance_id || "",
     alliance_tag: profile.alliance_tag || "",
     alliance_name: profile.alliance_name || "",
     avatar_id: profile.avatar_id || "avatar_01",
@@ -82,7 +97,14 @@ function upsertKingdomCastleEntry(nk: nkruntime.Nakama, profile: CrownspireProfi
     world_y: Number((profile as any).world_y),
     citadel_level: typeof profile.citadel_level === "number" ? profile.citadel_level : 1,
     power: typeof profile.power === "number" ? profile.power : 0,
-    updated_at: nowUnix(),
+    peace_shield_expires_at: peaceExp,
+    anti_scout_expires_at: antiExp,
+    beginner_protection_expires_at: begExp,
+    beginner_protection_cleared: begCleared,
+    peace_shield_active: peaceExp > now,
+    anti_scout_active: antiExp > now,
+    beginner_protection_active: !begCleared && begExp > now,
+    updated_at: now,
   };
   let found = false;
   for (let i = 0; i < reg.castles.length; i++) {

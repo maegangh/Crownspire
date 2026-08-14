@@ -349,6 +349,7 @@ func _open_local_castle_popup() -> void:
 	var payload := {
 		"user_id": str(marker.get_meta("user_id", profile.get("user_id", ""))),
 		"display_name": str(profile.get("display_name", marker.get_meta("display_name", "Player"))),
+		"alliance_id": str(profile.get("alliance_id", "")),
 		"alliance_tag": str(profile.get("alliance_tag", marker.get_meta("alliance_tag", ""))),
 		"alliance_name": str(profile.get("alliance_name", "")),
 		"kingdom_id": str(profile.get("kingdom_id", _kingdom_id)),
@@ -392,6 +393,7 @@ func _spawn_other_castle(entry: Dictionary, pos: Vector2) -> void:
 	var castle_payload := {
 		"user_id": uid,
 		"display_name": display,
+		"alliance_id": str(entry.get("alliance_id", "")),
 		"alliance_tag": tag,
 		"alliance_name": str(entry.get("alliance_name", "")),
 		"kingdom_id": _kingdom_id,
@@ -400,6 +402,13 @@ func _spawn_other_castle(entry: Dictionary, pos: Vector2) -> void:
 		"power": int(entry.get("power", 0)),
 		"citadel_level": int(entry.get("citadel_level", 1)),
 		"avatar_id": str(entry.get("avatar_id", "avatar_01")),
+		"peace_shield_expires_at": int(entry.get("peace_shield_expires_at", 0)),
+		"anti_scout_expires_at": int(entry.get("anti_scout_expires_at", 0)),
+		"beginner_protection_expires_at": int(entry.get("beginner_protection_expires_at", 0)),
+		"beginner_protection_cleared": bool(entry.get("beginner_protection_cleared", false)),
+		"peace_shield_active": bool(entry.get("peace_shield_active", false)),
+		"anti_scout_active": bool(entry.get("anti_scout_active", false)),
+		"beginner_protection_active": bool(entry.get("beginner_protection_active", false)),
 	}
 
 	var plate_host := _make_nameplate_host()

@@ -414,8 +414,13 @@ func _show_detail_page() -> void:
 		var detail_title: String = "WILDLING BATTLE REPORT"
 		if has_node("/root/MailManager") and _detail_id != "":
 			var msg: Dictionary = MailManager.get_message(_detail_id)
-			if str(msg.get("type", "")) == "gathering_report":
+			var msg_t: String = str(msg.get("type", ""))
+			if msg_t == "gathering_report":
 				detail_title = "GATHERING REPORT"
+			elif msg_t == "scout_report":
+				detail_title = "SCOUT REPORT"
+			elif msg_t == "pvp_battle":
+				detail_title = "CITY BATTLE REPORT"
 		_header_title.text = detail_title
 	if _header_back_button != null:
 		_header_back_button.visible = true
@@ -508,6 +513,13 @@ func _make_inbox_row(msg: Dictionary) -> PanelContainer:
 	if msg_type == "gathering_report":
 		result_l.text = "GATHERING REPORT"
 		result_l.add_theme_color_override("font_color", COL_OK)
+	elif msg_type == "scout_report":
+		result_l.text = "SCOUT REPORT"
+		result_l.add_theme_color_override("font_color", COL_OK if not bool(msg.get("blocked", false)) else COL_WARN)
+	elif msg_type == "pvp_battle":
+		var victory_p: bool = bool(msg.get("result", {}).get("victory", false))
+		result_l.text = "CITY VICTORY" if victory_p else "CITY DEFEAT"
+		result_l.add_theme_color_override("font_color", COL_OK if victory_p else COL_WARN)
 	else:
 		var victory: bool = bool(msg.get("result", {}).get("victory", false))
 		result_l.text = "VICTORY" if victory else "DEFEAT"
@@ -534,6 +546,14 @@ func _make_inbox_row(msg: Dictionary) -> PanelContainer:
 			int(source.get("level", 1)),
 			_format_number(int(resource.get("amount", 0))),
 			str(resource.get("display_type", resource.get("type", ""))),
+		]
+	elif msg_type == "scout_report":
+		preview_l.text = str(msg.get("preview", str(msg.get("target", {}).get("display_name", "City"))))
+	elif msg_type == "pvp_battle":
+		var tcity: Dictionary = msg.get("target", {})
+		preview_l.text = "%s  Citadel Lv.%d" % [
+			str(tcity.get("display_name", "Lord")),
+			int(tcity.get("citadel_level", 1)),
 		]
 	else:
 		var target: Dictionary = msg.get("target", {})
@@ -584,6 +604,8 @@ func _populate_detail(report_id: String) -> void:
 
 	if str(msg.get("type", "")) == "gathering_report":
 		_populate_gathering_detail(msg)
+	elif str(msg.get("type", "")) == "scout_report":
+		_populate_scout_detail(msg)
 	else:
 		_populate_battle_detail(msg)
 
@@ -628,9 +650,36 @@ func _populate_gathering_detail(msg: Dictionary) -> void:
 		_detail_body.add_child(_kv_block("Cargo", _format_number(int(march.get("cargo_capacity", 0)))))
 
 
+func _populate_scout_detail(msg: Dictionary) -> void:
+	var title := Label.new()
+	title.text = "SCOUT REPORT"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 26)
+	title.add_theme_color_override("font_color", COL_GOLD)
+	_detail_body.add_child(title)
+
+	_detail_body.add_child(_kv_block("Status", str(msg.get("status", "Successful"))))
+	var scout: Dictionary = msg.get("scout", {})
+	_detail_body.add_child(_kv_block("Scout", str(scout.get("display_name", "You"))))
+	var target: Dictionary = msg.get("target", {})
+	_detail_body.add_child(_kv_block("Target", str(target.get("display_name", "Lord"))))
+	_detail_body.add_child(_kv_block("Coordinates", "X:%.0f  Y:%.0f" % [
+		float(target.get("world_x", 0)),
+		float(target.get("world_y", 0)),
+	]))
+	if not bool(msg.get("blocked", false)):
+		_detail_body.add_child(_kv_block("Citadel", "Lv.%d" % int(target.get("citadel_level", 1))))
+		_detail_body.add_child(_kv_block("Power", _format_number(int(target.get("power", 0)))))
+		var tag: String = str(target.get("alliance_tag", "")).strip_edges()
+		if tag != "":
+			_detail_body.add_child(_kv_block("Alliance", tag))
+	_detail_body.add_child(_kv_block("Summary", str(msg.get("summary", msg.get("result", {}).get("summary", "")))))
+	_detail_body.add_child(_kv_block("Time", _format_timestamp(int(msg.get("timestamp", 0)))))
+
+
 func _populate_battle_detail(msg: Dictionary) -> void:
 	var header := Label.new()
-	header.text = "WILDLING BATTLE REPORT"
+	header.text = "CITY BATTLE REPORT" if str(msg.get("type", "")) == "pvp_battle" else "WILDLING BATTLE REPORT"
 	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	header.add_theme_font_size_override("font_size", 22)
 	header.add_theme_color_override("font_color", COL_GOLD)
@@ -645,10 +694,21 @@ func _populate_battle_detail(msg: Dictionary) -> void:
 	_detail_body.add_child(result_l)
 
 	var target: Dictionary = msg.get("target", {})
-	_detail_body.add_child(_kv_block("Wildling", "%s\nLv.%d" % [
-		str(target.get("display_name", "Wildling")),
-		int(target.get("level", 1)),
-	]))
+	if str(msg.get("type", "")) == "pvp_battle":
+		_detail_body.add_child(_kv_block("Enemy City", "%s\nCitadel Lv.%d · Power %s" % [
+			str(target.get("display_name", "Lord")),
+			int(target.get("citadel_level", 1)),
+			_format_number(int(target.get("power", 0))),
+		]))
+		_detail_body.add_child(_kv_block("Coordinates", "X:%.0f  Y:%.0f" % [
+			float(target.get("world_x", 0)),
+			float(target.get("world_y", 0)),
+		]))
+	else:
+		_detail_body.add_child(_kv_block("Wildling", "%s\nLv.%d" % [
+			str(target.get("display_name", "Wildling")),
+			int(target.get("level", 1)),
+		]))
 
 	var rounds: int = int(msg.get("result", {}).get("rounds", 0))
 	if rounds > 0:

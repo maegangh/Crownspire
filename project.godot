@@ -41,6 +41,8 @@ ResourceTileState="*res://Scripts/ResourceTileState.gd"
 WildlingSpawnState="*res://Scripts/WildlingSpawnState.gd"
 StatResolver="*res://Scripts/StatResolver.gd"
 WildlingCombatResolver="*res://Scripts/WildlingCombatResolver.gd"
+CityProtectionState="*res://Scripts/CityProtectionState.gd"
+HostileActionGate="*res://Scripts/HostileActionGate.gd"
 MarchState="*uid://dode3xwoljw4e"
 BagState="*uid://bomv0lqviqnrv"
 ItemDatabase="*uid://o053iu3nf15a"
@@ -72,7 +74,6 @@ enabled=PackedStringArray("res://addons/com.heroiclabs.nakama/plugin.cfg")
 [internationalization]
 
 locale/translations=PackedStringArray("res://locales/crownspire_ui.en.translation", "res://locales/crownspire_ui.tr.translation")
-locale/fallback="en"
 
 [physics]
 

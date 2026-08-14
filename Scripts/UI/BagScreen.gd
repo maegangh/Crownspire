@@ -193,8 +193,10 @@ func _use_item(item_id: String) -> void:
 			used_successfully = _use_resource_item(item_id)
 		"hero":
 			used_successfully = _use_hero_item(item_id)
-		"speedup", "boost", "chest":
+		"speedup", "chest":
 			used_successfully = BagState.remove_item(item_id, 1)
+		"boost":
+			used_successfully = await _use_boost_item(item_id)
 		"teleport":
 			await _use_teleport_item(item_id)
 			refresh_items()
@@ -210,6 +212,33 @@ func _use_item(item_id: String) -> void:
 	else:
 		selected_item_id = ""
 		_clear_details()
+
+
+func _use_boost_item(item_id: String) -> bool:
+	if item_id == "boost_shield_peace_3d":
+		if not has_node("/root/CityProtectionState"):
+			print("CityProtectionState missing")
+			return false
+		if not BagState.remove_item(item_id, 1):
+			return false
+		var act: Dictionary = CityProtectionState.activate_peace_shield_from_item()
+		if has_node("/root/AllianceBackend") and AllianceBackend.has_method("activate_peace_shield"):
+			await AllianceBackend.activate_peace_shield(int(act.get("duration_sec", CityProtectionState.PEACE_SHIELD_DURATION_SEC)))
+		print("[Bag] Peace Shield activated expires_at=%s" % str(act.get("expires_at", 0)))
+		return true
+	if item_id == "boost_anti_scout_24h":
+		if not has_node("/root/CityProtectionState"):
+			print("CityProtectionState missing")
+			return false
+		if not BagState.remove_item(item_id, 1):
+			return false
+		var act2: Dictionary = CityProtectionState.activate_anti_scout_from_item()
+		if has_node("/root/AllianceBackend") and AllianceBackend.has_method("activate_anti_scout"):
+			await AllianceBackend.activate_anti_scout(int(act2.get("duration_sec", CityProtectionState.ANTI_SCOUT_DURATION_SEC)))
+		print("[Bag] Anti-Scout activated expires_at=%s" % str(act2.get("expires_at", 0)))
+		return true
+	# Other boosts still consume without buff authority (pre-existing behavior).
+	return BagState.remove_item(item_id, 1)
 
 
 func _use_teleport_item(item_id: String) -> void:

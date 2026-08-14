@@ -1,8 +1,8 @@
 extends Control
 
 ## Compact Kingdom Map castle / player action popup.
-## Valid actions only: Profile, Message, Share Location (Kingdom / Alliance when available).
-## Attack / Rally are omitted until player-castle PvP exists.
+## Actions: Profile, Scout, Attack, Message, Share Location.
+## Scout / Attack require HostileActionGate eligibility (also enforced on dispatch).
 
 const TOP_SAFE := 188.0
 const BOTTOM_SAFE := 200.0
@@ -13,6 +13,7 @@ const COL_MUTED := Color(0.72, 0.66, 0.55, 1.0)
 const COL_GOLD := Color(0.86, 0.70, 0.32, 1.0)
 const COL_PANEL := Color(0.09, 0.08, 0.13, 0.97)
 const COL_BORDER := Color(0.72, 0.58, 0.30, 0.95)
+const COL_WARN := Color(0.92, 0.55, 0.35, 1.0)
 
 var _payload: Dictionary = {}
 var _is_self: bool = false
@@ -92,8 +93,8 @@ func _build() -> void:
 	_window.set_anchors_preset(Control.PRESET_CENTER)
 	_window.offset_left = -PANEL_W * 0.5
 	_window.offset_right = PANEL_W * 0.5
-	_window.offset_top = -210.0
-	_window.offset_bottom = 210.0
+	_window.offset_top = -260.0
+	_window.offset_bottom = 260.0
 	var style := StyleBoxFlat.new()
 	style.bg_color = COL_PANEL
 	style.border_color = COL_BORDER
@@ -167,6 +168,7 @@ func _refresh() -> void:
 	var y: float = float(_payload.get("world_y", _payload.get("y", 0)))
 	_coords.text = "X:%.0f   Y:%.0f" % [x, y]
 	_status.text = ""
+	_status.add_theme_color_override("font_color", COL_MUTED)
 	_share_row.visible = false
 	for c in _actions.get_children():
 		c.queue_free()
@@ -175,9 +177,10 @@ func _refresh() -> void:
 
 	_add_action("Profile", _on_profile)
 	if not _is_self:
+		_add_action("Scout", _on_scout)
+		_add_action("Attack", _on_attack)
 		_add_action("Message", _on_message)
 	_add_action("Share Location", _on_share_pressed)
-	# Attack / Rally intentionally omitted — no player-castle PvP path yet.
 
 
 func _add_action(label: String, cb: Callable) -> void:
@@ -218,6 +221,97 @@ func _on_message() -> void:
 	var hud := _game_hud()
 	if hud != null and hud.has_method("open_private_chat"):
 		hud.call("open_private_chat", uid, name_text)
+
+
+func _on_scout() -> void:
+	_status.text = "Scouting…"
+	_status.add_theme_color_override("font_color", COL_MUTED)
+	var target: Dictionary = _castle_target_payload()
+	# Local gate = UI feedback only.
+	var gate: Dictionary = _local_hostile_gate("scout", target)
+	if not bool(gate.get("ok", false)):
+		_status.text = str(gate.get("reason", gate.get("error", "Cannot scout.")))
+		_status.add_theme_color_override("font_color", COL_WARN)
+		return
+	# Final authority required before any scout march is created.
+	if not has_node("/root/AllianceBackend") or not AllianceBackend.has_method("validate_hostile_action"):
+		_status.text = MarchState.HOSTILE_AUTHORITY_UNAVAILABLE_MSG if has_node("/root/MarchState") \
+			else "Unable to verify this target right now. Please try again."
+		_status.add_theme_color_override("font_color", COL_WARN)
+		return
+	var remote: Dictionary = await AllianceBackend.validate_hostile_action("scout", str(target.get("user_id", "")))
+	if not bool(remote.get("ok", false)) or not bool(remote.get("authority_verified", false)):
+		_status.text = str(remote.get("reason", remote.get("error",
+			"Unable to verify this target right now. Please try again.")))
+		_status.add_theme_color_override("font_color", COL_WARN)
+		return
+	if typeof(remote.get("target")) == TYPE_DICTIONARY:
+		var snap: Dictionary = remote.get("target", {})
+		for k: Variant in snap.keys():
+			target[k] = snap[k]
+		if has_node("/root/CityProtectionState"):
+			CityProtectionState.cache_remote_protection(str(target.get("user_id", "")), snap)
+	if not has_node("/root/MarchState"):
+		_status.text = "March system unavailable."
+		_status.add_theme_color_override("font_color", COL_WARN)
+		return
+	var result: Dictionary = MarchState.dispatch_scout_march(target, remote)
+	if not bool(result.get("ok", false)):
+		_status.text = str(result.get("reason", result.get("error", "Scout failed.")))
+		_status.add_theme_color_override("font_color", COL_WARN)
+		return
+	close_panel()
+
+
+func _on_attack() -> void:
+	_status.text = "Preparing attack…"
+	_status.add_theme_color_override("font_color", COL_MUTED)
+	var target: Dictionary = _castle_target_payload()
+	# Local gate = UI feedback only. Final server authority is at March Setup dispatch.
+	var gate: Dictionary = _local_hostile_gate("attack", target)
+	if not bool(gate.get("ok", false)):
+		_status.text = str(gate.get("reason", gate.get("error", "Cannot attack.")))
+		_status.add_theme_color_override("font_color", COL_WARN)
+		return
+	if not has_node("/root/MarchState"):
+		_status.text = "March system unavailable."
+		_status.add_theme_color_override("font_color", COL_WARN)
+		return
+	var built: Dictionary = MarchState.build_player_castle_target(target)
+	if built.is_empty():
+		_status.text = "Invalid castle target."
+		_status.add_theme_color_override("font_color", COL_WARN)
+		return
+	close_panel()
+	var setup: Node = _find_march_setup()
+	if setup != null and setup.has_method("open_for_target"):
+		setup.call("open_for_target", built)
+	else:
+		_status.text = "March Setup unavailable."
+		_status.add_theme_color_override("font_color", COL_WARN)
+
+
+func _castle_target_payload() -> Dictionary:
+	return _payload.duplicate(true)
+
+
+func _local_hostile_gate(action: String, target: Dictionary) -> Dictionary:
+	if has_node("/root/HostileActionGate"):
+		return HostileActionGate.evaluate(action, target)
+	if has_node("/root/MarchState") and MarchState.has_method("evaluate_hostile_city_action"):
+		return MarchState.evaluate_hostile_city_action(action, target)
+	return {"ok": false, "reason": "HostileActionGate unavailable."}
+
+
+func _find_march_setup() -> Node:
+	var hud := _game_hud()
+	if hud != null:
+		var setup: Node = hud.find_child("MarchSetupScreen", true, false)
+		if setup != null:
+			return setup
+	if get_tree() != null:
+		return get_tree().root.find_child("MarchSetupScreen", true, false)
+	return null
 
 
 func _on_share_pressed() -> void:

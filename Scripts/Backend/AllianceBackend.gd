@@ -65,6 +65,10 @@ const RPC_TELEPORT_DEPLOY_BEGIN := "crownspire_teleport_deployment_begin"
 const RPC_TELEPORT_DEPLOY_END := "crownspire_teleport_deployment_end"
 const RPC_SET_TROOP_ACTIVITY := "crownspire_set_troop_activity"
 const RPC_CITY_TELEPORT_RELOCATE := "crownspire_city_teleport_relocate"
+const RPC_VALIDATE_HOSTILE_ACTION := "crownspire_validate_hostile_action"
+const RPC_ACTIVATE_PEACE_SHIELD := "crownspire_activate_peace_shield"
+const RPC_ACTIVATE_ANTI_SCOUT := "crownspire_activate_anti_scout"
+const RPC_SET_BEGINNER_PROTECTION := "crownspire_set_beginner_protection"
 const CASTLE_MOVED_NOTIF_CODE: int = 5005
 const TELEPORT_ITEM_ID := "teleport_advanced_compass"
 
@@ -422,6 +426,72 @@ func list_kingdom_castles() -> Dictionary:
 
 func get_cached_kingdom_castles() -> Array:
 	return _cached_kingdom_castles.duplicate(true)
+
+
+## Server-authoritative hostile action gate (attack/scout).
+## Fail-closed: never returns a soft empty dict. Offline / unauthenticated /
+## RPC failure → authority_verified=false + "Unable to verify…".
+func validate_hostile_action(action: String, target_user_id: String) -> Dictionary:
+	const UNAVAILABLE := "Unable to verify this target right now. Please try again."
+	var nc: Node = _nakama_connection()
+	if nc == null or not nc.is_authenticated():
+		return {
+			"ok": false,
+			"authority_verified": false,
+			"code": "authority_unavailable",
+			"reason": UNAVAILABLE,
+			"error": UNAVAILABLE,
+		}
+	var result: Dictionary = await _rpc(RPC_VALIDATE_HOSTILE_ACTION, {
+		"action": action,
+		"target_user_id": target_user_id,
+	})
+	if typeof(result) != TYPE_DICTIONARY or result.is_empty():
+		return {
+			"ok": false,
+			"authority_verified": false,
+			"code": "authority_unavailable",
+			"reason": UNAVAILABLE,
+			"error": UNAVAILABLE,
+		}
+	# RPC transport failure often uses ok=false without a gate code.
+	if not bool(result.get("ok", false)) and str(result.get("code", "")) == "" \
+			and str(result.get("error", "")).to_lower().find("not authenticated") >= 0:
+		result["authority_verified"] = false
+		result["code"] = "authority_unavailable"
+		result["reason"] = UNAVAILABLE
+		result["error"] = UNAVAILABLE
+		return result
+	if not result.has("authority_verified"):
+		# Definitive RPC payload (allow or deny) counts as verified.
+		result["authority_verified"] = true
+	if not bool(result.get("ok", false)):
+		if str(result.get("reason", "")).strip_edges() == "" and str(result.get("error", "")).strip_edges() != "":
+			result["reason"] = str(result.get("error", ""))
+		if str(result.get("reason", "")).strip_edges() == "":
+			result["reason"] = UNAVAILABLE
+			result["error"] = UNAVAILABLE
+			result["authority_verified"] = false
+			result["code"] = "authority_unavailable"
+	return result
+
+
+func activate_peace_shield(duration_sec: int = 0) -> Dictionary:
+	var payload: Dictionary = {}
+	if duration_sec > 0:
+		payload["duration_sec"] = duration_sec
+	return await _rpc(RPC_ACTIVATE_PEACE_SHIELD, payload)
+
+
+func activate_anti_scout(duration_sec: int = 0) -> Dictionary:
+	var payload: Dictionary = {}
+	if duration_sec > 0:
+		payload["duration_sec"] = duration_sec
+	return await _rpc(RPC_ACTIVATE_ANTI_SCOUT, payload)
+
+
+func set_beginner_protection(payload: Dictionary) -> Dictionary:
+	return await _rpc(RPC_SET_BEGINNER_PROTECTION, payload)
 
 
 func get_teleport_balance() -> int:

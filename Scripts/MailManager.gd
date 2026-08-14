@@ -50,7 +50,8 @@ func get_unread_count() -> int:
 func get_battle_report_count() -> int:
 	var count: int = 0
 	for msg: Dictionary in messages:
-		if str(msg.get("type", "")) == "wildling_battle":
+		var t: String = str(msg.get("type", ""))
+		if t == "wildling_battle" or t == "pvp_battle":
 			count += 1
 	return count
 
@@ -59,9 +60,9 @@ func get_messages_by_category(category: String) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for msg: Dictionary in messages:
 		var msg_type: String = str(msg.get("type", ""))
-		if category == "battle" and msg_type == "wildling_battle":
+		if category == "battle" and msg_type in ["wildling_battle", "pvp_battle"]:
 			out.append(msg)
-		elif category == "system" and msg_type in ["system", "gathering_report"]:
+		elif category == "system" and msg_type in ["system", "gathering_report", "scout_report"]:
 			out.append(msg)
 	return out
 
@@ -200,6 +201,204 @@ func add_wildling_battle_report(march: Dictionary, result: Dictionary) -> bool:
 	return true
 
 
+func has_pvp_report_for_march(march_id: String) -> bool:
+	if march_id == "":
+		return false
+	return not get_message(_pvp_report_id_for_march(march_id)).is_empty()
+
+
+func has_scout_report_for_march(march_id: String) -> bool:
+	if march_id == "":
+		return false
+	return not get_message(_scout_report_id_for_march(march_id)).is_empty()
+
+
+func add_pvp_battle_report(march: Dictionary, result: Dictionary) -> bool:
+	var march_id: String = str(march.get("march_id", ""))
+	if march_id == "":
+		return false
+	var report_id: String = _pvp_report_id_for_march(march_id)
+	if not get_message(report_id).is_empty():
+		return false
+
+	var target: Dictionary = march.get("target_data", {})
+	if typeof(target) != TYPE_DICTIONARY:
+		target = {}
+	var troops: Dictionary = march.get("original_troops", march.get("troops", {}))
+	if typeof(troops) != TYPE_DICTIONARY:
+		troops = {}
+	var losses: Dictionary = result.get("losses", {})
+	if typeof(losses) != TYPE_DICTIONARY:
+		losses = {}
+	var survivors: Dictionary = result.get("surviving_troops", {})
+	if typeof(survivors) != TYPE_DICTIONARY:
+		survivors = {}
+	var hero_ids: Array = []
+	for hid: Variant in march.get("hero_ids", []):
+		hero_ids.append(str(hid))
+	var wounded: Dictionary = result.get("wounded", losses)
+	if typeof(wounded) != TYPE_DICTIONARY:
+		wounded = losses
+	var player_stats: Dictionary = result.get("player_stats", {})
+	if typeof(player_stats) != TYPE_DICTIONARY:
+		player_stats = {}
+	var defender_stats: Dictionary = result.get("defender_combat_stats", result.get("wildling_stats", {}))
+	if typeof(defender_stats) != TYPE_DICTIONARY:
+		defender_stats = {}
+
+	var attacker_name: String = "You"
+	if has_node("/root/AllianceBackend") and AllianceBackend.has_method("get_profile"):
+		var p: Dictionary = AllianceBackend.get_profile()
+		var dn: String = str(p.get("display_name", "")).strip_edges()
+		if dn != "":
+			attacker_name = dn
+
+	var report: Dictionary = {
+		"report_id": report_id,
+		"type": "pvp_battle",
+		"category": "battle",
+		"timestamp": int(Time.get_unix_time_from_system()),
+		"read": false,
+		"march_id": march_id,
+		"attacker": {
+			"display_name": attacker_name,
+			"user_id": str(march.get("owner_id", "local_player")),
+		},
+		"target": {
+			"user_id": str(target.get("user_id", "")),
+			"display_name": str(target.get("display_name", "Lord")),
+			"alliance_tag": str(target.get("alliance_tag", "")),
+			"citadel_level": int(target.get("citadel_level", 1)),
+			"power": int(target.get("power", 0)),
+			"world_x": float(target.get("world_x", 0)),
+			"world_y": float(target.get("world_y", 0)),
+		},
+		"result": {
+			"victory": bool(result.get("victory", false)),
+			"summary": str(result.get("summary", "")),
+			"rounds": int(result.get("rounds", 0)),
+		},
+		"march": {
+			"hero_ids": hero_ids,
+			"infantry": int(troops.get("infantry", 0)),
+			"marksmen": int(troops.get("marksmen", 0)),
+			"cavalry": int(troops.get("cavalry", 0)),
+			"march_power": int(result.get("march_power", march.get("march_power", 0))),
+		},
+		"losses": {
+			"infantry": int(losses.get("infantry", 0)),
+			"marksmen": int(losses.get("marksmen", 0)),
+			"cavalry": int(losses.get("cavalry", 0)),
+		},
+		"wounded": {
+			"infantry": int(wounded.get("infantry", 0)),
+			"marksmen": int(wounded.get("marksmen", 0)),
+			"cavalry": int(wounded.get("cavalry", 0)),
+		},
+		"wounded_routing": _routing_summary(result.get("wounded_routing", march.get("wounded_routing", {}))),
+		"survivors": {
+			"infantry": int(survivors.get("infantry", 0)),
+			"marksmen": int(survivors.get("marksmen", 0)),
+			"cavalry": int(survivors.get("cavalry", 0)),
+		},
+		"player_stats": {
+			"attack": int(player_stats.get("attack", 0)),
+			"defense": int(player_stats.get("defense", 0)),
+			"health": int(player_stats.get("health", 0)),
+		},
+		"defender_stats": {
+			"attack": int(defender_stats.get("attack", 0)),
+			"defense": int(defender_stats.get("defense", 0)),
+			"health": int(defender_stats.get("health", 0)),
+		},
+		"rewards": {},
+	}
+
+	messages.insert(0, report)
+	while messages.size() > MAX_MESSAGES:
+		messages.pop_back()
+	save_mail()
+	mail_changed.emit()
+	return true
+
+
+func add_scout_report(march: Dictionary, result: Dictionary) -> bool:
+	var march_id: String = str(march.get("march_id", ""))
+	if march_id == "":
+		return false
+	var report_id: String = _scout_report_id_for_march(march_id)
+	if not get_message(report_id).is_empty():
+		return false
+
+	var target: Dictionary = march.get("target_data", {})
+	if typeof(target) != TYPE_DICTIONARY:
+		target = {}
+	var intel: Dictionary = result.get("intel", {})
+	if typeof(intel) != TYPE_DICTIONARY:
+		intel = {}
+	var blocked: bool = bool(result.get("blocked", false))
+	var scout_name: String = "You"
+	if has_node("/root/AllianceBackend") and AllianceBackend.has_method("get_profile"):
+		var p2: Dictionary = AllianceBackend.get_profile()
+		var dn2: String = str(p2.get("display_name", "")).strip_edges()
+		if dn2 != "":
+			scout_name = dn2
+
+	var tx: float = float(intel.get("world_x", target.get("world_x", 0)))
+	var ty: float = float(intel.get("world_y", target.get("world_y", 0)))
+	var dname: String = str(intel.get("display_name", target.get("display_name", "Lord")))
+	var preview: String
+	if blocked:
+		preview = str(result.get("block_reason", result.get("summary", "Scout blocked.")))
+	else:
+		preview = "%s\nCitadel Lv.%d · Power %s\nX:%.0f Y:%.0f" % [
+			dname,
+			int(intel.get("citadel_level", target.get("citadel_level", 1))),
+			_format_amount(int(intel.get("power", target.get("power", 0)))),
+			tx,
+			ty,
+		]
+
+	var report: Dictionary = {
+		"report_id": report_id,
+		"type": "scout_report",
+		"category": "system",
+		"timestamp": int(Time.get_unix_time_from_system()),
+		"read": false,
+		"march_id": march_id,
+		"title": "Scout Report",
+		"status": "Blocked" if blocked else "Successful",
+		"scout": {
+			"display_name": scout_name,
+			"user_id": str(march.get("owner_id", "local_player")),
+		},
+		"target": {
+			"user_id": str(target.get("user_id", "")),
+			"display_name": dname,
+			"alliance_tag": str(intel.get("alliance_tag", target.get("alliance_tag", ""))),
+			"citadel_level": int(intel.get("citadel_level", target.get("citadel_level", 1))),
+			"power": int(intel.get("power", target.get("power", 0))),
+			"world_x": tx,
+			"world_y": ty,
+			"kingdom_id": str(intel.get("kingdom_id", target.get("kingdom_id", ""))),
+		},
+		"intel": intel.duplicate(true),
+		"blocked": blocked,
+		"result": {
+			"summary": str(result.get("summary", "")),
+		},
+		"preview": preview,
+		"summary": str(result.get("summary", "")),
+	}
+
+	messages.insert(0, report)
+	while messages.size() > MAX_MESSAGES:
+		messages.pop_back()
+	save_mail()
+	mail_changed.emit()
+	return true
+
+
 func _routing_summary(raw: Variant) -> Dictionary:
 	var out := {"hospital": 0, "sanctuary": 0, "total": 0}
 	if typeof(raw) != TYPE_DICTIONARY:
@@ -308,6 +507,14 @@ func load_mail() -> void:
 
 func _report_id_for_march(march_id: String) -> String:
 	return "wildling_battle_%s" % march_id
+
+
+func _pvp_report_id_for_march(march_id: String) -> String:
+	return "pvp_battle_%s" % march_id
+
+
+func _scout_report_id_for_march(march_id: String) -> String:
+	return "scout_report_%s" % march_id
 
 
 func _gathering_report_id_for_march(march_id: String) -> String:
