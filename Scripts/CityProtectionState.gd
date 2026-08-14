@@ -22,13 +22,15 @@ const ANTI_SCOUT_DURATION_SEC: int = 24 * 60 * 60
 ## Support exists; auto-grant stays off until design supplies values.
 ##
 ## CONFIGURE PRODUCT RULE HERE (do not invent a silent duration):
-##   Client: CityProtectionState.set_beginner_protection_expires_at(unix)
-##           CityProtectionState.clear_beginner_protection()
-##   Server: RPC crownspire_set_beginner_protection
-##           payload { duration_sec } OR { expires_at } OR { clear: true }
+##   Client local: CityProtectionState.set_beginner_protection_expires_at (LOCAL ONLY)
+##   Public RPC: crownspire_clear_own_beginner_protection (clear own only)
+##   Trusted server helper: trustedSetBeginnerProtection (NOT a public RPC)
 ##   Profile fields: beginner_protection_expires_at, beginner_protection_cleared
-##   Castle registry mirrors the same fields for hostile validation.
 ## BEGINNER_PROTECTION_DURATION_SEC stays 0 until product locks a value.
+##
+## Peace Shield / Anti-Scout:
+##   Items boost_shield_peace_3d / boost_anti_scout_24h live in client BagState only.
+##   Server inventory authority does NOT exist for these yet — no public activate RPC.
 const BEGINNER_PROTECTION_DURATION_SEC: int = 0
 const BEGINNER_PROTECTION_PRODUCT_LOCKED: bool = false
 

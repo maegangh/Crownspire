@@ -196,7 +196,7 @@ func _use_item(item_id: String) -> void:
 		"speedup", "chest":
 			used_successfully = BagState.remove_item(item_id, 1)
 		"boost":
-			used_successfully = await _use_boost_item(item_id)
+			used_successfully = _use_boost_item(item_id)
 		"teleport":
 			await _use_teleport_item(item_id)
 			refresh_items()
@@ -215,6 +215,10 @@ func _use_item(item_id: String) -> void:
 
 
 func _use_boost_item(item_id: String) -> bool:
+	## Peace Shield / Anti-Scout: BagState is client-local inventory only.
+	## Server has no authoritative spend path yet — do NOT call grant RPCs
+	## (those are unregistered). Local CityProtectionState is UI/local-gate only;
+	## multiplayer hostile validation will not see free server shields.
 	if item_id == "boost_shield_peace_3d":
 		if not has_node("/root/CityProtectionState"):
 			print("CityProtectionState missing")
@@ -222,9 +226,7 @@ func _use_boost_item(item_id: String) -> bool:
 		if not BagState.remove_item(item_id, 1):
 			return false
 		var act: Dictionary = CityProtectionState.activate_peace_shield_from_item()
-		if has_node("/root/AllianceBackend") and AllianceBackend.has_method("activate_peace_shield"):
-			await AllianceBackend.activate_peace_shield(int(act.get("duration_sec", CityProtectionState.PEACE_SHIELD_DURATION_SEC)))
-		print("[Bag] Peace Shield activated expires_at=%s" % str(act.get("expires_at", 0)))
+		print("[Bag] Peace Shield LOCAL only expires_at=%s (server inventory authority pending)" % str(act.get("expires_at", 0)))
 		return true
 	if item_id == "boost_anti_scout_24h":
 		if not has_node("/root/CityProtectionState"):
@@ -233,9 +235,7 @@ func _use_boost_item(item_id: String) -> bool:
 		if not BagState.remove_item(item_id, 1):
 			return false
 		var act2: Dictionary = CityProtectionState.activate_anti_scout_from_item()
-		if has_node("/root/AllianceBackend") and AllianceBackend.has_method("activate_anti_scout"):
-			await AllianceBackend.activate_anti_scout(int(act2.get("duration_sec", CityProtectionState.ANTI_SCOUT_DURATION_SEC)))
-		print("[Bag] Anti-Scout activated expires_at=%s" % str(act2.get("expires_at", 0)))
+		print("[Bag] Anti-Scout LOCAL only expires_at=%s (server inventory authority pending)" % str(act2.get("expires_at", 0)))
 		return true
 	# Other boosts still consume without buff authority (pre-existing behavior).
 	return BagState.remove_item(item_id, 1)

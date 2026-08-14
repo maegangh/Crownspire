@@ -159,11 +159,11 @@ function InitModule(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkrunt
   // Phase 6 — Direct Message delivery through authenticated server RPC.
   initializer.registerRpc("crownspire_dm_send", rpcDmSend);
 
-  // Phase 5.6 — Hostile player-castle validation + city protection (register in InitModule only).
+  // Phase 5.6 — Hostile validation (read-only) + voluntary beginner clear only.
+  // Peace Shield / Anti-Scout / Beginner GRANT RPCs are NOT registered: no server
+  // item inventory authority for those boosts yet (BagState is client-local).
   initializer.registerRpc("crownspire_validate_hostile_action", rpcValidateHostileAction);
-  initializer.registerRpc("crownspire_activate_peace_shield", rpcActivatePeaceShield);
-  initializer.registerRpc("crownspire_activate_anti_scout", rpcActivateAntiScout);
-  initializer.registerRpc("crownspire_set_beginner_protection", rpcSetBeginnerProtection);
+  initializer.registerRpc("crownspire_clear_own_beginner_protection", rpcClearOwnBeginnerProtection);
 
   logger.info("Crownspire runtime loaded (Phase 3+4+5+5.1+5.3+6+castles identity/alliance/help/social/rallies/dm-rpc). LOCAL DEVELOPMENT ONLY.");
 }

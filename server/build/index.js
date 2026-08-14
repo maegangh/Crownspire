@@ -100,11 +100,11 @@ function InitModule(ctx, logger, nk, initializer) {
     initializer.registerRpc("crownspire_rally_complete", rpcRallyComplete);
     // Phase 6 — Direct Message delivery through authenticated server RPC.
     initializer.registerRpc("crownspire_dm_send", rpcDmSend);
-    // Phase 5.6 — Hostile player-castle validation + city protection (register in InitModule only).
+    // Phase 5.6 — Hostile validation (read-only) + voluntary beginner clear only.
+    // Peace Shield / Anti-Scout / Beginner GRANT RPCs are NOT registered: no server
+    // item inventory authority for those boosts yet (BagState is client-local).
     initializer.registerRpc("crownspire_validate_hostile_action", rpcValidateHostileAction);
-    initializer.registerRpc("crownspire_activate_peace_shield", rpcActivatePeaceShield);
-    initializer.registerRpc("crownspire_activate_anti_scout", rpcActivateAntiScout);
-    initializer.registerRpc("crownspire_set_beginner_protection", rpcSetBeginnerProtection);
+    initializer.registerRpc("crownspire_clear_own_beginner_protection", rpcClearOwnBeginnerProtection);
     logger.info("Crownspire runtime loaded (Phase 3+4+5+5.1+5.3+6+castles identity/alliance/help/social/rallies/dm-rpc). LOCAL DEVELOPMENT ONLY.");
 }
 // ---------------------------------------------------------------------------
@@ -3884,26 +3884,26 @@ function rpcCityTeleportRelocate(ctx, logger, nk, payload) {
     return JSON.stringify(result);
 }
 /**
- * Crownspire — Hostile player-castle action validation (PvP foundation)
+ * Crownspire — Hostile player-castle action validation + protection authority
  * LOCAL DEVELOPMENT ONLY. Concatenated into build/index.js.
  *
- * Authoritative reject for scout/attack against:
- *  - self
- *  - same alliance
- *  - peace shield
- *  - beginner protection
- *  - missing/stale target profile
+ * Public RPC surface (protection hardening):
+ *  - crownspire_validate_hostile_action  (READ-ONLY gate)
+ *  - crownspire_clear_own_beginner_protection (optional voluntary clear; cannot increase expiry)
+ *
+ * NOT registered for ordinary clients (no server item inventory for these yet):
+ *  - Peace Shield activation / Anti-Scout activation / Beginner grant-extend
+ * Internal trusted helpers are retained for future inventory/admin lifecycle only.
  *
  * PRODUCT — Peace Shield mid-flight:
- *  Shield blocks NEW hostile launches only. An attack/scout already validated
- *  and dispatched continues to resolve even if the defender activates a shield
- *  after launch.
- *
- * Does NOT run combat or marches. Client MarchState still owns travel/combat
- * until a future combat-authority phase. Realm Standing is intentionally omitted.
+ *  Shield blocks NEW hostile launches only. Already-dispatched marches continue.
  */
+var PEACE_SHIELD_ITEM_ID = "boost_shield_peace_3d";
+var ANTI_SCOUT_ITEM_ID = "boost_anti_scout_24h";
+/** Design duration from Items.json — used only by trusted helpers, never by public RPC. */
 var PEACE_SHIELD_DURATION_SEC = 3 * 24 * 60 * 60;
 var ANTI_SCOUT_DURATION_SEC = 24 * 60 * 60;
+var INV_AUTHORITY_REQUIRED = "Server inventory authority is required before this protection can be activated.";
 function protectionActive(expiresAt, now) {
     var exp = typeof expiresAt === "number" ? expiresAt : 0;
     return exp > now;
@@ -3972,6 +3972,81 @@ function evaluateHostileAction(action, attacker, target, now) {
     }
     return { ok: true, code: "allowed", reason: "" };
 }
+/**
+ * Pure policy: ordinary clients cannot grant Peace Shield / Anti-Scout.
+ * Used by tests + deny stubs. Does not mutate storage.
+ */
+function rejectClientProtectionActivation(kind, ctxUserId, payload) {
+    var data = payload && typeof payload === "object" ? payload : {};
+    var forgedTarget = String(data["target_user_id"] || data["user_id"] || "").trim();
+    if (forgedTarget !== "" && forgedTarget !== String(ctxUserId || "").trim()) {
+        return {
+            ok: false,
+            code: "forbidden_target",
+            reason: "Cannot modify another player's protection.",
+            error: "Cannot modify another player's protection.",
+        };
+    }
+    if (typeof data["duration_sec"] === "number" || typeof data["expires_at"] === "number") {
+        return {
+            ok: false,
+            code: "arbitrary_duration_forbidden",
+            reason: "Client-supplied protection duration/expiry is not allowed.",
+            error: "Client-supplied protection duration/expiry is not allowed.",
+        };
+    }
+    var label = kind === "anti_scout" ? "Anti-Scout (" + ANTI_SCOUT_ITEM_ID + ")" : "Peace Shield (" + PEACE_SHIELD_ITEM_ID + ")";
+    return {
+        ok: false,
+        code: "inventory_authority_required",
+        reason: label + ": " + INV_AUTHORITY_REQUIRED,
+        error: label + ": " + INV_AUTHORITY_REQUIRED,
+    };
+}
+/**
+ * Pure policy for beginner protection mutations from ordinary clients.
+ * Only voluntary clear of OWN protection is allowed. Grants/extends/forged targets blocked.
+ */
+function planBeginnerProtectionClientMutation(ctxUserId, payload, profile, now) {
+    var data = payload && typeof payload === "object" ? payload : {};
+    var forgedTarget = String(data["target_user_id"] || data["user_id"] || "").trim();
+    if (forgedTarget !== "" && forgedTarget !== String(ctxUserId || "").trim()) {
+        return {
+            ok: false,
+            code: "forbidden_target",
+            reason: "Cannot modify another player's protection.",
+        };
+    }
+    if (String(profile.user_id) !== String(ctxUserId)) {
+        return {
+            ok: false,
+            code: "forbidden_target",
+            reason: "Cannot modify another player's protection.",
+        };
+    }
+    if (data["clear"] === true) {
+        return {
+            ok: true,
+            code: "clear_own",
+            reason: "",
+            clear: true,
+            expires_at: 0,
+        };
+    }
+    // Any grant / extend / restore path is forbidden for ordinary clients.
+    if (typeof data["expires_at"] === "number" || typeof data["duration_sec"] === "number") {
+        return {
+            ok: false,
+            code: "beginner_grant_forbidden",
+            reason: "Beginner Protection cannot be granted or extended by the client.",
+        };
+    }
+    return {
+        ok: false,
+        code: "beginner_grant_forbidden",
+        reason: "Beginner Protection cannot be granted or extended by the client.",
+    };
+}
 function rpcValidateHostileAction(ctx, logger, nk, payload) {
     if (!ctx.userId)
         throw Err("Unauthenticated");
@@ -3987,11 +4062,13 @@ function rpcValidateHostileAction(ctx, logger, nk, payload) {
     if (!targetId) {
         return JSON.stringify({
             ok: false,
+            authority_verified: true,
             code: "invalid_target",
             reason: "Target castle could not be resolved.",
             error: "Target castle could not be resolved.",
         });
     }
+    // READ-ONLY: load profiles, evaluate, return. Never write protection / inventory / alliance.
     var attacker = ensureProfile(nk, logger, ctx.userId);
     var target;
     try {
@@ -4000,6 +4077,7 @@ function rpcValidateHostileAction(ctx, logger, nk, payload) {
     catch (_e) {
         return JSON.stringify({
             ok: false,
+            authority_verified: true,
             code: "stale_target",
             reason: "Target castle is no longer available.",
             error: "Target castle is no longer available.",
@@ -4028,8 +4106,11 @@ function rpcValidateHostileAction(ctx, logger, nk, payload) {
         target: snap,
     });
 }
-/** Activate Peace Shield on the caller's city (item consumption is client-side for beta). */
-function rpcActivatePeaceShield(ctx, logger, nk, payload) {
+/**
+ * Public voluntary clear of the caller's own Beginner Protection.
+ * Never increases expiry. Identity from ctx.userId only.
+ */
+function rpcClearOwnBeginnerProtection(ctx, logger, nk, payload) {
     if (!ctx.userId)
         throw Err("Unauthenticated");
     var data = {};
@@ -4039,99 +4120,95 @@ function rpcActivatePeaceShield(ctx, logger, nk, payload) {
     catch (_e) {
         throw Err("Invalid payload");
     }
-    var duration = typeof data["duration_sec"] === "number" && data["duration_sec"] > 0
-        ? Math.floor(data["duration_sec"])
-        : PEACE_SHIELD_DURATION_SEC;
+    // Force clear-only semantics regardless of client payload extras.
+    var clearPayload = { clear: true };
+    var forged = String(data["target_user_id"] || data["user_id"] || "").trim();
+    if (forged !== "" && forged !== ctx.userId) {
+        return JSON.stringify({
+            ok: false,
+            authority_verified: true,
+            code: "forbidden_target",
+            reason: "Cannot modify another player's protection.",
+            error: "Cannot modify another player's protection.",
+        });
+    }
     var profile = ensureProfile(nk, logger, ctx.userId);
     var now = nowUnix();
-    var current = typeof profile.peace_shield_expires_at === "number"
-        ? profile.peace_shield_expires_at
+    var plan = planBeginnerProtectionClientMutation(ctx.userId, clearPayload, profile, now);
+    if (!plan.ok || !plan.clear) {
+        return JSON.stringify({
+            ok: false,
+            authority_verified: true,
+            code: plan.code,
+            reason: plan.reason,
+            error: plan.reason,
+        });
+    }
+    var before = typeof profile.beginner_protection_expires_at === "number"
+        ? profile.beginner_protection_expires_at
         : 0;
-    var base = Math.max(now, current);
-    profile.peace_shield_expires_at = base + duration;
+    profile.beginner_protection_expires_at = 0;
+    profile.beginner_protection_cleared = true;
+    // Invariant: clear must never increase expiry.
+    if (profile.beginner_protection_expires_at > before) {
+        throw Err("Beginner clear integrity failure");
+    }
     profile.updated_at = now;
     writeProfile(nk, profile);
     upsertKingdomCastleEntry(nk, profile);
     return JSON.stringify({
         ok: true,
-        expires_at: profile.peace_shield_expires_at,
-        duration_sec: duration,
-        profile: publicProfile(profile),
-    });
-}
-function rpcActivateAntiScout(ctx, logger, nk, payload) {
-    if (!ctx.userId)
-        throw Err("Unauthenticated");
-    var data = {};
-    try {
-        data = payload ? JSON.parse(payload) : {};
-    }
-    catch (_e) {
-        throw Err("Invalid payload");
-    }
-    var duration = typeof data["duration_sec"] === "number" && data["duration_sec"] > 0
-        ? Math.floor(data["duration_sec"])
-        : ANTI_SCOUT_DURATION_SEC;
-    var profile = ensureProfile(nk, logger, ctx.userId);
-    var now = nowUnix();
-    var current = typeof profile.anti_scout_expires_at === "number"
-        ? profile.anti_scout_expires_at
-        : 0;
-    var base = Math.max(now, current);
-    profile.anti_scout_expires_at = base + duration;
-    profile.updated_at = now;
-    writeProfile(nk, profile);
-    upsertKingdomCastleEntry(nk, profile);
-    return JSON.stringify({
-        ok: true,
-        expires_at: profile.anti_scout_expires_at,
-        duration_sec: duration,
+        authority_verified: true,
+        code: "cleared",
+        beginner_protection_expires_at: 0,
+        beginner_protection_cleared: true,
         profile: publicProfile(profile),
     });
 }
 /**
- * Dev / future product hook for beginner protection.
- * Duration must be supplied — server refuses unexplained defaults.
+ * TRUSTED INTERNAL ONLY — never register as a public client RPC.
+ * Requires future server inventory spend for Peace Shield item.
  */
-function rpcSetBeginnerProtection(ctx, logger, nk, payload) {
-    if (!ctx.userId)
-        throw Err("Unauthenticated");
-    var data = {};
-    try {
-        data = payload ? JSON.parse(payload) : {};
-    }
-    catch (_e) {
-        throw Err("Invalid payload");
-    }
-    var profile = ensureProfile(nk, logger, ctx.userId);
-    var now = nowUnix();
-    if (data["clear"] === true) {
+function trustedApplyPeaceShield(profile, now, durationSec) {
+    var dur = durationSec > 0 ? Math.floor(durationSec) : PEACE_SHIELD_DURATION_SEC;
+    var current = typeof profile.peace_shield_expires_at === "number"
+        ? profile.peace_shield_expires_at
+        : 0;
+    var base = Math.max(now, current);
+    profile.peace_shield_expires_at = base + dur;
+    profile.updated_at = now;
+}
+/**
+ * TRUSTED INTERNAL ONLY — never register as a public client RPC.
+ */
+function trustedApplyAntiScout(profile, now, durationSec) {
+    var dur = durationSec > 0 ? Math.floor(durationSec) : ANTI_SCOUT_DURATION_SEC;
+    var current = typeof profile.anti_scout_expires_at === "number"
+        ? profile.anti_scout_expires_at
+        : 0;
+    var base = Math.max(now, current);
+    profile.anti_scout_expires_at = base + dur;
+    profile.updated_at = now;
+}
+/**
+ * TRUSTED INTERNAL ONLY — account lifecycle / admin tooling.
+ * Ordinary clients must use clear-own RPC only.
+ */
+function trustedSetBeginnerProtection(profile, now, opts) {
+    if (opts.clear === true) {
         profile.beginner_protection_expires_at = 0;
         profile.beginner_protection_cleared = true;
     }
-    else if (typeof data["expires_at"] === "number") {
-        profile.beginner_protection_expires_at = Math.floor(data["expires_at"]);
-        profile.beginner_protection_cleared = profile.beginner_protection_expires_at <= now;
+    else if (typeof opts.expires_at === "number") {
+        profile.beginner_protection_expires_at = Math.floor(opts.expires_at);
+        profile.beginner_protection_cleared =
+            profile.beginner_protection_expires_at <= now;
     }
-    else if (typeof data["duration_sec"] === "number" && data["duration_sec"] > 0) {
-        profile.beginner_protection_expires_at = now + Math.floor(data["duration_sec"]);
+    else if (typeof opts.duration_sec === "number" && opts.duration_sec > 0) {
+        profile.beginner_protection_expires_at = now + Math.floor(opts.duration_sec);
         profile.beginner_protection_cleared = false;
     }
-    else {
-        return JSON.stringify({
-            ok: false,
-            error: "beginner_protection requires expires_at or duration_sec (product value not locked).",
-        });
-    }
     profile.updated_at = now;
-    writeProfile(nk, profile);
-    upsertKingdomCastleEntry(nk, profile);
-    return JSON.stringify({
-        ok: true,
-        beginner_protection_expires_at: profile.beginner_protection_expires_at || 0,
-        beginner_protection_cleared: Boolean(profile.beginner_protection_cleared),
-        profile: publicProfile(profile),
-    });
 }
 /**
  * Crownspire Phase 6 — Direct Message RPC delivery.

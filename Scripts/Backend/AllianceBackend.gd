@@ -66,9 +66,7 @@ const RPC_TELEPORT_DEPLOY_END := "crownspire_teleport_deployment_end"
 const RPC_SET_TROOP_ACTIVITY := "crownspire_set_troop_activity"
 const RPC_CITY_TELEPORT_RELOCATE := "crownspire_city_teleport_relocate"
 const RPC_VALIDATE_HOSTILE_ACTION := "crownspire_validate_hostile_action"
-const RPC_ACTIVATE_PEACE_SHIELD := "crownspire_activate_peace_shield"
-const RPC_ACTIVATE_ANTI_SCOUT := "crownspire_activate_anti_scout"
-const RPC_SET_BEGINNER_PROTECTION := "crownspire_set_beginner_protection"
+const RPC_CLEAR_OWN_BEGINNER_PROTECTION := "crownspire_clear_own_beginner_protection"
 const CASTLE_MOVED_NOTIF_CODE: int = 5005
 const TELEPORT_ITEM_ID := "teleport_advanced_compass"
 
@@ -476,22 +474,43 @@ func validate_hostile_action(action: String, target_user_id: String) -> Dictiona
 	return result
 
 
-func activate_peace_shield(duration_sec: int = 0) -> Dictionary:
-	var payload: Dictionary = {}
-	if duration_sec > 0:
-		payload["duration_sec"] = duration_sec
-	return await _rpc(RPC_ACTIVATE_PEACE_SHIELD, payload)
+## Peace Shield / Anti-Scout server activation is DISABLED until server inventory
+## authority exists (only teleport currently has crownspire_teleport_inventory).
+func activate_peace_shield(_duration_sec: int = 0) -> Dictionary:
+	return {
+		"ok": false,
+		"authority_verified": true,
+		"code": "inventory_authority_required",
+		"reason": "Peace Shield requires server inventory authority (not yet available).",
+		"error": "Peace Shield requires server inventory authority (not yet available).",
+	}
 
 
-func activate_anti_scout(duration_sec: int = 0) -> Dictionary:
-	var payload: Dictionary = {}
-	if duration_sec > 0:
-		payload["duration_sec"] = duration_sec
-	return await _rpc(RPC_ACTIVATE_ANTI_SCOUT, payload)
+func activate_anti_scout(_duration_sec: int = 0) -> Dictionary:
+	return {
+		"ok": false,
+		"authority_verified": true,
+		"code": "inventory_authority_required",
+		"reason": "Anti-Scout requires server inventory authority (not yet available).",
+		"error": "Anti-Scout requires server inventory authority (not yet available).",
+	}
 
 
-func set_beginner_protection(payload: Dictionary) -> Dictionary:
-	return await _rpc(RPC_SET_BEGINNER_PROTECTION, payload)
+## Ordinary clients cannot grant/extend Beginner Protection.
+func set_beginner_protection(payload: Dictionary = {}) -> Dictionary:
+	if bool(payload.get("clear", false)):
+		return await clear_own_beginner_protection()
+	return {
+		"ok": false,
+		"authority_verified": true,
+		"code": "beginner_grant_forbidden",
+		"reason": "Beginner Protection cannot be granted or extended by the client.",
+		"error": "Beginner Protection cannot be granted or extended by the client.",
+	}
+
+
+func clear_own_beginner_protection() -> Dictionary:
+	return await _rpc(RPC_CLEAR_OWN_BEGINNER_PROTECTION, {})
 
 
 func get_teleport_balance() -> int:
