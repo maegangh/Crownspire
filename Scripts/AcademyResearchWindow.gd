@@ -4,6 +4,7 @@ extends Control
 # Fully ports the AcademyResearchScene.tsx React prototype into a high-fidelity Godot 4.6 scene.
 
 const RESEARCH_NODE_SCENE = preload("res://Scenes/ResearchNode.tscn")
+const MobileSafeArea := preload("res://Scripts/UI/MobileSafeArea.gd")
 
 # Node References
 @onready var dark_overlay: ColorRect = $DarkOverlay
@@ -207,6 +208,8 @@ func open_research() -> void:
 		focus_tutorial_research(rid)
 	else:
 		_mobile_show_home()
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.push_layer("overlay:AcademyResearch", request_back, UiLayerStack.KIND_SCREEN)
 
 
 ## FTUE: jump straight to the taught research so the player need not hunt the tree.
@@ -242,8 +245,8 @@ func _apply_portrait_window_layout() -> void:
 	var view: Vector2 = get_viewport_rect().size
 	if view.x < 1.0 or view.y < 1.0:
 		view = Vector2(720, 1280)
-	var top_safe: float = 96.0
-	var bottom_safe: float = 196.0
+	var top_safe: float = MobileSafeArea.max_top(self, 96.0)
+	var bottom_safe: float = MobileSafeArea.max_bottom(self, 196.0)
 	var side: float = 10.0
 	main_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
 	main_panel.anchor_left = 0.0
@@ -2184,7 +2187,17 @@ func _mobile_text(text: String, size: int, color: Color) -> Label:
 	return l
 
 
+func request_back() -> bool:
+	if _mobile_page != MobilePage.HOME:
+		_on_mobile_back_pressed()
+		return true
+	_on_close_pressed()
+	return false
+
+
 func _on_close_pressed() -> void:
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.remove_layer("overlay:AcademyResearch")
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if has_node("/root/GameState"):

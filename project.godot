@@ -58,6 +58,7 @@ TutorialState="*res://Scripts/TutorialState.gd"
 SpeedupService="*res://Scripts/SpeedupService.gd"
 EventState="*res://Scripts/EventState.gd"
 LocaleSettings="*res://Scripts/LocaleSettings.gd"
+UiLayerStack="*res://Scripts/UI/UiLayerStack.gd"
 
 [display]
 

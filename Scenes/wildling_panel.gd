@@ -141,6 +141,8 @@ func open_panel(
 	z_index = 999
 	position = Vector2(80, 160)
 	size = Vector2(440, 720)
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.push_layer("modal:WildlingPanel", close_panel, UiLayerStack.KIND_MODAL)
 	if _card_root:
 		_card_root.position = Vector2.ZERO
 		_card_root.size = Vector2(420, 680)
@@ -311,6 +313,8 @@ func close_panel() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	selected_wildling = null
 	_hide_error()
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.remove_layer("modal:WildlingPanel")
 
 
 func _species_display_name(species: String) -> String:
@@ -342,6 +346,7 @@ func _input(event: InputEvent) -> void:
 			rect = Rect2(_card_root.global_position, _card_root.size)
 		if not rect.has_point(get_global_mouse_position()):
 			close_panel()
+			get_viewport().set_input_as_handled()
 
 
 func _gui_input(event: InputEvent) -> void:

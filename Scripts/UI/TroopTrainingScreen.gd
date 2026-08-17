@@ -13,6 +13,7 @@ const COL_CARD := Color(0.14, 0.11, 0.17, 0.94)
 const COL_BORDER := Color(0.58, 0.46, 0.28, 0.90)
 const COL_LOCK := Color(0.45, 0.40, 0.38, 1.0)
 const COL_SEL := Color(0.32, 0.24, 0.12, 1.0)
+const MobileSafeArea := preload("res://Scripts/UI/MobileSafeArea.gd")
 
 const FALLBACK_TOP_INSET: float = 180.0
 const FALLBACK_BOTTOM_INSET: float = 190.0
@@ -349,6 +350,8 @@ func _measure_hud_insets() -> Vector2:
 		var bot_rect: Rect2 = bottom_bar.get_global_rect()
 		bottom_inset = maxf(FALLBACK_BOTTOM_INSET, view_h - (bot_rect.position.y - local_origin.y) + CONTENT_GAP)
 	top_inset = clampf(top_inset, 80.0, maxf(80.0, view_h - bottom_inset - 220.0))
+	top_inset = maxf(top_inset, MobileSafeArea.top(self) + 8.0)
+	bottom_inset = maxf(bottom_inset, MobileSafeArea.bottom(self) + 8.0)
 	return Vector2(top_inset, bottom_inset)
 
 

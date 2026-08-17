@@ -14,6 +14,7 @@ const COL_GOLD := Color(0.86, 0.70, 0.32, 1.0)
 const COL_PANEL := Color(0.09, 0.08, 0.13, 0.97)
 const COL_BORDER := Color(0.72, 0.58, 0.30, 0.95)
 const COL_WARN := Color(0.92, 0.55, 0.35, 1.0)
+const ModalOutsideDismiss := preload("res://Scripts/UI/ModalOutsideDismiss.gd")
 
 var _payload: Dictionary = {}
 var _is_self: bool = false
@@ -60,6 +61,8 @@ func open_for_castle(payload: Dictionary) -> void:
 		_dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	_set_action_buttons_enabled(false)
 	print("[PlayerCastlePopup] opened owner=%s self=%s" % [uid, str(_is_self)])
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.push_layer("modal:PlayerCastle", close_panel, UiLayerStack.KIND_MODAL)
 	call_deferred("_arm_popup_actions")
 
 
@@ -71,6 +74,8 @@ func close_panel() -> void:
 		_dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if _share_row != null:
 		_share_row.visible = false
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.remove_layer("modal:PlayerCastle")
 
 
 func are_actions_armed() -> bool:
@@ -90,6 +95,11 @@ func get_visible_action_labels() -> PackedStringArray:
 
 func get_status_text() -> String:
 	return str(_status.text) if _status != null else ""
+
+
+func _on_outside_dismiss() -> void:
+	if _actions_armed:
+		close_panel()
 
 
 func _arm_popup_actions() -> void:
@@ -124,14 +134,6 @@ func _build() -> void:
 	_dim.color = Color(0.04, 0.03, 0.06, 0.45)
 	_dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_dim.mouse_filter = Control.MOUSE_FILTER_STOP
-	_dim.gui_input.connect(func(e: InputEvent):
-		if not _actions_armed:
-			return
-		if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT:
-			close_panel()
-		elif e is InputEventScreenTouch and e.pressed:
-			close_panel()
-	)
 	add_child(_dim)
 
 	_window = PanelContainer.new()
@@ -153,6 +155,7 @@ func _build() -> void:
 	style.content_margin_bottom = 14
 	_window.add_theme_stylebox_override("panel", style)
 	add_child(_window)
+	ModalOutsideDismiss.bind(_dim, _window, _on_outside_dismiss)
 
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 10)

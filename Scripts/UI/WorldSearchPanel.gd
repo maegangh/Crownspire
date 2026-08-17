@@ -28,6 +28,8 @@ const COL_GOLD_BRIGHT := Color(1.0, 0.86, 0.42, 1.0)
 const COL_PANEL := Color(0.10, 0.08, 0.13, 0.96)
 const COL_SAPPHIRE := Color(0.22, 0.38, 0.62, 1.0)
 const COL_WARN := Color(0.95, 0.55, 0.45, 1.0)
+const ModalOutsideDismiss := preload("res://Scripts/UI/ModalOutsideDismiss.gd")
+const MobileSafeArea := preload("res://Scripts/UI/MobileSafeArea.gd")
 
 enum Category { WILDLINGS, FOOD, WOOD, STONE, IRON, WILDLING_LAIRS }
 
@@ -72,6 +74,8 @@ func open_panel() -> void:
 		_dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	if _window != null:
 		_window.mouse_filter = Control.MOUSE_FILTER_STOP
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.push_layer("modal:WorldSearch", close_panel, UiLayerStack.KIND_MODAL)
 
 
 func close_panel() -> void:
@@ -81,6 +85,8 @@ func close_panel() -> void:
 		_dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if _window != null:
 		_window.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.remove_layer("modal:WorldSearch")
 
 
 func _on_resized() -> void:
@@ -107,6 +113,7 @@ func _build_ui() -> void:
 	_window.mouse_filter = Control.MOUSE_FILTER_STOP
 	_window.add_theme_stylebox_override("panel", _panel_style(COL_PANEL, COL_GOLD, 16, 2))
 	add_child(_window)
+	ModalOutsideDismiss.bind(_dim, _window, close_panel)
 
 	var margin := MarginContainer.new()
 	margin.name = "Margins"
@@ -252,6 +259,8 @@ func _measure_hud_insets() -> Vector2:
 		var bot_rect: Rect2 = bottom_bar.get_global_rect()
 		var from_bottom: float = view_h - (bot_rect.position.y - local_origin.y)
 		bottom_inset = maxf(FALLBACK_BOTTOM_INSET, from_bottom + CONTENT_GAP)
+	top_inset = maxf(top_inset, MobileSafeArea.top(self) + 8.0)
+	bottom_inset = maxf(bottom_inset, MobileSafeArea.bottom(self) + 8.0)
 	return Vector2(top_inset, bottom_inset)
 
 

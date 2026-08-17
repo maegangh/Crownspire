@@ -13,6 +13,7 @@ const COL_SAPPHIRE_DEEP := Color(0.08, 0.14, 0.28, 0.96)
 const COL_MARBLE := Color(0.88, 0.90, 0.94, 0.12)
 const COL_WARN := Color(1.0, 0.58, 0.42, 1.0)
 const COL_OK := Color(0.55, 0.85, 0.62, 1.0)
+const MobileSafeArea := preload("res://Scripts/UI/MobileSafeArea.gd")
 
 var _root: Control
 var _royal_tickets_label: Label
@@ -45,6 +46,8 @@ func open_tavern() -> void:
 		_root.mouse_filter = Control.MOUSE_FILTER_STOP
 	_refresh()
 	_timer.start()
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.push_layer("overlay:TavernRecruit", request_back, UiLayerStack.KIND_SCREEN)
 
 
 func close_tavern() -> void:
@@ -57,6 +60,19 @@ func close_tavern() -> void:
 		_result_layer.visible = false
 	_timer.stop()
 	GameState.popup_open = false
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.remove_layer("overlay:TavernRecruit")
+
+
+func request_back() -> bool:
+	if _result_layer != null and _result_layer.visible:
+		_result_layer.visible = false
+		return true
+	if _preview_layer != null and _preview_layer.visible:
+		_preview_layer.visible = false
+		return true
+	close_tavern()
+	return false
 
 
 func _build_ui() -> void:
@@ -78,21 +94,26 @@ func _build_ui() -> void:
 	bg.mouse_filter = Control.MOUSE_FILTER_STOP
 	_root.add_child(bg)
 
+	var m: Dictionary = MobileSafeArea.margins(_root)
+	var top_pad: float = maxf(18.0, float(m.get("top", 0.0)) + 8.0)
+	var side_pad: float = maxf(20.0, float(m.get("left", 0.0)) + 8.0)
+	var right_pad: float = maxf(20.0, float(m.get("right", 0.0)) + 8.0)
+
 	var accent := ColorRect.new()
 	accent.color = COL_MARBLE
 	accent.set_anchors_preset(Control.PRESET_FULL_RECT)
-	accent.offset_left = 24
-	accent.offset_right = -24
-	accent.offset_top = 24
+	accent.offset_left = side_pad + 4.0
+	accent.offset_right = -(right_pad + 4.0)
+	accent.offset_top = top_pad + 6.0
 	accent.offset_bottom = -210
 	accent.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_root.add_child(accent)
 
 	var shell := MarginContainer.new()
 	shell.set_anchors_preset(Control.PRESET_FULL_RECT)
-	shell.offset_left = 20
-	shell.offset_right = -20
-	shell.offset_top = 18
+	shell.offset_left = side_pad
+	shell.offset_right = -right_pad
+	shell.offset_top = top_pad
 	shell.offset_bottom = -200
 	shell.add_theme_constant_override("margin_left", 8)
 	shell.add_theme_constant_override("margin_right", 8)

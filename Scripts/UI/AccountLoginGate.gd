@@ -77,6 +77,8 @@ func _ready() -> void:
 		identity.email_auth_completed.connect(_on_email_auth_completed)
 	if identity != null and identity.has_signal("account_state_changed"):
 		identity.account_state_changed.connect(_on_account_changed)
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.push_layer("blocking:AccountLoginGate", func() -> bool: return true, UiLayerStack.KIND_MODAL, true)
 
 	var cloud: Node = get_node_or_null("/root/AccountCloudSave")
 	if cloud != null and cloud.has_method("has_blocked_conflict") and bool(cloud.call("has_blocked_conflict")):
@@ -127,6 +129,11 @@ func _on_email_auth_completed(result: Dictionary) -> void:
 
 func _on_conflict_resolved(_result: Dictionary) -> void:
 	queue_free()
+
+
+func _exit_tree() -> void:
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.remove_layer("blocking:AccountLoginGate")
 
 
 static func ensure_on_tree(tree: SceneTree) -> void:

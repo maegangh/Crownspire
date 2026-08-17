@@ -17,6 +17,7 @@ const COL_PANEL := Color(0.10, 0.08, 0.13, 0.96)
 const COL_CARD := Color(0.14, 0.11, 0.17, 0.94)
 const COL_BORDER := Color(0.58, 0.46, 0.28, 0.90)
 const COL_UNREAD := Color(0.95, 0.72, 0.28, 1.0)
+const MobileSafeArea := preload("res://Scripts/UI/MobileSafeArea.gd")
 
 ## Fallbacks if HUD nodes are missing (720x1280 portrait).
 ## Top bar global bottom is ~164px; keep clear gap so header/X are never under chrome z=100.
@@ -92,6 +93,13 @@ func on_close() -> void:
 	_set_tree_mouse_ignore(self, true)
 
 
+func request_back() -> bool:
+	if _detail_id != "":
+		_on_detail_back()
+		return true
+	return false
+
+
 func _on_resized() -> void:
 	if visible:
 		_apply_safe_area()
@@ -164,6 +172,8 @@ func _measure_hud_insets() -> Vector2:
 	# Keep a usable content band even on odd viewports.
 	var max_top: float = maxf(80.0, view_h - bottom_inset - 220.0)
 	top_inset = clampf(top_inset, 80.0, max_top)
+	top_inset = maxf(top_inset, MobileSafeArea.top(self) + 8.0)
+	bottom_inset = maxf(bottom_inset, MobileSafeArea.bottom(self) + 8.0)
 	return Vector2(top_inset, bottom_inset)
 
 

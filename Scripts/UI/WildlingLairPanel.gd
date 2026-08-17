@@ -18,6 +18,7 @@ const COL_PANEL := Color(0.96, 0.95, 0.92, 0.98)
 const COL_BORDER := Color(0.78, 0.62, 0.22, 0.95)
 const COL_WARN := Color(0.72, 0.28, 0.22, 1.0)
 const COL_BTN := Color(0.22, 0.42, 0.72, 1.0)
+const ModalOutsideDismiss := preload("res://Scripts/UI/ModalOutsideDismiss.gd")
 
 var _payload: Dictionary = {}
 var _lair_node: Node2D = null
@@ -65,6 +66,8 @@ func open_for_lair(payload: Dictionary, lair_node: Node2D = null) -> void:
 		_dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	if _window != null:
 		_window.mouse_filter = Control.MOUSE_FILTER_STOP
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.push_layer("modal:WildlingLair", close_panel, UiLayerStack.KIND_MODAL)
 
 
 func close_panel() -> void:
@@ -76,6 +79,8 @@ func close_panel() -> void:
 		_dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if _window != null:
 		_window.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.remove_layer("modal:WildlingLair")
 
 
 func _build_ui() -> void:
@@ -89,7 +94,6 @@ func _build_ui() -> void:
 	_dim.color = Color(0.08, 0.08, 0.12, 0.55)
 	_dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_dim.mouse_filter = Control.MOUSE_FILTER_STOP
-	_dim.gui_input.connect(_on_dim_gui_input)
 	add_child(_dim)
 
 	_window = PanelContainer.new()
@@ -97,6 +101,7 @@ func _build_ui() -> void:
 	_window.mouse_filter = Control.MOUSE_FILTER_STOP
 	_window.add_theme_stylebox_override("panel", _panel_style(COL_PANEL, COL_BORDER, 14, 2))
 	add_child(_window)
+	ModalOutsideDismiss.bind(_dim, _window, close_panel)
 
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 16)
@@ -378,13 +383,6 @@ func _find_march_setup() -> Node:
 		if via_hud != null:
 			return via_hud
 	return get_tree().root.find_child("MarchSetupScreen", true, false)
-
-
-func _on_dim_gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		close_panel()
-	elif event is InputEventScreenTouch and event.pressed:
-		close_panel()
 
 
 func _layout_window() -> void:

@@ -210,6 +210,7 @@ func open_screen(screen_name: String) -> void:
 			screen.on_open()
 		_raise_screen_root(true)
 		_notify_secondary_hud(false)
+		_register_hud_screen_layer()
 		return
 
 	close_current_screen()
@@ -226,9 +227,27 @@ func open_screen(screen_name: String) -> void:
 		screen.on_open()
 	_raise_screen_root(true)
 	_notify_secondary_hud(false)
+	_register_hud_screen_layer()
+
+
+func request_current_screen_back() -> bool:
+	if _current_screen != null and _current_screen.has_method("request_back"):
+		var handled: Variant = _current_screen.call("request_back")
+		if typeof(handled) == TYPE_BOOL and bool(handled):
+			return true
+	close_current_screen()
+	return false
+
+
+func _register_hud_screen_layer() -> void:
+	if not has_node("/root/UiLayerStack"):
+		return
+	UiLayerStack.push_layer("hud_screen", request_current_screen_back, UiLayerStack.KIND_SCREEN)
 
 
 func close_current_screen() -> void:
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.remove_layer("hud_screen")
 	if _current_screen != null:
 		_set_screen_active(_current_screen, false)
 		_current_screen = null
@@ -251,6 +270,8 @@ func notify_overlay_opened(overlay_name: String) -> void:
 
 
 func notify_overlay_closed() -> void:
+	if has_node("/root/UiLayerStack") and _overlay_name != "":
+		UiLayerStack.remove_layer("overlay:%s" % _overlay_name)
 	_overlay_name = ""
 	if _current_screen == null:
 		_raise_screen_root(false)

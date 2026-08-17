@@ -280,6 +280,13 @@ func _hide_reward_popup() -> void:
 	reward_popup.visible = false
 
 
+func request_back() -> bool:
+	if reward_popup != null and reward_popup.visible:
+		_hide_reward_popup()
+		return true
+	return false
+
+
 func _close() -> void:
 	var manager: Node = get_node_or_null("../../UIManager")
 

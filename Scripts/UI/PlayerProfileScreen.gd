@@ -5,6 +5,7 @@ extends Control
 ## Mobile layout: Profile | Stats | Settings tabs (do not cram everything onto one page).
 
 const PlayerAvatarCatalog = preload("res://Scripts/UI/PlayerAvatarCatalog.gd")
+const MobileSafeArea := preload("res://Scripts/UI/MobileSafeArea.gd")
 
 const COL_INK := Color(0.95, 0.92, 0.86, 1.0)
 const COL_MUTED := Color(0.72, 0.68, 0.62, 1.0)
@@ -32,6 +33,8 @@ const TOUCH_H_SM: int = 48
 const SLOT_W: int = 108
 const SLOT_H: int = 84
 const HERO_MIN_H: int = 420
+const HEADER_SIDE_PAD: float = 12.0
+const HEADER_MIN_TOP: float = 10.0
 
 const TAB_PROFILE: String = "profile"
 const TAB_STATS: String = "stats"
@@ -108,6 +111,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_build()
+	resized.connect(_on_resized)
 	if has_node("/root/LocaleSettings") and not LocaleSettings.locale_changed.is_connected(_on_locale_changed):
 		LocaleSettings.locale_changed.connect(_on_locale_changed)
 
@@ -129,9 +133,21 @@ func open_user(user_id: String, world_seed: Dictionary = {}) -> void:
 
 
 func on_close() -> void:
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.remove_layer("overlay:PlayerProfileScreen")
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	closed.emit()
+
+
+func request_back() -> bool:
+	on_close()
+	return false
+
+
+func _on_resized() -> void:
+	if _built:
+		_apply_safe_area()
 
 
 func _open_async() -> void:
@@ -147,6 +163,9 @@ func _open_async() -> void:
 			await fb.refresh_friends()
 	_rebuild_content()
 	_show_tab(TAB_PROFILE)
+	_apply_safe_area()
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.push_layer("overlay:PlayerProfileScreen", request_back, UiLayerStack.KIND_SCREEN)
 
 
 func _panel_style(bg: Color = COL_PANEL) -> StyleBoxFlat:
@@ -211,21 +230,24 @@ func _build() -> void:
 	add_child(wash)
 
 	_root = VBoxContainer.new()
+	_root.name = "ProfileRoot"
 	_root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_root.offset_left = 12
-	_root.offset_right = -12
-	_root.offset_top = 10
-	_root.offset_bottom = -12
+	_root.offset_left = HEADER_SIDE_PAD
+	_root.offset_right = -HEADER_SIDE_PAD
+	_root.offset_top = HEADER_MIN_TOP
+	_root.offset_bottom = -HEADER_SIDE_PAD
 	_root.add_theme_constant_override("separation", 10)
 	_root.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_root)
 
 	# Header
 	var header := HBoxContainer.new()
+	header.name = "ProfileHeader"
 	header.custom_minimum_size = Vector2(0, TOUCH_H)
 	header.add_theme_constant_override("separation", 8)
 	_root.add_child(header)
 	_header_back = Button.new()
+	_header_back.name = "ProfileBackButton"
 	_header_back.text = "← %s" % tr("UI_BACK")
 	_header_back.custom_minimum_size = Vector2(120, TOUCH_H)
 	_style_button(_header_back, FONT_NAV, TOUCH_H)
@@ -277,6 +299,17 @@ func _build() -> void:
 	_build_stats_page_shell()
 	_build_settings_page_shell()
 	_show_tab(TAB_PROFILE)
+	_apply_safe_area()
+
+
+func _apply_safe_area() -> void:
+	if _root == null:
+		return
+	var m: Dictionary = MobileSafeArea.margins(self)
+	_root.offset_left = maxf(HEADER_SIDE_PAD, float(m.get("left", 0.0)) + 8.0)
+	_root.offset_top = maxf(HEADER_MIN_TOP, float(m.get("top", 0.0)) + 8.0)
+	_root.offset_right = -maxf(HEADER_SIDE_PAD, float(m.get("right", 0.0)) + 8.0)
+	_root.offset_bottom = -maxf(HEADER_SIDE_PAD, float(m.get("bottom", 0.0)) + 8.0)
 
 
 func _make_page_vbox() -> VBoxContainer:
@@ -914,11 +947,23 @@ func _on_report_pressed() -> void:
 	confirm.cancel_button_text = tr("UI_NO")
 	add_child(confirm)
 	confirm.confirmed.connect(func():
+		if has_node("/root/UiLayerStack"):
+			UiLayerStack.remove_layer("modal:ProfileReportConfirm")
 		confirm.queue_free()
 		_show_report_reasons(uid)
 	)
-	confirm.canceled.connect(func(): confirm.queue_free())
+	confirm.canceled.connect(func():
+		if has_node("/root/UiLayerStack"):
+			UiLayerStack.remove_layer("modal:ProfileReportConfirm")
+		confirm.queue_free()
+	)
 	confirm.popup_centered()
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.push_layer("modal:ProfileReportConfirm", func() -> void:
+			if is_instance_valid(confirm):
+				confirm.hide()
+				confirm.queue_free()
+		, UiLayerStack.KIND_MODAL)
 
 
 func _show_report_reasons(uid: String) -> void:

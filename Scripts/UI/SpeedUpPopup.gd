@@ -7,6 +7,7 @@ const COL_PANEL := Color(0.08, 0.11, 0.18, 0.97)
 const COL_GOLD := Color(0.85, 0.72, 0.38, 1.0)
 const COL_INK := Color(0.93, 0.94, 0.96, 1.0)
 const COL_MUTED := Color(0.72, 0.74, 0.78, 1.0)
+const ModalOutsideDismiss := preload("res://Scripts/UI/ModalOutsideDismiss.gd")
 
 var _category: String = ""
 var _target_id: String = ""
@@ -47,9 +48,13 @@ func open_for(timer_category: String, target_id: String) -> void:
 		_debug_btn.visible = OS.is_debug_build()
 	_refresh()
 	move_to_front()
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.push_layer("modal:SpeedUp", close, UiLayerStack.KIND_MODAL)
 
 
 func close() -> void:
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.remove_layer("modal:SpeedUp")
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if _dim != null:
@@ -210,6 +215,7 @@ func _build_ui() -> void:
 	_panel.add_theme_stylebox_override("panel", psb)
 	_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_panel)
+	ModalOutsideDismiss.bind(_dim, _panel, close)
 
 	var root := VBoxContainer.new()
 	root.add_theme_constant_override("separation", 10)

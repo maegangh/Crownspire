@@ -12,6 +12,7 @@ signal action_chosen(action_id: String)
 signal closed
 
 const NODE_NAME := "BuildingActionPopup"
+const ModalOutsideDismiss := preload("res://Scripts/UI/ModalOutsideDismiss.gd")
 
 var _title_label: Label
 var _actions_col: VBoxContainer
@@ -36,6 +37,10 @@ static func present(
 	popup.name = NODE_NAME
 	parent.add_child(popup)
 	popup.call("setup", title, actions)
+	var tree: SceneTree = parent.get_tree()
+	if tree != null and tree.root.get_node_or_null("UiLayerStack") != null:
+		popup.set_meta("ui_layer_id", "modal:BuildingActionPopup")
+		UiLayerStack.push_layer("modal:BuildingActionPopup", popup.dismiss, UiLayerStack.KIND_MODAL)
 	if on_action.is_valid():
 		popup.connect("action_chosen", on_action)
 	if on_closed.is_valid():
@@ -90,7 +95,7 @@ func _ensure_ui() -> void:
 	_dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_dim.color = Color(0.02, 0.03, 0.05, 0.55)
 	_dim.mouse_filter = Control.MOUSE_FILTER_STOP
-	_dim.gui_input.connect(_on_dim_gui_input)
+	ModalOutsideDismiss.bind(_dim, _panel, dismiss)
 	add_child(_dim)
 
 	var center := CenterContainer.new()
@@ -161,16 +166,10 @@ func _btn_style(bg: Color) -> StyleBoxFlat:
 	return s
 
 
-func _on_dim_gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		dismiss()
-	elif event is InputEventScreenTouch and event.pressed:
-		dismiss()
-
-
 func _choose(action_id: String) -> void:
 	# Clear chooser ownership first. Destination screens/windows re-assert popup_open if needed.
 	# Leaving this true after Defense/Train/etc. permanently blocked City building taps.
+	_unregister_layer()
 	if has_node("/root/GameState"):
 		GameState.popup_open = false
 	action_chosen.emit(action_id)
@@ -178,7 +177,13 @@ func _choose(action_id: String) -> void:
 
 
 func dismiss() -> void:
+	_unregister_layer()
 	if has_node("/root/GameState"):
 		GameState.popup_open = false
 	closed.emit()
 	queue_free()
+
+
+func _unregister_layer() -> void:
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.remove_layer("modal:BuildingActionPopup")

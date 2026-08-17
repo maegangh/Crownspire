@@ -3,6 +3,8 @@ extends Control
 ## Presentation-only FTUE overlay. Reads TutorialState; never mutates gameplay.
 
 const Resolver = preload("res://Scripts/UI/TutorialTargetResolver.gd")
+const MobileSafeArea := preload("res://Scripts/UI/MobileSafeArea.gd")
+const ModalOutsideDismiss := preload("res://Scripts/UI/ModalOutsideDismiss.gd")
 const LOG_PREFIX := "[TUTORIAL UI]"
 
 const COLOR_DIM := Color(0.04, 0.08, 0.16, 0.72)
@@ -319,6 +321,10 @@ func _show_step(step_id: String) -> void:
 	_ensure_overlay_on_top()
 	_skip_layer.visible = false
 	_skip_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_apply_skip_safe_area()
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.remove_layer("modal:TutorialSkip")
+		UiLayerStack.push_layer("blocking:Tutorial", func() -> bool: return true, UiLayerStack.KIND_MODAL, true)
 	_showing_completion = step_id == "ftue_complete"
 	_pending_step = step.duplicate(true)
 	_awaiting_dynamic_target = false
@@ -734,10 +740,14 @@ func _on_skip_pressed() -> void:
 	_skip_layer.visible = true
 	_raise_interactive_chrome()
 	_skip_layer.move_to_front()
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.push_layer("modal:TutorialSkip", _on_skip_cancel, UiLayerStack.KIND_MODAL)
 
 
 func _on_skip_cancel() -> void:
 	_skip_layer.visible = false
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.remove_layer("modal:TutorialSkip")
 
 
 func _on_skip_confirm() -> void:
@@ -759,6 +769,9 @@ func _close_overlay() -> void:
 	_pointer.visible = false
 	_skip_layer.visible = false
 	set_process(false)
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.remove_layer("modal:TutorialSkip")
+		UiLayerStack.remove_layer("blocking:Tutorial")
 	_log("Overlay closed")
 
 
@@ -1194,12 +1207,11 @@ func _build_ui() -> void:
 	_skip_btn.add_theme_stylebox_override("hover", skip_sb)
 	_skip_btn.add_theme_stylebox_override("pressed", skip_sb)
 	_skip_btn.pressed.connect(_on_skip_pressed)
-	# Floating skip near top-right, above HUD chrome.
+	# Floating skip near top-right, above HUD chrome, inside the display safe area.
 	_skip_btn.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	_skip_btn.offset_left = -120.0
-	_skip_btn.offset_top = 56.0
 	_skip_btn.offset_right = -16.0
-	_skip_btn.offset_bottom = 96.0
+	_apply_skip_safe_area()
 	add_child(_skip_btn)
 
 	_build_skip_confirm()
@@ -1305,6 +1317,7 @@ func _build_skip_confirm() -> void:
 	sb.content_margin_bottom = 18
 	box.add_theme_stylebox_override("panel", sb)
 	_skip_layer.add_child(box)
+	ModalOutsideDismiss.bind(dim, box, _on_skip_cancel)
 
 	var v := VBoxContainer.new()
 	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1345,6 +1358,14 @@ func _build_skip_confirm() -> void:
 	_skip_confirm.custom_minimum_size = Vector2(120, 44)
 	_skip_confirm.pressed.connect(_on_skip_confirm)
 	row.add_child(_skip_confirm)
+
+
+func _apply_skip_safe_area() -> void:
+	if _skip_btn == null:
+		return
+	var top_pad: float = MobileSafeArea.max_top(self, 56.0)
+	_skip_btn.offset_top = top_pad
+	_skip_btn.offset_bottom = top_pad + 40.0
 
 
 func _log(msg: String) -> void:

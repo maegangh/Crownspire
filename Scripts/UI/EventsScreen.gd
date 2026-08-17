@@ -157,6 +157,13 @@ func _on_back() -> void:
 		on_close()
 
 
+func request_back() -> bool:
+	if _mode == "detail":
+		_on_back()
+		return true
+	return false
+
+
 func _rebuild_content() -> void:
 	while _content.get_child_count() > 0:
 		var c: Node = _content.get_child(0)

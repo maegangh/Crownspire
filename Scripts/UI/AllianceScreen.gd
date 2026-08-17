@@ -202,6 +202,13 @@ func on_close() -> void:
 	_selected_research_id = ""
 
 
+func request_back() -> bool:
+	if _back_button != null and _back_button.visible:
+		_on_back_pressed()
+		return true
+	return false
+
+
 func _on_local_alliance_changed() -> void:
 	## Ignore local membership churn when backend is authority.
 	if _use_backend():

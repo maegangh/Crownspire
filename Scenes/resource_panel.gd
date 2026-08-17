@@ -16,6 +16,7 @@ const TYPE_LABEL_BY_ID := {
 	"stone": "Stone",
 	"iron": "Iron",
 }
+const ModalOutsideDismiss := preload("res://Scripts/UI/ModalOutsideDismiss.gd")
 
 var selected_resource: Node2D = null
 var selected_type: String = "food"
@@ -44,7 +45,7 @@ func _ready() -> void:
 
 	if _dim:
 		_dim.mouse_filter = Control.MOUSE_FILTER_STOP
-		_dim.gui_input.connect(_on_dim_gui_input)
+		ModalOutsideDismiss.bind(_dim, _card_root, close_panel)
 	if _gather_button:
 		_gather_button.pressed.connect(_on_gather_pressed)
 	if _close_button:
@@ -177,6 +178,8 @@ func open_panel(
 
 	_hide_error()
 	_update_gather_button_state()
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.push_layer("modal:ResourcePanel", close_panel, UiLayerStack.KIND_MODAL)
 
 
 func reopen_last() -> void:
@@ -235,13 +238,8 @@ func close_panel() -> void:
 	if _dim:
 		_dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_hide_error()
-
-
-func _on_dim_gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		close_panel()
-	elif event is InputEventScreenTouch and event.pressed:
-		close_panel()
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.remove_layer("modal:ResourcePanel")
 
 
 func _on_close_pressed() -> void:

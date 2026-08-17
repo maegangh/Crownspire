@@ -20,6 +20,7 @@ const COL_BORDER := Color(0.62, 0.50, 0.30, 0.95)
 const COL_AVATAR := Color(0.28, 0.22, 0.34, 1.0)
 const COL_FRAME := Color(0.82, 0.66, 0.28, 1.0)
 const COL_INPUT := Color(0.07, 0.06, 0.09, 0.98)
+const ModalOutsideDismiss := preload("res://Scripts/UI/ModalOutsideDismiss.gd")
 
 const FALLBACK_TOP_INSET: float = 120.0
 const FALLBACK_BOTTOM_INSET: float = 188.0
@@ -171,6 +172,16 @@ func on_close() -> void:
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_apply_window_position()
+
+
+func request_back() -> bool:
+	if _emoji_overlay != null and _emoji_overlay.visible:
+		_close_emoji()
+		return true
+	if _action_overlay != null and _action_overlay.visible:
+		_close_actions()
+		return true
+	return false
 
 
 func _bind_chat_signals() -> void:
@@ -325,12 +336,6 @@ func _build_ui() -> void:
 	_dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_dim.offset_bottom = -FALLBACK_BOTTOM_INSET
 	_dim.mouse_filter = Control.MOUSE_FILTER_STOP
-	_dim.gui_input.connect(func(e: InputEvent):
-		if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT:
-			_on_close_pressed()
-		elif e is InputEventScreenTouch and e.pressed:
-			_on_close_pressed()
-	)
 	add_child(_dim)
 
 	_window = PanelContainer.new()
@@ -347,6 +352,7 @@ func _build_ui() -> void:
 	style.content_margin_bottom = 10
 	_window.add_theme_stylebox_override("panel", style)
 	add_child(_window)
+	ModalOutsideDismiss.bind(_dim, _window, _on_close_pressed)
 
 	var root := VBoxContainer.new()
 	root.add_theme_constant_override("separation", 8)
@@ -697,12 +703,6 @@ func _build_action_overlay() -> void:
 	var action_dim := ColorRect.new()
 	action_dim.color = Color(0, 0, 0, 0.5)
 	action_dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	action_dim.gui_input.connect(func(e):
-		if e is InputEventMouseButton and e.pressed:
-			_close_actions()
-		elif e is InputEventScreenTouch and e.pressed:
-			_close_actions()
-	)
 	_action_overlay.add_child(action_dim)
 	var action_panel := PanelContainer.new()
 	action_panel.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
@@ -721,6 +721,7 @@ func _build_action_overlay() -> void:
 	ap_style.content_margin_bottom = 14
 	action_panel.add_theme_stylebox_override("panel", ap_style)
 	_action_overlay.add_child(action_panel)
+	ModalOutsideDismiss.bind(action_dim, action_panel, _close_actions)
 	_action_box = VBoxContainer.new()
 	_action_box.add_theme_constant_override("separation", 8)
 	action_panel.add_child(_action_box)
@@ -735,12 +736,6 @@ func _build_emoji_overlay() -> void:
 	var dim := ColorRect.new()
 	dim.color = Color(0, 0, 0, 0.4)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	dim.gui_input.connect(func(e):
-		if e is InputEventMouseButton and e.pressed:
-			_close_emoji()
-		elif e is InputEventScreenTouch and e.pressed:
-			_close_emoji()
-	)
 	_emoji_overlay.add_child(dim)
 	_emoji_panel = PanelContainer.new()
 	_emoji_panel.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -755,6 +750,7 @@ func _build_emoji_overlay() -> void:
 	st.content_margin_bottom = 10
 	_emoji_panel.add_theme_stylebox_override("panel", st)
 	_emoji_overlay.add_child(_emoji_panel)
+	ModalOutsideDismiss.bind(dim, _emoji_panel, _close_emoji)
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 8)
 	_emoji_panel.add_child(col)

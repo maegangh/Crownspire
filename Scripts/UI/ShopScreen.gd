@@ -245,6 +245,8 @@ func _on_buy_live_product(product_id: String) -> void:
 		_set_status("That product is not in the live store.")
 		return
 	_purchase_busy = true
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.set_layer_blocking("hud_screen", true)
 	_set_buy_enabled(false)
 	_set_status("Starting Google Play purchase…")
 	var result: Dictionary = Commerce.purchase_android_product(product_id)
@@ -308,6 +310,8 @@ func _on_billing_status(status: String, _detail: Dictionary) -> void:
 
 func _finish_busy(message: String) -> void:
 	_purchase_busy = false
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.set_layer_blocking("hud_screen", false)
 	_set_buy_enabled(true)
 	_set_status(message)
 

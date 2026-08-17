@@ -2,6 +2,7 @@ extends Control
 
 const BONUS_ROW_SCENE = preload("res://UI/building_upgrade/BonusRow.tscn")
 const REQUIREMENT_ROW_SCENE = preload("res://UI/building_upgrade/RequirementRow.tscn")
+const ModalOutsideDismiss := preload("res://Scripts/UI/ModalOutsideDismiss.gd")
 
 @export var building_id: String = "castle"
 
@@ -56,6 +57,8 @@ func _ready() -> void:
 
 	if close_button:
 		close_button.pressed.connect(_on_close_button_pressed)
+	if background_dim:
+		ModalOutsideDismiss.bind(background_dim, popup_container, request_close)
 	if upgrade_button:
 		upgrade_button.pressed.connect(_on_upgrade_button_pressed)
 	if finish_button:
@@ -125,6 +128,8 @@ func open_for_building(building_reference: Variant) -> void:
 
 	visible = true
 	move_to_front()
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.push_layer("modal:BuildingUpgrade", request_close, UiLayerStack.KIND_MODAL)
 
 func _normalize_building_id(raw_id: String) -> String:
 	var normalized := raw_id.strip_edges().to_lower().replace(" ", "_")
@@ -664,7 +669,17 @@ func _on_obtain_pressed(resource_id: String) -> void:
 	load_building_data()
 
 
+func request_close() -> bool:
+	if celebration_panel != null and celebration_panel.visible:
+		_on_celebration_close_pressed()
+		return true
+	_on_close_button_pressed()
+	return false
+
+
 func _on_close_button_pressed() -> void:
+	if has_node("/root/UiLayerStack"):
+		UiLayerStack.remove_layer("modal:BuildingUpgrade")
 	GameState.popup_open = false
 	hide()
 

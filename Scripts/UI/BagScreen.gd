@@ -92,6 +92,13 @@ func hide_bag() -> void:
 		on_close()
 
 
+func request_back() -> bool:
+	if item_popup != null and item_popup.visible:
+		_clear_details()
+		return true
+	return false
+
+
 func show_category(category: String) -> void:
 	current_filter = category
 	selected_item_id = ""
@@ -394,3 +401,4 @@ func _input(event: InputEvent) -> void:
 		if not popup_rect.has_point(event.global_position):
 			# Don't steal clicks meant for tabs/close/nav — only dismiss detail popup.
 			_clear_details()
+			get_viewport().set_input_as_handled()
