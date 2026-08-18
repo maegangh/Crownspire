@@ -73,6 +73,17 @@ func _run() -> void:
 	shop.call("on_open")
 	await process_frame
 
+	_assert(shop.visible, "shop opens in release storefront")
+	_assert(str(shop.call("get_active_tab")) == "diamonds", "Diamonds tab must be active on open")
+	_assert(shop.find_child("ShopTab_diamonds", true, false) != null, "Diamonds tab missing")
+	_assert(shop.find_child("ShopTab_deals", true, false) != null, "Deals tab missing")
+	_assert(shop.find_child("ShopTab_growth", true, false) != null, "Growth tab missing")
+	_assert(shop.find_child("ShopTab_passes", true, false) != null, "Passes tab missing")
+	_assert(shop.find_child("ShopTab_offers", true, false) != null, "Special Offers tab missing")
+	_assert(shop.find_child("DiamondGrid", true, false) != null, "future Diamond grid missing")
+	_assert(shop.find_child("ShopBackButton", true, false) != null, "visible Back missing")
+	_assert(shop.find_child("ShopCloseButton", true, false) != null, "visible Close missing")
+
 	var ids: PackedStringArray = shop.call("get_release_product_ids")
 	_assert(ids.has("com.crownspire.diamonds_500"), "shop release ids include diamonds_500")
 	_assert(ids.size() == 1, "shop release ids must be diamonds_500 only, got %s" % str(ids.size()))
@@ -85,9 +96,82 @@ func _run() -> void:
 	_assert(joined.find("Shop coming soon") < 0, "release shop still says coming soon")
 	_assert(joined.find("500 Diamonds") >= 0, "release shop must show 500 Diamonds")
 	_assert(joined.find("$4.99") < 0, "must not hardcode $4.99")
-	_assert(joined.find("Price shown at Google Play checkout") >= 0, "fallback price copy missing")
+	_assert(joined.find("Price shown at Google Play checkout") < 0, "old checkout fallback must not remain")
+	var price_label: Label = shop.find_child("PriceLabel_com_crownspire_diamonds_500", true, false)
+	_assert(price_label != null, "price label missing")
+	var pre_price: String = str(price_label.text) if price_label != null else ""
+	_assert(
+		pre_price.find("Loading price") >= 0 or pre_price.find("Price unavailable") >= 0 or pre_price.find("Loading store") >= 0,
+		"pre-details price should be loading/unavailable, got: %s" % pre_price
+	)
 	_assert(shop.find_child("BuyButton_com_crownspire_builder_queue_perm", true, false) == null, "release must not show builder buy")
 	_assert(shop.find_child("ReleaseProduct_com_crownspire_test_diamonds_internal_do_not_ship", true, false) == null, "TEST SKU row must not exist")
+	_assert(int(shop.call("count_live_buy_buttons_in_active_page")) == 1, "Diamonds tab should have one live Buy")
+	var beta_panel: Control = shop.find_child("BetaVoucherPanel", true, false)
+	_assert(beta_panel != null, "beta voucher panel node exists")
+	_assert(beta_panel != null and not beta_panel.visible, "beta voucher panel hidden for production users")
+	_assert(shop.find_child("VoucherBuyButton_com_crownspire_diamonds_500", true, false) != null, "voucher buy control exists")
+
+	print("[SHOP] beta voucher panel appears only when server enables it")
+	Commerce.apply_commerce_wallet_payload({
+		"diamonds": 0,
+		"beta_vouchers": 5,
+		"beta_voucher_available": true,
+		"beta_voucher_offers": [{
+			"product_id": "com.crownspire.diamonds_500",
+			"iap_product_id": "com.crownspire.diamonds_500",
+			"voucher_cost": 5,
+		}],
+		"entitlements": [],
+	})
+	shop.call("on_open")
+	await process_frame
+	var beta_shown: Control = shop.find_child("BetaVoucherPanel", true, false)
+	_assert(beta_shown != null and beta_shown.visible, "server-approved beta mode shows voucher panel")
+	var bal: Label = shop.find_child("BetaVoucherBalance", true, false)
+	_assert(bal != null and str(bal.text).find("5") >= 0, "voucher balance displayed from server")
+	_assert(shop.find_child("BetaVoucherRedeemInput", true, false) != null, "redeem field present")
+	_assert(shop.find_child("BetaVoucherRedeemButton", true, false) != null, "redeem button present")
+	Commerce.apply_commerce_wallet_payload({"diamonds": 0, "beta_voucher_available": false, "beta_vouchers": 0, "entitlements": []})
+	shop.call("on_open")
+	await process_frame
+	var beta_hidden: Control = shop.find_child("BetaVoucherPanel", true, false)
+	_assert(beta_hidden != null and not beta_hidden.visible, "L: authoritative unavailable hides voucher panel")
+	_assert(not Commerce.is_beta_voucher_available(), "L: client snapshot stays unauthorized")
+	_assert(not bool(Commerce.try_grant_beta_voucher_testing().get("ok", true)), "L: UI/client cannot self-enable")
+
+	print("[SHOP] tabs switch; coming-soon pages have no live Buy")
+	var coming_tabs: PackedStringArray = PackedStringArray(["deals", "growth", "passes", "offers"])
+	for tab_id in coming_tabs:
+		shop.call("select_tab", tab_id)
+		await process_frame
+		_assert(str(shop.call("get_active_tab")) == tab_id, "tab did not switch to %s" % tab_id)
+		_assert(int(shop.call("count_live_buy_buttons_in_active_page")) == 0, "%s tab must not expose live Buy" % tab_id)
+		_assert(shop.find_child("ComingSoonLabel_%s" % tab_id, true, false) != null, "%s coming soon copy missing" % tab_id)
+	shop.call("select_tab", "diamonds")
+	await process_frame
+	_assert(str(shop.call("get_active_tab")) == "diamonds", "return to Diamonds failed")
+	_assert(int(shop.call("count_live_buy_buttons_in_active_page")) == 1, "Diamonds Buy missing after tab return")
+
+	print("[SHOP] Google formatted price replaces loading/fallback")
+	shop.call("_on_billing_status", "PRODUCT_DETAILS", {
+		"response_code": 0,
+		"product_details": [{
+			"product_id": "com.crownspire.diamonds_500",
+			"title": "500 Diamonds",
+			"one_time_purchase_offer_details": {"formatted_price": "CA$6.99"},
+		}],
+	})
+	await process_frame
+	var priced_label: Label = shop.find_child("PriceLabel_com_crownspire_diamonds_500", true, false)
+	_assert(priced_label != null and str(priced_label.text) == "CA$6.99", "formatted Google price not shown, got %s" % str(priced_label.text if priced_label != null else ""))
+	var after_labels: Array = []
+	_collect_label_text(shop, after_labels)
+	var after_joined: String = " | ".join(after_labels)
+	_assert(after_joined.find("Loading store") < 0, "Loading store remained after product details")
+	_assert(after_joined.find("Loading price") < 0, "Loading price remained after product details")
+	_assert(after_joined.find("Price shown at Google Play checkout") < 0, "checkout fallback remained after product details")
+	_assert(after_joined.find("$4.99") < 0, "must not display hardcoded USD after details")
 
 	print("[SHOP] buy uses existing coordinator path")
 	var buy: Button = shop.find_child("BuyButton_com_crownspire_diamonds_500", true, false)
@@ -103,6 +187,40 @@ func _run() -> void:
 	)
 	_assert(int(Commerce.get_authoritative_diamonds()) == 0, "buy launch must not grant locally")
 	_assert(not bool(Commerce.notify_platform_purchase_success({"ok": true}).get("granted", true)), "client callback still not authority")
+
+	print("[SHOP] Close / Back / purchase-busy")
+	var stack: Node = root.get_node_or_null("/root/UiLayerStack")
+	_assert(stack != null, "UiLayerStack missing")
+	if stack != null:
+		stack.call("reset_for_tests")
+		stack.call("push_layer", "hud_screen", Callable(shop, "request_back"), "screen", false)
+	_assert(bool(shop.call("request_back")) == false, "idle Back should pop the shop layer")
+	shop.call("set_purchase_in_flight_for_test", true)
+	_assert(bool(shop.call("is_purchase_busy")), "purchase busy flag")
+	_assert(bool(shop.call("request_back")) == true, "busy Back must keep shop")
+	if stack != null:
+		_assert(bool(stack.call("is_layer_blocking", "hud_screen")), "busy must block hud_screen")
+		stack.call("handle_back")
+		_assert(shop.visible, "busy Android Back must not close shop")
+		_assert(str(stack.call("top_id")) == "hud_screen", "busy Back must keep hud_screen")
+	var close_btn: Button = shop.find_child("ShopCloseButton", true, false)
+	_assert(close_btn != null, "Close button lookup")
+	if close_btn != null:
+		close_btn.emit_signal("pressed")
+		await process_frame
+	_assert(shop.visible, "visible Close must not dismiss during purchase")
+	shop.call("set_purchase_in_flight_for_test", false)
+	if stack != null:
+		stack.call("set_layer_blocking", "hud_screen", false)
+	var back_btn: Button = shop.find_child("ShopBackButton", true, false)
+	_assert(back_btn != null, "Back button lookup")
+	if back_btn != null:
+		back_btn.emit_signal("pressed")
+		await process_frame
+	_assert(not shop.visible, "visible Back should close shop when idle")
+	shop.call("on_open")
+	await process_frame
+	_assert(shop.visible, "shop can reopen after Close/Back")
 
 	print("[SHOP] login wallet refresh + entitlement restore")
 	gs.set("diamonds", 500)

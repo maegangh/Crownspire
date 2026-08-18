@@ -128,7 +128,14 @@ function InitModule(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkrunt
   initializer.registerRpc("crownspire_list_my_active_help_requests", rpcListMyActiveHelpRequests);
   initializer.registerRpc("crownspire_complete_or_cancel_help_request", rpcCompleteOrCancelHelpRequest);
   initializer.registerRpc("crownspire_get_my_entitlements", rpcGetMyEntitlements);
-  initializer.registerRpc("crownspire_dev_set_entitlement", rpcDevSetEntitlement);
+  // Dev entitlement grant — fail closed unless dedicated env flag AND secret.
+  // CROWNSPIRE_ENABLE_BETA_GRANTS must NOT enable this RPC.
+  if (isDevEntitlementRpcEnabled(ctx)) {
+    initializer.registerRpc("crownspire_dev_set_entitlement", rpcDevSetEntitlement);
+    logger.info("Dev entitlement RPC registered (CROWNSPIRE_ENABLE_DEV_ENTITLEMENT_RPC=true).");
+  } else {
+    logger.info("Dev entitlement RPC NOT registered (flag/secret gate closed).");
+  }
 
   // Phase 5.1 — player identity, presence, social polish.
   initializer.registerRpc("crownspire_update_player_identity", rpcUpdatePlayerIdentity);
@@ -175,7 +182,20 @@ function InitModule(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkrunt
   initializer.registerRpc("crownspire_use_anti_scout", rpcUseAntiScout);
   initializer.registerRpc("crownspire_clear_own_beginner_protection", rpcClearOwnBeginnerProtection);
 
-  logger.info("Crownspire runtime loaded (Phase 3+4+5+5.1+5.3+6+castles identity/alliance/help/social/rallies/dm-rpc). LOCAL DEVELOPMENT ONLY.");
+  // Phase 5.7 — Server commerce authority spine (ledger / diamonds / paid queues).
+  initializer.registerRpc("crownspire_commerce_get_wallet", rpcCommerceGetWallet);
+  initializer.registerRpc("crownspire_commerce_spend_diamonds", rpcCommerceSpendDiamonds);
+  initializer.registerRpc("crownspire_commerce_process_purchase", rpcCommerceProcessPurchase);
+  initializer.registerRpc("crownspire_commerce_get_purchase", rpcCommerceGetPurchase);
+  initializer.registerRpc("crownspire_commerce_restore", rpcCommerceRestore);
+  initializer.registerRpc("crownspire_commerce_get_catalog", rpcCommerceGetCatalog);
+  initializer.registerRpc("crownspire_commerce_redeem_voucher_code", rpcCommerceRedeemVoucherCode);
+  initializer.registerRpc("crownspire_commerce_purchase_with_vouchers", rpcCommercePurchaseWithVouchers);
+  initializer.registerRpc("crownspire_commerce_get_beta_topup", rpcCommerceGetBetaTopUp);
+  initializer.registerRpc("crownspire_commerce_claim_beta_topup_milestone", rpcCommerceClaimBetaTopUpMilestone);
+  initializer.registerPurchaseNotificationGoogle(onGooglePurchaseNotification);
+
+  logger.info("Crownspire runtime loaded (Phase 3+4+5+5.1+5.3+5.7+6+castles identity/alliance/help/social/rallies/dm-rpc/commerce). LOCAL DEVELOPMENT ONLY.");
 }
 
 // ---------------------------------------------------------------------------

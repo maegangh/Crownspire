@@ -201,6 +201,22 @@ func _run() -> void:
 	_assert(int(Commerce.get_authoritative_diamonds()) == 0, "session refresh server wallet 0")
 	_assert(int(gs.get("diamonds")) == 0, "session refresh HUD 0")
 
+	print("[COMMERCE 4B] client cannot mutate beta vouchers")
+	Commerce.apply_commerce_wallet_payload({
+		"diamonds": 0,
+		"beta_vouchers": 5,
+		"beta_voucher_available": true,
+		"entitlements": [],
+	})
+	_assert(int(Commerce.get_beta_voucher_balance()) == 5, "server snapshot voucher balance 5")
+	var mutate: Dictionary = Commerce.try_set_beta_voucher_balance(999)
+	_assert(not bool(mutate.get("ok", true)), "V: client cannot set voucher balance")
+	_assert(int(Commerce.get_beta_voucher_balance()) == 5, "V: voucher balance unchanged after client write attempt")
+	var self_grant: Dictionary = Commerce.try_grant_beta_voucher_testing()
+	_assert(not bool(self_grant.get("ok", true)), "H: client cannot self-grant voucher entitlement")
+	_assert(str(self_grant.get("error", "")) == "client_cannot_grant_entitlement", "H: self-grant error")
+	Commerce.apply_commerce_wallet_payload({"diamonds": 0, "beta_voucher_available": false, "entitlements": []})
+
 	# Bag diamond pack fail-closed
 	print("[COMMERCE 4B] bag diamond pack")
 	gs.set("diamonds", 50)

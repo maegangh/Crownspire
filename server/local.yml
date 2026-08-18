@@ -30,6 +30,33 @@ runtime:
   #     - "CROWNSPIRE_ENABLE_BETA_GRANTS=true"
   #     - "CROWNSPIRE_BETA_GRANT_SECRET=<server-only-secret-min-16-chars>"
   # Never put CROWNSPIRE_BETA_GRANT_SECRET in Godot, APK, or client config.
+  #
+  # Optional local-dev entitlement RPC (beta_alliance_auto_help and
+  # entitlement_beta_voucher_testing only). Default: DISABLED.
+  # CROWNSPIRE_ENABLE_BETA_GRANTS does NOT enable this.
+  #   env:
+  #     - "CROWNSPIRE_ENABLE_DEV_ENTITLEMENT_RPC=true"
+  #     - "CROWNSPIRE_DEV_ENTITLEMENT_SECRET=<server-only-secret-min-16-chars>"
+  # Never put CROWNSPIRE_DEV_ENTITLEMENT_SECRET in Godot, APK, or client config.
+  #
+  # Beta Shop Vouchers are ACCOUNT-SCOPED. Do NOT set
+  # CROWNSPIRE_ENABLE_BETA_VOUCHER_RPC=true on production Nakama.
+  # Live Internal Testing uses entitlement_beta_voucher_testing only.
+  # Local/headless optional bypass (never production):
+  #   env:
+  #     - "CROWNSPIRE_RUNTIME_CONTEXT=local"
+  #     - "CROWNSPIRE_ENABLE_BETA_VOUCHER_RPC=true"
+  #     - "CROWNSPIRE_ENABLE_BETA_VOUCHER_TEST_CODES=true"
+  # Hardcoded fixture codes stay disabled unless that test-code mode is set.
+  # Do not configure production Apple/Google IAP credentials in this local file.
+  #
+  # Google Play IAP validation (Nakama). Do NOT put service-account JSON in the Godot repo.
+  # Configure on the Nakama host only (local.yml on the server machine, or mounted secret):
+  # iap:
+  #   google:
+  #     client_email: "<service-account-email-from-json>"
+  #     private_key: "<private_key-from-json-including-BEGIN/END-markers>"
+  # Never commit real client_email/private_key values.
 
 metrics:
   reporting_freq_sec: 60

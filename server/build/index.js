@@ -75,7 +75,15 @@ function InitModule(ctx, logger, nk, initializer) {
     initializer.registerRpc("crownspire_list_my_active_help_requests", rpcListMyActiveHelpRequests);
     initializer.registerRpc("crownspire_complete_or_cancel_help_request", rpcCompleteOrCancelHelpRequest);
     initializer.registerRpc("crownspire_get_my_entitlements", rpcGetMyEntitlements);
-    initializer.registerRpc("crownspire_dev_set_entitlement", rpcDevSetEntitlement);
+    // Dev entitlement grant — fail closed unless dedicated env flag AND secret.
+    // CROWNSPIRE_ENABLE_BETA_GRANTS must NOT enable this RPC.
+    if (isDevEntitlementRpcEnabled(ctx)) {
+        initializer.registerRpc("crownspire_dev_set_entitlement", rpcDevSetEntitlement);
+        logger.info("Dev entitlement RPC registered (CROWNSPIRE_ENABLE_DEV_ENTITLEMENT_RPC=true).");
+    }
+    else {
+        logger.info("Dev entitlement RPC NOT registered (flag/secret gate closed).");
+    }
     // Phase 5.1 — player identity, presence, social polish.
     initializer.registerRpc("crownspire_update_player_identity", rpcUpdatePlayerIdentity);
     initializer.registerRpc("crownspire_presence_heartbeat", rpcPresenceHeartbeat);
@@ -116,7 +124,19 @@ function InitModule(ctx, logger, nk, initializer) {
     initializer.registerRpc("crownspire_use_peace_shield", rpcUsePeaceShield);
     initializer.registerRpc("crownspire_use_anti_scout", rpcUseAntiScout);
     initializer.registerRpc("crownspire_clear_own_beginner_protection", rpcClearOwnBeginnerProtection);
-    logger.info("Crownspire runtime loaded (Phase 3+4+5+5.1+5.3+6+castles identity/alliance/help/social/rallies/dm-rpc). LOCAL DEVELOPMENT ONLY.");
+    // Phase 5.7 — Server commerce authority spine (ledger / diamonds / paid queues).
+    initializer.registerRpc("crownspire_commerce_get_wallet", rpcCommerceGetWallet);
+    initializer.registerRpc("crownspire_commerce_spend_diamonds", rpcCommerceSpendDiamonds);
+    initializer.registerRpc("crownspire_commerce_process_purchase", rpcCommerceProcessPurchase);
+    initializer.registerRpc("crownspire_commerce_get_purchase", rpcCommerceGetPurchase);
+    initializer.registerRpc("crownspire_commerce_restore", rpcCommerceRestore);
+    initializer.registerRpc("crownspire_commerce_get_catalog", rpcCommerceGetCatalog);
+    initializer.registerRpc("crownspire_commerce_redeem_voucher_code", rpcCommerceRedeemVoucherCode);
+    initializer.registerRpc("crownspire_commerce_purchase_with_vouchers", rpcCommercePurchaseWithVouchers);
+    initializer.registerRpc("crownspire_commerce_get_beta_topup", rpcCommerceGetBetaTopUp);
+    initializer.registerRpc("crownspire_commerce_claim_beta_topup_milestone", rpcCommerceClaimBetaTopUpMilestone);
+    initializer.registerPurchaseNotificationGoogle(onGooglePurchaseNotification);
+    logger.info("Crownspire runtime loaded (Phase 3+4+5+5.1+5.3+5.7+6+castles identity/alliance/help/social/rallies/dm-rpc/commerce). LOCAL DEVELOPMENT ONLY.");
 }
 // ---------------------------------------------------------------------------
 // Profile
@@ -1671,10 +1691,22 @@ var ENTITLEMENT_ALLIANCE_AUTO_HELP = "alliance_auto_help";
 /** Development/closed-beta entitlement id. */
 var ENTITLEMENT_BETA_ALLIANCE_AUTO_HELP = "beta_alliance_auto_help";
 /**
- * LOCAL DEVELOPMENT ONLY secret for grant/revoke tooling.
- * Normal game clients must never ship this value.
+ * Dev entitlement RPC is environment-injected. No hardcoded secret.
+ * Requires CROWNSPIRE_ENABLE_DEV_ENTITLEMENT_RPC=true AND
+ * CROWNSPIRE_DEV_ENTITLEMENT_SECRET (min 16 chars).
+ * CROWNSPIRE_ENABLE_BETA_GRANTS does NOT enable this RPC.
  */
-var CROWNSPIR_DEV_ENTITLEMENT_SECRET = "crownspire-local-dev-entitlement-secret";
+function getDevEntitlementSecret(ctx) {
+    var env = ctx && ctx.env ? ctx.env : {};
+    return String(env["CROWNSPIRE_DEV_ENTITLEMENT_SECRET"] || "");
+}
+function isDevEntitlementRpcEnabled(ctx) {
+    var env = ctx && ctx.env ? ctx.env : {};
+    if (String(env["CROWNSPIRE_ENABLE_DEV_ENTITLEMENT_RPC"] || "") !== "true") {
+        return false;
+    }
+    return getDevEntitlementSecret(ctx).length >= 16;
+}
 var HELP_STATUS_ACTIVE = "ACTIVE";
 var HELP_STATUS_COMPLETED = "COMPLETED";
 var HELP_STATUS_EXPIRED = "EXPIRED";
@@ -2250,23 +2282,46 @@ function rpcGetMyEntitlements(ctx, logger, nk, payload) {
         throw Err("Unauthenticated");
     }
     var beta = StorageEntitlementProvider.getRecord(nk, ctx.userId, ENTITLEMENT_BETA_ALLIANCE_AUTO_HELP);
+    var voucherTesting = StorageEntitlementProvider.getRecord(nk, ctx.userId, "entitlement_beta_voucher_testing");
+    var paid = listPaidQueueEntitlements(nk, ctx.userId);
+    var entitlements = [];
+    if (beta) {
+        entitlements.push(beta);
+    }
+    if (voucherTesting) {
+        entitlements.push(voucherTesting);
+    }
+    for (var i = 0; i < paid.length; i++) {
+        entitlements.push(paid[i]);
+    }
     return JSON.stringify({
         ok: true,
-        entitlements: beta ? [beta] : [],
+        entitlements: entitlements,
         auto_help: getAutoHelpEntitlementPublic(nk, ctx.userId),
+        beta_voucher_testing: {
+            entitlement_id: "entitlement_beta_voucher_testing",
+            active: StorageEntitlementProvider.isActive(nk, ctx.userId, "entitlement_beta_voucher_testing"),
+            status: voucherTesting ? voucherTesting.status : "",
+            expires_at: voucherTesting ? voucherTesting.expires_at : 0,
+        },
     });
 }
 /**
  * LOCAL DEVELOPMENT / CLOSED BETA ONLY.
- * Requires matching CROWNSPIR_DEV_ENTITLEMENT_SECRET.
- * Normal clients must not ship this secret.
+ * Requires CROWNSPIRE_ENABLE_DEV_ENTITLEMENT_RPC + CROWNSPIRE_DEV_ENTITLEMENT_SECRET.
+ * Fail closed when env is absent. Does not grant production paid queue entitlements.
+ * Allowed IDs: beta_alliance_auto_help, entitlement_beta_voucher_testing.
  */
 function rpcDevSetEntitlement(ctx, logger, nk, payload) {
     if (!ctx.userId) {
         throw Err("Unauthenticated");
     }
+    if (!isDevEntitlementRpcEnabled(ctx)) {
+        throw Err("Forbidden");
+    }
     var data = parsePayload(payload);
-    if (String(data["dev_secret"] || "") !== CROWNSPIR_DEV_ENTITLEMENT_SECRET) {
+    var expected = getDevEntitlementSecret(ctx);
+    if (!expected || String(data["dev_secret"] || "") !== expected) {
         throw Err("Forbidden");
     }
     var targetUserId = String(data["user_id"] || ctx.userId).trim();
@@ -2274,9 +2329,9 @@ function rpcDevSetEntitlement(ctx, logger, nk, payload) {
         throw Err("user_id required");
     }
     var entitlementId = String(data["entitlement_id"] || ENTITLEMENT_BETA_ALLIANCE_AUTO_HELP).trim();
-    if (entitlementId !== ENTITLEMENT_BETA_ALLIANCE_AUTO_HELP) {
-        // Production entitlements cannot be granted through this RPC.
-        throw Err("Only beta_alliance_auto_help can be set via dev tooling");
+    if (entitlementId !== ENTITLEMENT_BETA_ALLIANCE_AUTO_HELP && entitlementId !== "entitlement_beta_voucher_testing") {
+        // Production paid entitlements and unknown IDs cannot be granted through this RPC.
+        throw Err("Only closed-beta test entitlements can be set via dev tooling");
     }
     var action = String(data["action"] || "grant").trim().toLowerCase();
     var now = nowUnix();
@@ -4711,4 +4766,1828 @@ function rpcDmSend(ctx, logger, nk, payload) {
         message_id: String(ack.messageId || ""),
         create_time: String(ack.createTime || ""),
     });
+}
+/**
+ * Crownspire Phase 5.7 — Server commerce authority spine
+ * Concatenated into build/index.js via tsconfig files order.
+ *
+ * Production paid flow (CURRENT CANON / IMPLEMENTED AUTHORITY):
+ *   Platform Store → receipt → Nakama server validation (persist=true)
+ *   → purchase ledger → idempotent delivery → wallet/entitlement → client mirror
+ *
+ * A client platform callback is NEVER authority. No receipt = no paid delivery.
+ * No validated server transaction = no paid delivery.
+ *
+ * Diamond wallet: ACCOUNT-WIDE server-only storage, permissionWrite: 0.
+ * Why not Nakama wallet: nk.walletUpdate is unused in this repo; write-0 storage
+ * plus OCC is the proven pattern (entitlements, teleport inventory).
+ *
+ * Price: nk ValidatedPurchase has no price/currency. Never trust client price.
+ * USD is looked up from COMMERCE_PRODUCT_CATALOG only.
+ *
+ * First approved small consumable Diamond pack: com.crownspire.diamonds_500
+ * (500 Diamonds, $4.99 / 499 cents). Consumable. production_deliverable.
+ * TEST_ONLY fixture remains blocked on the production delivery path.
+ *
+ * Validation: nk.purchaseValidateApple / purchaseValidateGoogle with persist=true.
+ * Do not use the Godot NakamaClient wrappers (they default persist=false).
+ * No mocked validation in this production module.
+ */
+var COMMERCE_LEDGER_COLLECTION = "crownspire_purchase_ledger";
+var COMMERCE_WALLET_COLLECTION = "crownspire_commerce";
+var COMMERCE_WALLET_KEY = "diamond_wallet";
+var COMMERCE_INDEX_KEY = "purchase_index";
+var COMMERCE_BETA_PROGRAM_ID = "crownspire_paid_beta_v1";
+var PURCHASE_RECEIVED = "RECEIVED";
+var PURCHASE_VALIDATED = "VALIDATED";
+var PURCHASE_DELIVERING = "DELIVERING";
+var PURCHASE_DELIVERED = "DELIVERED";
+var PURCHASE_REJECTED = "REJECTED";
+var PURCHASE_REFUNDED = "REFUNDED";
+var PURCHASE_REVOKED = "REVOKED";
+var PURCHASE_VOIDED = "VOIDED";
+var PURCHASE_CANCELLED = "CANCELLED";
+var DELIVERY_DIAMONDS = "DIAMONDS";
+var DELIVERY_PERMANENT_ENTITLEMENT = "PERMANENT_ENTITLEMENT";
+var DELIVERY_TIMED_ENTITLEMENT = "TIMED_ENTITLEMENT";
+var DELIVERY_ACCOUNT_COLLECTION = "ACCOUNT_COLLECTION";
+var DELIVERY_CONSUMABLE_ITEM = "CONSUMABLE_ITEM";
+var DELIVERY_SUBSCRIPTION = "SUBSCRIPTION";
+var PAID_QUEUE_ENTITLEMENT_IDS = [
+    "entitlement_builder_queue_30d",
+    "entitlement_builder_queue_perm",
+    "entitlement_research_queue_perm",
+    "entitlement_march_queue_perm",
+];
+var PURCHASE_SOURCE_GOOGLE_PLAY = "GOOGLE_PLAY";
+var PURCHASE_SOURCE_APPLE_STOREKIT = "APPLE_STOREKIT";
+var PURCHASE_SOURCE_BETA_VOUCHER = "BETA_VOUCHER";
+function purchaseSourceForPlatform(platform) {
+    var p = String(platform || "").toUpperCase();
+    if (p === "APPLE") {
+        return PURCHASE_SOURCE_APPLE_STOREKIT;
+    }
+    return PURCHASE_SOURCE_GOOGLE_PLAY;
+}
+var COMMERCE_PRODUCT_CATALOG = [
+    {
+        product_id: "com.crownspire.diamonds_500",
+        iap_product_id: "com.crownspire.diamonds_500",
+        usd_cents: 499,
+        delivery_type: DELIVERY_DIAMONDS,
+        repeatability: "consumable",
+        duration_seconds: 0,
+        entitlement_id: "",
+        diamond_amount: 500,
+        qualifying_topup_diamonds: 500,
+        beta_voucher_cost: 5,
+        beta_voucher_purchasable: true,
+        beta_spend_eligible: true,
+        production_deliverable: true,
+        live_store: true,
+    },
+    {
+        product_id: "entitlement_builder_queue_30d",
+        iap_product_id: "com.crownspire.builder_queue_30d",
+        usd_cents: 499,
+        delivery_type: DELIVERY_TIMED_ENTITLEMENT,
+        repeatability: "repeatable_distinct_transactions",
+        duration_seconds: 2592000,
+        entitlement_id: "entitlement_builder_queue_30d",
+        diamond_amount: 0,
+        qualifying_topup_diamonds: 0,
+        beta_voucher_cost: 0,
+        beta_voucher_purchasable: false,
+        beta_spend_eligible: true,
+        production_deliverable: true,
+        live_store: false,
+    },
+    {
+        product_id: "entitlement_builder_queue_perm",
+        iap_product_id: "com.crownspire.builder_queue_perm",
+        usd_cents: 999,
+        delivery_type: DELIVERY_PERMANENT_ENTITLEMENT,
+        repeatability: "non_consumable",
+        duration_seconds: 0,
+        entitlement_id: "entitlement_builder_queue_perm",
+        diamond_amount: 0,
+        qualifying_topup_diamonds: 0,
+        beta_voucher_cost: 0,
+        beta_voucher_purchasable: false,
+        beta_spend_eligible: true,
+        production_deliverable: true,
+        live_store: false,
+    },
+    {
+        product_id: "entitlement_research_queue_perm",
+        iap_product_id: "com.crownspire.research_queue_perm",
+        usd_cents: 999,
+        delivery_type: DELIVERY_PERMANENT_ENTITLEMENT,
+        repeatability: "non_consumable",
+        duration_seconds: 0,
+        entitlement_id: "entitlement_research_queue_perm",
+        diamond_amount: 0,
+        qualifying_topup_diamonds: 0,
+        beta_voucher_cost: 0,
+        beta_voucher_purchasable: false,
+        beta_spend_eligible: true,
+        production_deliverable: true,
+        live_store: false,
+    },
+    {
+        product_id: "entitlement_march_queue_perm",
+        iap_product_id: "com.crownspire.march_queue_perm",
+        usd_cents: 1999,
+        delivery_type: DELIVERY_PERMANENT_ENTITLEMENT,
+        repeatability: "non_consumable",
+        duration_seconds: 0,
+        entitlement_id: "entitlement_march_queue_perm",
+        diamond_amount: 0,
+        qualifying_topup_diamonds: 0,
+        beta_voucher_cost: 0,
+        beta_voucher_purchasable: false,
+        beta_spend_eligible: true,
+        production_deliverable: true,
+        live_store: false,
+    },
+    {
+        product_id: "com.crownspire.test.diamonds_internal_do_not_ship",
+        iap_product_id: "com.crownspire.test.diamonds_internal_do_not_ship",
+        usd_cents: 0,
+        delivery_type: DELIVERY_DIAMONDS,
+        repeatability: "consumable",
+        duration_seconds: 0,
+        entitlement_id: "",
+        diamond_amount: 1,
+        qualifying_topup_diamonds: 0,
+        beta_voucher_cost: 0,
+        beta_voucher_purchasable: false,
+        beta_spend_eligible: false,
+        production_deliverable: false,
+        live_store: false,
+    },
+];
+function lookupCommerceProduct(platformProductId) {
+    var id = String(platformProductId || "").trim();
+    if (!id) {
+        return null;
+    }
+    for (var i = 0; i < COMMERCE_PRODUCT_CATALOG.length; i++) {
+        var row = COMMERCE_PRODUCT_CATALOG[i];
+        if (row.product_id === id || row.iap_product_id === id) {
+            return row;
+        }
+    }
+    return null;
+}
+/** Launch voucher dollars = ceil(eligible_usd * 1.10). Refunded rows must be excluded before calling. */
+function computeBetaVoucherUsd(eligibleUsdCents) {
+    var cents = Math.max(0, Math.floor(eligibleUsdCents));
+    if (cents <= 0) {
+        return 0;
+    }
+    return Math.ceil((cents * 110) / 10000);
+}
+function ledgerStorageKey(platform, txId) {
+    var p = String(platform || "").toLowerCase().replace(/[^a-z0-9]+/g, "_");
+    var t = String(txId || "").replace(/[^a-zA-Z0-9._-]+/g, "_");
+    var key = p + "__" + t;
+    if (key.length > 120) {
+        key = key.substring(0, 120);
+    }
+    return key;
+}
+function emptyWallet(accountId) {
+    return {
+        account_id: accountId,
+        balance: 0,
+        diamond_debt: 0,
+        processed_refs: {},
+        updated_at: nowUnix(),
+    };
+}
+function normalizeDiamondWallet(rec, accountId) {
+    if (!rec.processed_refs) {
+        rec.processed_refs = {};
+    }
+    rec.account_id = accountId;
+    rec.balance = Math.max(0, Math.floor(Number(rec.balance || 0)));
+    rec.diamond_debt = Math.max(0, Math.floor(Number(rec.diamond_debt || 0)));
+    return rec;
+}
+function readDiamondWalletObj(nk, accountId) {
+    var obj = storageReadOne(nk, COMMERCE_WALLET_COLLECTION, COMMERCE_WALLET_KEY, accountId);
+    if (obj && obj.value) {
+        return { value: normalizeDiamondWallet(obj.value, accountId), version: obj.version };
+    }
+    return { value: emptyWallet(accountId), version: "*" };
+}
+function deliveryRefFor(platform, txId) {
+    return "dlv_" + ledgerStorageKey(platform, txId);
+}
+function reversalRefFor(platform, txId) {
+    return "rev_" + ledgerStorageKey(platform, txId);
+}
+function isReversalStatus(status) {
+    return (status === PURCHASE_REFUNDED ||
+        status === PURCHASE_REVOKED ||
+        status === PURCHASE_VOIDED ||
+        status === PURCHASE_CANCELLED);
+}
+function isLedgerReversed(rec) {
+    if (rec.reversal_applied) {
+        return true;
+    }
+    if (isReversalStatus(rec.refund_or_revocation_status)) {
+        return true;
+    }
+    return isReversalStatus(rec.delivery_status);
+}
+function normalizeReversalReason(raw) {
+    var s = String(raw || "").trim().toUpperCase();
+    if (s === PURCHASE_CANCELLED || s === "CANCELED") {
+        return PURCHASE_CANCELLED;
+    }
+    if (s === PURCHASE_VOIDED || s === "CHARGEBACK" || s === "CHARGED_BACK" || s === "VOID") {
+        return PURCHASE_VOIDED;
+    }
+    if (s === PURCHASE_REVOKED) {
+        return PURCHASE_REVOKED;
+    }
+    return PURCHASE_REFUNDED;
+}
+function isReversalNotification(notificationType, refundTime) {
+    var t = String(notificationType || "").trim().toUpperCase();
+    if (t === "REFUNDED" ||
+        t === "CANCELLED" ||
+        t === "CANCELED" ||
+        t === "VOIDED" ||
+        t === "VOID" ||
+        t === "CHARGEBACK" ||
+        t === "CHARGED_BACK" ||
+        t === "REVOKED") {
+        return true;
+    }
+    return Number(refundTime || 0) > 0;
+}
+function grantDiamondsIdempotent(nk, accountId, amount, grantRef) {
+    var amt = Math.floor(Number(amount || 0));
+    var ref = String(grantRef || "").trim();
+    if (!ref || amt < 0) {
+        return { ok: false, balance: 0, diamond_debt: 0, already: false, error: "Invalid grant" };
+    }
+    if (amt === 0) {
+        var cur = readDiamondWalletObj(nk, accountId);
+        return { ok: true, balance: cur.value.balance, diamond_debt: cur.value.diamond_debt, already: true };
+    }
+    for (var attempt = 0; attempt < 8; attempt++) {
+        var obj = readDiamondWalletObj(nk, accountId);
+        var rec = obj.value;
+        var prev = rec.processed_refs[ref];
+        if (prev) {
+            return { ok: true, balance: rec.balance, diamond_debt: rec.diamond_debt, already: true };
+        }
+        // Paid Diamond grants repay diamond_debt first. Remainder becomes spendable balance.
+        var debt = rec.diamond_debt;
+        var repay = Math.min(debt, amt);
+        var toBalance = amt - repay;
+        rec.diamond_debt = debt - repay;
+        rec.balance = rec.balance + toBalance;
+        rec.processed_refs[ref] = {
+            type: "grant",
+            amount: amt,
+            applied_to_debt: repay,
+            applied_to_balance: toBalance,
+            ts: nowUnix(),
+        };
+        rec.updated_at = nowUnix();
+        try {
+            storageWriteVersioned(nk, COMMERCE_WALLET_COLLECTION, COMMERCE_WALLET_KEY, accountId, rec, obj.version, 0);
+            return { ok: true, balance: rec.balance, diamond_debt: rec.diamond_debt, already: false };
+        }
+        catch (_e) {
+            continue;
+        }
+    }
+    return { ok: false, balance: 0, diamond_debt: 0, already: false, error: "Wallet conflict" };
+}
+function spendDiamondsIdempotent(nk, accountId, amount, spendRef) {
+    var amt = Math.floor(Number(amount || 0));
+    var ref = String(spendRef || "").trim();
+    if (!ref || amt < 0) {
+        return { ok: false, balance: 0, already: false, error: "Invalid spend" };
+    }
+    if (amt === 0) {
+        var cur = readDiamondWalletObj(nk, accountId);
+        return { ok: true, balance: cur.value.balance, already: true };
+    }
+    for (var attempt = 0; attempt < 8; attempt++) {
+        var obj = readDiamondWalletObj(nk, accountId);
+        var rec = obj.value;
+        var prev = rec.processed_refs[ref];
+        if (prev) {
+            return { ok: true, balance: rec.balance, already: true };
+        }
+        if (rec.balance < amt) {
+            return { ok: false, balance: rec.balance, already: false, error: "Insufficient diamonds" };
+        }
+        rec.balance = rec.balance - amt;
+        rec.processed_refs[ref] = { type: "spend", amount: amt, ts: nowUnix() };
+        rec.updated_at = nowUnix();
+        try {
+            storageWriteVersioned(nk, COMMERCE_WALLET_COLLECTION, COMMERCE_WALLET_KEY, accountId, rec, obj.version, 0);
+            return { ok: true, balance: rec.balance, already: false };
+        }
+        catch (_e) {
+            continue;
+        }
+    }
+    return { ok: false, balance: 0, already: false, error: "Wallet conflict" };
+}
+function reverseDiamondsIdempotent(nk, userId, amount, reversalRef, originalDeliveryRef) {
+    var amt = Math.floor(Number(amount || 0));
+    var ref = String(reversalRef || "").trim();
+    var deliveryRef = String(originalDeliveryRef || "").trim();
+    if (!userId || !ref || amt < 0) {
+        return { ok: false, already: false, balance: 0, diamond_debt: 0, debit: 0, debt_added: 0, error: "Invalid reversal" };
+    }
+    if (amt === 0) {
+        var cur = readDiamondWalletObj(nk, userId);
+        return {
+            ok: true,
+            already: true,
+            balance: cur.value.balance,
+            diamond_debt: cur.value.diamond_debt,
+            debit: 0,
+            debt_added: 0,
+        };
+    }
+    for (var attempt = 0; attempt < 8; attempt++) {
+        var obj = readDiamondWalletObj(nk, userId);
+        var rec = obj.value;
+        var prev = rec.processed_refs[ref];
+        if (prev) {
+            return {
+                ok: true,
+                already: true,
+                balance: rec.balance,
+                diamond_debt: rec.diamond_debt,
+                debit: Math.max(0, Math.floor(Number(prev.debit || 0))),
+                debt_added: Math.max(0, Math.floor(Number(prev.debt_added || 0))),
+            };
+        }
+        var debit = Math.min(rec.balance, amt);
+        var debtAdded = amt - debit;
+        rec.balance = rec.balance - debit;
+        rec.diamond_debt = rec.diamond_debt + debtAdded;
+        rec.processed_refs[ref] = {
+            type: "reversal",
+            amount: amt,
+            debit: debit,
+            debt_added: debtAdded,
+            original_delivery_ref: deliveryRef,
+            ts: nowUnix(),
+        };
+        rec.updated_at = nowUnix();
+        try {
+            storageWriteVersioned(nk, COMMERCE_WALLET_COLLECTION, COMMERCE_WALLET_KEY, userId, rec, obj.version, 0);
+            return {
+                ok: true,
+                already: false,
+                balance: rec.balance,
+                diamond_debt: rec.diamond_debt,
+                debit: debit,
+                debt_added: debtAdded,
+            };
+        }
+        catch (_e) {
+            continue;
+        }
+    }
+    return { ok: false, already: false, balance: 0, diamond_debt: 0, debit: 0, debt_added: 0, error: "Wallet conflict" };
+}
+function readLedger(nk, accountId, platform, txId) {
+    var key = ledgerStorageKey(platform, txId);
+    var obj = storageReadOne(nk, COMMERCE_LEDGER_COLLECTION, key, accountId);
+    if (!obj || !obj.value) {
+        return null;
+    }
+    var rec = obj.value;
+    if (rec.account_id && rec.account_id !== accountId) {
+        return null;
+    }
+    rec.account_id = accountId;
+    return { value: rec, version: obj.version };
+}
+function writeLedger(nk, rec, version) {
+    var key = ledgerStorageKey(rec.platform, rec.platform_transaction_id);
+    rec.updated_at = nowUnix();
+    storageWriteVersioned(nk, COMMERCE_LEDGER_COLLECTION, key, rec.account_id, rec, version, 0);
+    indexPurchaseKey(nk, rec.account_id, key);
+}
+function indexPurchaseKey(nk, accountId, key) {
+    for (var attempt = 0; attempt < 8; attempt++) {
+        var obj = storageReadOne(nk, COMMERCE_WALLET_COLLECTION, COMMERCE_INDEX_KEY, accountId);
+        var rec = void 0;
+        var ver = "*";
+        if (obj && obj.value) {
+            rec = obj.value;
+            ver = obj.version;
+            if (!rec.transaction_keys) {
+                rec.transaction_keys = [];
+            }
+        }
+        else {
+            rec = { account_id: accountId, transaction_keys: [], updated_at: nowUnix() };
+        }
+        if (rec.transaction_keys.indexOf(key) >= 0) {
+            return;
+        }
+        rec.transaction_keys.push(key);
+        rec.updated_at = nowUnix();
+        try {
+            storageWriteVersioned(nk, COMMERCE_WALLET_COLLECTION, COMMERCE_INDEX_KEY, accountId, rec, ver, 0);
+            return;
+        }
+        catch (_e) {
+            continue;
+        }
+    }
+}
+function listLedgerRecords(nk, accountId) {
+    var obj = storageReadOne(nk, COMMERCE_WALLET_COLLECTION, COMMERCE_INDEX_KEY, accountId);
+    var out = [];
+    if (!obj || !obj.value) {
+        return out;
+    }
+    var idx = obj.value;
+    var keys = idx.transaction_keys || [];
+    for (var i = 0; i < keys.length; i++) {
+        var row = storageReadOne(nk, COMMERCE_LEDGER_COLLECTION, keys[i], accountId);
+        if (row && row.value) {
+            out.push(row.value);
+        }
+    }
+    return out;
+}
+function eligibleBetaSpendCents(rows) {
+    var sum = 0;
+    for (var i = 0; i < rows.length; i++) {
+        var r = rows[i];
+        if (r.reversal_applied || isReversalStatus(r.refund_or_revocation_status) || isReversalStatus(r.delivery_status)) {
+            continue;
+        }
+        if (r.delivery_status !== PURCHASE_DELIVERED) {
+            continue;
+        }
+        sum += Math.max(0, Math.floor(Number(r.eligible_beta_spend_cents || 0)));
+    }
+    return sum;
+}
+function writePaidQueueEntitlement(nk, accountId, entitlementId, durationSeconds, source) {
+    var now = nowUnix();
+    var existing = StorageEntitlementProvider.getRecord(nk, accountId, entitlementId);
+    var starts = now;
+    var expires = durationSeconds > 0 ? now + durationSeconds : 0;
+    if (existing && existing.status === "active" && durationSeconds > 0) {
+        starts = existing.starts_at > 0 ? existing.starts_at : now;
+        var base = existing.expires_at > now ? existing.expires_at : now;
+        expires = base + durationSeconds;
+    }
+    else if (existing && existing.status === "active" && durationSeconds <= 0) {
+        starts = existing.starts_at > 0 ? existing.starts_at : now;
+        expires = 0;
+    }
+    var rec = {
+        entitlement_id: entitlementId,
+        user_id: accountId,
+        status: "active",
+        starts_at: starts,
+        expires_at: expires,
+        source: source,
+        updated_at: now,
+    };
+    nk.storageWrite([
+        {
+            collection: ENTITLEMENT_COLLECTION,
+            key: entitlementId,
+            userId: accountId,
+            value: rec,
+            permissionRead: 1,
+            permissionWrite: 0,
+        },
+    ]);
+}
+function revokePaidQueueEntitlement(nk, accountId, entitlementId) {
+    if (!entitlementId) {
+        return;
+    }
+    var now = nowUnix();
+    var existing = StorageEntitlementProvider.getRecord(nk, accountId, entitlementId);
+    var rec = {
+        entitlement_id: entitlementId,
+        user_id: accountId,
+        status: "revoked",
+        starts_at: existing ? existing.starts_at : now,
+        expires_at: now,
+        source: existing ? existing.source : "iap_refund",
+        updated_at: now,
+    };
+    nk.storageWrite([
+        {
+            collection: ENTITLEMENT_COLLECTION,
+            key: entitlementId,
+            userId: accountId,
+            value: rec,
+            permissionRead: 1,
+            permissionWrite: 0,
+        },
+    ]);
+}
+function listPaidQueueEntitlements(nk, accountId) {
+    var out = [];
+    for (var i = 0; i < PAID_QUEUE_ENTITLEMENT_IDS.length; i++) {
+        var rec = StorageEntitlementProvider.getRecord(nk, accountId, PAID_QUEUE_ENTITLEMENT_IDS[i]);
+        if (rec) {
+            out.push(rec);
+        }
+    }
+    return out;
+}
+function publicWallet(nk, accountId, env) {
+    var wallet = readDiamondWalletObj(nk, accountId).value;
+    var rows = listLedgerRecords(nk, accountId);
+    var spendCents = eligibleBetaSpendCents(rows);
+    var payload = {
+        account_id: accountId,
+        diamonds: wallet.balance,
+        diamond_debt: wallet.diamond_debt,
+        scope: "ACCOUNT",
+        beta_program_id: COMMERCE_BETA_PROGRAM_ID,
+        eligible_beta_spend_usd: spendCents / 100,
+        eligible_beta_spend_cents: spendCents,
+        future_voucher_usd: computeBetaVoucherUsd(spendCents),
+        entitlements: listPaidQueueEntitlements(nk, accountId),
+    };
+    return attachBetaCommercePublicFields(nk, accountId, payload, env);
+}
+function deliverCatalogProduct(nk, accountId, product, deliveryTxId) {
+    if (product.delivery_type === DELIVERY_PERMANENT_ENTITLEMENT) {
+        writePaidQueueEntitlement(nk, accountId, product.entitlement_id, 0, "iap_validated");
+        return { ok: true };
+    }
+    if (product.delivery_type === DELIVERY_TIMED_ENTITLEMENT) {
+        writePaidQueueEntitlement(nk, accountId, product.entitlement_id, product.duration_seconds, "iap_validated");
+        return { ok: true };
+    }
+    if (product.delivery_type === DELIVERY_DIAMONDS) {
+        var g = grantDiamondsIdempotent(nk, accountId, product.diamond_amount, deliveryTxId);
+        if (!g.ok) {
+            return { ok: false, error: g.error || "Diamond grant failed" };
+        }
+        return { ok: true };
+    }
+    if (product.delivery_type === DELIVERY_ACCOUNT_COLLECTION ||
+        product.delivery_type === DELIVERY_CONSUMABLE_ITEM ||
+        product.delivery_type === DELIVERY_SUBSCRIPTION) {
+        return { ok: false, error: "Delivery type not implemented in Batch 4B" };
+    }
+    return { ok: false, error: "Unknown delivery type" };
+}
+function diamondAmountForReversal(nk, rec, product) {
+    if (product && product.delivery_type === DELIVERY_DIAMONDS) {
+        return Math.max(0, Math.floor(Number(product.diamond_amount || 0)));
+    }
+    if (rec.delivery_type === DELIVERY_DIAMONDS) {
+        var deliveryRef = rec.delivery_transaction_id || deliveryRefFor(rec.platform, rec.platform_transaction_id);
+        var wallet = readDiamondWalletObj(nk, rec.account_id).value;
+        var grant = wallet.processed_refs[deliveryRef];
+        if (grant && grant.type === "grant") {
+            return Math.max(0, Math.floor(Number(grant.amount || 0)));
+        }
+    }
+    return 0;
+}
+function wasDiamondDeliveryApplied(nk, rec) {
+    if (rec.original_delivery_status === PURCHASE_DELIVERED || rec.delivery_status === PURCHASE_DELIVERED) {
+        return rec.delivery_type === DELIVERY_DIAMONDS || !!lookupCommerceProduct(rec.product_id);
+    }
+    var deliveryRef = rec.delivery_transaction_id || deliveryRefFor(rec.platform, rec.platform_transaction_id);
+    if (!deliveryRef) {
+        return false;
+    }
+    var grant = readDiamondWalletObj(nk, rec.account_id).value.processed_refs[deliveryRef];
+    return !!(grant && grant.type === "grant");
+}
+function processPurchaseReversal(nk, accountId, platform, txId, reasonRaw, productIdHint) {
+    var uid = String(accountId || "").trim();
+    var plat = String(platform || "").trim();
+    var txn = String(txId || "").trim();
+    if (!uid || !plat || !txn) {
+        return { ok: false, already: false, granted: false, error: "Invalid reversal target" };
+    }
+    var reason = normalizeReversalReason(reasonRaw);
+    var existing = readLedger(nk, uid, plat, txn);
+    if (existing && existing.value.account_id && existing.value.account_id !== uid) {
+        return { ok: false, already: false, granted: false, error: "account_mismatch" };
+    }
+    var rec;
+    var ver;
+    if (existing) {
+        rec = existing.value;
+        ver = existing.version;
+    }
+    else {
+        var hint = String(productIdHint || "").trim();
+        var product_1 = lookupCommerceProduct(hint);
+        if (!product_1) {
+            return { ok: true, already: true, granted: false, error: "ignored_unknown_product" };
+        }
+        rec = {
+            account_id: uid,
+            platform: plat,
+            platform_transaction_id: txn,
+            product_id: product_1.product_id,
+            purchase_source: purchaseSourceForPlatform(plat),
+            purchase_timestamp: nowUnix(),
+            validation_status: reason,
+            delivery_status: reason,
+            delivery_transaction_id: deliveryRefFor(plat, txn),
+            refund_or_revocation_status: reason,
+            verified_amount: product_1.usd_cents / 100,
+            verified_currency: "USD",
+            normalized_usd: product_1.usd_cents / 100,
+            normalized_usd_cents: product_1.usd_cents,
+            beta_program_id: COMMERCE_BETA_PROGRAM_ID,
+            eligible_beta_spend_amount: 0,
+            eligible_beta_spend_cents: 0,
+            delivery_type: product_1.delivery_type,
+            entitlement_id: product_1.entitlement_id,
+            seen_before: false,
+            updated_at: nowUnix(),
+            original_delivery_status: PURCHASE_RECEIVED,
+            refunded_at: nowUnix(),
+            reversal_ref: reversalRefFor(plat, txn),
+            reversal_reason: reason,
+            reversal_applied: true,
+        };
+        writeLedger(nk, rec, "*");
+        if (rec.entitlement_id) {
+            revokePaidQueueEntitlement(nk, uid, rec.entitlement_id);
+        }
+        var wallet = readDiamondWalletObj(nk, uid).value;
+        return {
+            ok: true,
+            already: false,
+            granted: false,
+            ledger: rec,
+            wallet: { balance: wallet.balance, diamond_debt: wallet.diamond_debt },
+        };
+    }
+    var product = lookupCommerceProduct(rec.product_id) || lookupCommerceProduct(String(productIdHint || ""));
+    var deliveryRef = rec.delivery_transaction_id || deliveryRefFor(plat, txn);
+    var reversalRef = rec.reversal_ref || reversalRefFor(plat, txn);
+    var deliveredDiamonds = wasDiamondDeliveryApplied(nk, rec);
+    var reverseAmt = deliveredDiamonds ? diamondAmountForReversal(nk, rec, product) : 0;
+    var walletResult = {
+        ok: true,
+        already: true,
+        balance: readDiamondWalletObj(nk, uid).value.balance,
+        diamond_debt: readDiamondWalletObj(nk, uid).value.diamond_debt,
+        debit: 0,
+        debt_added: 0,
+    };
+    if (reverseAmt > 0) {
+        var reversed = reverseDiamondsIdempotent(nk, uid, reverseAmt, reversalRef, deliveryRef);
+        if (!reversed.ok) {
+            return { ok: false, already: false, granted: false, error: reversed.error || "Diamond reversal failed", ledger: rec };
+        }
+        walletResult = reversed;
+    }
+    if (rec.entitlement_id) {
+        revokePaidQueueEntitlement(nk, uid, rec.entitlement_id);
+    }
+    var already = !!rec.reversal_applied && isLedgerReversed(rec);
+    if (!rec.original_delivery_status) {
+        rec.original_delivery_status = rec.delivery_status;
+    }
+    rec.delivery_status = reason;
+    rec.refund_or_revocation_status = reason;
+    rec.validation_status = reason;
+    rec.eligible_beta_spend_amount = 0;
+    rec.eligible_beta_spend_cents = 0;
+    rec.refunded_at = rec.refunded_at || nowUnix();
+    rec.reversal_ref = reversalRef;
+    rec.reversal_reason = reason;
+    rec.reversal_applied = true;
+    rec.account_id = uid;
+    rec.platform_transaction_id = rec.platform_transaction_id || txn;
+    rec.delivery_transaction_id = deliveryRef;
+    writeLedger(nk, rec, ver);
+    return {
+        ok: true,
+        already: already && walletResult.already,
+        granted: false,
+        ledger: rec,
+        wallet: { balance: walletResult.balance, diamond_debt: walletResult.diamond_debt },
+    };
+}
+function applyRefundToLedger(nk, rec, _version) {
+    var result = processPurchaseReversal(nk, rec.account_id, rec.platform, rec.platform_transaction_id, PURCHASE_REFUNDED, rec.product_id);
+    return result.ledger || rec;
+}
+function reconcileVoidedPurchase(nk, accountId, platform, txId, productId, reason) {
+    return processPurchaseReversal(nk, accountId, platform, txId, reason || PURCHASE_VOIDED, productId);
+}
+function validatePlatformPurchase(nk, userId, platform, receipt) {
+    var p = String(platform || "").toUpperCase();
+    // persist=true is mandatory. Godot wrappers default persist=false and must not be used.
+    if (p === "APPLE") {
+        return nk.purchaseValidateApple(userId, receipt, true);
+    }
+    if (p === "GOOGLE") {
+        return nk.purchaseValidateGoogle(userId, receipt, true);
+    }
+    throw Err("Unsupported platform");
+}
+function processValidatedPurchase(nk, accountId, platform, vp) {
+    var txId = String(vp.transactionId || "").trim();
+    if (!txId) {
+        throw Err("Validated purchase missing transactionId");
+    }
+    var product = lookupCommerceProduct(String(vp.productId || ""));
+    var existing = readLedger(nk, accountId, platform, txId);
+    var refunded = Number(vp.refundTime || 0) > 0;
+    if (!product || !product.production_deliverable) {
+        var rec_3 = existing
+            ? existing.value
+            : {
+                account_id: accountId,
+                platform: platform,
+                platform_transaction_id: txId,
+                product_id: String(vp.productId || ""),
+                purchase_source: purchaseSourceForPlatform(platform),
+                purchase_timestamp: Number(vp.purchaseTime || nowUnix()),
+                validation_status: PURCHASE_REJECTED,
+                delivery_status: PURCHASE_REJECTED,
+                delivery_transaction_id: "",
+                refund_or_revocation_status: refunded ? PURCHASE_REFUNDED : "",
+                verified_amount: 0,
+                verified_currency: "",
+                normalized_usd: 0,
+                normalized_usd_cents: 0,
+                beta_program_id: COMMERCE_BETA_PROGRAM_ID,
+                eligible_beta_spend_amount: 0,
+                eligible_beta_spend_cents: 0,
+                delivery_type: "",
+                entitlement_id: "",
+                seen_before: !!vp.seenBefore,
+                updated_at: nowUnix(),
+            };
+        rec_3.validation_status = PURCHASE_REJECTED;
+        rec_3.delivery_status = PURCHASE_REJECTED;
+        writeLedger(nk, rec_3, existing ? existing.version : "*");
+        return rec_3;
+    }
+    if (existing && isLedgerReversed(existing.value)) {
+        return existing.value;
+    }
+    if (existing && existing.value.delivery_status === PURCHASE_DELIVERED) {
+        if (refunded) {
+            return applyRefundToLedger(nk, existing.value, existing.version);
+        }
+        return existing.value;
+    }
+    var usd = product.usd_cents / 100;
+    var eligibleCents = product.beta_spend_eligible ? product.usd_cents : 0;
+    var deliveryTxId = "dlv_" + ledgerStorageKey(platform, txId);
+    var rec;
+    var ver;
+    if (existing) {
+        rec = existing.value;
+        ver = existing.version;
+    }
+    else {
+        rec = {
+            account_id: accountId,
+            platform: platform,
+            platform_transaction_id: txId,
+            product_id: product.product_id,
+            purchase_source: purchaseSourceForPlatform(platform),
+            purchase_timestamp: Number(vp.purchaseTime || nowUnix()),
+            validation_status: PURCHASE_RECEIVED,
+            delivery_status: PURCHASE_RECEIVED,
+            delivery_transaction_id: "",
+            refund_or_revocation_status: "",
+            verified_amount: usd,
+            verified_currency: "USD",
+            normalized_usd: usd,
+            normalized_usd_cents: product.usd_cents,
+            beta_program_id: COMMERCE_BETA_PROGRAM_ID,
+            eligible_beta_spend_amount: eligibleCents / 100,
+            eligible_beta_spend_cents: eligibleCents,
+            delivery_type: product.delivery_type,
+            entitlement_id: product.entitlement_id,
+            seen_before: !!vp.seenBefore,
+            updated_at: nowUnix(),
+        };
+        ver = "*";
+    }
+    rec.product_id = product.product_id;
+    rec.purchase_source = purchaseSourceForPlatform(platform);
+    rec.verified_amount = usd;
+    rec.verified_currency = "USD";
+    rec.normalized_usd = usd;
+    rec.normalized_usd_cents = product.usd_cents;
+    rec.qualifying_topup_diamonds = Math.max(0, Math.floor(Number(product.qualifying_topup_diamonds || 0)));
+    rec.delivery_type = product.delivery_type;
+    rec.entitlement_id = product.entitlement_id;
+    rec.seen_before = !!vp.seenBefore;
+    if (refunded) {
+        rec.validation_status = PURCHASE_VALIDATED;
+        return applyRefundToLedger(nk, rec, ver);
+    }
+    rec.validation_status = PURCHASE_VALIDATED;
+    rec.delivery_status = PURCHASE_DELIVERING;
+    rec.delivery_transaction_id = deliveryTxId;
+    rec.eligible_beta_spend_amount = eligibleCents / 100;
+    rec.eligible_beta_spend_cents = eligibleCents;
+    rec.refund_or_revocation_status = "";
+    writeLedger(nk, rec, ver);
+    var delivered = deliverCatalogProduct(nk, accountId, product, deliveryTxId);
+    var after = readLedger(nk, accountId, platform, txId);
+    var afterVer = after ? after.version : "*";
+    rec = after ? after.value : rec;
+    if (!delivered.ok) {
+        rec.delivery_status = PURCHASE_VALIDATED;
+        writeLedger(nk, rec, afterVer);
+        throw Err(delivered.error || "Delivery failed");
+    }
+    rec.delivery_status = PURCHASE_DELIVERED;
+    rec.validation_status = PURCHASE_VALIDATED;
+    writeLedger(nk, rec, afterVer);
+    applyProductionQualifyingTopUp(nk, accountId, rec, product);
+    return rec;
+}
+function restoreAccountPurchases(nk, accountId) {
+    var rows = listLedgerRecords(nk, accountId);
+    for (var i = 0; i < rows.length; i++) {
+        var rec = rows[i];
+        if (rec.delivery_status !== PURCHASE_DELIVERED) {
+            continue;
+        }
+        if (rec.reversal_applied || isReversalStatus(rec.refund_or_revocation_status) || isReversalStatus(rec.delivery_status)) {
+            continue;
+        }
+        if (rec.delivery_type === DELIVERY_PERMANENT_ENTITLEMENT && rec.entitlement_id) {
+            writePaidQueueEntitlement(nk, accountId, rec.entitlement_id, 0, "iap_restore");
+        }
+        if (rec.delivery_type === DELIVERY_TIMED_ENTITLEMENT && rec.entitlement_id) {
+            var still = StorageEntitlementProvider.getRecord(nk, accountId, rec.entitlement_id);
+            if (still && still.status === "active") {
+                continue;
+            }
+            // Timed restore re-asserts remaining expiry from ledger timestamp + duration; does not re-grant diamonds.
+            var product = lookupCommerceProduct(rec.product_id);
+            if (product && product.duration_seconds > 0) {
+                var ends = rec.purchase_timestamp + product.duration_seconds;
+                if (ends > nowUnix()) {
+                    writePaidQueueEntitlement(nk, accountId, rec.entitlement_id, ends - nowUnix(), "iap_restore");
+                }
+            }
+        }
+        // DIAMONDS / other consumables are NOT re-delivered on restore.
+    }
+    return publicWallet(nk, accountId);
+}
+function rpcCommerceGetWallet(ctx, _logger, nk, _payload) {
+    if (!ctx.userId) {
+        throw Err("Unauthenticated");
+    }
+    return JSON.stringify({ ok: true, wallet: publicWallet(nk, ctx.userId, ctx.env) });
+}
+function rpcCommerceSpendDiamonds(ctx, _logger, nk, payload) {
+    if (!ctx.userId) {
+        throw Err("Unauthenticated");
+    }
+    var data = parsePayload(payload);
+    var amount = Math.floor(Number(data["amount"] || 0));
+    var reason = String(data["reason"] || "").trim();
+    var clientRef = String(data["idempotency_key"] || data["spend_ref"] || "").trim();
+    if (amount <= 0) {
+        throw Err("Invalid amount");
+    }
+    if (!reason || !clientRef) {
+        throw Err("reason and idempotency_key required");
+    }
+    var spendRef = "spend:" + reason + ":" + clientRef;
+    var result = spendDiamondsIdempotent(nk, ctx.userId, amount, spendRef);
+    if (!result.ok) {
+        return JSON.stringify({ ok: false, error: result.error || "Spend failed", balance: result.balance });
+    }
+    return JSON.stringify({ ok: true, balance: result.balance, already: result.already, wallet: publicWallet(nk, ctx.userId, ctx.env) });
+}
+function rpcCommerceProcessPurchase(ctx, logger, nk, payload) {
+    if (!ctx.userId) {
+        throw Err("Unauthenticated");
+    }
+    var data = parsePayload(payload);
+    var platform = String(data["platform"] || "").toUpperCase();
+    var receipt = String(data["receipt"] || data["purchase"] || "").trim();
+    if (!receipt) {
+        throw Err("receipt required");
+    }
+    if (platform !== "APPLE" && platform !== "GOOGLE") {
+        throw Err("platform must be APPLE or GOOGLE");
+    }
+    // Client-submitted product_id / price / usd are ignored. Catalog lookup after validation is authority.
+    var validated;
+    try {
+        validated = validatePlatformPurchase(nk, ctx.userId, platform, receipt);
+    }
+    catch (e) {
+        logger.error("IAP validation failed user=%s platform=%s", ctx.userId, platform);
+        return JSON.stringify({
+            ok: false,
+            error: "validation_failed",
+            delivered: false,
+        });
+    }
+    var purchases = validated && validated.validatedPurchases ? validated.validatedPurchases : [];
+    if (purchases.length === 0) {
+        return JSON.stringify({ ok: false, error: "validation_failed", delivered: false, purchases: [] });
+    }
+    var results = [];
+    for (var i = 0; i < purchases.length; i++) {
+        results.push(processValidatedPurchase(nk, ctx.userId, platform, purchases[i]));
+    }
+    return JSON.stringify({
+        ok: true,
+        purchases: results,
+        wallet: publicWallet(nk, ctx.userId, ctx.env),
+    });
+}
+function rpcCommerceGetPurchase(ctx, _logger, nk, payload) {
+    if (!ctx.userId) {
+        throw Err("Unauthenticated");
+    }
+    var data = parsePayload(payload);
+    var platform = String(data["platform"] || "").toUpperCase();
+    var txId = String(data["platform_transaction_id"] || "").trim();
+    if (!platform || !txId) {
+        throw Err("platform and platform_transaction_id required");
+    }
+    var existing = readLedger(nk, ctx.userId, platform, txId);
+    if (!existing) {
+        return JSON.stringify({ ok: false, error: "not_found" });
+    }
+    var rec = existing.value;
+    if (isLedgerReversed(rec)) {
+        return JSON.stringify({ ok: true, purchase: rec, wallet: publicWallet(nk, ctx.userId, ctx.env) });
+    }
+    if (rec.delivery_status === PURCHASE_VALIDATED || rec.delivery_status === PURCHASE_DELIVERING) {
+        var product = lookupCommerceProduct(rec.product_id);
+        if (product && product.production_deliverable) {
+            var delivered = deliverCatalogProduct(nk, ctx.userId, product, rec.delivery_transaction_id || ("dlv_" + ledgerStorageKey(platform, txId)));
+            var after = readLedger(nk, ctx.userId, platform, txId);
+            rec = after ? after.value : rec;
+            if (delivered.ok) {
+                rec.delivery_status = PURCHASE_DELIVERED;
+                writeLedger(nk, rec, after ? after.version : "*");
+                applyProductionQualifyingTopUp(nk, ctx.userId, rec, product);
+            }
+        }
+    }
+    return JSON.stringify({ ok: true, purchase: rec, wallet: publicWallet(nk, ctx.userId, ctx.env) });
+}
+function rpcCommerceRestore(ctx, _logger, nk, _payload) {
+    if (!ctx.userId) {
+        throw Err("Unauthenticated");
+    }
+    var wallet = restoreAccountPurchases(nk, ctx.userId);
+    return JSON.stringify({ ok: true, wallet: wallet, restored: true });
+}
+function rpcCommerceGetCatalog(ctx, _logger, _nk, _payload) {
+    if (!ctx.userId) {
+        throw Err("Unauthenticated");
+    }
+    var live = [];
+    for (var i = 0; i < COMMERCE_PRODUCT_CATALOG.length; i++) {
+        var p = COMMERCE_PRODUCT_CATALOG[i];
+        if (!p.production_deliverable) {
+            continue;
+        }
+        live.push({
+            product_id: p.product_id,
+            iap_product_id: p.iap_product_id,
+            usd_cents: p.usd_cents,
+            delivery_type: p.delivery_type,
+            repeatability: p.repeatability,
+            diamond_amount: p.diamond_amount,
+            qualifying_topup_diamonds: Math.max(0, Math.floor(Number(p.qualifying_topup_diamonds || 0))),
+            beta_voucher_cost: Math.max(0, Math.floor(Number(p.beta_voucher_cost || 0))),
+            beta_voucher_purchasable: !!p.beta_voucher_purchasable,
+            duration_seconds: p.duration_seconds,
+            entitlement_id: p.entitlement_id,
+            beta_spend_eligible: p.beta_spend_eligible,
+            live_store: !!p.live_store,
+        });
+    }
+    return JSON.stringify({ ok: true, products: live });
+}
+function onGooglePurchaseNotification(ctx, logger, nk, purchase, _providerPayload, notificationType) {
+    var productId = String((purchase && purchase.productId) || "");
+    var txId = String((purchase && purchase.transactionId) || "");
+    var userId = String((purchase && purchase.userId) || (ctx && ctx.userId) || "");
+    var ntype = String(notificationType || "");
+    var refundTime = Number((purchase && purchase.refundTime) || 0);
+    if (!isReversalNotification(ntype, refundTime)) {
+        logger.info("Google purchase notification ignored type=%s product=%s", ntype, productId);
+        return;
+    }
+    var product = lookupCommerceProduct(productId);
+    if (!product) {
+        logger.info("Google purchase notification ignored unknown product=%s", productId);
+        return;
+    }
+    if (!userId || !txId) {
+        logger.error("Google purchase notification missing user or transaction product=%s", productId);
+        return;
+    }
+    var result = processPurchaseReversal(nk, userId, "GOOGLE", txId, ntype, productId);
+    logger.info("Google purchase reversal product=%s ok=%s already=%s reason=%s", productId, String(result.ok), String(result.already), normalizeReversalReason(ntype));
+}
+/**
+ * Crownspire Phase 1 — Beta Shop Vouchers + simulated Top-Up foundation.
+ *
+ * DESIGN AUTHORITY: docs/CROWNSPIRE_SHOP_MONETIZATION_PRODUCTION_BIBLE.md
+ * LIVE PRODUCT AUTHORITY: data/commerce_products.json + COMMERCE_PRODUCT_CATALOG
+ *
+ * This module is TEST/BETA infrastructure only.
+ * - Zero cash value. Never revenue. Never GOOGLE_PLAY.
+ * - BETA_VOUCHER rows live in a separate ledger, not crownspire_purchase_ledger.
+ * - Production Top-Up is never advanced by voucher purchases.
+ * - Proposed economy (Diamond ladder, Growth Fund, Monthly Card, 2k–1.5M ladder) is NOT live.
+ */
+var BETA_VOUCHER_WALLET_KEY = "beta_voucher_wallet";
+var BETA_VOUCHER_LEDGER_COLLECTION = "crownspire_beta_voucher_ledger";
+var BETA_VOUCHER_LEDGER_INDEX_KEY = "beta_voucher_ledger_index";
+var BETA_VOUCHER_CODE_COLLECTION = "crownspire_beta_voucher_codes";
+var BETA_VOUCHER_REDEEM_COLLECTION = "crownspire_beta_voucher_redemptions";
+var BETA_TOPUP_COLLECTION = "crownspire_beta_topup";
+var PROD_TOPUP_COLLECTION = "crownspire_prod_topup";
+var COMMERCE_AUDIT_COLLECTION = "crownspire_commerce_audit";
+var ENTITLEMENT_BETA_VOUCHER_TESTING = "entitlement_beta_voucher_testing";
+var BETA_TOPUP_TEST_ROUND_ID = "topup_beta_round_test_001";
+var BETA_TOPUP_KIND = "BETA";
+var PROD_TOPUP_KIND = "PRODUCTION";
+var TEST_ONLY_VOUCHER_CODES = [
+    {
+        code_id: "code_test_voucher_5",
+        code_string: "CROWNSPIRE-TEST-VOUCHER-5",
+        voucher_grant_amount: 5,
+        allocation_cohort: "TEST_ONLY_LOW",
+        is_single_use: false,
+        max_global_redemptions: 0,
+        per_account_limit: 1,
+        is_active: true,
+        expires_at_utc: 0,
+        test_only: true,
+    },
+    {
+        code_id: "code_test_voucher_100",
+        code_string: "CROWNSPIRE-TEST-VOUCHER-100",
+        voucher_grant_amount: 100,
+        allocation_cohort: "TEST_ONLY_MID",
+        is_single_use: false,
+        max_global_redemptions: 0,
+        per_account_limit: 1,
+        is_active: true,
+        expires_at_utc: 0,
+        test_only: true,
+    },
+    {
+        code_id: "code_test_voucher_expired",
+        code_string: "CROWNSPIRE-TEST-VOUCHER-EXPIRED",
+        voucher_grant_amount: 5,
+        allocation_cohort: "TEST_ONLY",
+        is_single_use: false,
+        max_global_redemptions: 0,
+        per_account_limit: 1,
+        is_active: true,
+        expires_at_utc: 1,
+        test_only: true,
+    },
+    {
+        code_id: "code_test_voucher_inactive",
+        code_string: "CROWNSPIRE-TEST-VOUCHER-INACTIVE",
+        voucher_grant_amount: 5,
+        allocation_cohort: "TEST_ONLY",
+        is_single_use: false,
+        max_global_redemptions: 0,
+        per_account_limit: 1,
+        is_active: false,
+        expires_at_utc: 0,
+        test_only: true,
+    },
+    {
+        code_id: "code_test_voucher_cap1",
+        code_string: "CROWNSPIRE-TEST-VOUCHER-CAP1",
+        voucher_grant_amount: 5,
+        allocation_cohort: "TEST_ONLY",
+        is_single_use: false,
+        max_global_redemptions: 1,
+        per_account_limit: 1,
+        is_active: true,
+        expires_at_utc: 0,
+        test_only: true,
+    },
+];
+var TEST_ONLY_BETA_TOPUP_ROUNDS = {
+    topup_beta_round_test_001: {
+        round_id: "topup_beta_round_test_001",
+        kind: BETA_TOPUP_KIND,
+        test_only: true,
+        start_utc: 0,
+        end_utc: 4102444800,
+        milestones: [
+            { milestone_id: "beta_m_100", threshold: 100, reward_diamonds: 1, test_only: true },
+            { milestone_id: "beta_m_500", threshold: 500, reward_diamonds: 2, test_only: true },
+            { milestone_id: "beta_m_1000", threshold: 1000, reward_diamonds: 3, test_only: true },
+        ],
+    },
+    topup_beta_round_test_002: {
+        round_id: "topup_beta_round_test_002",
+        kind: BETA_TOPUP_KIND,
+        test_only: true,
+        start_utc: 0,
+        end_utc: 4102444800,
+        milestones: [
+            { milestone_id: "beta_m2_100", threshold: 100, reward_diamonds: 1, test_only: true },
+        ],
+    },
+};
+function normalizeVoucherCode(raw) {
+    return String(raw || "").trim().toUpperCase();
+}
+function runtimeContextName(env) {
+    return String((env || {})["CROWNSPIRE_RUNTIME_CONTEXT"] || "").trim().toLowerCase();
+}
+function isExplicitLocalOrTestRuntime(env) {
+    var ctx = runtimeContextName(env);
+    return ctx === "local" || ctx === "test";
+}
+/** Local/headless only. Never sufficient on production Nakama. */
+function isSafeDevVoucherBypass(env) {
+    var e = env || {};
+    if (String(e["CROWNSPIRE_ENABLE_BETA_VOUCHER_RPC"] || "") !== "true") {
+        return false;
+    }
+    return isExplicitLocalOrTestRuntime(e);
+}
+/** Hardcoded TEST_ONLY fixture codes. Off unless an explicit local/test code mode is set. */
+function areFixtureTestCodesEnabled(env) {
+    var e = env || {};
+    if (String(e["CROWNSPIRE_ENABLE_BETA_VOUCHER_TEST_CODES"] || "") !== "true") {
+        return false;
+    }
+    return isExplicitLocalOrTestRuntime(e);
+}
+function hasBetaVoucherTestingEntitlement(nk, accountId) {
+    return StorageEntitlementProvider.isActive(nk, accountId, ENTITLEMENT_BETA_VOUCHER_TESTING);
+}
+function isBetaVoucherTestingEnabled(nk, accountId, env) {
+    if (hasBetaVoucherTestingEntitlement(nk, accountId)) {
+        return true;
+    }
+    return isSafeDevVoucherBypass(env);
+}
+function lookupFixtureVoucherCode(code) {
+    var norm = normalizeVoucherCode(code);
+    for (var i = 0; i < TEST_ONLY_VOUCHER_CODES.length; i++) {
+        if (normalizeVoucherCode(TEST_ONLY_VOUCHER_CODES[i].code_string) === norm) {
+            return TEST_ONLY_VOUCHER_CODES[i];
+        }
+    }
+    return null;
+}
+function lookupStoredVoucherCode(nk, code) {
+    var norm = normalizeVoucherCode(code);
+    if (!norm) {
+        return null;
+    }
+    var obj = storageReadOne(nk, BETA_VOUCHER_CODE_COLLECTION, norm, SYSTEM_USER);
+    if (!obj || !obj.value) {
+        return null;
+    }
+    var raw = obj.value;
+    if (raw.test_only) {
+        return null;
+    }
+    var amount = Math.floor(Number(raw.voucher_grant_amount || 0));
+    if (amount <= 0 || !raw.code_string) {
+        return null;
+    }
+    return {
+        code_id: String(raw.code_id || norm),
+        code_string: String(raw.code_string),
+        voucher_grant_amount: amount,
+        allocation_cohort: String(raw.allocation_cohort || ""),
+        is_single_use: !!raw.is_single_use,
+        max_global_redemptions: Math.max(0, Math.floor(Number(raw.max_global_redemptions || 0))),
+        per_account_limit: Math.max(1, Math.floor(Number(raw.per_account_limit || 1))),
+        is_active: raw.is_active !== false,
+        expires_at_utc: Math.max(0, Math.floor(Number(raw.expires_at_utc || 0))),
+        test_only: false,
+    };
+}
+function lookupRedeemableVoucherCode(nk, code, env) {
+    var stored = lookupStoredVoucherCode(nk, code);
+    if (stored) {
+        return stored;
+    }
+    if (!areFixtureTestCodesEnabled(env)) {
+        return null;
+    }
+    return lookupFixtureVoucherCode(code);
+}
+function emptyVoucherWallet(accountId) {
+    return {
+        account_id: accountId,
+        balance: 0,
+        processed_refs: {},
+        updated_at: nowUnix(),
+    };
+}
+function normalizeVoucherWallet(rec, accountId) {
+    if (!rec.processed_refs) {
+        rec.processed_refs = {};
+    }
+    rec.account_id = accountId;
+    rec.balance = Math.max(0, Math.floor(Number(rec.balance || 0)));
+    return rec;
+}
+function readVoucherWalletObj(nk, accountId) {
+    var obj = storageReadOne(nk, COMMERCE_WALLET_COLLECTION, BETA_VOUCHER_WALLET_KEY, accountId);
+    if (obj && obj.value) {
+        return { value: normalizeVoucherWallet(obj.value, accountId), version: obj.version };
+    }
+    return { value: emptyVoucherWallet(accountId), version: "*" };
+}
+function mutateVoucherWallet(nk, accountId, ref, type, amount, extra) {
+    var amt = Math.floor(Number(amount || 0));
+    var key = String(ref || "").trim();
+    if (!accountId || !key || amt < 0) {
+        return { ok: false, already: false, balance: 0, before: 0, error: "Invalid voucher mutation" };
+    }
+    for (var attempt = 0; attempt < 8; attempt++) {
+        var obj = readVoucherWalletObj(nk, accountId);
+        var rec = obj.value;
+        var prev = rec.processed_refs[key];
+        if (prev) {
+            return { ok: true, already: true, balance: rec.balance, before: rec.balance };
+        }
+        var before = rec.balance;
+        if (type === "spend") {
+            if (rec.balance < amt) {
+                return { ok: false, already: false, balance: rec.balance, before: rec.balance, error: "Insufficient vouchers" };
+            }
+            rec.balance = rec.balance - amt;
+        }
+        else if (type === "grant" || type === "reversal") {
+            rec.balance = rec.balance + amt;
+        }
+        else {
+            return { ok: false, already: false, balance: rec.balance, before: rec.balance, error: "Unknown voucher mutation" };
+        }
+        rec.processed_refs[key] = {
+            type: type,
+            amount: amt,
+            ts: nowUnix(),
+            code_id: extra.code_id,
+            product_id: extra.product_id,
+            reason: extra.reason,
+        };
+        rec.updated_at = nowUnix();
+        try {
+            storageWriteVersioned(nk, COMMERCE_WALLET_COLLECTION, BETA_VOUCHER_WALLET_KEY, accountId, rec, obj.version, 0);
+            return { ok: true, already: false, balance: rec.balance, before: before };
+        }
+        catch (_e) {
+            continue;
+        }
+    }
+    return { ok: false, already: false, balance: 0, before: 0, error: "Voucher wallet conflict" };
+}
+function writeCommerceAudit(nk, accountId, audit) {
+    var id = String(audit.idempotency_key || audit.transaction_id || ("aud_" + nowUnix() + "_" + Math.floor(Math.random() * 10000)));
+    var key = id.replace(/[^a-zA-Z0-9._-]+/g, "_");
+    if (key.length > 120) {
+        key = key.substring(0, 120);
+    }
+    audit.account_id = accountId;
+    audit.server_timestamp_utc = nowUnix();
+    try {
+        storageWriteVersioned(nk, COMMERCE_AUDIT_COLLECTION, key, accountId, audit, "*", 0);
+    }
+    catch (_e) {
+        /* audit is best-effort; commerce mutation already committed */
+    }
+}
+function activeBetaTopUpRound() {
+    return TEST_ONLY_BETA_TOPUP_ROUNDS[BETA_TOPUP_TEST_ROUND_ID];
+}
+function lookupBetaTopUpRound(roundId) {
+    var id = String(roundId || "").trim();
+    if (TEST_ONLY_BETA_TOPUP_ROUNDS[id]) {
+        return TEST_ONLY_BETA_TOPUP_ROUNDS[id];
+    }
+    return null;
+}
+function emptyTopUpProgress(accountId, round) {
+    return {
+        account_id: accountId,
+        round_id: round.round_id,
+        kind: round.kind,
+        progress: 0,
+        claimed: {},
+        applied_refs: {},
+        history: [],
+        updated_at: nowUnix(),
+    };
+}
+function readTopUpProgress(nk, collection, accountId, round) {
+    var obj = storageReadOne(nk, collection, round.round_id, accountId);
+    if (obj && obj.value) {
+        var rec = obj.value;
+        rec.claimed = rec.claimed || {};
+        rec.applied_refs = rec.applied_refs || {};
+        rec.history = rec.history || [];
+        rec.progress = Math.max(0, Math.floor(Number(rec.progress || 0)));
+        rec.account_id = accountId;
+        rec.round_id = round.round_id;
+        rec.kind = round.kind;
+        return { value: rec, version: obj.version };
+    }
+    return { value: emptyTopUpProgress(accountId, round), version: "*" };
+}
+function applyTopUpProgressIdempotent(nk, collection, accountId, round, amount, applyRef, productId) {
+    var amt = Math.max(0, Math.floor(Number(amount || 0)));
+    var ref = String(applyRef || "").trim();
+    if (!accountId || !ref) {
+        return { ok: false, already: false, before: 0, after: 0, error: "Invalid top-up apply" };
+    }
+    for (var attempt = 0; attempt < 8; attempt++) {
+        var obj = readTopUpProgress(nk, collection, accountId, round);
+        var rec = obj.value;
+        if (rec.applied_refs[ref]) {
+            return { ok: true, already: true, before: rec.progress, after: rec.progress };
+        }
+        var before = rec.progress;
+        rec.progress = rec.progress + amt;
+        rec.applied_refs[ref] = { amount: amt, ts: nowUnix(), product_id: productId };
+        rec.history.push({
+            ref: ref,
+            product_id: productId,
+            amount: amt,
+            before: before,
+            after: rec.progress,
+            ts: nowUnix(),
+        });
+        rec.updated_at = nowUnix();
+        try {
+            storageWriteVersioned(nk, collection, round.round_id, accountId, rec, obj.version, 0);
+            return { ok: true, already: false, before: before, after: rec.progress };
+        }
+        catch (_e) {
+            continue;
+        }
+    }
+    return { ok: false, already: false, before: 0, after: 0, error: "Top-up conflict" };
+}
+function publicTopUpState(nk, accountId, round, collection) {
+    var rec = readTopUpProgress(nk, collection, accountId, round).value;
+    var now = nowUnix();
+    var milestones = [];
+    for (var i = 0; i < round.milestones.length; i++) {
+        var m = round.milestones[i];
+        var claimed = !!rec.claimed[m.milestone_id];
+        milestones.push({
+            milestone_id: m.milestone_id,
+            threshold: m.threshold,
+            reward_diamonds: m.reward_diamonds,
+            test_only: !!m.test_only,
+            reached: rec.progress >= m.threshold,
+            claimed: claimed,
+            claimable: rec.progress >= m.threshold && !claimed && now >= round.start_utc && (round.end_utc <= 0 || now <= round.end_utc),
+        });
+    }
+    return {
+        round_id: round.round_id,
+        kind: round.kind,
+        test_only: !!round.test_only,
+        start_utc: round.start_utc,
+        end_utc: round.end_utc,
+        progress: rec.progress,
+        milestones: milestones,
+    };
+}
+function applyProductionQualifyingTopUp(nk, accountId, rec, product) {
+    if (!rec || rec.purchase_source === PURCHASE_SOURCE_BETA_VOUCHER) {
+        return;
+    }
+    if (rec.purchase_source !== PURCHASE_SOURCE_GOOGLE_PLAY && rec.purchase_source !== PURCHASE_SOURCE_APPLE_STOREKIT) {
+        return;
+    }
+    if (rec.delivery_status !== PURCHASE_DELIVERED) {
+        return;
+    }
+    // No production Top-Up round is active in Phase 1. Do not invent one.
+    var activeProd = lookupActiveProductionTopUpRound();
+    if (!activeProd) {
+        return;
+    }
+    var amount = Math.max(0, Math.floor(Number(product.qualifying_topup_diamonds || 0)));
+    if (amount <= 0) {
+        return;
+    }
+    var ref = rec.delivery_transaction_id || deliveryRefFor(rec.platform, rec.platform_transaction_id);
+    applyTopUpProgressIdempotent(nk, PROD_TOPUP_COLLECTION, accountId, activeProd, amount, ref, product.product_id);
+}
+function lookupActiveProductionTopUpRound() {
+    return null;
+}
+function attachBetaCommercePublicFields(nk, accountId, payload, env) {
+    var available = isBetaVoucherTestingEnabled(nk, accountId, env);
+    payload.beta_voucher_available = available;
+    payload.beta_voucher_cash_value = 0;
+    payload.production_topup = null;
+    if (!available) {
+        payload.beta_vouchers = 0;
+        payload.beta_voucher_offers = [];
+        payload.beta_topup = null;
+        return payload;
+    }
+    var vouchers = readVoucherWalletObj(nk, accountId).value;
+    payload.beta_vouchers = vouchers.balance;
+    var offers = [];
+    for (var i = 0; i < COMMERCE_PRODUCT_CATALOG.length; i++) {
+        var p = COMMERCE_PRODUCT_CATALOG[i];
+        if (p.beta_voucher_purchasable && p.production_deliverable) {
+            offers.push({
+                product_id: p.product_id,
+                iap_product_id: p.iap_product_id,
+                voucher_cost: Math.max(0, Math.floor(Number(p.beta_voucher_cost || 0))),
+                diamond_amount: p.diamond_amount,
+                qualifying_topup_diamonds: Math.max(0, Math.floor(Number(p.qualifying_topup_diamonds || 0))),
+            });
+        }
+    }
+    payload.beta_voucher_offers = offers;
+    payload.beta_topup = publicTopUpState(nk, accountId, activeBetaTopUpRound(), BETA_TOPUP_COLLECTION);
+    return payload;
+}
+function redeemVoucherCodeForAccount(nk, accountId, rawCode, clientAmount, clientCohort, idempotencyKey, env) {
+    var code = normalizeVoucherCode(rawCode);
+    if (!code) {
+        return { ok: false, error: "invalid_code" };
+    }
+    var def = lookupRedeemableVoucherCode(nk, code, env);
+    if (!def) {
+        return { ok: false, error: "invalid_code" };
+    }
+    if (!def.is_active) {
+        return { ok: false, error: "inactive_code" };
+    }
+    if (def.expires_at_utc > 0 && nowUnix() >= def.expires_at_utc) {
+        return { ok: false, error: "expired_code" };
+    }
+    var grantAmount = Math.max(0, Math.floor(Number(def.voucher_grant_amount || 0)));
+    var cohort = def.allocation_cohort;
+    void clientAmount;
+    void clientCohort;
+    var redeemKey = def.code_id;
+    var existing = storageReadOne(nk, BETA_VOUCHER_REDEEM_COLLECTION, redeemKey, accountId);
+    if (existing && existing.value) {
+        var prev = existing.value;
+        if (prev.count >= def.per_account_limit) {
+            var wallet = readVoucherWalletObj(nk, accountId).value;
+            return {
+                ok: false,
+                error: "already_redeemed",
+                already: true,
+                beta_vouchers: wallet.balance,
+                wallet: publicWallet(nk, accountId),
+            };
+        }
+    }
+    if (def.max_global_redemptions > 0) {
+        var statsObj = storageReadOne(nk, BETA_VOUCHER_CODE_COLLECTION, def.code_id, SYSTEM_USER);
+        var stats = statsObj && statsObj.value
+            ? statsObj.value
+            : { code_id: def.code_id, current_global_redemptions: 0, updated_at: nowUnix() };
+        if (stats.current_global_redemptions >= def.max_global_redemptions) {
+            return { ok: false, error: "global_cap_reached" };
+        }
+        stats.current_global_redemptions += 1;
+        stats.updated_at = nowUnix();
+        try {
+            storageWriteVersioned(nk, BETA_VOUCHER_CODE_COLLECTION, def.code_id, SYSTEM_USER, stats, statsObj ? statsObj.version : "*", 0);
+        }
+        catch (_e) {
+            return { ok: false, error: "global_cap_conflict" };
+        }
+    }
+    var grantRef = "vgrant:" + def.code_id + ":" + accountId;
+    var before = readVoucherWalletObj(nk, accountId).value.balance;
+    var granted = mutateVoucherWallet(nk, accountId, grantRef, "grant", grantAmount, {
+        code_id: def.code_id,
+        reason: "code_redemption",
+    });
+    if (!granted.ok) {
+        return { ok: false, error: granted.error || "grant_failed" };
+    }
+    var redemption = {
+        account_id: accountId,
+        code_id: def.code_id,
+        code_string: def.code_string,
+        count: existing && existing.value ? Math.floor(Number(existing.value.count || 0)) + (granted.already ? 0 : 1) : 1,
+        last_amount: grantAmount,
+        last_cohort: cohort,
+        updated_at: nowUnix(),
+    };
+    try {
+        storageWriteVersioned(nk, BETA_VOUCHER_REDEEM_COLLECTION, redeemKey, accountId, redemption, existing ? existing.version : "*", 0);
+    }
+    catch (_e) {
+        /* wallet grant already idempotent */
+    }
+    writeCommerceAudit(nk, accountId, {
+        transaction_id: grantRef,
+        purchase_source: PURCHASE_SOURCE_BETA_VOUCHER,
+        event: "voucher_code_redeem",
+        code_id: def.code_id,
+        tester_cohort: cohort,
+        voucher_grant_amount: grantAmount,
+        voucher_balance_before: granted.already ? before : granted.before,
+        voucher_balance_after: granted.balance,
+        idempotency_key: String(idempotencyKey || grantRef),
+        client_amount_ignored: Math.floor(Number(clientAmount || 0)),
+    });
+    return {
+        ok: true,
+        already: granted.already,
+        granted_vouchers: grantAmount,
+        allocation_cohort: cohort,
+        beta_vouchers: granted.balance,
+        wallet: publicWallet(nk, accountId),
+    };
+}
+function indexBetaVoucherLedger(nk, accountId, key) {
+    for (var attempt = 0; attempt < 8; attempt++) {
+        var obj = storageReadOne(nk, COMMERCE_WALLET_COLLECTION, BETA_VOUCHER_LEDGER_INDEX_KEY, accountId);
+        var rec = void 0;
+        var ver = "*";
+        if (obj && obj.value) {
+            rec = obj.value;
+            ver = obj.version;
+            if (!rec.transaction_keys) {
+                rec.transaction_keys = [];
+            }
+        }
+        else {
+            rec = { account_id: accountId, transaction_keys: [], updated_at: nowUnix() };
+        }
+        if (rec.transaction_keys.indexOf(key) >= 0) {
+            return;
+        }
+        rec.transaction_keys.push(key);
+        rec.updated_at = nowUnix();
+        try {
+            storageWriteVersioned(nk, COMMERCE_WALLET_COLLECTION, BETA_VOUCHER_LEDGER_INDEX_KEY, accountId, rec, ver, 0);
+            return;
+        }
+        catch (_e) {
+            continue;
+        }
+    }
+}
+function purchasePackageWithVouchers(nk, accountId, productId, clientCost, clientQualifying, idempotencyKey) {
+    void clientCost;
+    void clientQualifying;
+    var product = lookupCommerceProduct(productId);
+    if (!product || !product.production_deliverable || !product.beta_voucher_purchasable) {
+        return { ok: false, error: "product_not_voucher_purchasable" };
+    }
+    var cost = Math.max(0, Math.floor(Number(product.beta_voucher_cost || 0)));
+    if (cost <= 0) {
+        return { ok: false, error: "invalid_voucher_cost" };
+    }
+    var keyRaw = String(idempotencyKey || "").trim();
+    if (!keyRaw) {
+        return { ok: false, error: "idempotency_key_required" };
+    }
+    var txId = "bv_" + ledgerStorageKey("beta_voucher", accountId + "_" + product.product_id + "_" + keyRaw);
+    var existing = storageReadOne(nk, BETA_VOUCHER_LEDGER_COLLECTION, txId, accountId);
+    if (existing && existing.value && existing.value.delivery_status === PURCHASE_DELIVERED) {
+        return {
+            ok: true,
+            already: true,
+            purchase_source: PURCHASE_SOURCE_BETA_VOUCHER,
+            purchase: existing.value,
+            wallet: publicWallet(nk, accountId),
+        };
+    }
+    var spendRef = "vspend:" + txId;
+    var spent = mutateVoucherWallet(nk, accountId, spendRef, "spend", cost, {
+        product_id: product.product_id,
+        reason: "simulated_purchase",
+    });
+    if (!spent.ok) {
+        return { ok: false, error: spent.error || "Insufficient vouchers", beta_vouchers: spent.balance };
+    }
+    var deliveryTxId = "dlv_" + txId;
+    var delivered = deliverCatalogProduct(nk, accountId, product, deliveryTxId);
+    if (!delivered.ok) {
+        mutateVoucherWallet(nk, accountId, "vrev:" + txId, "reversal", cost, {
+            product_id: product.product_id,
+            reason: "delivery_failed_reversal",
+        });
+        return { ok: false, error: delivered.error || "Delivery failed" };
+    }
+    var qualifying = Math.max(0, Math.floor(Number(product.qualifying_topup_diamonds || 0)));
+    var betaRound = activeBetaTopUpRound();
+    var topup = applyTopUpProgressIdempotent(nk, BETA_TOPUP_COLLECTION, accountId, betaRound, qualifying, deliveryTxId, product.product_id);
+    var rewards = [];
+    if (product.delivery_type === DELIVERY_DIAMONDS) {
+        rewards.push({ type: "wallet_currency", target_id: "diamonds", amount: product.diamond_amount });
+    }
+    else if (product.entitlement_id) {
+        rewards.push({ type: "entitlement", target_id: product.entitlement_id, amount: 1 });
+    }
+    var rec = {
+        account_id: accountId,
+        purchase_source: PURCHASE_SOURCE_BETA_VOUCHER,
+        product_id: product.product_id,
+        platform: "BETA_VOUCHER",
+        platform_transaction_id: txId,
+        voucher_cost: cost,
+        qualifying_topup_diamonds: qualifying,
+        delivery_status: PURCHASE_DELIVERED,
+        delivery_transaction_id: deliveryTxId,
+        rewards_granted: rewards,
+        created_at: nowUnix(),
+        updated_at: nowUnix(),
+    };
+    try {
+        storageWriteVersioned(nk, BETA_VOUCHER_LEDGER_COLLECTION, txId, accountId, rec, existing ? existing.version : "*", 0);
+        indexBetaVoucherLedger(nk, accountId, txId);
+    }
+    catch (_e) {
+        /* replay-safe */
+    }
+    writeCommerceAudit(nk, accountId, {
+        transaction_id: txId,
+        purchase_source: PURCHASE_SOURCE_BETA_VOUCHER,
+        event: "voucher_simulated_purchase",
+        product_id: product.product_id,
+        voucher_cost: cost,
+        qualifying_topup_diamonds: qualifying,
+        topup_event_id: betaRound.round_id,
+        topup_progress_before: topup.before,
+        topup_progress_after: topup.after,
+        rewards_granted: rewards,
+        voucher_balance_before: spent.before,
+        voucher_balance_after: spent.balance,
+        production_revenue: 0,
+        production_topup: 0,
+        idempotency_key: keyRaw,
+    });
+    return {
+        ok: true,
+        already: spent.already,
+        purchase_source: PURCHASE_SOURCE_BETA_VOUCHER,
+        purchase: rec,
+        beta_vouchers: spent.balance,
+        beta_topup: publicTopUpState(nk, accountId, betaRound, BETA_TOPUP_COLLECTION),
+        production_topup: 0,
+        wallet: publicWallet(nk, accountId),
+    };
+}
+function claimBetaTopUpMilestone(nk, accountId, milestoneId, idempotencyKey) {
+    var mid = String(milestoneId || "").trim();
+    if (!mid) {
+        return { ok: false, error: "milestone_required" };
+    }
+    var round = activeBetaTopUpRound();
+    var now = nowUnix();
+    if (now < round.start_utc || (round.end_utc > 0 && now > round.end_utc)) {
+        return { ok: false, error: "round_inactive" };
+    }
+    var def = null;
+    for (var i = 0; i < round.milestones.length; i++) {
+        if (round.milestones[i].milestone_id === mid) {
+            def = round.milestones[i];
+            break;
+        }
+    }
+    if (!def) {
+        return { ok: false, error: "unknown_milestone" };
+    }
+    for (var attempt = 0; attempt < 8; attempt++) {
+        var obj = readTopUpProgress(nk, BETA_TOPUP_COLLECTION, accountId, round);
+        var rec = obj.value;
+        if (rec.progress < def.threshold) {
+            return { ok: false, error: "threshold_not_reached", progress: rec.progress, threshold: def.threshold };
+        }
+        if (rec.claimed[mid]) {
+            return {
+                ok: true,
+                already: true,
+                milestone_id: mid,
+                wallet: publicWallet(nk, accountId),
+                beta_topup: publicTopUpState(nk, accountId, round, BETA_TOPUP_COLLECTION),
+            };
+        }
+        var grantRef = "btclaim:" + round.round_id + ":" + mid + ":" + accountId;
+        var granted = grantDiamondsIdempotent(nk, accountId, def.reward_diamonds, grantRef);
+        if (!granted.ok) {
+            return { ok: false, error: granted.error || "reward_failed" };
+        }
+        rec.claimed[mid] = {
+            claimed_at: nowUnix(),
+            reward_diamonds: def.reward_diamonds,
+            grant_ref: grantRef,
+        };
+        rec.updated_at = nowUnix();
+        try {
+            storageWriteVersioned(nk, BETA_TOPUP_COLLECTION, round.round_id, accountId, rec, obj.version, 0);
+            writeCommerceAudit(nk, accountId, {
+                transaction_id: grantRef,
+                purchase_source: PURCHASE_SOURCE_BETA_VOUCHER,
+                event: "beta_topup_milestone_claim",
+                milestone_id: mid,
+                threshold: def.threshold,
+                reward_diamonds: def.reward_diamonds,
+                topup_event_id: round.round_id,
+                idempotency_key: String(idempotencyKey || grantRef),
+            });
+            return {
+                ok: true,
+                already: granted.already,
+                milestone_id: mid,
+                reward_diamonds: def.reward_diamonds,
+                wallet: publicWallet(nk, accountId),
+                beta_topup: publicTopUpState(nk, accountId, round, BETA_TOPUP_COLLECTION),
+            };
+        }
+        catch (_e) {
+            continue;
+        }
+    }
+    return { ok: false, error: "claim_conflict" };
+}
+function rpcCommerceRedeemVoucherCode(ctx, _logger, nk, payload) {
+    if (!ctx.userId) {
+        throw Err("Unauthenticated");
+    }
+    if (!isBetaVoucherTestingEnabled(nk, ctx.userId, ctx.env)) {
+        return JSON.stringify({ ok: false, error: "beta_voucher_unavailable" });
+    }
+    var data = parsePayload(payload);
+    return JSON.stringify(redeemVoucherCodeForAccount(nk, ctx.userId, String(data["code"] || ""), Number(data["amount"] || data["voucher_grant_amount"] || 0), String(data["allocation_cohort"] || data["cohort"] || ""), String(data["idempotency_key"] || ""), ctx.env));
+}
+function rpcCommercePurchaseWithVouchers(ctx, _logger, nk, payload) {
+    if (!ctx.userId) {
+        throw Err("Unauthenticated");
+    }
+    if (!isBetaVoucherTestingEnabled(nk, ctx.userId, ctx.env)) {
+        return JSON.stringify({ ok: false, error: "beta_voucher_unavailable" });
+    }
+    var data = parsePayload(payload);
+    return JSON.stringify(purchasePackageWithVouchers(nk, ctx.userId, String(data["product_id"] || ""), Number(data["voucher_cost"] || data["amount"] || 0), Number(data["qualifying_topup_diamonds"] || 0), String(data["idempotency_key"] || "")));
+}
+function rpcCommerceGetBetaTopUp(ctx, _logger, nk, _payload) {
+    if (!ctx.userId) {
+        throw Err("Unauthenticated");
+    }
+    if (!isBetaVoucherTestingEnabled(nk, ctx.userId, ctx.env)) {
+        return JSON.stringify({ ok: false, error: "beta_voucher_unavailable" });
+    }
+    return JSON.stringify({
+        ok: true,
+        beta_topup: publicTopUpState(nk, ctx.userId, activeBetaTopUpRound(), BETA_TOPUP_COLLECTION),
+        production_topup: null,
+        wallet: publicWallet(nk, ctx.userId, ctx.env),
+    });
+}
+function rpcCommerceClaimBetaTopUpMilestone(ctx, _logger, nk, payload) {
+    if (!ctx.userId) {
+        throw Err("Unauthenticated");
+    }
+    if (!isBetaVoucherTestingEnabled(nk, ctx.userId, ctx.env)) {
+        return JSON.stringify({ ok: false, error: "beta_voucher_unavailable" });
+    }
+    var data = parsePayload(payload);
+    return JSON.stringify(claimBetaTopUpMilestone(nk, ctx.userId, String(data["milestone_id"] || ""), String(data["idempotency_key"] || "")));
 }

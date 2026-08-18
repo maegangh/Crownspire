@@ -23,10 +23,23 @@ const ENTITLEMENT_ALLIANCE_AUTO_HELP = "alliance_auto_help";
 const ENTITLEMENT_BETA_ALLIANCE_AUTO_HELP = "beta_alliance_auto_help";
 
 /**
- * LOCAL DEVELOPMENT ONLY secret for grant/revoke tooling.
- * Normal game clients must never ship this value.
+ * Dev entitlement RPC is environment-injected. No hardcoded secret.
+ * Requires CROWNSPIRE_ENABLE_DEV_ENTITLEMENT_RPC=true AND
+ * CROWNSPIRE_DEV_ENTITLEMENT_SECRET (min 16 chars).
+ * CROWNSPIRE_ENABLE_BETA_GRANTS does NOT enable this RPC.
  */
-const CROWNSPIR_DEV_ENTITLEMENT_SECRET = "crownspire-local-dev-entitlement-secret";
+function getDevEntitlementSecret(ctx: nkruntime.Context): string {
+  const env = ctx && ctx.env ? ctx.env : {};
+  return String(env["CROWNSPIRE_DEV_ENTITLEMENT_SECRET"] || "");
+}
+
+function isDevEntitlementRpcEnabled(ctx: nkruntime.Context): boolean {
+  const env = ctx && ctx.env ? ctx.env : {};
+  if (String(env["CROWNSPIRE_ENABLE_DEV_ENTITLEMENT_RPC"] || "") !== "true") {
+    return false;
+  }
+  return getDevEntitlementSecret(ctx).length >= 16;
+}
 
 const HELP_STATUS_ACTIVE = "ACTIVE";
 const HELP_STATUS_COMPLETED = "COMPLETED";
@@ -700,24 +713,47 @@ function rpcGetMyEntitlements(ctx: nkruntime.Context, logger: nkruntime.Logger, 
     throw Err("Unauthenticated");
   }
   const beta = StorageEntitlementProvider.getRecord(nk, ctx.userId, ENTITLEMENT_BETA_ALLIANCE_AUTO_HELP);
+  const voucherTesting = StorageEntitlementProvider.getRecord(nk, ctx.userId, "entitlement_beta_voucher_testing");
+  const paid = listPaidQueueEntitlements(nk, ctx.userId);
+  const entitlements: EntitlementRecord[] = [];
+  if (beta) {
+    entitlements.push(beta);
+  }
+  if (voucherTesting) {
+    entitlements.push(voucherTesting);
+  }
+  for (let i = 0; i < paid.length; i++) {
+    entitlements.push(paid[i]);
+  }
   return JSON.stringify({
     ok: true,
-    entitlements: beta ? [beta] : [],
+    entitlements: entitlements,
     auto_help: getAutoHelpEntitlementPublic(nk, ctx.userId),
+    beta_voucher_testing: {
+      entitlement_id: "entitlement_beta_voucher_testing",
+      active: StorageEntitlementProvider.isActive(nk, ctx.userId, "entitlement_beta_voucher_testing"),
+      status: voucherTesting ? voucherTesting.status : "",
+      expires_at: voucherTesting ? voucherTesting.expires_at : 0,
+    },
   });
 }
 
 /**
  * LOCAL DEVELOPMENT / CLOSED BETA ONLY.
- * Requires matching CROWNSPIR_DEV_ENTITLEMENT_SECRET.
- * Normal clients must not ship this secret.
+ * Requires CROWNSPIRE_ENABLE_DEV_ENTITLEMENT_RPC + CROWNSPIRE_DEV_ENTITLEMENT_SECRET.
+ * Fail closed when env is absent. Does not grant production paid queue entitlements.
+ * Allowed IDs: beta_alliance_auto_help, entitlement_beta_voucher_testing.
  */
 function rpcDevSetEntitlement(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, payload: string): string {
   if (!ctx.userId) {
     throw Err("Unauthenticated");
   }
+  if (!isDevEntitlementRpcEnabled(ctx)) {
+    throw Err("Forbidden");
+  }
   const data = parsePayload(payload);
-  if (String(data["dev_secret"] || "") !== CROWNSPIR_DEV_ENTITLEMENT_SECRET) {
+  const expected = getDevEntitlementSecret(ctx);
+  if (!expected || String(data["dev_secret"] || "") !== expected) {
     throw Err("Forbidden");
   }
   const targetUserId = String(data["user_id"] || ctx.userId).trim();
@@ -725,9 +761,9 @@ function rpcDevSetEntitlement(ctx: nkruntime.Context, logger: nkruntime.Logger, 
     throw Err("user_id required");
   }
   const entitlementId = String(data["entitlement_id"] || ENTITLEMENT_BETA_ALLIANCE_AUTO_HELP).trim();
-  if (entitlementId !== ENTITLEMENT_BETA_ALLIANCE_AUTO_HELP) {
-    // Production entitlements cannot be granted through this RPC.
-    throw Err("Only beta_alliance_auto_help can be set via dev tooling");
+  if (entitlementId !== ENTITLEMENT_BETA_ALLIANCE_AUTO_HELP && entitlementId !== "entitlement_beta_voucher_testing") {
+    // Production paid entitlements and unknown IDs cannot be granted through this RPC.
+    throw Err("Only closed-beta test entitlements can be set via dev tooling");
   }
   const action = String(data["action"] || "grant").trim().toLowerCase();
   const now = nowUnix();

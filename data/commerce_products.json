@@ -1,0 +1,174 @@
+{
+  "_meta": {
+    "status": "[IMPLEMENTED AUTHORITY]",
+    "scope": "ACCOUNT",
+    "authority": "server/src/phase57_commerce.ts embeds this catalog. Nakama cannot load this Godot JSON at runtime; keep IDs and USD prices identical.",
+    "price_policy": "Apple/Google validation responses do not reliably include price/currency. Never trust client-submitted price. USD/reference price is looked up from this catalog only.",
+    "live_store": false,
+    "first_public_diamond_pack": "com.crownspire.diamonds_500",
+    "note": "First approved small consumable Diamond pack is com.crownspire.diamonds_500 (500 Diamonds, $4.99, live_store true). Shop UI is not yet the production store. TEST_ONLY products must never be queried or sold. Remaining Diamond pack ladder is not implemented."
+  },
+  "products": [
+    {
+      "product_id": "com.crownspire.diamonds_500",
+      "iap_product_id": "com.crownspire.diamonds_500",
+      "platform_product_ids": {
+        "APPLE": "com.crownspire.diamonds_500",
+        "GOOGLE": "com.crownspire.diamonds_500"
+      },
+      "name": "500 Diamonds",
+      "usd_price": 4.99,
+      "usd_cents": 499,
+      "product_type": "IAP",
+      "delivery_type": "DIAMONDS",
+      "repeatability": "consumable",
+      "diamond_amount": 500,
+      "qualifying_topup_diamonds": 500,
+      "beta_voucher_cost": 5,
+      "beta_voucher_purchasable": true,
+      "duration_seconds": 0,
+      "scope": "ACCOUNT",
+      "entitlement_id": "",
+      "beta_spend_eligible": true,
+      "status": "[CURRENT CANON]",
+      "commerce_status": "[IMPLEMENTED AUTHORITY — first small consumable Diamond pack; STORE UI NOT YET IMPLEMENTED]",
+      "live_store": true,
+      "production_deliverable": true
+    },
+    {
+      "product_id": "entitlement_builder_queue_30d",
+      "iap_product_id": "com.crownspire.builder_queue_30d",
+      "platform_product_ids": {
+        "APPLE": "com.crownspire.builder_queue_30d",
+        "GOOGLE": "com.crownspire.builder_queue_30d"
+      },
+      "name": "30-day Secondary Construction Queue",
+      "usd_price": 4.99,
+      "usd_cents": 499,
+      "product_type": "IAP",
+      "delivery_type": "TIMED_ENTITLEMENT",
+      "repeatability": "repeatable_distinct_transactions",
+      "duration_seconds": 2592000,
+      "qualifying_topup_diamonds": 0,
+      "beta_voucher_cost": 0,
+      "beta_voucher_purchasable": false,
+      "scope": "ACCOUNT",
+      "entitlement_id": "entitlement_builder_queue_30d",
+      "beta_spend_eligible": true,
+      "status": "[CURRENT CANON]",
+      "commerce_status": "[IMPLEMENTED AUTHORITY — server ledger/delivery; STORE UI NOT YET IMPLEMENTED]",
+      "live_store": false
+    },
+    {
+      "product_id": "entitlement_builder_queue_perm",
+      "iap_product_id": "com.crownspire.builder_queue_perm",
+      "platform_product_ids": {
+        "APPLE": "com.crownspire.builder_queue_perm",
+        "GOOGLE": "com.crownspire.builder_queue_perm"
+      },
+      "name": "Permanent Secondary Construction Queue",
+      "usd_price": 9.99,
+      "usd_cents": 999,
+      "product_type": "IAP",
+      "delivery_type": "PERMANENT_ENTITLEMENT",
+      "repeatability": "non_consumable",
+      "duration_seconds": 0,
+      "scope": "ACCOUNT",
+      "qualifying_topup_diamonds": 0,
+      "beta_voucher_cost": 0,
+      "beta_voucher_purchasable": false,
+      "entitlement_id": "entitlement_builder_queue_perm",
+      "beta_spend_eligible": true,
+      "status": "[CURRENT CANON]",
+      "commerce_status": "[IMPLEMENTED AUTHORITY — server ledger/delivery; STORE UI NOT YET IMPLEMENTED]",
+      "live_store": false
+    },
+    {
+      "product_id": "entitlement_research_queue_perm",
+      "iap_product_id": "com.crownspire.research_queue_perm",
+      "platform_product_ids": {
+        "APPLE": "com.crownspire.research_queue_perm",
+        "GOOGLE": "com.crownspire.research_queue_perm"
+      },
+      "name": "Permanent Secondary Research Queue",
+      "usd_price": 9.99,
+      "usd_cents": 999,
+      "product_type": "IAP",
+      "delivery_type": "PERMANENT_ENTITLEMENT",
+      "repeatability": "non_consumable",
+      "duration_seconds": 0,
+      "scope": "ACCOUNT",
+      "qualifying_topup_diamonds": 0,
+      "beta_voucher_cost": 0,
+      "beta_voucher_purchasable": false,
+      "entitlement_id": "entitlement_research_queue_perm",
+      "beta_spend_eligible": true,
+      "status": "[CURRENT CANON]",
+      "commerce_status": "[IMPLEMENTED AUTHORITY — server ledger/delivery; STORE UI NOT YET IMPLEMENTED]",
+      "live_store": false
+    },
+    {
+      "product_id": "entitlement_march_queue_perm",
+      "iap_product_id": "com.crownspire.march_queue_perm",
+      "platform_product_ids": {
+        "APPLE": "com.crownspire.march_queue_perm",
+        "GOOGLE": "com.crownspire.march_queue_perm"
+      },
+      "name": "Permanent March Queue",
+      "usd_price": 19.99,
+      "usd_cents": 1999,
+      "product_type": "IAP",
+      "delivery_type": "PERMANENT_ENTITLEMENT",
+      "repeatability": "non_consumable",
+      "duration_seconds": 0,
+      "scope": "ACCOUNT",
+      "qualifying_topup_diamonds": 0,
+      "beta_voucher_cost": 0,
+      "beta_voucher_purchasable": false,
+      "entitlement_id": "entitlement_march_queue_perm",
+      "beta_spend_eligible": true,
+      "status": "[CURRENT CANON]",
+      "commerce_status": "[IMPLEMENTED AUTHORITY — server ledger/delivery; STORE UI NOT YET IMPLEMENTED]",
+      "live_store": false
+    },
+    {
+      "product_id": "com.crownspire.test.diamonds_internal_do_not_ship",
+      "iap_product_id": "com.crownspire.test.diamonds_internal_do_not_ship",
+      "platform_product_ids": {
+        "APPLE": "com.crownspire.test.diamonds_internal_do_not_ship",
+        "GOOGLE": "com.crownspire.test.diamonds_internal_do_not_ship"
+      },
+      "name": "TEST ONLY — internal Diamond grant fixture. Not a live store product.",
+      "usd_price": 0,
+      "usd_cents": 0,
+      "product_type": "TEST_ONLY",
+      "delivery_type": "DIAMONDS",
+      "repeatability": "consumable",
+      "diamond_amount": 1,
+      "qualifying_topup_diamonds": 0,
+      "beta_voucher_cost": 0,
+      "beta_voucher_purchasable": false,
+      "duration_seconds": 0,
+      "scope": "ACCOUNT",
+      "entitlement_id": "",
+      "beta_spend_eligible": false,
+      "status": "[BETA-ONLY]",
+      "commerce_status": "[TEST_ONLY — impossible to expose as a live store product]",
+      "live_store": false,
+      "production_deliverable": false
+    }
+  ],
+  "delivery_types_reserved": [
+    "DIAMONDS",
+    "PERMANENT_ENTITLEMENT",
+    "TIMED_ENTITLEMENT",
+    "ACCOUNT_COLLECTION",
+    "CONSUMABLE_ITEM",
+    "SUBSCRIPTION"
+  ],
+  "delivery_types_implemented_now": [
+    "PERMANENT_ENTITLEMENT",
+    "TIMED_ENTITLEMENT",
+    "DIAMONDS"
+  ]
+}

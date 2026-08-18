@@ -18,6 +18,10 @@ const ENT_MARCH_PERM := "entitlement_march_queue_perm"
 static var _smoke: bool = false
 static var _has_snapshot: bool = false
 static var _wallet_balance: int = 0
+static var _beta_vouchers: int = 0
+static var _beta_voucher_available: bool = false
+static var _beta_voucher_offers: Array = []
+static var _beta_topup: Dictionary = {}
 static var _entitlements: Dictionary = {}
 static var _vip_verified: bool = false
 static var _vip_level_server: int = 0
@@ -57,6 +61,10 @@ static func is_smoke_isolation() -> bool:
 static func clear_snapshot() -> void:
 	_has_snapshot = false
 	_wallet_balance = 0
+	_beta_vouchers = 0
+	_beta_voucher_available = false
+	_beta_voucher_offers.clear()
+	_beta_topup.clear()
 	_entitlements.clear()
 	_vip_verified = false
 	_vip_level_server = 0
@@ -92,6 +100,12 @@ static func apply_entitlement_snapshot(rows: Array) -> void:
 
 static func apply_commerce_wallet_payload(wallet: Dictionary) -> void:
 	apply_wallet_snapshot(int(wallet.get("diamonds", 0)))
+	_beta_vouchers = maxi(0, int(wallet.get("beta_vouchers", 0)))
+	_beta_voucher_available = bool(wallet.get("beta_voucher_available", false))
+	var offers: Variant = wallet.get("beta_voucher_offers", [])
+	_beta_voucher_offers = offers if typeof(offers) == TYPE_ARRAY else []
+	var topup: Variant = wallet.get("beta_topup", {})
+	_beta_topup = topup if typeof(topup) == TYPE_DICTIONARY else {}
 	var ents: Variant = wallet.get("entitlements", [])
 	if typeof(ents) == TYPE_ARRAY:
 		apply_entitlement_snapshot(ents)
@@ -101,6 +115,49 @@ static func get_authoritative_diamonds() -> int:
 	if not _has_snapshot:
 		return 0
 	return _wallet_balance
+
+
+static func is_beta_voucher_available() -> bool:
+	return _has_snapshot and _beta_voucher_available
+
+
+static func get_beta_voucher_balance() -> int:
+	if not _has_snapshot:
+		return 0
+	return _beta_vouchers
+
+
+static func get_beta_topup_snapshot() -> Dictionary:
+	return _beta_topup.duplicate(true)
+
+
+static func get_server_voucher_cost(product_id: String) -> int:
+	var pid: String = product_id.strip_edges()
+	for item: Variant in _beta_voucher_offers:
+		if typeof(item) != TYPE_DICTIONARY:
+			continue
+		var row: Dictionary = item
+		if str(row.get("product_id", "")).strip_edges() == pid or str(row.get("iap_product_id", "")).strip_edges() == pid:
+			return maxi(0, int(row.get("voucher_cost", 0)))
+	return 0
+
+
+## Client cannot mint, spend, or correct Beta Vouchers locally.
+static func try_set_beta_voucher_balance(_amount: int) -> Dictionary:
+	return {
+		"ok": false,
+		"error": "client_cannot_mutate_voucher_balance",
+		"beta_vouchers": get_beta_voucher_balance(),
+	}
+
+
+## Client cannot self-assign tester authorization.
+static func try_grant_beta_voucher_testing() -> Dictionary:
+	return {
+		"ok": false,
+		"error": "client_cannot_grant_entitlement",
+		"beta_voucher_available": is_beta_voucher_available(),
+	}
 
 
 static func has_paid_entitlement(entitlement_id: String) -> bool:
@@ -178,6 +235,10 @@ const PLATFORM_APPLE := "APPLE"
 const RPC_PROCESS_PURCHASE := "crownspire_commerce_process_purchase"
 const RPC_RESTORE := "crownspire_commerce_restore"
 const RPC_GET_WALLET := "crownspire_commerce_get_wallet"
+const RPC_REDEEM_VOUCHER := "crownspire_commerce_redeem_voucher_code"
+const RPC_PURCHASE_WITH_VOUCHERS := "crownspire_commerce_purchase_with_vouchers"
+const RPC_GET_BETA_TOPUP := "crownspire_commerce_get_beta_topup"
+const RPC_CLAIM_BETA_TOPUP := "crownspire_commerce_claim_beta_topup_milestone"
 const PENDING_FILE := "iap_pending.cfg"
 const GOOGLE_PRIMARY_TEST_PRODUCT := "com.crownspire.builder_queue_perm"
 const GOOGLE_DIAMOND_PACK_500 := "com.crownspire.diamonds_500"
@@ -520,6 +581,99 @@ static func refresh_server_wallet() -> Dictionary:
 	if not is_nakama_authenticated():
 		return {"ok": false, "error": "not_authenticated"}
 	var res: Dictionary = await _rpc_commerce(RPC_GET_WALLET, {})
+	if bool(res.get("ok", false)):
+		var wallet: Variant = res.get("wallet", {})
+		if typeof(wallet) == TYPE_DICTIONARY:
+			apply_commerce_wallet_payload(wallet)
+	return res
+
+
+static func redeem_voucher_code(code: String) -> Dictionary:
+	var trimmed: String = code.strip_edges()
+	if trimmed.is_empty():
+		return {"ok": false, "error": "empty_code"}
+	if _smoke and _test_process_purchase.is_valid():
+		var stub: Variant = _test_process_purchase.call("BETA_VOUCHER_REDEEM", trimmed)
+		if typeof(stub) == TYPE_DICTIONARY:
+			var row: Dictionary = stub
+			if bool(row.get("ok", false)):
+				var wallet: Variant = row.get("wallet", {})
+				if typeof(wallet) == TYPE_DICTIONARY:
+					apply_commerce_wallet_payload(wallet)
+			return row
+	if not is_nakama_authenticated():
+		return {"ok": false, "error": "not_authenticated"}
+	var res: Dictionary = await _rpc_commerce(RPC_REDEEM_VOUCHER, {"code": trimmed})
+	if bool(res.get("ok", false)):
+		var wallet: Variant = res.get("wallet", {})
+		if typeof(wallet) == TYPE_DICTIONARY:
+			apply_commerce_wallet_payload(wallet)
+	return res
+
+
+static func purchase_with_vouchers(product_id: String, idempotency_key: String = "") -> Dictionary:
+	var pid: String = product_id.strip_edges()
+	if pid.is_empty():
+		return {"ok": false, "error": "product_required", "granted": false}
+	if not is_beta_voucher_available() and not _smoke:
+		return {"ok": false, "error": "beta_voucher_unavailable", "granted": false}
+	var key: String = idempotency_key.strip_edges()
+	if key.is_empty():
+		key = "client_%s_%s" % [pid, str(Time.get_unix_time_from_system())]
+	if _smoke and _test_process_purchase.is_valid():
+		var stub: Variant = _test_process_purchase.call("BETA_VOUCHER_BUY", pid)
+		if typeof(stub) == TYPE_DICTIONARY:
+			var row: Dictionary = stub
+			if bool(row.get("ok", false)):
+				var wallet: Variant = row.get("wallet", {})
+				if typeof(wallet) == TYPE_DICTIONARY:
+					apply_commerce_wallet_payload(wallet)
+			return row
+	if not is_nakama_authenticated():
+		return {"ok": false, "error": "not_authenticated", "granted": false}
+	var res: Dictionary = await _rpc_commerce(RPC_PURCHASE_WITH_VOUCHERS, {
+		"product_id": pid,
+		"idempotency_key": key,
+	})
+	if bool(res.get("ok", false)):
+		var wallet: Variant = res.get("wallet", {})
+		if typeof(wallet) == TYPE_DICTIONARY:
+			apply_commerce_wallet_payload(wallet)
+	return res
+
+
+static func refresh_beta_topup() -> Dictionary:
+	if _smoke and _has_test_session_payloads:
+		return {"ok": true, "beta_topup": _beta_topup}
+	if not is_nakama_authenticated():
+		return {"ok": false, "error": "not_authenticated"}
+	var res: Dictionary = await _rpc_commerce(RPC_GET_BETA_TOPUP, {})
+	if bool(res.get("ok", false)):
+		var wallet: Variant = res.get("wallet", {})
+		if typeof(wallet) == TYPE_DICTIONARY:
+			apply_commerce_wallet_payload(wallet)
+		var topup: Variant = res.get("beta_topup", {})
+		if typeof(topup) == TYPE_DICTIONARY:
+			_beta_topup = topup
+	return res
+
+
+static func claim_beta_topup_milestone(milestone_id: String) -> Dictionary:
+	var mid: String = milestone_id.strip_edges()
+	if mid.is_empty():
+		return {"ok": false, "error": "milestone_required"}
+	if not is_nakama_authenticated() and not _smoke:
+		return {"ok": false, "error": "not_authenticated"}
+	if _smoke and _test_process_purchase.is_valid():
+		var stub: Variant = _test_process_purchase.call("BETA_TOPUP_CLAIM", mid)
+		if typeof(stub) == TYPE_DICTIONARY:
+			var row: Dictionary = stub
+			if bool(row.get("ok", false)):
+				var wallet: Variant = row.get("wallet", {})
+				if typeof(wallet) == TYPE_DICTIONARY:
+					apply_commerce_wallet_payload(wallet)
+			return row
+	var res: Dictionary = await _rpc_commerce(RPC_CLAIM_BETA_TOPUP, {"milestone_id": mid})
 	if bool(res.get("ok", false)):
 		var wallet: Variant = res.get("wallet", {})
 		if typeof(wallet) == TYPE_DICTIONARY:
