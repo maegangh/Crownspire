@@ -183,6 +183,20 @@ func _run() -> void:
 	_assert(found_pack, "catalog missing com.crownspire.diamonds_500")
 	_assert(Commerce.is_allowed_google_product("com.crownspire.diamonds_500"), "client allows diamonds_500")
 	_assert(not Commerce.is_allowed_google_product("com.crownspire.test.diamonds_internal_do_not_ship"), "client blocks TEST SKU")
+	_assert(Commerce.get_preferred_google_purchase_option("com.crownspire.diamonds_500") == "buy-500-diamonds", "preferred purchase option")
+	_assert(Commerce.GOOGLE_DIAMOND_PACK_500_PURCHASE_OPTION == "buy-500-diamonds", "option constant")
+	var list_price: String = Commerce.formatted_price_from_google_details({
+		"product_id": "com.crownspire.diamonds_500",
+		"one_time_purchase_offer_details_list": [{
+			"purchase_option_id": "other-option",
+			"formatted_price": "US$9.99",
+		}, {
+			"purchase_option_id": "buy-500-diamonds",
+			"offer_id": null,
+			"formatted_price": "US$4.99",
+		}],
+	})
+	_assert(list_price == "US$4.99", "localized price from matching buy-500-diamonds row")
 	_assert(Commerce.is_live_store_google_product("com.crownspire.diamonds_500"), "diamonds_500 live_store")
 	_assert(not Commerce.is_live_store_google_product("com.crownspire.builder_queue_perm"), "builder perm not live_store")
 	_assert(not Commerce.is_live_store_google_product("com.crownspire.test.diamonds_internal_do_not_ship"), "TEST SKU not live_store")

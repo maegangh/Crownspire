@@ -22,6 +22,7 @@ const SAVE_PATH := "user://construction_queue.cfg"
 const BUILDINGS_CFG := "user://buildings.cfg"
 const SAVEGAME_PATH := "user://savegame.save"
 const BUILDINGS_JSON := "res://data/buildings.json"
+const CommerceAuthority := preload("res://Scripts/CommerceAuthority.gd")
 const CONSTRUCTION_QUEUE_MAX: int = 2
 const TEMP_SECONDARY_CONSTRUCTION_DAYS: int = 30
 
@@ -893,15 +894,15 @@ func _ensure_catalog_max_cache() -> void:
 # =============================================================================
 
 func has_permanent_secondary_construction_queue() -> bool:
-	return permanent_secondary_construction_queue
+	## Local construction_queue.cfg flags are not purchase authority.
+	return CommerceAuthority.has_paid_entitlement(CommerceAuthority.ENT_BUILDER_PERM)
 
 
 func has_temporary_secondary_construction_queue_active() -> bool:
 	if has_permanent_secondary_construction_queue():
 		return false
-	if temporary_secondary_construction_queue_expires_unix <= 0:
-		return false
-	return int(Time.get_unix_time_from_system()) < temporary_secondary_construction_queue_expires_unix
+	var exp: int = CommerceAuthority.get_timed_entitlement_expires(CommerceAuthority.ENT_BUILDER_30D)
+	return exp > int(Time.get_unix_time_from_system())
 
 
 func has_secondary_construction_queue() -> bool:

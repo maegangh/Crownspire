@@ -64,6 +64,19 @@ func _run() -> void:
 	})
 	_assert(priced == "CA$6.99", "localized Google price is used when present")
 	_assert(Commerce.formatted_price_from_google_details({}) == "", "missing price must stay empty")
+	var option_priced: String = Commerce.formatted_price_from_google_details({
+		"product_id": "com.crownspire.diamonds_500",
+		"one_time_purchase_offer_details_list": [{
+			"purchase_option_id": "other-option",
+			"formatted_price": "US$9.99",
+		}, {
+			"purchase_option_id": "buy-500-diamonds",
+			"offer_id": null,
+			"formatted_price": "US$4.99",
+		}],
+	})
+	_assert(option_priced == "US$4.99", "shop price prefers buy-500-diamonds list row")
+	_assert(Commerce.get_preferred_google_purchase_option("com.crownspire.diamonds_500") == "buy-500-diamonds", "shop preferred option")
 
 	print("[SHOP] release UI exposes diamonds_500 only")
 	var shop: Control = ShopScript.new()
@@ -159,6 +172,11 @@ func _run() -> void:
 		"product_details": [{
 			"product_id": "com.crownspire.diamonds_500",
 			"title": "500 Diamonds",
+			"one_time_purchase_offer_details_list": [{
+				"purchase_option_id": "buy-500-diamonds",
+				"offer_id": null,
+				"formatted_price": "CA$6.99",
+			}],
 			"one_time_purchase_offer_details": {"formatted_price": "CA$6.99"},
 		}],
 	})
@@ -310,6 +328,13 @@ func _run() -> void:
 	})
 	_assert(str(dup.get("status", "")) == Commerce.STATUS_ALREADY_DELIVERED, "duplicate already delivered")
 	_assert(int(Commerce.get_authoritative_diamonds()) == 500, "duplicate must not double grant")
+
+	print("[SHOP] purchase-option source contract")
+	var coord_src := FileAccess.open("res://Scripts/AndroidPlayBillingCoordinator.gd", FileAccess.READ)
+	var coord_body: String = coord_src.get_as_text() if coord_src != null else ""
+	_assert(coord_body.find("call(\"purchase\", product_id, option_id)") >= 0, "shop path must pass purchase_option_id")
+	_assert(coord_body.find("one_time_purchase_offer_details_list") >= 0, "shop path must read offer list")
+	_assert(coord_body.find("buy-500-diamonds") >= 0, "buy-500-diamonds must exist in live purchase path")
 
 	shop.queue_free()
 	Commerce.end_smoke_isolation()

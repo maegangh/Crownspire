@@ -1132,4 +1132,5 @@ visible = false
 [node name="TavernWindow" parent="." unique_id=548129524 instance=ExtResource("42_tavern")]
 
 [node name="GameHUD" parent="." unique_id=1833121157 instance=ExtResource("41_osohf")]
+is_world_screen = false
 layer = 100

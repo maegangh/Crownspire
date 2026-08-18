@@ -7,6 +7,7 @@ signal research_jobs_changed
 signal research_completed(research_id: String, level: int)
 
 const SAVE_PATH := "user://research_queue.cfg"
+const CommerceAuthority := preload("res://Scripts/CommerceAuthority.gd")
 
 ## Legacy fields kept for older callers / savegame.save
 var research_hall_level: int = 1
@@ -41,7 +42,8 @@ func _process(delta: float) -> void:
 # --- Entitlement / limits -----------------------------------------------------
 
 func has_permanent_secondary_research_queue() -> bool:
-	return permanent_secondary_research_queue
+	## Local research_queue.cfg flags are not purchase authority.
+	return CommerceAuthority.has_paid_entitlement(CommerceAuthority.ENT_RESEARCH_PERM)
 
 
 ## True when the paid permanent secondary research queue is owned.

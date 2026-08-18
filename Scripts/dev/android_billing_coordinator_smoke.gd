@@ -132,13 +132,73 @@ func _run() -> void:
 	_assert(Commerce.is_live_store_google_product("com.crownspire.diamonds_500"), "diamonds_500 is live_store")
 	_assert(not Commerce.is_live_store_google_product("com.crownspire.builder_queue_perm"), "builder perm is not live_store")
 	_assert(not Commerce.get_live_store_google_product_ids().has("com.crownspire.test.diamonds_internal_do_not_ship"), "TEST SKU not in live store ids")
+	_assert(Commerce.get_preferred_google_purchase_option(Commerce.GOOGLE_DIAMOND_PACK_500) == "buy-500-diamonds", "preferred option")
+	_assert(Commerce.GOOGLE_DIAMOND_PACK_500_PURCHASE_OPTION == "buy-500-diamonds", "purchase option constant")
 	_assert(not Engine.has_singleton("GodotGooglePlayBilling"), "desktop must not expose Play Billing singleton")
 
 	var coord: Node = CoordinatorScript.new()
 	root.add_child(coord)
 	await process_frame
 	_assert(str(coord.call("get_last_status")) == Commerce.STATUS_BILLING_UNAVAILABLE, "desktop coordinator must stay unavailable")
+	_assert(not bool(coord.call("is_product_ready", Commerce.GOOGLE_DIAMOND_PACK_500)), "desktop product must not be ready")
+
+	print("[BILLING 4C] product details readiness + purchase option")
+	var diamonds_details := [{
+		"product_id": "com.crownspire.diamonds_500",
+		"product_type": "inapp",
+		"one_time_purchase_offer_details_list": [{
+			"purchase_option_id": "buy-500-diamonds",
+			"offer_id": null,
+			"formatted_price": "US$4.99",
+		}],
+	}]
+	coord.call("apply_smoke_billing_state", [], false, false, null)
+	_assert(not bool(coord.call("is_product_ready", Commerce.GOOGLE_DIAMOND_PACK_500)), "disconnected details must not be ready")
+	var blocked_disc: Dictionary = coord.call("resolve_purchase_launch", Commerce.GOOGLE_DIAMOND_PACK_500)
+	_assert(str(blocked_disc.get("status", "")) == Commerce.STATUS_BILLING_NOT_READY, "disconnected launch blocked")
+	_assert(not bool(blocked_disc.get("granted", true)), "disconnected must not grant")
+
+	coord.call("apply_smoke_billing_state", [], true, true, null)
+	_assert(not bool(coord.call("is_product_ready", Commerce.GOOGLE_DIAMOND_PACK_500)), "empty details must not be ready")
+	var blocked_empty: Dictionary = coord.call("resolve_purchase_launch", Commerce.GOOGLE_DIAMOND_PACK_500)
+	_assert(str(blocked_empty.get("status", "")) == Commerce.STATUS_PRODUCT_DETAILS_NOT_READY, "absent details launch blocked")
+	_assert(not bool(blocked_empty.get("granted", true)), "absent details must not grant")
+	_assert(str(coord.call("get_formatted_price_for_product", Commerce.GOOGLE_DIAMOND_PACK_500)) == "", "no Google price before details")
+
+	var stub: Node = load("res://Scripts/dev/billing_purchase_stub.gd").new()
+	coord.call("apply_smoke_billing_state", diamonds_details, true, true, stub)
+	_assert(bool(coord.call("is_product_ready", Commerce.GOOGLE_DIAMOND_PACK_500)), "details + option must be ready")
+	_assert(str(coord.call("resolve_purchase_option_id", Commerce.GOOGLE_DIAMOND_PACK_500)) == "buy-500-diamonds", "option from details list")
+	_assert(str(coord.call("get_formatted_price_for_product", Commerce.GOOGLE_DIAMOND_PACK_500)) == "US$4.99", "price from one_time_purchase_offer_details_list")
+	var ready_launch: Dictionary = coord.call("resolve_purchase_launch", Commerce.GOOGLE_DIAMOND_PACK_500)
+	_assert(bool(ready_launch.get("ok", false)), "ready launch eligible")
+	_assert(str(ready_launch.get("purchase_option_id", "")) == "buy-500-diamonds", "launch option buy-500-diamonds")
+	_assert(not bool(ready_launch.get("granted", true)), "eligible launch must not grant")
+
+	if identity != null and identity.has_method("smoke_mark_secured_email"):
+		identity.call("smoke_mark_secured_email")
+	var launched: Dictionary = coord.call("purchase_product", Commerce.GOOGLE_DIAMOND_PACK_500)
+	var launch_status: String = str(launched.get("status", ""))
+	if launch_status != Commerce.STATUS_UNAUTHENTICATED:
+		_assert(launch_status == "BILLING_FLOW_LAUNCHED", "secured launch status got %s" % launch_status)
+		_assert(str(stub.get("last_product_id")) == "com.crownspire.diamonds_500", "purchase product id")
+		_assert(str(stub.get("last_purchase_option_id")) == "buy-500-diamonds", "purchase option id")
+		_assert(str(stub.get("last_offer_id")) == "", "must not pass offer token")
+	_assert(not bool(launched.get("granted", true)), "launch must not grant")
+
+	var wrong_option := [{
+		"product_id": "com.crownspire.diamonds_500",
+		"one_time_purchase_offer_details_list": [{
+			"purchase_option_id": "other-option",
+			"offer_id": null,
+			"formatted_price": "US$9.99",
+		}],
+	}]
+	coord.call("apply_smoke_billing_state", wrong_option, true, true, stub)
+	_assert(not bool(coord.call("is_product_ready", Commerce.GOOGLE_DIAMOND_PACK_500)), "wrong option must not be ready")
+	_assert(str(coord.call("resolve_purchase_option_id", Commerce.GOOGLE_DIAMOND_PACK_500)) == "", "wrong option must not be selected")
 	coord.queue_free()
+	stub.queue_free()
 
 	# A. Billing callback alone → zero entitlement
 	print("[BILLING 4C] A callback alone")
@@ -329,6 +389,11 @@ func _run() -> void:
 	_assert(body.find("consume_purchase") >= 0, "coordinator must be able to consume after delivery")
 	_assert(body.find("_maybe_finish_google_purchase") >= 0, "coordinator finishes Google only after ingest flags")
 	_assert(body.find("consume_purchase_response ignored") < 0, "consumable consume path must be live")
+	_assert(body.find("call(\"purchase\", product_id, option_id)") >= 0, "purchase must pass purchase_option_id")
+	_assert(body.find("one_time_purchase_offer_details_list") >= 0, "must read Billing 8 offer list")
+	_assert(body.find("buy-500-diamonds") >= 0 or body.find("GOOGLE_DIAMOND_PACK_500_PURCHASE_OPTION") >= 0, "buy-500-diamonds path present")
+	_assert(body.find("[CrownspireBilling]") >= 0, "safe billing diagnostics missing")
+	_assert(body.find("call(\"purchase\", product_id)") < 0 or body.find("call(\"purchase\", product_id, option_id)") >= 0, "must not revert to product-id-only purchase")
 	_assert(BillingClientScript != null, "BillingClient.gd must parse")
 
 	cloud.call("end_smoke_isolation")
