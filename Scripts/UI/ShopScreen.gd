@@ -800,6 +800,11 @@ func _on_buy_live_product(product_id: String) -> void:
 	if not _can_start_real_money_purchase():
 		_show_protect_account_modal()
 		return
+	if OS.get_name() == "Android" and not Commerce.is_android_product_ready(product_id):
+		_store_query_pending = true
+		_set_status(STATUS_LOADING)
+		_query_live_products()
+		return
 	_purchase_busy = true
 	_set_hud_blocking(true)
 	_set_buy_enabled(false)

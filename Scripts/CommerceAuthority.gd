@@ -270,6 +270,7 @@ const RPC_CLAIM_BETA_TOPUP := "crownspire_commerce_claim_beta_topup_milestone"
 const PENDING_FILE := "iap_pending.cfg"
 const GOOGLE_PRIMARY_TEST_PRODUCT := "com.crownspire.builder_queue_perm"
 const GOOGLE_DIAMOND_PACK_500 := "com.crownspire.diamonds_500"
+const GOOGLE_DIAMOND_PACK_500_PURCHASE_OPTION := "buy-500-diamonds"
 const GOOGLE_PURCHASE_STATE_PURCHASED := 1
 const GOOGLE_PURCHASE_STATE_PENDING := 2
 const BILLING_CODE_OK := 0
@@ -286,6 +287,8 @@ const STATUS_SERVER_REJECTED := "SERVER_REJECTED"
 const STATUS_DELIVERED := "DELIVERED"
 const STATUS_ALREADY_DELIVERED := "ALREADY_DELIVERED"
 const STATUS_BILLING_UNAVAILABLE := "BILLING_UNAVAILABLE"
+const STATUS_BILLING_NOT_READY := "BILLING_NOT_READY"
+const STATUS_PRODUCT_DETAILS_NOT_READY := "PRODUCT_DETAILS_NOT_READY"
 const STATUS_ACCOUNT_PROTECTION_REQUIRED := "ACCOUNT_PROTECTION_REQUIRED"
 
 ## Smoke-only RPC stub. Production never sets this except begin_smoke_isolation callers.
@@ -432,20 +435,75 @@ static func is_live_store_google_product(product_id: String) -> bool:
 	return get_live_store_google_product_ids().has(product_id.strip_edges())
 
 
+static func get_preferred_google_purchase_option(product_id: String) -> String:
+	if product_id.strip_edges() == GOOGLE_DIAMOND_PACK_500:
+		return GOOGLE_DIAMOND_PACK_500_PURCHASE_OPTION
+	return ""
+
+
+static func get_one_time_offer_rows(details: Dictionary) -> Array:
+	var list: Variant = details.get("one_time_purchase_offer_details_list", [])
+	if typeof(list) != TYPE_ARRAY or (list as Array).is_empty():
+		list = details.get("oneTimePurchaseOfferDetailsList", [])
+	if typeof(list) == TYPE_ARRAY and not (list as Array).is_empty():
+		return list
+	var singular: Variant = details.get("one_time_purchase_offer_details", {})
+	if typeof(singular) != TYPE_DICTIONARY or (singular as Dictionary).is_empty():
+		singular = details.get("oneTimePurchaseOfferDetails", {})
+	if typeof(singular) == TYPE_DICTIONARY and not (singular as Dictionary).is_empty():
+		return [singular]
+	return []
+
+
 static func formatted_price_from_google_details(details: Dictionary) -> String:
-	var offer: Variant = details.get("one_time_purchase_offer_details", {})
-	if typeof(offer) != TYPE_DICTIONARY:
-		offer = details.get("oneTimePurchaseOfferDetails", {})
-	if typeof(offer) == TYPE_DICTIONARY:
-		var nested: String = str((offer as Dictionary).get("formatted_price", "")).strip_edges()
+	var pid: String = str(details.get("product_id", details.get("productId", ""))).strip_edges()
+	var preferred: String = get_preferred_google_purchase_option(pid)
+	var fallback: String = ""
+	for item: Variant in get_one_time_offer_rows(details):
+		if typeof(item) != TYPE_DICTIONARY:
+			continue
+		var offer: Dictionary = item
+		var nested: String = str(offer.get("formatted_price", "")).strip_edges()
 		if nested.is_empty():
-			nested = str((offer as Dictionary).get("formattedPrice", "")).strip_edges()
-		if not nested.is_empty():
+			nested = str(offer.get("formattedPrice", "")).strip_edges()
+		if nested.is_empty():
+			continue
+		var option_id: String = str(offer.get("purchase_option_id", offer.get("purchaseOptionId", ""))).strip_edges()
+		if not preferred.is_empty() and option_id == preferred:
 			return nested
+		if fallback.is_empty():
+			fallback = nested
+	if not fallback.is_empty():
+		return fallback
 	var flat: String = str(details.get("formatted_price", "")).strip_edges()
 	if flat.is_empty():
 		flat = str(details.get("formattedPrice", "")).strip_edges()
 	return flat
+
+
+static func get_android_billing_node() -> Node:
+	return ensure_android_billing_node()
+
+
+static func is_android_billing_connected() -> bool:
+	var node: Node = get_android_billing_node()
+	if node == null or not node.has_method("is_billing_connected"):
+		return false
+	return bool(node.call("is_billing_connected"))
+
+
+static func has_android_product_details_query_completed() -> bool:
+	var node: Node = get_android_billing_node()
+	if node == null or not node.has_method("has_completed_product_details_query"):
+		return false
+	return bool(node.call("has_completed_product_details_query"))
+
+
+static func is_android_product_ready(product_id: String) -> bool:
+	var node: Node = get_android_billing_node()
+	if node == null or not node.has_method("is_product_ready"):
+		return false
+	return bool(node.call("is_product_ready", product_id))
 
 
 static func is_consumable_google_product(product_id: String) -> bool:

@@ -33,6 +33,7 @@ const ROUTE_COLOR_FRIENDLY := Color(0.28, 0.86, 0.42, 0.92)
 const ROUTE_COLOR_HOSTILE := Color(0.92, 0.22, 0.24, 0.92)
 
 const MarchRouteLineScript = preload("res://Scripts/World/MarchRouteLine.gd")
+const CommerceAuthority := preload("res://Scripts/CommerceAuthority.gd")
 
 ## Beta placeholder gather rate (resources / second). Tunable — not final economy balance.
 ## Same base rate for Food/Wood/Stone/Iron in Step 2.
@@ -56,6 +57,7 @@ var _rewards_table: Dictionary = {}
 var _march_icon_scene: PackedScene = null
 var _rally_reservations: Dictionary = {} ## rally_id -> {troop_tiers, hero_ids, troop_counts}
 var _dispatched_rally_marches: Dictionary = {} ## rally_id -> true
+var permanent_march_queue_entitlement: bool = false
 
 
 ## Canonical route intent for world-map dotted lines.
@@ -150,6 +152,23 @@ func get_active_march_count() -> int:
 	# Forming-rally reservations occupy a march slot until launch/cancel.
 	count += _rally_reservations.size()
 	return count
+
+
+func get_march_queue_limit() -> int:
+	return MAX_ACTIVE_MARCHES + get_march_queue_paid_bonus() + get_march_queue_vip_bonus()
+
+
+func get_march_queue_paid_bonus() -> int:
+	## Local march flags are not purchase authority.
+	if CommerceAuthority.has_paid_entitlement(CommerceAuthority.ENT_MARCH_PERM):
+		return 1
+	return 0
+
+
+func get_march_queue_vip_bonus() -> int:
+	if CommerceAuthority.is_vip_verified_for_queues():
+		return 1
+	return 0
 
 
 func can_start_wildling_march() -> Dictionary:
