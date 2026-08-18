@@ -179,10 +179,37 @@ func _run() -> void:
 	if buy != null:
 		buy.emit_signal("pressed")
 		await process_frame
+		await process_frame
+	var protect: Node = shop.find_child("ProtectAccountModal", true, false)
+	_assert(protect != null, "guest buy must show protect-account modal")
+	_assert(shop.find_child("ProtectAccountTitle", true, false) != null, "protect title missing")
+	_assert(shop.find_child("ProtectAccountSecureButton", true, false) != null, "protect Secure button missing")
+	_assert(shop.find_child("ProtectAccountCancelButton", true, false) != null, "protect Cancel missing")
+	_assert(int(Commerce.get_authoritative_diamonds()) == 0, "guest protect gate must not grant locally")
+	var guest_launch: Dictionary = Commerce.purchase_android_product("com.crownspire.diamonds_500")
+	_assert(str(guest_launch.get("status", "")) != "BILLING_FLOW_LAUNCHED", "guest must not launch Google Billing")
+	_assert(not bool(guest_launch.get("granted", true)), "guest launch must not grant")
+	if shop.has_method("_hide_protect_account_modal"):
+		shop.call("_hide_protect_account_modal")
+
+	print("[SHOP] secured account still has purchase path")
+	identity.call("smoke_mark_secured_email")
+	_assert(bool(identity.call("can_start_real_money_purchase")), "secured account can purchase")
+	var secured_launch: Dictionary = Commerce.purchase_android_product("com.crownspire.diamonds_500")
+	_assert(str(secured_launch.get("status", "")) != Commerce.STATUS_ACCOUNT_PROTECTION_REQUIRED, "secured must not hard-gate")
+	_assert(
+		str(secured_launch.get("status", "")) == Commerce.STATUS_BILLING_UNAVAILABLE
+		or str(secured_launch.get("status", "")) == Commerce.STATUS_UNAUTHENTICATED
+		or str(secured_launch.get("status", "")) == "BILLING_FLOW_LAUNCHED",
+		"secured purchase path unexpected: %s" % str(secured_launch.get("status", ""))
+	)
+	if buy != null:
+		buy.emit_signal("pressed")
+		await process_frame
 	var status: Label = shop.find_child("ShopStatus", true, false)
 	var status_text: String = str(status.text) if status != null else ""
 	_assert(
-		status_text.find("Sign in") >= 0 or status_text.find("Google Play Billing") >= 0 or status_text.find("purchase") >= 0,
+		status_text.find("Sign in") >= 0 or status_text.find("Google Play Billing") >= 0 or status_text.find("purchase") >= 0 or status_text.find("Protect") >= 0,
 		"buy status unexpected: %s" % status_text
 	)
 	_assert(int(Commerce.get_authoritative_diamonds()) == 0, "buy launch must not grant locally")

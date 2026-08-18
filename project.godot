@@ -20,6 +20,7 @@ config/main_scene="uid://77p42eque6ex"
 
 Nakama="*res://addons/com.heroiclabs.nakama/Nakama.gd"
 NakamaConnection="*res://Scripts/Backend/NakamaConnection.gd"
+GoogleIdentityClient="*res://Scripts/Backend/GoogleIdentityClient.gd"
 AccountIdentityState="*res://Scripts/Backend/AccountIdentityState.gd"
 AccountSavePaths="*res://Scripts/Backend/AccountSavePaths.gd"
 AccountCloudSave="*res://Scripts/Backend/AccountCloudSave.gd"
@@ -70,7 +71,7 @@ window/handheld/orientation=1
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/com.heroiclabs.nakama/plugin.cfg")
+enabled=PackedStringArray("res://addons/com.heroiclabs.nakama/plugin.cfg", "res://addons/GodotGooglePlayBilling/plugin.cfg", "res://addons/GodotGoogleSignIn/plugin.cfg")
 
 [internationalization]
 

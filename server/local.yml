@@ -57,6 +57,12 @@ runtime:
   #     client_email: "<service-account-email-from-json>"
   #     private_key: "<private_key-from-json-including-BEGIN/END-markers>"
   # Never commit real client_email/private_key values.
+  #
+  # Google Sign-In (ID token / JWT) does NOT require Nakama google_auth config.
+  # Nakama 3.40.0 CheckGoogleToken verifies Google certs, issuer, and expiry.
+  # google_auth.credentials_json is ONLY for Play Games auth-code exchange (PGS v2)
+  # and is not used by Crownspire's Credential Manager ID-token flow.
+  # Do NOT put an OAuth client_secret in Godot, APK, or this local.yml.
 
 metrics:
   reporting_freq_sec: 60

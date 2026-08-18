@@ -196,17 +196,19 @@ func _run() -> void:
 	_assert(not bool(cs.call("has_permanent_secondary_construction_queue")), "G: pending must not grant")
 	Commerce.set_test_process_purchase_override(Callable())
 
-	# H. unauthenticated → purchase blocked
+	# H. unauthenticated / guest protection / desktop billing unavailable
 	print("[BILLING 4C] H unauthenticated")
 	var nc: Node = root.get_node_or_null("/root/NakamaConnection")
 	var authed: bool = nc != null and bool(nc.call("is_authenticated"))
 	var h: Dictionary = Commerce.purchase_android_product("com.crownspire.builder_queue_perm")
 	_assert(not bool(h.get("granted", true)), "H: must not grant")
 	_assert(not bool(h.get("delivered", true)), "H: must not deliver")
-	if authed:
-		_assert(str(h.get("status", "")) == Commerce.STATUS_BILLING_UNAVAILABLE, "H: desktop authed → billing unavailable")
-	else:
+	if not authed:
 		_assert(str(h.get("status", "")) == Commerce.STATUS_UNAUTHENTICATED, "H: status UNAUTHENTICATED")
+	elif identity != null and identity.has_method("has_recoverable_identity") and not bool(identity.call("has_recoverable_identity")):
+		_assert(str(h.get("status", "")) == Commerce.STATUS_ACCOUNT_PROTECTION_REQUIRED, "H: guest must require account protection")
+	else:
+		_assert(str(h.get("status", "")) == Commerce.STATUS_BILLING_UNAVAILABLE, "H: desktop authed → billing unavailable")
 
 	# I. invalid product ID → blocked
 	print("[BILLING 4C] I invalid product")

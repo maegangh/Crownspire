@@ -54,6 +54,7 @@ var _beta_redeem_input: LineEdit = null
 var _beta_redeem_status: Label = null
 var _beta_voucher_buy: Button = null
 var _beta_cost_label: Label = null
+var _protect_overlay: Control = null
 
 
 func _ready() -> void:
@@ -75,6 +76,7 @@ func on_open() -> void:
 
 
 func on_close() -> void:
+	_hide_protect_account_modal()
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
@@ -795,6 +797,9 @@ func _on_buy_live_product(product_id: String) -> void:
 	if not Commerce.is_live_store_google_product(product_id):
 		_set_status("That product is not in the live store.")
 		return
+	if not _can_start_real_money_purchase():
+		_show_protect_account_modal()
+		return
 	_purchase_busy = true
 	_set_hud_blocking(true)
 	_set_buy_enabled(false)
@@ -825,6 +830,10 @@ func _apply_launch_result(result: Dictionary) -> void:
 		return
 	if st == Commerce.STATUS_UNAUTHENTICATED:
 		_finish_busy("Sign in to buy Diamonds.", ProductCardScript.STATE_UNAVAILABLE)
+		return
+	if st == Commerce.STATUS_ACCOUNT_PROTECTION_REQUIRED:
+		_finish_busy(tr("ACCOUNT_PROTECT_PURCHASE_TITLE"), ProductCardScript.STATE_READY)
+		_show_protect_account_modal()
 		return
 	if st == Commerce.STATUS_BILLING_UNAVAILABLE:
 		_finish_busy("Google Play Billing is available on Android devices.", ProductCardScript.STATE_UNAVAILABLE)
@@ -925,6 +934,114 @@ func _close() -> void:
 		manager.close_current_screen()
 	else:
 		on_close()
+
+
+func _can_start_real_money_purchase() -> bool:
+	var identity: Node = get_node_or_null("/root/AccountIdentityState")
+	if identity == null or not identity.has_method("can_start_real_money_purchase"):
+		return false
+	return bool(identity.call("can_start_real_money_purchase"))
+
+
+func _show_protect_account_modal() -> void:
+	if _protect_overlay != null and is_instance_valid(_protect_overlay):
+		_protect_overlay.visible = true
+		_protect_overlay.move_to_front()
+		return
+	_protect_overlay = Control.new()
+	_protect_overlay.name = "ProtectAccountModal"
+	_protect_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_protect_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(_protect_overlay)
+
+	var dim := ColorRect.new()
+	dim.color = Color(0.02, 0.01, 0.04, 0.86)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	_protect_overlay.add_child(dim)
+
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_protect_overlay.add_child(center)
+
+	var card := PanelContainer.new()
+	card.custom_minimum_size = Vector2(420, 280)
+	card.add_theme_stylebox_override("panel", _style(COL_PANEL, COL_BORDER, 14, 2))
+	center.add_child(card)
+
+	var pad := MarginContainer.new()
+	pad.add_theme_constant_override("margin_left", 16)
+	pad.add_theme_constant_override("margin_right", 16)
+	pad.add_theme_constant_override("margin_top", 16)
+	pad.add_theme_constant_override("margin_bottom", 16)
+	card.add_child(pad)
+
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 12)
+	pad.add_child(col)
+
+	var title := Label.new()
+	title.name = "ProtectAccountTitle"
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title.text = tr("ACCOUNT_PROTECT_PURCHASE_TITLE")
+	title.add_theme_font_size_override("font_size", 18)
+	title.add_theme_color_override("font_color", COL_GOLD)
+	col.add_child(title)
+
+	var body := Label.new()
+	body.name = "ProtectAccountBody"
+	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	body.text = tr("ACCOUNT_PROTECT_PURCHASE_BODY")
+	body.add_theme_font_size_override("font_size", 15)
+	body.add_theme_color_override("font_color", COL_INK)
+	col.add_child(body)
+
+	var secure_btn := Button.new()
+	secure_btn.name = "ProtectAccountSecureButton"
+	secure_btn.text = tr("ACCOUNT_PURCHASE_SECURE_MCS")
+	secure_btn.custom_minimum_size = Vector2(0, 48)
+	secure_btn.pressed.connect(_on_protect_secure_pressed)
+	col.add_child(secure_btn)
+
+	var cancel_btn := Button.new()
+	cancel_btn.name = "ProtectAccountCancelButton"
+	cancel_btn.text = tr("UI_CANCEL")
+	cancel_btn.custom_minimum_size = Vector2(0, 48)
+	cancel_btn.pressed.connect(_hide_protect_account_modal)
+	col.add_child(cancel_btn)
+
+	_set_status(tr("ACCOUNT_PROTECT_PURCHASE_TITLE"))
+
+
+func _on_protect_secure_pressed() -> void:
+	var panel_script: GDScript = load("res://Scripts/UI/AccountSettingsPanel.gd") as GDScript
+	if panel_script == null:
+		return
+	_hide_protect_account_modal()
+	_protect_overlay = Control.new()
+	_protect_overlay.name = "ProtectAccountModal"
+	_protect_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_protect_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(_protect_overlay)
+	var dim := ColorRect.new()
+	dim.color = Color(0.02, 0.01, 0.04, 0.86)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_protect_overlay.add_child(dim)
+	var scroll := ScrollContainer.new()
+	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_protect_overlay.add_child(scroll)
+	var panel: Control = panel_script.new() as Control
+	panel.name = "ProtectAccountSettingsPanel"
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(panel)
+	if panel.has_method("show_secure_view"):
+		panel.call("show_secure_view")
+
+
+func _hide_protect_account_modal() -> void:
+	if _protect_overlay != null and is_instance_valid(_protect_overlay):
+		_protect_overlay.queue_free()
+	_protect_overlay = null
 
 
 func _style(bg: Color, border: Color, radius: float, border_w: float) -> StyleBoxFlat:

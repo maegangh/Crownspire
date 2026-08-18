@@ -22,6 +22,7 @@ const ERR_FOREIGN := "CLOUD_SAVE_REJECT_FOREIGN_PARTITION"
 const ERR_NOT_AUTH := "CLOUD_SAVE_NOT_AUTHENTICATED"
 
 ## Progression files uploaded/restored. Excludes shared-world + server-authoritative caches.
+## resources.cfg Diamonds and paid queue flags are sanitized on upload/restore (mirrors only).
 const CLOUD_FILES: PackedStringArray = [
 	"buildings.cfg",
 	"resources.cfg",
@@ -51,6 +52,7 @@ const CLOUD_EXCLUDED: PackedStringArray = [
 	"chat_moderation_local.cfg",
 	"chat_reports_pending.cfg",
 	"dm_conversations.cfg",
+	"iap_pending.cfg", ## local Google Play retry queue; not cloud authority
 ]
 
 const UPLOAD_DEBOUNCE_SEC := 45.0
@@ -536,6 +538,7 @@ func restore_payload_to_partition(payload: Dictionary, user_id: String = "") -> 
 		if path.is_empty() or path.find(AccountSavePaths.UNBOUND_SENTINEL) >= 0:
 			return _fail(ERR_UNBOUND)
 		var bytes: PackedByteArray = Marshalls.base64_to_raw(b64)
+		bytes = sanitize_paid_authority_file_bytes(name, bytes)
 		var err: Error = _write_bytes(path, bytes)
 		if err != OK:
 			return {"ok": false, "error": "write_failed", "file": name, "code": err}
@@ -802,6 +805,7 @@ func _build_payload_for_user(uid: String) -> Dictionary:
 		if path.is_empty() or not FileAccess.file_exists(path):
 			continue
 		var raw: PackedByteArray = FileAccess.get_file_as_bytes(path)
+		raw = sanitize_paid_authority_file_bytes(file_name, raw)
 		files[file_name] = Marshalls.raw_to_base64(raw)
 
 	var meta: Dictionary = _read_local_meta(uid)
@@ -1059,6 +1063,31 @@ func _reload_gameplay() -> void:
 	var asp: Node = _asp()
 	if asp != null and asp.has_method("reload_bound_gameplay_systems"):
 		asp.call("reload_bound_gameplay_systems")
+
+
+## Strip paid-authority fields from cloud blobs. Food/Wood/Stone/Iron remain.
+## Local Diamond edits and paid queue flags must not become server authority.
+func sanitize_paid_authority_file_bytes(file_name: String, bytes: PackedByteArray) -> PackedByteArray:
+	var name: String = str(file_name)
+	if name not in ["resources.cfg", "construction_queue.cfg", "research_queue.cfg", "marches.cfg"]:
+		return bytes
+	var text: String = bytes.get_string_from_utf8()
+	var cfg := ConfigFile.new()
+	if cfg.parse(text) != OK:
+		return bytes
+	match name:
+		"resources.cfg":
+			cfg.set_value("resources", "diamonds", 0)
+		"construction_queue.cfg":
+			cfg.set_value("meta", "permanent_secondary_construction_queue", false)
+			cfg.set_value("meta", "temporary_secondary_construction_queue_expires_unix", 0)
+			cfg.set_value("meta", "secondary_construction_queue_owned", false)
+		"research_queue.cfg":
+			cfg.set_value("meta", "permanent_secondary_research_queue", false)
+			cfg.set_value("meta", "secondary_research_queue_owned", false)
+		"marches.cfg":
+			cfg.set_value("meta", "permanent_march_queue_entitlement", false)
+	return cfg.encode_to_text().to_utf8_buffer()
 
 
 func _write_bytes(path: String, bytes: PackedByteArray) -> Error:

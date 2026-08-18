@@ -97,3 +97,36 @@ PROFILE_SLOT_CHARM,Charm,Tılsım
 PROFILE_SLOT_GENERIC,Slot,Yuva
 PROFILE_EQUIP_COMING_SOON_FMT,%s equipment — Coming Soon (beta placeholder),%s ekipmanı — Yakında (beta)
 PROFILE_CASTLE_SHARE_LABEL_FMT,[Castle] %s,[Kale] %s
+ACCOUNT_GUEST_TITLE,Guest Account,Misafir Hesabı
+ACCOUNT_SECURED_TITLE,Account Secured,Hesap Güvende
+ACCOUNT_MCS,Mythic Crown Studios Account,Mythic Crown Studios Hesabı
+ACCOUNT_SECURE,Secure Account,Hesabı Güvene Al
+ACCOUNT_CREATE,Create Account,Hesap Oluştur
+ACCOUNT_LOG_IN,Log In,Giriş Yap
+ACCOUNT_SIGN_IN_GOOGLE,Sign in with Google,Google ile giriş yap
+ACCOUNT_SIGN_IN_APPLE,Sign in with Apple,Apple ile giriş yap
+ACCOUNT_LINK_GOOGLE,Link Google,Google bağla
+ACCOUNT_LINK_APPLE,Link Apple,Apple bağla
+ACCOUNT_LINKED,Linked,Bağlı
+ACCOUNT_EMAIL,Email,E-posta
+ACCOUNT_PASSWORD,Password,Şifre
+ACCOUNT_CONFIRM_PASSWORD,Confirm Password,Şifreyi Onayla
+ACCOUNT_SHOW_PASSWORD,Show Password,Şifreyi Göster
+ACCOUNT_HIDE_PASSWORD,Hide Password,Şifreyi Gizle
+ACCOUNT_PROTECT_PURCHASE_TITLE,Protect your account before purchasing,Satın almadan önce hesabınızı koruyun
+ACCOUNT_PROTECT_PURCHASE_BODY,Securing your account protects progress and purchases across reinstalls and devices.,"Hesabınızı güvene almak, ilerlemeyi ve satın almaları yeniden yüklemeler ve cihazlar arasında korur."
+ACCOUNT_SWITCH_WARNING,This Guest Account is not secured. Logging into another account will leave guest progress on this device only. Secure Account first to protect it.,"Bu Misafir Hesabı güvende değil. Başka bir hesaba giriş, misafir ilerlemesini yalnızca bu cihazda bırakır. Korumak için önce hesabı güvene alın."
+ACCOUNT_SWITCH_BLOCKED,This Guest Account has purchases or currency that would be left behind. Secure it with a Mythic Crown Studios Account before logging into a different account.,Bu Misafir Hesabında geride kalacak satın almalar veya para birimi var. Farklı bir hesaba giriş yapmadan önce Mythic Crown Studios Hesabı ile güvene alın.
+ACCOUNT_LINK_FAILED,Account link failed,Hesap bağlama başarısız
+ACCOUNT_SECURED_SUCCESS,Account secured successfully,Hesap başarıyla güvene alındı
+ACCOUNT_GOOGLE_UNAVAILABLE,Google sign-in is not available in this build.,Google ile giriş bu sürümde kullanılamıyor.
+ACCOUNT_APPLE_UNAVAILABLE,Sign in with Apple is not available in this build.,Apple ile giriş bu sürümde kullanılamıyor.
+ACCOUNT_PROVIDER_COMING,Google and Apple sign-in will be available after additional setup.,Google ve Apple ile giriş ek kurulumdan sonra kullanılabilir olacak.
+ACCOUNT_SECURE_PROGRESS,Secure your account to protect your Crownspire progress.,Crownspire ilerlemenizi korumak için hesabınızı güvene alın.
+ACCOUNT_PROGRESS_PROTECTED,Your Crownspire progress is protected.,Crownspire ilerlemeniz korunuyor.
+ACCOUNT_PURCHASE_SECURE_MCS,Secure with Mythic Crown Studios Account,Mythic Crown Studios Hesabı ile güvene al
+ACCOUNT_LOGGING_IN,Logging in…,Giriş yapılıyor…
+ACCOUNT_SECURING,Securing account…,Hesap güvene alınıyor…
+ACCOUNT_CONTINUE_GOOGLE,Continue with Google,Google ile devam et
+ACCOUNT_LINKING_GOOGLE,Linking Google…,Google bağlanıyor…
+ACCOUNT_SECURE_GOOGLE,Secure with Google,Google ile güvene al

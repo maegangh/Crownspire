@@ -19,6 +19,10 @@ const ERR_NOT_AUTH := "NOT_AUTHENTICATED"
 const ERR_USER_CHANGED := "USER_ID_CHANGED"
 const ERR_AUTH_FAILED := "AUTH_FAILED"
 const ERR_GATE_REQUIRED := "LOGIN_GATE_REQUIRED"
+const ERR_GUEST_SWITCH_BLOCKED := "GUEST_SWITCH_BLOCKED"
+const ERR_PROVIDER_UNAVAILABLE := "PROVIDER_UNAVAILABLE"
+const ERR_MISSING_TOKEN := "MISSING_IDENTITY_TOKEN"
+const ERR_IDENTITY_IN_USE := "IDENTITY_ALREADY_IN_USE"
 
 
 static func validate_email(email: String) -> Dictionary:
@@ -104,6 +108,14 @@ static func user_message_for_code(code: String) -> String:
 			return "Account identity changed unexpectedly. Progress was not merged."
 		ERR_GATE_REQUIRED:
 			return "Please log in to continue with your secured Crownspire account."
+		ERR_GUEST_SWITCH_BLOCKED:
+			return "This Guest Account has purchases or currency that would be left behind. Secure it with a Mythic Crown Studios Account before logging into a different account."
+		ERR_PROVIDER_UNAVAILABLE:
+			return "This sign-in method is not available in this build."
+		ERR_MISSING_TOKEN:
+			return "Account link failed."
+		ERR_IDENTITY_IN_USE:
+			return "That Google account is already linked to another Crownspire account."
 		_:
 			return "Authentication failed. Please try again."
 
@@ -138,3 +150,13 @@ static func map_nakama_exception(message: String) -> Dictionary:
 		return {"error": ERR_NETWORK, "message": user_message_for_code(ERR_NETWORK)}
 	# Do not surface raw backend text.
 	return {"error": ERR_AUTH_FAILED, "message": user_message_for_code(ERR_AUTH_FAILED)}
+
+
+static func map_google_nakama_exception(message: String) -> Dictionary:
+	var mapped: Dictionary = map_nakama_exception(message)
+	if str(mapped.get("error", "")) == ERR_EMAIL_IN_USE:
+		return {
+			"error": ERR_IDENTITY_IN_USE,
+			"message": user_message_for_code(ERR_IDENTITY_IN_USE),
+		}
+	return mapped

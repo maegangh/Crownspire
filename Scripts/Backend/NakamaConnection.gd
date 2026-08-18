@@ -19,6 +19,7 @@ const DEVICE_ID_SECTION: String = "device"
 const DEVICE_ID_KEY: String = "id"
 
 const AccountEmailAuthScript = preload("res://Scripts/Backend/AccountEmailAuth.gd")
+const CommerceAuthorityScript = preload("res://Scripts/CommerceAuthority.gd")
 
 ## Desktop local defaults.
 const DEV_HOST_DESKTOP: String = "127.0.0.1"
@@ -46,11 +47,13 @@ var _scheme: String = DEV_SCHEME
 var _server_key: String = DEV_SERVER_KEY
 var _last_fail_reason: String = ""
 var _session_store: AccountSessionStore = AccountSessionStore.new()
-var _last_auth_source: String = "" ## restore | refresh | device | email | link_email | gate_required
-## Phase 4 email auth smoke — never calls production link/login APIs.
+var _last_auth_source: String = "" ## restore | refresh | device | email | link_email | google | link_google | gate_required
+## Phase 4 email/google auth smoke — never calls production link/login APIs.
 var _email_smoke: bool = false
 var _smoke_email_by_user: Dictionary = {} ## user_id -> email
 var _smoke_user_by_email: Dictionary = {} ## email -> {user_id, password}
+var _smoke_user_by_google: Dictionary = {} ## google_sub -> {user_id}
+var _smoke_google_by_user: Dictionary = {} ## user_id -> google_sub
 var _smoke_session_user: String = ""
 
 
@@ -70,6 +73,11 @@ func is_authenticated() -> bool:
 	if _email_smoke and _smoke_session_user.strip_edges() != "":
 		return true
 	return _session != null and not _session.is_exception() and _session.is_valid()
+
+
+func _emit_authenticated() -> void:
+	authenticated.emit()
+	CommerceAuthorityScript.on_session_authenticated()
 
 
 func is_socket_connected() -> bool:
@@ -150,6 +158,8 @@ func begin_email_auth_smoke_isolation() -> void:
 	_email_smoke = true
 	_smoke_email_by_user.clear()
 	_smoke_user_by_email.clear()
+	_smoke_user_by_google.clear()
+	_smoke_google_by_user.clear()
 	_smoke_session_user = ""
 
 
@@ -157,6 +167,8 @@ func end_email_auth_smoke_isolation() -> void:
 	_email_smoke = false
 	_smoke_email_by_user.clear()
 	_smoke_user_by_email.clear()
+	_smoke_user_by_google.clear()
+	_smoke_google_by_user.clear()
 	_smoke_session_user = ""
 
 
@@ -245,7 +257,7 @@ func authenticate_email_login(email: String, password: String) -> Dictionary:
 	_last_auth_source = "email"
 	_persist_session_safely(session)
 	print("[Nakama] Email login successful user=%s" % str(session.user_id).substr(0, 8))
-	authenticated.emit()
+	_emit_authenticated()
 	# Best-effort socket reconnect under new session.
 	if _socket != null:
 		_socket_connected = false
@@ -296,6 +308,154 @@ func _smoke_login_email(email: String, password: String) -> Dictionary:
 		_persist_session_safely(_session)
 	authenticated.emit()
 	return {"ok": true, "user_id": uid, "auth_source": "email", "smoke": true}
+
+
+## Link a Google ID token to the CURRENT Nakama user. Never authenticate_google (create).
+func link_google_token(id_token: String) -> Dictionary:
+	var token: String = id_token.strip_edges()
+	id_token = ""
+	if token.is_empty():
+		return {
+			"ok": false,
+			"error": AccountEmailAuthScript.ERR_MISSING_TOKEN,
+			"message": AccountEmailAuthScript.user_message_for_code(AccountEmailAuthScript.ERR_MISSING_TOKEN),
+		}
+	if _email_smoke:
+		return _smoke_link_google(token)
+	if not is_authenticated() or _client == null or _session == null:
+		token = ""
+		return {
+			"ok": false,
+			"error": AccountEmailAuthScript.ERR_NOT_AUTH,
+			"message": AccountEmailAuthScript.user_message_for_code(AccountEmailAuthScript.ERR_NOT_AUTH),
+		}
+	var before: String = str(_session.user_id)
+	var result: NakamaAsyncResult = await _client.link_google_async(_session, token)
+	token = ""
+	if result == null or result.is_exception():
+		var msg: String = "link failed"
+		if result != null and result.get_exception() != null:
+			msg = str(result.get_exception().message)
+		var mapped: Dictionary = AccountEmailAuthScript.map_google_nakama_exception(msg)
+		mapped["ok"] = false
+		return mapped
+	if str(_session.user_id) != before:
+		return {
+			"ok": false,
+			"error": AccountEmailAuthScript.ERR_USER_CHANGED,
+			"message": AccountEmailAuthScript.user_message_for_code(AccountEmailAuthScript.ERR_USER_CHANGED),
+			"before_user_id": before,
+			"after_user_id": str(_session.user_id),
+			"rebound": false,
+			"wallet_moved": false,
+		}
+	_last_auth_source = "link_google"
+	_persist_session_safely(_session)
+	print("[Nakama] Google linked to existing account user=%s" % str(_session.user_id).substr(0, 8))
+	return {"ok": true, "user_id": before, "linked": true}
+
+
+## Returning Google login. create=false — never invent a new Nakama user here.
+func authenticate_google_login(id_token: String) -> Dictionary:
+	var token: String = id_token.strip_edges()
+	id_token = ""
+	if token.is_empty():
+		return {
+			"ok": false,
+			"error": AccountEmailAuthScript.ERR_MISSING_TOKEN,
+			"message": AccountEmailAuthScript.user_message_for_code(AccountEmailAuthScript.ERR_MISSING_TOKEN),
+		}
+	if _email_smoke:
+		return _smoke_login_google(token)
+	if _client == null:
+		_load_endpoint_config()
+		if has_node("/root/Nakama"):
+			var nakama: Node = get_node("/root/Nakama")
+			_client = nakama.create_client(_server_key, _host, _port, _scheme, 8, NakamaLogger.LOG_LEVEL.ERROR)
+	if _client == null:
+		token = ""
+		return {
+			"ok": false,
+			"error": AccountEmailAuthScript.ERR_NETWORK,
+			"message": AccountEmailAuthScript.user_message_for_code(AccountEmailAuthScript.ERR_NETWORK),
+		}
+	var session: NakamaSession = await _client.authenticate_google_async(token, null, false)
+	token = ""
+	if session == null or session.is_exception() or not session.is_valid():
+		var msg: String = "login failed"
+		if session != null and session.get_exception() != null:
+			msg = str(session.get_exception().message)
+		var mapped: Dictionary = AccountEmailAuthScript.map_google_nakama_exception(msg)
+		mapped["ok"] = false
+		return mapped
+	_session = session
+	_last_auth_source = "google"
+	_persist_session_safely(session)
+	print("[Nakama] Google login successful user=%s" % str(session.user_id).substr(0, 8))
+	_emit_authenticated()
+	if _socket != null:
+		_socket_connected = false
+	call_deferred("_attempt_connection")
+	return {"ok": true, "user_id": str(session.user_id), "auth_source": "google"}
+
+
+func _smoke_link_google(token: String) -> Dictionary:
+	var uid: String = get_user_id()
+	if uid.is_empty():
+		token = ""
+		return {
+			"ok": false,
+			"error": AccountEmailAuthScript.ERR_NOT_AUTH,
+			"message": AccountEmailAuthScript.user_message_for_code(AccountEmailAuthScript.ERR_NOT_AUTH),
+		}
+	if token == "FORCE_USER_CHANGE":
+		_smoke_session_user = "user_changed_unexpectedly"
+		token = ""
+		return {
+			"ok": true,
+			"user_id": _smoke_session_user,
+			"linked": true,
+			"smoke": true,
+		}
+	if _smoke_user_by_google.has(token):
+		var existing: String = str((_smoke_user_by_google[token] as Dictionary).get("user_id", ""))
+		if existing != uid:
+			token = ""
+			return {
+				"ok": false,
+				"error": AccountEmailAuthScript.ERR_IDENTITY_IN_USE,
+				"message": AccountEmailAuthScript.user_message_for_code(AccountEmailAuthScript.ERR_IDENTITY_IN_USE),
+			}
+	_smoke_user_by_google[token] = {"user_id": uid}
+	_smoke_google_by_user[uid] = token
+	_last_auth_source = "link_google"
+	token = ""
+	return {"ok": true, "user_id": uid, "linked": true, "smoke": true}
+
+
+func _smoke_login_google(token: String) -> Dictionary:
+	if not _smoke_user_by_google.has(token):
+		token = ""
+		return {
+			"ok": false,
+			"error": AccountEmailAuthScript.ERR_INVALID_CREDENTIALS,
+			"message": AccountEmailAuthScript.user_message_for_code(AccountEmailAuthScript.ERR_INVALID_CREDENTIALS),
+		}
+	var rec: Dictionary = _smoke_user_by_google[token]
+	token = ""
+	var uid: String = str(rec.get("user_id", ""))
+	if uid.is_empty():
+		return {
+			"ok": false,
+			"error": AccountEmailAuthScript.ERR_INVALID_CREDENTIALS,
+			"message": AccountEmailAuthScript.user_message_for_code(AccountEmailAuthScript.ERR_INVALID_CREDENTIALS),
+		}
+	_smoke_session_user = uid
+	_last_auth_source = "google"
+	if _session != null and _session.is_valid() and str(_session.user_id) == uid:
+		_persist_session_safely(_session)
+	authenticated.emit()
+	return {"ok": true, "user_id": uid, "auth_source": "google", "smoke": true}
 
 
 func reconnect_now() -> void:
@@ -560,7 +720,7 @@ func _connect_async() -> void:
 		"[Nakama] Authentication successful user=%s source=%s"
 		% [str(session.user_id), _last_auth_source]
 	)
-	authenticated.emit()
+	_emit_authenticated()
 
 	_socket = nakama.create_socket_from(_client)
 	if _socket == null:

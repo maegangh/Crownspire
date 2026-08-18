@@ -34,3 +34,4 @@ deploy_staging/*.sha256
 
 # Private beta / device build overrides (never commit production client keys)
 config/nakama_client.local.cfg
+config/google_oauth.local.cfg

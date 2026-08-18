@@ -31,6 +31,7 @@ static var _session_refresh_count: int = 0
 static var _has_test_session_payloads: bool = false
 static var _test_session_restore_wallet: Dictionary = {}
 static var _test_session_refresh_wallet: Dictionary = {}
+static var _wallet_owner_user_id: String = ""
 
 
 static func begin_smoke_isolation() -> void:
@@ -42,6 +43,7 @@ static func begin_smoke_isolation() -> void:
 	_authority_sync_token = 0
 	_session_restore_count = 0
 	_session_refresh_count = 0
+	_wallet_owner_user_id = ""
 	clear_snapshot()
 
 
@@ -68,6 +70,7 @@ static func clear_snapshot() -> void:
 	_entitlements.clear()
 	_vip_verified = false
 	_vip_level_server = 0
+	_wallet_owner_user_id = ""
 
 
 static func has_server_snapshot() -> bool:
@@ -98,7 +101,11 @@ static func apply_entitlement_snapshot(rows: Array) -> void:
 		}
 
 
-static func apply_commerce_wallet_payload(wallet: Dictionary) -> void:
+static func apply_commerce_wallet_payload(wallet: Dictionary) -> bool:
+	var expected: String = _current_auth_user_id()
+	var payload_uid: String = str(wallet.get("user_id", "")).strip_edges()
+	if payload_uid != "" and expected != "" and payload_uid != expected:
+		return false
 	apply_wallet_snapshot(int(wallet.get("diamonds", 0)))
 	_beta_vouchers = maxi(0, int(wallet.get("beta_vouchers", 0)))
 	_beta_voucher_available = bool(wallet.get("beta_voucher_available", false))
@@ -109,6 +116,12 @@ static func apply_commerce_wallet_payload(wallet: Dictionary) -> void:
 	var ents: Variant = wallet.get("entitlements", [])
 	if typeof(ents) == TYPE_ARRAY:
 		apply_entitlement_snapshot(ents)
+	_wallet_owner_user_id = expected
+	return true
+
+
+static func get_wallet_owner_user_id() -> String:
+	return _wallet_owner_user_id
 
 
 static func get_authoritative_diamonds() -> int:
@@ -172,6 +185,21 @@ static func has_paid_entitlement(entitlement_id: String) -> bool:
 	if exp > 0 and exp <= int(Time.get_unix_time_from_system()):
 		return false
 	return true
+
+
+static func has_any_active_entitlement() -> bool:
+	if not _has_snapshot:
+		return false
+	for eid: Variant in _entitlements.keys():
+		if has_paid_entitlement(str(eid)):
+			return true
+	return false
+
+
+static func has_pending_purchase_ledger() -> bool:
+	if _smoke:
+		return false
+	return not list_pending_google_receipts().is_empty()
 
 
 static func get_timed_entitlement_expires(entitlement_id: String) -> int:
@@ -258,6 +286,7 @@ const STATUS_SERVER_REJECTED := "SERVER_REJECTED"
 const STATUS_DELIVERED := "DELIVERED"
 const STATUS_ALREADY_DELIVERED := "ALREADY_DELIVERED"
 const STATUS_BILLING_UNAVAILABLE := "BILLING_UNAVAILABLE"
+const STATUS_ACCOUNT_PROTECTION_REQUIRED := "ACCOUNT_PROTECTION_REQUIRED"
 
 ## Smoke-only RPC stub. Production never sets this except begin_smoke_isolation callers.
 static var _test_process_purchase: Callable = Callable()
@@ -276,6 +305,42 @@ static func is_nakama_authenticated() -> bool:
 		return false
 	var nc: Node = (tree as SceneTree).root.get_node_or_null("/root/NakamaConnection")
 	return nc != null and bool(nc.call("is_authenticated"))
+
+
+static func _current_auth_user_id() -> String:
+	var tree := Engine.get_main_loop()
+	if tree == null or not (tree is SceneTree):
+		return ""
+	var root: Node = (tree as SceneTree).root
+	var nc: Node = root.get_node_or_null("/root/NakamaConnection")
+	if nc != null and nc.has_method("get_user_id"):
+		var uid: String = str(nc.call("get_user_id")).strip_edges()
+		if uid != "":
+			return uid
+	var identity: Node = root.get_node_or_null("/root/AccountIdentityState")
+	if identity != null and identity.has_method("get_auth_user_id"):
+		return str(identity.call("get_auth_user_id")).strip_edges()
+	return ""
+
+
+static func _account_has_recoverable_identity() -> bool:
+	var tree := Engine.get_main_loop()
+	if tree == null or not (tree is SceneTree):
+		return false
+	var identity: Node = (tree as SceneTree).root.get_node_or_null("/root/AccountIdentityState")
+	if identity == null or not identity.has_method("has_recoverable_identity"):
+		return false
+	return bool(identity.call("has_recoverable_identity"))
+
+
+static func _apply_wallet_for_expected_user(wallet: Dictionary, expected_user_id: String) -> bool:
+	var current: String = _current_auth_user_id()
+	if expected_user_id != "" and current != "" and expected_user_id != current:
+		return false
+	var stamped: Dictionary = wallet.duplicate(true)
+	if expected_user_id != "" and str(stamped.get("user_id", "")).strip_edges() == "":
+		stamped["user_id"] = expected_user_id
+	return apply_commerce_wallet_payload(stamped)
 
 
 static func load_commerce_catalog() -> Dictionary:
@@ -558,33 +623,41 @@ static func process_platform_purchase(platform: String, receipt: String) -> Dict
 
 static func restore_server_entitlements() -> Dictionary:
 	_session_restore_count += 1
+	var expected: String = _current_auth_user_id()
 	if _smoke and _has_test_session_payloads:
-		apply_commerce_wallet_payload(_test_session_restore_wallet)
+		if not _apply_wallet_for_expected_user(_test_session_restore_wallet, expected):
+			return {"ok": false, "error": "stale_wallet_user", "applied": false, "status": "SMOKE"}
 		return {"ok": true, "status": "SMOKE", "wallet": _test_session_restore_wallet}
 	if not is_nakama_authenticated() and not _smoke:
 		return {"ok": false, "error": "not_authenticated", "status": STATUS_UNAUTHENTICATED}
 	if _smoke and _test_process_purchase.is_valid():
 		return {"ok": true, "status": "SMOKE"}
 	var restored: Dictionary = await _rpc_commerce(RPC_RESTORE, {})
+	if expected != _current_auth_user_id():
+		return {"ok": false, "error": "stale_wallet_user", "applied": false}
 	if bool(restored.get("ok", false)):
 		var wallet: Variant = restored.get("wallet", {})
 		if typeof(wallet) == TYPE_DICTIONARY:
-			apply_commerce_wallet_payload(wallet)
+			_apply_wallet_for_expected_user(wallet, expected)
 	return restored
 
 
 static func refresh_server_wallet() -> Dictionary:
 	_session_refresh_count += 1
+	var expected: String = _current_auth_user_id()
 	if _smoke and _has_test_session_payloads:
-		apply_commerce_wallet_payload(_test_session_refresh_wallet)
+		if not _apply_wallet_for_expected_user(_test_session_refresh_wallet, expected):
+			return {"ok": false, "error": "stale_wallet_user", "applied": false}
 		return {"ok": true, "wallet": _test_session_refresh_wallet}
 	if not is_nakama_authenticated():
 		return {"ok": false, "error": "not_authenticated"}
 	var res: Dictionary = await _rpc_commerce(RPC_GET_WALLET, {})
+	if expected != _current_auth_user_id():
+		return {"ok": false, "error": "stale_wallet_user", "applied": false}
 	if bool(res.get("ok", false)):
 		var wallet: Variant = res.get("wallet", {})
 		if typeof(wallet) == TYPE_DICTIONARY:
-			apply_commerce_wallet_payload(wallet)
+			_apply_wallet_for_expected_user(wallet, expected)
 	return res
 
 
@@ -729,6 +802,15 @@ static func purchase_android_product(product_id: String) -> Dictionary:
 			"granted": false,
 			"delivered": false,
 			"rpc_sent": false,
+		}
+	if not _account_has_recoverable_identity():
+		return {
+			"ok": false,
+			"status": STATUS_ACCOUNT_PROTECTION_REQUIRED,
+			"granted": false,
+			"delivered": false,
+			"rpc_sent": false,
+			"billing_launched": false,
 		}
 	var node: Node = ensure_android_billing_node()
 	if node == null:
