@@ -195,7 +195,10 @@ function InitModule(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkrunt
   initializer.registerRpc("crownspire_commerce_claim_beta_topup_milestone", rpcCommerceClaimBetaTopUpMilestone);
   initializer.registerPurchaseNotificationGoogle(onGooglePurchaseNotification);
 
-  logger.info("Crownspire runtime loaded (Phase 3+4+5+5.1+5.3+5.7+6+castles identity/alliance/help/social/rallies/dm-rpc/commerce). LOCAL DEVELOPMENT ONLY.");
+  // Public Player ID — authenticated ensure/get only. No public lookup RPC (enumeration risk).
+  initializer.registerRpc("crownspire_account_get_public_player_id", rpcAccountGetPublicPlayerId);
+
+  logger.info("Crownspire runtime loaded (Phase 3+4+5+5.1+5.3+5.7+6+castles identity/alliance/help/social/rallies/dm-rpc/commerce/public-player-id). LOCAL DEVELOPMENT ONLY.");
 }
 
 // ---------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 {
-    "files": ["./src/index.ts", "./src/phase4_alliance.ts", "./src/phase5_help.ts", "./src/phase51_identity.ts", "./src/phase53_rally.ts", "./src/phase54_world_castles.ts", "./src/phase55_city_teleport.ts", "./src/phase56_hostile_pvp.ts", "./src/phase6_dm.ts", "./src/phase57_commerce.ts", "./src/phase57_beta_vouchers.ts"],
+    "files": ["./src/index.ts", "./src/phase4_alliance.ts", "./src/phase5_help.ts", "./src/phase51_identity.ts", "./src/phase53_rally.ts", "./src/phase54_world_castles.ts", "./src/phase55_city_teleport.ts", "./src/phase56_hostile_pvp.ts", "./src/phase6_dm.ts", "./src/phase57_commerce.ts", "./src/phase57_beta_vouchers.ts", "./src/phase58_public_player_id.ts"],
   "compilerOptions": {
     "target": "es5",
     "typeRoots": ["./node_modules"],
