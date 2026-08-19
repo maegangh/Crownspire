@@ -65,6 +65,8 @@ func _run() -> void:
 	var panel: Control = shop.find_child("BetaVoucherPanel", true, false)
 	_assert(panel != null and not panel.visible, "A: no snapshot keeps panel hidden")
 	_assert(shop.find_child("BuyButton_com_crownspire_diamonds_500", true, false) != null, "E: Diamond Buy remains")
+	_assert(str(shop.call("get_payment_mode")) == "money", "A: default mode is Money")
+	_assert(shop.find_child("ShopPayMode_vouchers", true, false) != null, "G: Voucher mode control exists without entitlement")
 	var redeem_in: LineEdit = shop.find_child("BetaVoucherRedeemInput", true, false)
 	_assert(redeem_in != null and str(redeem_in.text).strip_edges() == "", "I: redeem field not prefilled")
 	_assert(_redeem_calls == 0, "I: opening Shop must not redeem")
@@ -87,7 +89,8 @@ func _run() -> void:
 	_assert(int(Commerce.get_server_voucher_cost("com.crownspire.diamonds_500")) == 5, "client displays server cost")
 	var bal: Label = shop.find_child("BetaVoucherBalance", true, false)
 	_assert(bal != null and str(bal.text).find("0") >= 0, "B: balance 0 from server")
-	_assert(shop.find_child("VoucherBuyButton_com_crownspire_diamonds_500", true, false) != null, "distinct voucher buy")
+	_assert(shop.find_child("VoucherBuyButton_com_crownspire_diamonds_500", true, false) == null, "I: no duplicate voucher product buy")
+	_assert(shop.find_child("BetaVoucherRedeemButton", true, false) != null, "F: entitled tester sees Redeem")
 	_assert(_redeem_calls == 0, "I: snapshot apply does not redeem")
 
 	print("[BETA VOUCHER] C unavailable snapshot hides panel")
@@ -99,6 +102,12 @@ func _run() -> void:
 	})
 	await process_frame
 	_assert(panel != null and not panel.visible, "C: unavailable keeps panel hidden")
+	shop.call("set_payment_mode", "vouchers")
+	await process_frame
+	_assert(str(shop.call("get_payment_mode")) == "vouchers", "G: Voucher mode can still exist without entitlement")
+	_assert(panel != null and not panel.visible, "G: code redemption stays hidden for non-entitled")
+	shop.call("set_payment_mode", "money")
+	await process_frame
 
 	print("[BETA VOUCHER] E wallet refresh failure stays fail-closed")
 	Commerce.clear_snapshot()
@@ -134,6 +143,15 @@ func _run() -> void:
 	_assert(int(Commerce.get_authoritative_diamonds()) == 500, "buy grants server diamonds")
 	_assert(int(gs.get("diamonds")) == 500, "HUD mirror updates from server wallet")
 	_assert(_buy_calls == 1, "buy stub called once")
+	Commerce.clear_voucher_purchase_key("com.crownspire.diamonds_500")
+	var key_a: String = Commerce.peek_or_create_voucher_purchase_key("com.crownspire.diamonds_500")
+	var key_b: String = Commerce.peek_or_create_voucher_purchase_key("com.crownspire.diamonds_500")
+	_assert(key_a == key_b and key_a.find("-") >= 0, "I: same in-flight nonce reused")
+	_assert(key_a.find("client_") < 0, "I: nonce is not unix-seconds")
+	Commerce.clear_voucher_purchase_key("com.crownspire.diamonds_500")
+	var key_c: String = Commerce.peek_or_create_voucher_purchase_key("com.crownspire.diamonds_500")
+	_assert(key_c != key_a, "I: new later purchase uses a new nonce")
+	Commerce.clear_voucher_purchase_key("com.crownspire.diamonds_500")
 
 	print("[BETA VOUCHER] F account switch drops previous voucher availability")
 	nc.call("smoke_set_session_user", "user_a")

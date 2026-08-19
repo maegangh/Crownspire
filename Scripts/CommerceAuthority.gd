@@ -22,6 +22,8 @@ static var _beta_vouchers: int = 0
 static var _beta_voucher_available: bool = false
 static var _beta_voucher_offers: Array = []
 static var _beta_topup: Dictionary = {}
+static var _voucher_inflight_keys: Dictionary = {}
+static var _last_voucher_idempotency_key: String = ""
 static var _entitlements: Dictionary = {}
 static var _vip_verified: bool = false
 static var _vip_level_server: int = 0
@@ -59,6 +61,8 @@ static func begin_smoke_isolation() -> void:
 	_session_restore_count = 0
 	_session_refresh_count = 0
 	_wallet_owner_user_id = ""
+	_voucher_inflight_keys.clear()
+	_last_voucher_idempotency_key = ""
 	clear_snapshot()
 
 
@@ -86,6 +90,8 @@ static func clear_snapshot() -> void:
 	_vip_verified = false
 	_vip_level_server = 0
 	_wallet_owner_user_id = ""
+	_voucher_inflight_keys.clear()
+	_last_voucher_idempotency_key = ""
 
 
 static func has_server_snapshot() -> bool:
@@ -122,9 +128,14 @@ static func apply_commerce_wallet_payload(wallet: Dictionary) -> bool:
 	if payload_uid != "" and expected != "" and payload_uid != expected:
 		return false
 	apply_wallet_snapshot(int(wallet.get("diamonds", 0)))
-	_beta_vouchers = maxi(0, int(wallet.get("beta_vouchers", 0)))
+	if wallet.has("vouchers"):
+		_beta_vouchers = maxi(0, int(wallet.get("vouchers", 0)))
+	else:
+		_beta_vouchers = maxi(0, int(wallet.get("beta_vouchers", 0)))
 	_beta_voucher_available = bool(wallet.get("beta_voucher_available", false))
-	var offers: Variant = wallet.get("beta_voucher_offers", [])
+	var offers: Variant = wallet.get("voucher_offers", null)
+	if typeof(offers) != TYPE_ARRAY:
+		offers = wallet.get("beta_voucher_offers", [])
 	_beta_voucher_offers = offers if typeof(offers) == TYPE_ARRAY else []
 	var topup: Variant = wallet.get("beta_topup", {})
 	_beta_topup = topup if typeof(topup) == TYPE_DICTIONARY else {}
@@ -168,6 +179,10 @@ static func get_beta_voucher_balance() -> int:
 	return _beta_vouchers
 
 
+static func get_voucher_balance() -> int:
+	return get_beta_voucher_balance()
+
+
 static func get_beta_topup_snapshot() -> Dictionary:
 	return _beta_topup.duplicate(true)
 
@@ -179,8 +194,68 @@ static func get_server_voucher_cost(product_id: String) -> int:
 			continue
 		var row: Dictionary = item
 		if str(row.get("product_id", "")).strip_edges() == pid or str(row.get("iap_product_id", "")).strip_edges() == pid:
+			if row.has("voucher_purchasable") and not bool(row.get("voucher_purchasable", true)):
+				return 0
+			if row.has("beta_voucher_purchasable") and not bool(row.get("beta_voucher_purchasable", true)):
+				return 0
 			return maxi(0, int(row.get("voucher_cost", 0)))
 	return 0
+
+
+static func is_product_voucher_purchasable(product_id: String) -> bool:
+	return get_server_voucher_cost(product_id) > 0
+
+
+static func generate_opaque_idempotency_key() -> String:
+	var crypto := Crypto.new()
+	var bytes: PackedByteArray = crypto.generate_random_bytes(16)
+	if bytes.size() < 16:
+		bytes.resize(16)
+	bytes[6] = (int(bytes[6]) & 0x0f) | 0x40
+	bytes[8] = (int(bytes[8]) & 0x3f) | 0x80
+	var hex := ""
+	for i in range(16):
+		hex += "%02x" % (int(bytes[i]) & 0xff)
+		if i == 3 or i == 5 or i == 7 or i == 9:
+			hex += "-"
+	return hex
+
+
+static func peek_or_create_voucher_purchase_key(product_id: String, explicit_key: String = "") -> String:
+	var pid: String = product_id.strip_edges()
+	var explicit: String = explicit_key.strip_edges()
+	if not explicit.is_empty():
+		_voucher_inflight_keys[pid] = explicit
+		_last_voucher_idempotency_key = explicit
+		return explicit
+	if pid.is_empty():
+		return ""
+	if _voucher_inflight_keys.has(pid):
+		var existing: String = str(_voucher_inflight_keys[pid]).strip_edges()
+		if not existing.is_empty():
+			_last_voucher_idempotency_key = existing
+			return existing
+	var created: String = generate_opaque_idempotency_key()
+	_voucher_inflight_keys[pid] = created
+	_last_voucher_idempotency_key = created
+	return created
+
+
+static func get_inflight_voucher_purchase_key(product_id: String) -> String:
+	var pid: String = product_id.strip_edges()
+	if not _voucher_inflight_keys.has(pid):
+		return ""
+	return str(_voucher_inflight_keys[pid]).strip_edges()
+
+
+static func get_last_voucher_idempotency_key() -> String:
+	return _last_voucher_idempotency_key
+
+
+static func clear_voucher_purchase_key(product_id: String) -> void:
+	var pid: String = product_id.strip_edges()
+	if _voucher_inflight_keys.has(pid):
+		_voucher_inflight_keys.erase(pid)
 
 
 ## Client cannot mint, spend, or correct Beta Vouchers locally.
@@ -774,11 +849,9 @@ static func purchase_with_vouchers(product_id: String, idempotency_key: String =
 	var pid: String = product_id.strip_edges()
 	if pid.is_empty():
 		return {"ok": false, "error": "product_required", "granted": false}
-	if not is_beta_voucher_available() and not _smoke:
-		return {"ok": false, "error": "beta_voucher_unavailable", "granted": false}
-	var key: String = idempotency_key.strip_edges()
+	var key: String = peek_or_create_voucher_purchase_key(pid, idempotency_key)
 	if key.is_empty():
-		key = "client_%s_%s" % [pid, str(Time.get_unix_time_from_system())]
+		return {"ok": false, "error": "idempotency_key_required", "granted": false}
 	if _smoke and _test_process_purchase.is_valid():
 		var stub: Variant = _test_process_purchase.call("BETA_VOUCHER_BUY", pid)
 		if typeof(stub) == TYPE_DICTIONARY:
@@ -795,9 +868,9 @@ static func purchase_with_vouchers(product_id: String, idempotency_key: String =
 		"idempotency_key": key,
 	})
 	if bool(res.get("ok", false)):
-		var wallet: Variant = res.get("wallet", {})
-		if typeof(wallet) == TYPE_DICTIONARY:
-			apply_commerce_wallet_payload(wallet)
+		var delivered_wallet: Variant = res.get("wallet", {})
+		if typeof(delivered_wallet) == TYPE_DICTIONARY:
+			apply_commerce_wallet_payload(delivered_wallet)
 	return res
 
 
