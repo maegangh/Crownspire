@@ -135,4 +135,6 @@ ACCOUNT_SECURE_GOOGLE,Secure with Google,Google ile güvene al
 PLAYER_ID,Player ID,Oyuncu Kimliği
 COPY,Copy,Kopyala
 PLAYER_ID_COPIED,Player ID copied,Oyuncu Kimliği kopyalandı
+PLAYER_ID_LOADING,Loading…,Yükleniyor…
+PLAYER_ID_UNAVAILABLE,Player ID unavailable,Oyuncu Kimliği kullanılamıyor
 CHIEF_NAME,Chief,Şef

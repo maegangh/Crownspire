@@ -50,6 +50,16 @@ var _boot_gate_mode: int = BootGateMode.AUTO_CONTINUE
 var _session_auth_source: String = "" ## restore | refresh | device | email | link_email | gate_required
 var _last_email_error: Dictionary = {}
 var _smoke_mode: bool = false
+var _public_player_id: String = "" ## formatted display ID, never Nakama UUID
+var _public_player_id_status: String = "" ## "" | LOADING | READY | UNAVAILABLE
+var _public_player_id_owner: String = ""
+var _public_player_id_generation: int = 0
+var _smoke_public_ids: Dictionary = {} ## user_id -> formatted public ID
+var _smoke_public_id_unavailable: bool = false
+
+const PUBLIC_PLAYER_ID_ALPHABET := "23456789ABCDEFGHJKMNPQRSTUVWXYZ"
+const RPC_GET_PUBLIC_PLAYER_ID := "crownspire_account_get_public_player_id"
+
 
 
 func _ready() -> void:
@@ -71,6 +81,9 @@ func begin_smoke_isolation() -> void:
 	_boot_gate_mode = BootGateMode.AUTO_CONTINUE
 	_last_email_error = {}
 	_smoke_mode = true
+	_clear_public_player_id_state()
+	_smoke_public_ids = {}
+	_smoke_public_id_unavailable = false
 	if FileAccess.file_exists(get_ownership_path()):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(get_ownership_path()))
 
@@ -92,6 +105,9 @@ func end_smoke_isolation() -> void:
 	_session_auth_source = ""
 	_boot_gate_mode = BootGateMode.AUTO_CONTINUE
 	_last_email_error = {}
+	_clear_public_player_id_state()
+	_smoke_public_ids = {}
+	_smoke_public_id_unavailable = false
 	_load_ownership_record()
 
 
@@ -109,7 +125,7 @@ func get_local_owner_user_id() -> String:
 	return _local_owner_user_id
 
 
-## Live Nakama user_id for the account currently on this device. Never a token.
+## Live Nakama user_id for the account currently on this device. Internal authority only.
 func get_current_player_id() -> String:
 	var nc: Node = get_node_or_null("/root/NakamaConnection")
 	if nc != null and nc.has_method("get_user_id"):
@@ -119,18 +135,59 @@ func get_current_player_id() -> String:
 	return _auth_user_id.strip_edges()
 
 
-## First 8 characters for on-screen Player ID. Empty if unsigned.
+## Log-only UUID prefix. Never use this as the player-facing Player ID.
 func get_current_player_id_short() -> String:
 	return format_player_id_short(get_current_player_id())
 
 
-## Full user_id for the Copy action. Callers must not log this value.
+## Public Player ID for Copy. Empty until the server ID is ready. Never the Nakama UUID.
 func get_player_id_copy_payload() -> String:
-	return get_current_player_id()
+	if _public_player_id_status != "READY":
+		return ""
+	return _public_player_id
 
 
 func format_player_id_short(user_id: String) -> String:
 	return _short_id(user_id)
+
+
+func get_public_player_id() -> String:
+	return _public_player_id if _public_player_id_status == "READY" else ""
+
+
+func get_public_player_id_status() -> String:
+	return _public_player_id_status
+
+
+func get_player_facing_id_label_text() -> String:
+	if _public_player_id_status == "READY" and _public_player_id != "":
+		return "%s: %s" % [tr("PLAYER_ID"), _public_player_id]
+	if _public_player_id_status == "UNAVAILABLE":
+		return "%s: %s" % [tr("PLAYER_ID"), tr("PLAYER_ID_UNAVAILABLE")]
+	return "%s: %s" % [tr("PLAYER_ID"), tr("PLAYER_ID_LOADING")]
+
+
+func can_copy_public_player_id() -> bool:
+	return _public_player_id_status == "READY" and _public_player_id != ""
+
+
+func smoke_set_public_player_id_for_user(user_id: String, public_id: String) -> void:
+	var uid: String = user_id.strip_edges()
+	var formatted: String = format_public_player_id(public_id)
+	if uid == "" or formatted == "":
+		return
+	_smoke_public_ids[uid] = formatted
+
+
+func smoke_mark_public_player_id_unavailable(unavailable: bool = true) -> void:
+	_smoke_public_id_unavailable = unavailable
+
+
+func retry_public_player_id() -> void:
+	var uid: String = get_current_player_id()
+	if uid == "":
+		return
+	_kickoff_public_player_id(uid, true)
 
 
 ## Player-facing Chief Name. Never email. Empty if no authoritative name is known.
@@ -150,14 +207,14 @@ func get_chief_display_name() -> String:
 	return ""
 
 
-## Copies the full current user_id. Does not log it. Fails closed if clipboard is missing.
+## Copies the public Player ID. Never copies the Nakama UUID. Does not log the value.
 func copy_current_player_id_to_clipboard() -> Dictionary:
-	var full: String = get_player_id_copy_payload()
-	if full.is_empty():
+	var payload: String = get_player_id_copy_payload()
+	if payload.is_empty():
 		return {"ok": false, "copied": false, "clipboard_available": false}
 	if not DisplayServer.has_feature(DisplayServer.FEATURE_CLIPBOARD):
 		return {"ok": false, "copied": false, "clipboard_available": false}
-	DisplayServer.clipboard_set(full)
+	DisplayServer.clipboard_set(payload)
 	return {"ok": true, "copied": true, "clipboard_available": true}
 
 
@@ -625,7 +682,10 @@ func on_authenticated(user_id: String, auth_source: String = "device") -> Dictio
 	_session_auth_source = auth_source.strip_edges()
 	if uid.is_empty():
 		return {"ok": false, "error": "empty_user_id"}
+	var previous_uid: String = _auth_user_id.strip_edges()
 	_auth_user_id = uid
+	if previous_uid != "" and previous_uid != uid:
+		_clear_public_player_id_state()
 	if _boot_gate_mode == BootGateMode.SHOW_GATE and auth_source != "gate_required":
 		_boot_gate_mode = BootGateMode.AUTO_CONTINUE
 	_refresh_account_kind_from_nakama()
@@ -634,6 +694,7 @@ func on_authenticated(user_id: String, auth_source: String = "device") -> Dictio
 	if asp != null and asp.has_method("open_for_authenticated_user"):
 		var save_ctx: Dictionary = asp.call("open_for_authenticated_user", uid, ownership)
 		ownership["save_context"] = save_ctx
+	_kickoff_public_player_id(uid, false)
 	account_state_changed.emit()
 	return ownership
 
@@ -1052,3 +1113,103 @@ func _short_id(user_id: String) -> String:
 	if uid.length() <= 8:
 		return uid
 	return uid.substr(0, 8)
+
+
+func _clear_public_player_id_state() -> void:
+	_public_player_id = ""
+	_public_player_id_status = "LOADING"
+	_public_player_id_owner = ""
+
+
+func normalize_public_player_id(raw: String) -> String:
+	var compact: String = raw.strip_edges().to_upper().replace("-", "").replace(" ", "")
+	if compact.length() != 8:
+		return ""
+	for i: int in range(compact.length()):
+		if PUBLIC_PLAYER_ID_ALPHABET.find(compact[i]) < 0:
+			return ""
+	return compact
+
+
+func format_public_player_id(raw: String) -> String:
+	var normalized: String = normalize_public_player_id(raw)
+	if normalized == "":
+		return ""
+	return "%s-%s" % [normalized.substr(0, 4), normalized.substr(4, 4)]
+
+
+func _kickoff_public_player_id(user_id: String, force: bool) -> void:
+	var uid: String = user_id.strip_edges()
+	if uid == "":
+		_clear_public_player_id_state()
+		return
+	if _public_player_id_owner != uid:
+		_public_player_id = ""
+		_public_player_id_status = "LOADING"
+		_public_player_id_owner = uid
+	elif force or _public_player_id_status != "READY":
+		if _public_player_id_status != "READY":
+			_public_player_id_status = "LOADING"
+	_public_player_id_generation += 1
+	var gen: int = _public_player_id_generation
+	if _smoke_mode:
+		_apply_smoke_public_player_id(uid, gen)
+		account_state_changed.emit()
+		return
+	_ensure_public_player_id_async(uid, gen)
+
+
+func _apply_smoke_public_player_id(user_id: String, gen: int) -> void:
+	if gen != _public_player_id_generation or _public_player_id_owner != user_id:
+		return
+	if _smoke_public_id_unavailable:
+		_public_player_id = ""
+		_public_player_id_status = "UNAVAILABLE"
+		return
+	if _smoke_public_ids.has(user_id):
+		var formatted: String = format_public_player_id(str(_smoke_public_ids[user_id]))
+		if formatted != "":
+			_public_player_id = formatted
+			_public_player_id_status = "READY"
+			return
+	_public_player_id = ""
+	_public_player_id_status = "LOADING"
+
+
+func _ensure_public_player_id_async(user_id: String, gen: int) -> void:
+	var res: Dictionary = await _rpc_get_public_player_id()
+	if gen != _public_player_id_generation:
+		return
+	if get_current_player_id() != user_id:
+		return
+	var formatted: String = format_public_player_id(str(res.get("public_player_id", "")))
+	if bool(res.get("ok", false)) and formatted != "":
+		_public_player_id = formatted
+		_public_player_id_status = "READY"
+		account_state_changed.emit()
+		return
+	_public_player_id = ""
+	_public_player_id_status = "UNAVAILABLE"
+	account_state_changed.emit()
+
+
+func _rpc_get_public_player_id() -> Dictionary:
+	var nc: Node = get_node_or_null("/root/NakamaConnection")
+	if nc == null or not nc.has_method("is_authenticated") or not bool(nc.call("is_authenticated")):
+		return {"ok": false, "error": "not_authenticated"}
+	if not nc.has_method("get_client") or not nc.has_method("get_session"):
+		return {"ok": false, "error": "missing_client"}
+	var client: Variant = nc.call("get_client")
+	var session: Variant = nc.call("get_session")
+	if client == null or session == null:
+		return {"ok": false, "error": "missing_session"}
+	var raw: Variant = await client.rpc_async(session, RPC_GET_PUBLIC_PLAYER_ID, "{}")
+	if raw == null or (raw.has_method("is_exception") and bool(raw.call("is_exception"))):
+		return {"ok": false, "error": "rpc_failed"}
+	var payload_str: String = str(raw.payload) if ("payload" in raw) else ""
+	if payload_str.strip_edges() == "":
+		return {"ok": false, "error": "empty_payload"}
+	var parsed: Variant = JSON.parse_string(payload_str)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return {"ok": false, "error": "invalid_payload"}
+	return parsed as Dictionary

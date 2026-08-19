@@ -49,8 +49,8 @@ def main() -> int:
     csv_tr = {r["keys"]: r["tr"] for r in rows}
     if len(csv_keys) != len(set(csv_keys)):
         errors.append("CSV has duplicate keys")
-    if len(csv_keys) != 137:
-        errors.append(f"CSV key count {len(csv_keys)} != 137")
+    if len(csv_keys) != 139:
+        errors.append(f"CSV key count {len(csv_keys)} != 139")
 
     if not EN_TRES.is_file():
         errors.append("missing en.tres")

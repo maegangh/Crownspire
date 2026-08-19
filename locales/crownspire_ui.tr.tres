@@ -3,6 +3,8 @@
 [resource]
 messages = {
 [&"", &"CHIEF_NAME"]: [&"Şef"],
+[&"", &"PLAYER_ID_UNAVAILABLE"]: [&"Oyuncu Kimliği kullanılamıyor"],
+[&"", &"PLAYER_ID_LOADING"]: [&"Yükleniyor…"],
 [&"", &"PLAYER_ID_COPIED"]: [&"Oyuncu Kimliği kopyalandı"],
 [&"", &"COPY"]: [&"Kopyala"],
 [&"", &"PLAYER_ID"]: [&"Oyuncu Kimliği"],

@@ -168,13 +168,6 @@ func _add_support_identity_rows(identity: Node) -> void:
 			chief_lbl.text = "%s: %s" % [tr("CHIEF_NAME"), chief]
 			_style_label(chief_lbl, FONT_BODY, COL_INK)
 			add_child(chief_lbl)
-	var full_id: String = ""
-	var short_id: String = ""
-	if identity != null:
-		if identity.has_method("get_current_player_id"):
-			full_id = str(identity.call("get_current_player_id")).strip_edges()
-		if identity.has_method("get_current_player_id_short"):
-			short_id = str(identity.call("get_current_player_id_short")).strip_edges()
 	var row := HBoxContainer.new()
 	row.name = "PlayerIdRow"
 	row.add_theme_constant_override("separation", 8)
@@ -182,17 +175,21 @@ func _add_support_identity_rows(identity: Node) -> void:
 	var id_lbl := Label.new()
 	id_lbl.name = "PlayerIdLabel"
 	id_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	if short_id == "":
-		id_lbl.text = "%s: —" % tr("PLAYER_ID")
-	else:
-		id_lbl.text = "%s: %s" % [tr("PLAYER_ID"), short_id]
+	var label_text: String = "%s: %s" % [tr("PLAYER_ID"), tr("PLAYER_ID_LOADING")]
+	var copy_enabled: bool = false
+	if identity != null:
+		if identity.has_method("get_player_facing_id_label_text"):
+			label_text = str(identity.call("get_player_facing_id_label_text"))
+		if identity.has_method("can_copy_public_player_id"):
+			copy_enabled = bool(identity.call("can_copy_public_player_id"))
+	id_lbl.text = label_text
 	_style_label(id_lbl, FONT_BODY, COL_MUTED)
 	row.add_child(id_lbl)
 	var copy_btn := Button.new()
 	copy_btn.name = "PlayerIdCopyButton"
 	copy_btn.text = tr("COPY")
 	copy_btn.custom_minimum_size = Vector2(96, TOUCH_H)
-	copy_btn.disabled = full_id.is_empty()
+	copy_btn.disabled = not copy_enabled
 	_style_button(copy_btn)
 	copy_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
 	copy_btn.pressed.connect(_on_copy_player_id_pressed)

@@ -669,12 +669,13 @@ func _on_account_identity_changed() -> void:
 
 func _add_player_id_row(parent: Control) -> void:
 	var identity: Node = get_node_or_null("/root/AccountIdentityState")
-	var full_id: String = _resolved_self_player_id()
-	var short_id: String = ""
-	if identity != null and identity.has_method("format_player_id_short"):
-		short_id = str(identity.call("format_player_id_short", full_id))
-	else:
-		short_id = _short_id_for_log(full_id)
+	var label_text: String = "%s: %s" % [tr("PLAYER_ID"), tr("PLAYER_ID_LOADING")]
+	var copy_enabled: bool = false
+	if identity != null:
+		if identity.has_method("get_player_facing_id_label_text"):
+			label_text = str(identity.call("get_player_facing_id_label_text"))
+		if identity.has_method("can_copy_public_player_id"):
+			copy_enabled = bool(identity.call("can_copy_public_player_id"))
 	var row := HBoxContainer.new()
 	row.name = "PlayerIdRow"
 	row.add_theme_constant_override("separation", 8)
@@ -682,17 +683,14 @@ func _add_player_id_row(parent: Control) -> void:
 	var id_lbl := Label.new()
 	id_lbl.name = "PlayerIdLabel"
 	id_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	if short_id == "":
-		id_lbl.text = "%s: —" % tr("PLAYER_ID")
-	else:
-		id_lbl.text = "%s: %s" % [tr("PLAYER_ID"), short_id]
+	id_lbl.text = label_text
 	_style_label(id_lbl, FONT_SECONDARY, COL_MUTED)
 	row.add_child(id_lbl)
 	var copy_btn := Button.new()
 	copy_btn.name = "PlayerIdCopyButton"
 	copy_btn.text = tr("COPY")
 	copy_btn.custom_minimum_size = Vector2(96, TOUCH_H_SM)
-	copy_btn.disabled = full_id.is_empty()
+	copy_btn.disabled = not copy_enabled
 	_style_button(copy_btn, FONT_BUTTON, TOUCH_H_SM)
 	copy_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
 	copy_btn.pressed.connect(_on_copy_player_id_pressed)
@@ -711,11 +709,6 @@ func _on_copy_player_id_pressed() -> void:
 	if identity != null and identity.has_method("copy_current_player_id_to_clipboard"):
 		var result: Dictionary = identity.call("copy_current_player_id_to_clipboard")
 		copied_ok = bool(result.get("copied", false))
-	elif DisplayServer.has_feature(DisplayServer.FEATURE_CLIPBOARD):
-		var full: String = _resolved_self_player_id()
-		if full != "":
-			DisplayServer.clipboard_set(full)
-			copied_ok = true
 	var copied_lbl: Label = find_child("PlayerIdCopiedLabel", true, false)
 	if copied_lbl == null:
 		return

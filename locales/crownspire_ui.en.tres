@@ -3,6 +3,8 @@
 [resource]
 messages = {
 [&"", &"CHIEF_NAME"]: [&"Chief"],
+[&"", &"PLAYER_ID_UNAVAILABLE"]: [&"Player ID unavailable"],
+[&"", &"PLAYER_ID_LOADING"]: [&"Loading…"],
 [&"", &"PLAYER_ID_COPIED"]: [&"Player ID copied"],
 [&"", &"COPY"]: [&"Copy"],
 [&"", &"PLAYER_ID"]: [&"Player ID"],
