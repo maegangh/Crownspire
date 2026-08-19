@@ -136,7 +136,9 @@ function InitModule(ctx, logger, nk, initializer) {
     initializer.registerRpc("crownspire_commerce_get_beta_topup", rpcCommerceGetBetaTopUp);
     initializer.registerRpc("crownspire_commerce_claim_beta_topup_milestone", rpcCommerceClaimBetaTopUpMilestone);
     initializer.registerPurchaseNotificationGoogle(onGooglePurchaseNotification);
-    logger.info("Crownspire runtime loaded (Phase 3+4+5+5.1+5.3+5.7+6+castles identity/alliance/help/social/rallies/dm-rpc/commerce). LOCAL DEVELOPMENT ONLY.");
+    // Public Player ID — authenticated ensure/get only. No public lookup RPC (enumeration risk).
+    initializer.registerRpc("crownspire_account_get_public_player_id", rpcAccountGetPublicPlayerId);
+    logger.info("Crownspire runtime loaded (Phase 3+4+5+5.1+5.3+5.7+6+castles identity/alliance/help/social/rallies/dm-rpc/commerce/public-player-id). LOCAL DEVELOPMENT ONLY.");
 }
 // ---------------------------------------------------------------------------
 // Profile
@@ -4813,6 +4815,7 @@ var DELIVERY_TIMED_ENTITLEMENT = "TIMED_ENTITLEMENT";
 var DELIVERY_ACCOUNT_COLLECTION = "ACCOUNT_COLLECTION";
 var DELIVERY_CONSUMABLE_ITEM = "CONSUMABLE_ITEM";
 var DELIVERY_SUBSCRIPTION = "SUBSCRIPTION";
+var DELIVERY_VOUCHERS = "VOUCHERS";
 var PAID_QUEUE_ENTITLEMENT_IDS = [
     "entitlement_builder_queue_30d",
     "entitlement_builder_queue_perm",
@@ -4927,6 +4930,15 @@ var COMMERCE_PRODUCT_CATALOG = [
         live_store: false,
     },
 ];
+function productGrantsVouchers(product) {
+    if (!product) {
+        return false;
+    }
+    if (product.delivery_type === DELIVERY_VOUCHERS) {
+        return true;
+    }
+    return Math.max(0, Math.floor(Number(product.voucher_grant_amount || 0))) > 0;
+}
 function lookupCommerceProduct(platformProductId) {
     var id = String(platformProductId || "").trim();
     if (!id) {
@@ -5346,6 +5358,9 @@ function deliverCatalogProduct(nk, accountId, product, deliveryTxId) {
             return { ok: false, error: g.error || "Diamond grant failed" };
         }
         return { ok: true };
+    }
+    if (product.delivery_type === DELIVERY_VOUCHERS || productGrantsVouchers(product)) {
+        return { ok: false, error: "Voucher pack delivery is not implemented" };
     }
     if (product.delivery_type === DELIVERY_ACCOUNT_COLLECTION ||
         product.delivery_type === DELIVERY_CONSUMABLE_ITEM ||
@@ -5818,12 +5833,32 @@ function onGooglePurchaseNotification(ctx, logger, nk, purchase, _providerPayloa
     logger.info("Google purchase reversal product=%s ok=%s already=%s reason=%s", productId, String(result.ok), String(result.already), normalizeReversalReason(ntype));
 }
 /**
- * Crownspire Phase 1 — Beta Shop Vouchers + simulated Top-Up foundation.
+ * Crownspire Vouchers — authenticated-account currency (wallet + spend)
+ * plus entitlement-gated voucher CODE redemption / beta testing RPCs.
  *
  * DESIGN AUTHORITY: docs/CROWNSPIRE_SHOP_MONETIZATION_PRODUCTION_BIBLE.md
  * LIVE PRODUCT AUTHORITY: data/commerce_products.json + COMMERCE_PRODUCT_CATALOG
  *
- * This module is TEST/BETA infrastructure only.
+ * Wallet visibility and voucher spend are available to any authenticated account.
+ * `entitlement_beta_voucher_testing` gates ONLY:
+ *   - crownspire_commerce_redeem_voucher_code
+ *   - beta Top-Up RPCs
+ * It does NOT gate owning, seeing, or spending Vouchers.
+ *
+ * Storage names still use `beta_*` until a later migration.
+ * Wallet key remains `crownspire_commerce / beta_voucher_wallet`. Do not rename.
+ *
+ * Spend idempotency contract:
+ *   Client sends opaque `idempotency_key` (UUID v4 recommended).
+ *   Retries of the same logical purchase MUST reuse that key.
+ *   A new user-initiated purchase MUST use a new key.
+ *   Server identity is (account_id, product_id, idempotency_key) → one ledger tx.
+ *   Duplicate key returns the existing DELIVERED result (no second spend/grant).
+ *   Concurrent/rapid requests for the same product with a different key while a
+ *   spend is in-flight or inside the short linger window return
+ *   voucher_purchase_in_progress (no second charge).
+ *   Do not use wall-clock seconds as the sole identity.
+ *
  * - Zero cash value. Never revenue. Never GOOGLE_PLAY.
  * - BETA_VOUCHER rows live in a separate ledger, not crownspire_purchase_ledger.
  * - Production Top-Up is never advanced by voucher purchases.
@@ -5832,12 +5867,15 @@ function onGooglePurchaseNotification(ctx, logger, nk, purchase, _providerPayloa
 var BETA_VOUCHER_WALLET_KEY = "beta_voucher_wallet";
 var BETA_VOUCHER_LEDGER_COLLECTION = "crownspire_beta_voucher_ledger";
 var BETA_VOUCHER_LEDGER_INDEX_KEY = "beta_voucher_ledger_index";
+var BETA_VOUCHER_SPEND_INFLIGHT_KEY = "beta_voucher_spend_inflight";
 var BETA_VOUCHER_CODE_COLLECTION = "crownspire_beta_voucher_codes";
 var BETA_VOUCHER_REDEEM_COLLECTION = "crownspire_beta_voucher_redemptions";
 var BETA_TOPUP_COLLECTION = "crownspire_beta_topup";
 var PROD_TOPUP_COLLECTION = "crownspire_prod_topup";
 var COMMERCE_AUDIT_COLLECTION = "crownspire_commerce_audit";
 var ENTITLEMENT_BETA_VOUCHER_TESTING = "entitlement_beta_voucher_testing";
+var VOUCHER_SPEND_INFLIGHT_TTL_SEC = 30;
+var VOUCHER_SPEND_DOUBLE_TAP_LINGER_SEC = 5;
 var BETA_TOPUP_TEST_ROUND_ID = "topup_beta_round_test_001";
 var BETA_TOPUP_KIND = "BETA";
 var PROD_TOPUP_KIND = "PRODUCTION";
@@ -6079,6 +6117,122 @@ function mutateVoucherWallet(nk, accountId, ref, type, amount, extra) {
     }
     return { ok: false, already: false, balance: 0, before: 0, error: "Voucher wallet conflict" };
 }
+function normalizeVoucherSpendIdempotencyKey(raw) {
+    var key = String(raw || "").trim();
+    if (!key) {
+        return { ok: false, error: "idempotency_key_required" };
+    }
+    if (key.length > 128) {
+        return { ok: false, error: "idempotency_key_invalid" };
+    }
+    if (!/^[A-Za-z0-9._-]+$/.test(key)) {
+        return { ok: false, error: "idempotency_key_invalid" };
+    }
+    return { ok: true, key: key };
+}
+function voucherSpendTxId(accountId, productId, idempotencyKey) {
+    return "bv_" + ledgerStorageKey("beta_voucher", accountId + "_" + productId + "_" + idempotencyKey);
+}
+function listVoucherPurchasableOffers() {
+    var offers = [];
+    for (var i = 0; i < COMMERCE_PRODUCT_CATALOG.length; i++) {
+        var p = COMMERCE_PRODUCT_CATALOG[i];
+        if (!p.beta_voucher_purchasable || !p.production_deliverable) {
+            continue;
+        }
+        if (productGrantsVouchers(p)) {
+            continue;
+        }
+        offers.push({
+            product_id: p.product_id,
+            iap_product_id: p.iap_product_id,
+            voucher_cost: Math.max(0, Math.floor(Number(p.beta_voucher_cost || 0))),
+            diamond_amount: p.diamond_amount,
+            qualifying_topup_diamonds: Math.max(0, Math.floor(Number(p.qualifying_topup_diamonds || 0))),
+        });
+    }
+    return offers;
+}
+function readVoucherSpendInflightObj(nk, accountId) {
+    var obj = storageReadOne(nk, COMMERCE_WALLET_COLLECTION, BETA_VOUCHER_SPEND_INFLIGHT_KEY, accountId);
+    if (obj && obj.value) {
+        var rec = obj.value;
+        if (!rec.locks) {
+            rec.locks = {};
+        }
+        rec.account_id = accountId;
+        return { value: rec, version: obj.version };
+    }
+    return {
+        value: { account_id: accountId, locks: {}, updated_at: nowUnix() },
+        version: "*",
+    };
+}
+function acquireVoucherSpendInflight(nk, accountId, productId, idempotencyKey, txId) {
+    for (var attempt = 0; attempt < 8; attempt++) {
+        var now = nowUnix();
+        var obj = readVoucherSpendInflightObj(nk, accountId);
+        var rec = obj.value;
+        var existing = rec.locks[productId];
+        if (existing && existing.expires_at > now && existing.idempotency_key !== idempotencyKey) {
+            return { ok: false, error: "voucher_purchase_in_progress" };
+        }
+        rec.locks[productId] = {
+            idempotency_key: idempotencyKey,
+            tx_id: txId,
+            started_at: existing && existing.idempotency_key === idempotencyKey ? existing.started_at : now,
+            expires_at: now + VOUCHER_SPEND_INFLIGHT_TTL_SEC,
+        };
+        rec.updated_at = now;
+        try {
+            storageWriteVersioned(nk, COMMERCE_WALLET_COLLECTION, BETA_VOUCHER_SPEND_INFLIGHT_KEY, accountId, rec, obj.version, 0);
+            return { ok: true };
+        }
+        catch (_e) {
+            continue;
+        }
+    }
+    return { ok: false, error: "voucher_purchase_in_progress" };
+}
+function lingerVoucherSpendInflight(nk, accountId, productId, idempotencyKey, txId) {
+    for (var attempt = 0; attempt < 8; attempt++) {
+        var now = nowUnix();
+        var obj = readVoucherSpendInflightObj(nk, accountId);
+        var rec = obj.value;
+        rec.locks[productId] = {
+            idempotency_key: idempotencyKey,
+            tx_id: txId,
+            started_at: now,
+            expires_at: now + VOUCHER_SPEND_DOUBLE_TAP_LINGER_SEC,
+        };
+        rec.updated_at = now;
+        try {
+            storageWriteVersioned(nk, COMMERCE_WALLET_COLLECTION, BETA_VOUCHER_SPEND_INFLIGHT_KEY, accountId, rec, obj.version, 0);
+            return;
+        }
+        catch (_e) {
+            continue;
+        }
+    }
+}
+function releaseVoucherSpendInflight(nk, accountId, productId) {
+    for (var attempt = 0; attempt < 8; attempt++) {
+        var obj = readVoucherSpendInflightObj(nk, accountId);
+        var rec = obj.value;
+        if (!rec.locks[productId]) {
+            return;
+        }
+        delete rec.locks[productId];
+        rec.updated_at = nowUnix();
+        try {
+            storageWriteVersioned(nk, COMMERCE_WALLET_COLLECTION, BETA_VOUCHER_SPEND_INFLIGHT_KEY, accountId, rec, obj.version, 0);
+            return;
+        }
+        catch (_e) {
+            continue;
+        }
+    }
+}
 function writeCommerceAudit(nk, accountId, audit) {
     var id = String(audit.idempotency_key || audit.transaction_id || ("aud_" + nowUnix() + "_" + Math.floor(Math.random() * 10000)));
     var key = id.replace(/[^a-zA-Z0-9._-]+/g, "_");
@@ -6222,29 +6376,19 @@ function attachBetaCommercePublicFields(nk, accountId, payload, env) {
     payload.beta_voucher_available = available;
     payload.beta_voucher_cash_value = 0;
     payload.production_topup = null;
-    if (!available) {
-        payload.beta_vouchers = 0;
-        payload.beta_voucher_offers = [];
-        payload.beta_topup = null;
-        return payload;
-    }
     var vouchers = readVoucherWalletObj(nk, accountId).value;
-    payload.beta_vouchers = vouchers.balance;
-    var offers = [];
-    for (var i = 0; i < COMMERCE_PRODUCT_CATALOG.length; i++) {
-        var p = COMMERCE_PRODUCT_CATALOG[i];
-        if (p.beta_voucher_purchasable && p.production_deliverable) {
-            offers.push({
-                product_id: p.product_id,
-                iap_product_id: p.iap_product_id,
-                voucher_cost: Math.max(0, Math.floor(Number(p.beta_voucher_cost || 0))),
-                diamond_amount: p.diamond_amount,
-                qualifying_topup_diamonds: Math.max(0, Math.floor(Number(p.qualifying_topup_diamonds || 0))),
-            });
-        }
-    }
+    var balance = vouchers.balance;
+    payload.vouchers = balance;
+    payload.beta_vouchers = balance;
+    var offers = listVoucherPurchasableOffers();
+    payload.voucher_offers = offers;
     payload.beta_voucher_offers = offers;
-    payload.beta_topup = publicTopUpState(nk, accountId, activeBetaTopUpRound(), BETA_TOPUP_COLLECTION);
+    if (available) {
+        payload.beta_topup = publicTopUpState(nk, accountId, activeBetaTopUpRound(), BETA_TOPUP_COLLECTION);
+    }
+    else {
+        payload.beta_topup = null;
+    }
     return payload;
 }
 function redeemVoucherCodeForAccount(nk, accountId, rawCode, clientAmount, clientCohort, idempotencyKey, env) {
@@ -6379,15 +6523,19 @@ function purchasePackageWithVouchers(nk, accountId, productId, clientCost, clien
     if (!product || !product.production_deliverable || !product.beta_voucher_purchasable) {
         return { ok: false, error: "product_not_voucher_purchasable" };
     }
+    if (productGrantsVouchers(product)) {
+        return { ok: false, error: "voucher_pack_not_voucher_purchasable" };
+    }
     var cost = Math.max(0, Math.floor(Number(product.beta_voucher_cost || 0)));
     if (cost <= 0) {
         return { ok: false, error: "invalid_voucher_cost" };
     }
-    var keyRaw = String(idempotencyKey || "").trim();
-    if (!keyRaw) {
-        return { ok: false, error: "idempotency_key_required" };
+    var keyNorm = normalizeVoucherSpendIdempotencyKey(idempotencyKey);
+    if (!keyNorm.ok || !keyNorm.key) {
+        return { ok: false, error: keyNorm.error || "idempotency_key_required" };
     }
-    var txId = "bv_" + ledgerStorageKey("beta_voucher", accountId + "_" + product.product_id + "_" + keyRaw);
+    var keyRaw = keyNorm.key;
+    var txId = voucherSpendTxId(accountId, product.product_id, keyRaw);
     var existing = storageReadOne(nk, BETA_VOUCHER_LEDGER_COLLECTION, txId, accountId);
     if (existing && existing.value && existing.value.delivery_status === PURCHASE_DELIVERED) {
         return {
@@ -6398,12 +6546,17 @@ function purchasePackageWithVouchers(nk, accountId, productId, clientCost, clien
             wallet: publicWallet(nk, accountId),
         };
     }
+    var locked = acquireVoucherSpendInflight(nk, accountId, product.product_id, keyRaw, txId);
+    if (!locked.ok) {
+        return { ok: false, error: locked.error || "voucher_purchase_in_progress" };
+    }
     var spendRef = "vspend:" + txId;
     var spent = mutateVoucherWallet(nk, accountId, spendRef, "spend", cost, {
         product_id: product.product_id,
         reason: "simulated_purchase",
     });
     if (!spent.ok) {
+        releaseVoucherSpendInflight(nk, accountId, product.product_id);
         return { ok: false, error: spent.error || "Insufficient vouchers", beta_vouchers: spent.balance };
     }
     var deliveryTxId = "dlv_" + txId;
@@ -6413,6 +6566,7 @@ function purchasePackageWithVouchers(nk, accountId, productId, clientCost, clien
             product_id: product.product_id,
             reason: "delivery_failed_reversal",
         });
+        releaseVoucherSpendInflight(nk, accountId, product.product_id);
         return { ok: false, error: delivered.error || "Delivery failed" };
     }
     var qualifying = Math.max(0, Math.floor(Number(product.qualifying_topup_diamonds || 0)));
@@ -6446,6 +6600,7 @@ function purchasePackageWithVouchers(nk, accountId, productId, clientCost, clien
     catch (_e) {
         /* replay-safe */
     }
+    lingerVoucherSpendInflight(nk, accountId, product.product_id, keyRaw, txId);
     writeCommerceAudit(nk, accountId, {
         transaction_id: txId,
         purchase_source: PURCHASE_SOURCE_BETA_VOUCHER,
@@ -6561,10 +6716,9 @@ function rpcCommercePurchaseWithVouchers(ctx, _logger, nk, payload) {
     if (!ctx.userId) {
         throw Err("Unauthenticated");
     }
-    if (!isBetaVoucherTestingEnabled(nk, ctx.userId, ctx.env)) {
-        return JSON.stringify({ ok: false, error: "beta_voucher_unavailable" });
-    }
     var data = parsePayload(payload);
+    void data["diamond_amount"];
+    void data["amount"];
     return JSON.stringify(purchasePackageWithVouchers(nk, ctx.userId, String(data["product_id"] || ""), Number(data["voucher_cost"] || data["amount"] || 0), Number(data["qualifying_topup_diamonds"] || 0), String(data["idempotency_key"] || "")));
 }
 function rpcCommerceGetBetaTopUp(ctx, _logger, nk, _payload) {
@@ -6590,4 +6744,386 @@ function rpcCommerceClaimBetaTopUpMilestone(ctx, _logger, nk, payload) {
     }
     var data = parsePayload(payload);
     return JSON.stringify(claimBetaTopUpMilestone(nk, ctx.userId, String(data["milestone_id"] || ""), String(data["idempotency_key"] || "")));
+}
+/**
+ * Permanent public Player ID — external lookup alias for Nakama user_id.
+ * LOCAL DEVELOPMENT ONLY. Do not deploy until audited.
+ *
+ * Internal Nakama user_id remains account/wallet/save/voucher authority.
+ * Public Player ID is an immutable, server-assigned, human-friendly alias.
+ *
+ * Assignment is NOT a multi-object transaction. Recovery uses an explicit
+ * per-user pending claim (O(1) read, no collection scan):
+ *   1) create-only pending candidate on the user
+ *   2) create-only unique lookup reservation
+ *   3) create-only user mapping
+ * An interrupted attempt is repaired from that pending record on the next
+ * authenticated ensure. Lookup uniqueness remains create-only (version="*").
+ * Same-user extra reservations are deleted only when this user owns them.
+ * Conflicting committed state fails closed (identity_conflict).
+ */
+var PUBLIC_PLAYER_ID_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
+var PUBLIC_PLAYER_ID_LENGTH = 8;
+var PUBLIC_PLAYER_ID_SCHEMA = 1;
+var PUBLIC_PLAYER_ID_COLLECTION = "crownspire_player_identity";
+var PUBLIC_PLAYER_ID_KEY = "public_player_id";
+var PUBLIC_PLAYER_ID_PENDING_KEY = "public_player_id_pending";
+var PUBLIC_PLAYER_ID_LOOKUP_COLLECTION = "crownspire_public_player_ids";
+var PUBLIC_PLAYER_ID_MAX_ATTEMPTS = 16;
+/** 256 - (256 % 31) — rejection sampling bound for unbiased alphabet picks. */
+var PUBLIC_PLAYER_ID_REJECT_AT = 248;
+function normalizePublicPlayerId(raw) {
+    var compact = String(raw || "")
+        .toUpperCase()
+        .replace(/[-\s]/g, "");
+    if (compact.length !== PUBLIC_PLAYER_ID_LENGTH) {
+        return "";
+    }
+    for (var i = 0; i < compact.length; i++) {
+        if (PUBLIC_PLAYER_ID_ALPHABET.indexOf(compact.charAt(i)) < 0) {
+            return "";
+        }
+    }
+    return compact;
+}
+function formatPublicPlayerId(normalized) {
+    var id = normalizePublicPlayerId(normalized);
+    if (!id) {
+        return "";
+    }
+    return id.substring(0, 4) + "-" + id.substring(4, 8);
+}
+function isValidPublicPlayerId(raw) {
+    return normalizePublicPlayerId(raw) !== "";
+}
+function generatePublicPlayerId(nk) {
+    var out = "";
+    while (out.length < PUBLIC_PLAYER_ID_LENGTH) {
+        var uuid = String(nk.uuidv4() || "").replace(/-/g, "");
+        for (var i = 0; i + 1 < uuid.length && out.length < PUBLIC_PLAYER_ID_LENGTH; i += 2) {
+            var byte = parseInt(uuid.substring(i, i + 2), 16);
+            if (isNaN(byte) || byte >= PUBLIC_PLAYER_ID_REJECT_AT) {
+                continue;
+            }
+            out += PUBLIC_PLAYER_ID_ALPHABET.charAt(byte % PUBLIC_PLAYER_ID_ALPHABET.length);
+        }
+    }
+    return out;
+}
+function publicPlayerIdUserRecord(userId, normalized, createdAt) {
+    return {
+        public_player_id: normalized,
+        user_id: userId,
+        created_at: createdAt,
+        schema_version: PUBLIC_PLAYER_ID_SCHEMA,
+        active: true,
+    };
+}
+function publicPlayerIdLookupRecord(userId, normalized, createdAt) {
+    return publicPlayerIdUserRecord(userId, normalized, createdAt);
+}
+function readAssignedPublicPlayerId(nk, userId) {
+    var obj = storageReadOne(nk, PUBLIC_PLAYER_ID_COLLECTION, PUBLIC_PLAYER_ID_KEY, userId);
+    if (!obj || !obj.value) {
+        return null;
+    }
+    var value = obj.value;
+    var normalized = normalizePublicPlayerId(String(value.public_player_id || ""));
+    var owner = String(value.user_id || "").trim();
+    if (!normalized || owner !== userId || value.active === false) {
+        return null;
+    }
+    value.public_player_id = normalized;
+    return value;
+}
+function tryWriteStorage(nk, collection, key, userId, value, version) {
+    try {
+        var acks = nk.storageWrite([
+            {
+                collection: collection,
+                key: key,
+                userId: userId,
+                value: value,
+                version: version,
+                permissionRead: 0,
+                permissionWrite: 0,
+            },
+        ]);
+        var ackVersion = acks && acks.length > 0 ? String(acks[0].version || "") : "";
+        return { ok: true, version: ackVersion };
+    }
+    catch (_e) {
+        return { ok: false, version: "" };
+    }
+}
+function tryCreateOnlyStorage(nk, collection, key, userId, value) {
+    return tryWriteStorage(nk, collection, key, userId, value, "*");
+}
+function deletePublicPlayerIdLookup(nk, normalized, version) {
+    try {
+        var req = {
+            collection: PUBLIC_PLAYER_ID_LOOKUP_COLLECTION,
+            key: normalized,
+            userId: SYSTEM_USER,
+        };
+        if (version) {
+            req.version = version;
+        }
+        nk.storageDelete([req]);
+    }
+    catch (_e) {
+        // Best-effort cleanup of an unused reservation owned by this flow.
+    }
+}
+function deleteOwnedPublicPlayerIdLookup(nk, normalized, userId) {
+    var rec = lookupPublicPlayerIdRecord(nk, normalized);
+    if (!rec || rec.user_id !== userId) {
+        return;
+    }
+    deletePublicPlayerIdLookup(nk, normalized, "");
+}
+function readPendingPublicPlayerId(nk, userId) {
+    var obj = storageReadOne(nk, PUBLIC_PLAYER_ID_COLLECTION, PUBLIC_PLAYER_ID_PENDING_KEY, userId);
+    if (!obj || !obj.value) {
+        return null;
+    }
+    var value = obj.value;
+    var owner = String(value.user_id || "").trim();
+    if (owner !== userId) {
+        return null;
+    }
+    value.user_id = owner;
+    value.public_player_id = normalizePublicPlayerId(String(value.public_player_id || ""));
+    return { record: value, version: String(obj.version || "") };
+}
+function deletePendingPublicPlayerId(nk, userId, version) {
+    try {
+        var req = {
+            collection: PUBLIC_PLAYER_ID_COLLECTION,
+            key: PUBLIC_PLAYER_ID_PENDING_KEY,
+            userId: userId,
+        };
+        if (version) {
+            req.version = version;
+        }
+        nk.storageDelete([req]);
+    }
+    catch (_e) {
+        // Best-effort: committed mapping is authority if present.
+    }
+}
+function failClosedIdentityConflict() {
+    return { ok: false, public_player_id: "", created: false, error: "identity_conflict" };
+}
+function repairOrValidateCommittedLookup(nk, userId, committed) {
+    var normalized = committed.public_player_id;
+    var lookup = lookupPublicPlayerIdRecord(nk, normalized);
+    if (lookup) {
+        if (lookup.user_id !== userId) {
+            return failClosedIdentityConflict();
+        }
+        return null;
+    }
+    var createdAt = committed.created_at || nowUnix();
+    var reserved = tryCreateOnlyStorage(nk, PUBLIC_PLAYER_ID_LOOKUP_COLLECTION, normalized, SYSTEM_USER, publicPlayerIdLookupRecord(userId, normalized, createdAt));
+    if (reserved.ok) {
+        return null;
+    }
+    var again = lookupPublicPlayerIdRecord(nk, normalized);
+    if (again && again.user_id === userId) {
+        return null;
+    }
+    return failClosedIdentityConflict();
+}
+function cleanupPendingAfterCommit(nk, userId, committedNormalized) {
+    var pending = readPendingPublicPlayerId(nk, userId);
+    if (pending) {
+        var extra = pending.record.public_player_id;
+        if (extra && extra !== committedNormalized) {
+            deleteOwnedPublicPlayerIdLookup(nk, extra, userId);
+        }
+        deletePendingPublicPlayerId(nk, userId, pending.version);
+    }
+}
+/**
+ * Assign or return the permanent Public Player ID for an authenticated Nakama user.
+ * Never trusts a client-supplied ID. Never silently reassigns an existing mapping.
+ * Interrupted pending+lookup attempts are repaired from the per-user pending claim.
+ */
+function ensurePublicPlayerId(nk, logger, userId, generateFn) {
+    var uid = String(userId || "").trim();
+    if (!uid) {
+        return { ok: false, public_player_id: "", created: false, error: "unauthenticated" };
+    }
+    var existing = readAssignedPublicPlayerId(nk, uid);
+    if (existing) {
+        var conflict = repairOrValidateCommittedLookup(nk, uid, existing);
+        if (conflict) {
+            return conflict;
+        }
+        cleanupPendingAfterCommit(nk, uid, existing.public_player_id);
+        return {
+            ok: true,
+            public_player_id: formatPublicPlayerId(existing.public_player_id),
+            created: false,
+        };
+    }
+    var generate = generateFn || generatePublicPlayerId;
+    var pending = readPendingPublicPlayerId(nk, uid);
+    for (var attempt = 0; attempt < PUBLIC_PLAYER_ID_MAX_ATTEMPTS; attempt++) {
+        var candidate = pending ? pending.record.public_player_id : "";
+        if (!candidate) {
+            candidate = normalizePublicPlayerId(generate(nk));
+            if (!candidate) {
+                continue;
+            }
+            var createdAt_1 = nowUnix();
+            var pendingValue = publicPlayerIdUserRecord(uid, candidate, createdAt_1);
+            if (!pending) {
+                var created = tryCreateOnlyStorage(nk, PUBLIC_PLAYER_ID_COLLECTION, PUBLIC_PLAYER_ID_PENDING_KEY, uid, pendingValue);
+                if (!created.ok) {
+                    pending = readPendingPublicPlayerId(nk, uid);
+                    continue;
+                }
+                pending = { record: pendingValue, version: created.version };
+            }
+            else {
+                var replaced = tryWriteStorage(nk, PUBLIC_PLAYER_ID_COLLECTION, PUBLIC_PLAYER_ID_PENDING_KEY, uid, pendingValue, pending.version);
+                if (!replaced.ok) {
+                    pending = readPendingPublicPlayerId(nk, uid);
+                    continue;
+                }
+                pending = { record: pendingValue, version: replaced.version };
+            }
+        }
+        if (!pending) {
+            continue;
+        }
+        var createdAt = pending.record.created_at || nowUnix();
+        var lookupValue = publicPlayerIdLookupRecord(uid, candidate, createdAt);
+        var existingLookup = lookupPublicPlayerIdRecord(nk, candidate);
+        if (existingLookup) {
+            if (existingLookup.user_id !== uid) {
+                pending = { record: publicPlayerIdUserRecord(uid, "", createdAt), version: pending.version };
+                continue;
+            }
+        }
+        else {
+            var reserved = tryCreateOnlyStorage(nk, PUBLIC_PLAYER_ID_LOOKUP_COLLECTION, candidate, SYSTEM_USER, lookupValue);
+            if (!reserved.ok) {
+                var raced = lookupPublicPlayerIdRecord(nk, candidate);
+                if (!raced || raced.user_id !== uid) {
+                    pending = { record: publicPlayerIdUserRecord(uid, "", createdAt), version: pending.version };
+                    continue;
+                }
+            }
+        }
+        var userValue = publicPlayerIdUserRecord(uid, candidate, createdAt);
+        var mapped = tryCreateOnlyStorage(nk, PUBLIC_PLAYER_ID_COLLECTION, PUBLIC_PLAYER_ID_KEY, uid, userValue);
+        if (mapped.ok) {
+            deletePendingPublicPlayerId(nk, uid, pending.version);
+            return {
+                ok: true,
+                public_player_id: formatPublicPlayerId(candidate),
+                created: true,
+            };
+        }
+        var winner = readAssignedPublicPlayerId(nk, uid);
+        if (winner) {
+            if (winner.public_player_id !== candidate) {
+                deleteOwnedPublicPlayerIdLookup(nk, candidate, uid);
+            }
+            var conflict = repairOrValidateCommittedLookup(nk, uid, winner);
+            if (conflict) {
+                return conflict;
+            }
+            cleanupPendingAfterCommit(nk, uid, winner.public_player_id);
+            return {
+                ok: true,
+                public_player_id: formatPublicPlayerId(winner.public_player_id),
+                created: false,
+            };
+        }
+    }
+    if (logger) {
+        logger.error("Public Player ID assignment failed for user after collisions/retries");
+    }
+    return { ok: false, public_player_id: "", created: false, error: "assignment_failed" };
+}
+function lookupPublicPlayerIdRecord(nk, rawId) {
+    var normalized = normalizePublicPlayerId(rawId);
+    if (!normalized) {
+        return null;
+    }
+    var obj = storageReadOne(nk, PUBLIC_PLAYER_ID_LOOKUP_COLLECTION, normalized, SYSTEM_USER);
+    if (!obj || !obj.value) {
+        return null;
+    }
+    var value = obj.value;
+    var owner = String(value.user_id || "").trim();
+    var mapped = normalizePublicPlayerId(String(value.public_player_id || ""));
+    if (!owner || mapped !== normalized || value.active === false) {
+        return null;
+    }
+    value.public_player_id = mapped;
+    value.user_id = owner;
+    return value;
+}
+/**
+ * Server-internal lookup for a future Top-Up Center backend.
+ * Never return email, UUID, wallet, vouchers, entitlements, or login providers.
+ * Invalid and missing IDs both surface as PLAYER_NOT_FOUND so callers cannot enumerate why.
+ */
+function safeLookupPublicPlayer(nk, rawId) {
+    var notFound = {
+        ok: true,
+        exists: false,
+        error: "PLAYER_NOT_FOUND",
+        public_player_id: "",
+        display_name: "",
+        avatar_id: "",
+        kingdom_id: "",
+        realm_id: "",
+    };
+    var record = lookupPublicPlayerIdRecord(nk, rawId);
+    if (!record) {
+        return notFound;
+    }
+    var displayName = "";
+    var avatarId = "";
+    var kingdomId = "";
+    try {
+        var profile = readProfile(nk, record.user_id);
+        if (profile) {
+            displayName = String(profile.display_name || "").trim();
+            avatarId = String(profile.avatar_id || "").trim();
+            kingdomId = String(profile.kingdom_id || "").trim();
+        }
+    }
+    catch (_e) {
+        // Profile is optional confirmation data only.
+    }
+    return {
+        ok: true,
+        exists: true,
+        error: "",
+        public_player_id: formatPublicPlayerId(record.public_player_id),
+        display_name: displayName,
+        avatar_id: avatarId,
+        kingdom_id: kingdomId,
+        realm_id: kingdomId,
+    };
+}
+function rpcAccountGetPublicPlayerId(ctx, logger, nk, _payload) {
+    if (!ctx.userId) {
+        throw Err("Unauthenticated");
+    }
+    var result = ensurePublicPlayerId(nk, logger, ctx.userId);
+    if (!result.ok || !result.public_player_id) {
+        return JSON.stringify({ ok: false, error: result.error || "assignment_failed" });
+    }
+    return JSON.stringify({
+        ok: true,
+        public_player_id: result.public_player_id,
+    });
 }

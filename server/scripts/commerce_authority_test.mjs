@@ -394,6 +394,9 @@ function createEngine(catalog, opts = {}) {
     if (product.delivery_type === "DIAMONDS") {
       return grantDiamonds(accountId, product.diamond_amount, deliveryTxId);
     }
+    if (product.delivery_type === "VOUCHERS" || Math.max(0, Math.floor(Number(product.voucher_grant_amount || 0))) > 0) {
+      return { ok: false, error: "Voucher pack delivery is not implemented" };
+    }
     return { ok: false, error: "not implemented" };
   }
 
@@ -701,7 +704,10 @@ function createEngine(catalog, opts = {}) {
   const BV_CODES = "crownspire_beta_voucher_codes";
   const BV_TOPUP = "crownspire_beta_topup";
   const PROD_TOPUP = "crownspire_prod_topup";
+  const BV_INFLIGHT = "beta_voucher_spend_inflight";
   const SYS = "00000000-0000-0000-0000-000000000000";
+  const INFLIGHT_TTL = 30;
+  const INFLIGHT_LINGER = 5;
   const TEST_CODES = {
     "CROWNSPIRE-TEST-VOUCHER-5": { code_id: "code_test_voucher_5", amount: 5, cohort: "TEST_ONLY_LOW", active: true, expires: 0, cap: 0, per: 1 },
     "CROWNSPIRE-TEST-VOUCHER-100": { code_id: "code_test_voucher_100", amount: 100, cohort: "TEST_ONLY_MID", active: true, expires: 0, cap: 0, per: 1 },
@@ -862,24 +868,52 @@ function createEngine(catalog, opts = {}) {
     };
   }
 
-  function purchaseWithVouchers(accountId, productId, clientCost, idempotencyKey) {
-    const denied = denyUnauthorized(accountId);
-    if (denied) return denied;
+  function purchaseWithVouchers(accountId, productId, clientCost, idempotencyKey, clientDiamondAmount) {
     const product = lookupProduct(catalog, productId);
     if (!product || !product.beta_voucher_purchasable || product.production_deliverable === false) {
       return { ok: false, error: "product_not_voucher_purchasable" };
     }
+    if (product.delivery_type === "VOUCHERS" || Math.max(0, Math.floor(Number(product.voucher_grant_amount || 0))) > 0) {
+      return { ok: false, error: "voucher_pack_not_voucher_purchasable" };
+    }
     const cost = product.beta_voucher_cost;
     void clientCost;
+    void clientDiamondAmount;
     const key = String(idempotencyKey || "").trim();
     if (!key) return { ok: false, error: "idempotency_key_required" };
+    if (key.length > 128 || !/^[A-Za-z0-9._-]+$/.test(key)) return { ok: false, error: "idempotency_key_invalid" };
     const txId = "bv_" + ledgerKey("beta_voucher", accountId + "_" + product.product_id + "_" + key);
     const existing = store.read(BV_LEDGER, accountId, txId);
     if (existing && existing.value.delivery_status === PURCHASE_DELIVERED) {
       return { ok: true, already: true, purchase_source: "BETA_VOUCHER", purchase: existing.value };
     }
+    const now = nowUnix();
+    const inflightObj = store.read(COMM, accountId, BV_INFLIGHT);
+    const inflight = inflightObj
+      ? inflightObj.value
+      : { account_id: accountId, locks: {}, updated_at: now };
+    inflight.locks = inflight.locks || {};
+    const held = inflight.locks[product.product_id];
+    if (held && held.expires_at > now && held.idempotency_key !== key) {
+      return { ok: false, error: "voucher_purchase_in_progress" };
+    }
+    inflight.locks[product.product_id] = {
+      idempotency_key: key,
+      tx_id: txId,
+      started_at: held && held.idempotency_key === key ? held.started_at : now,
+      expires_at: now + INFLIGHT_TTL,
+    };
+    inflight.updated_at = now;
+    store.write(COMM, accountId, BV_INFLIGHT, inflight, inflightObj ? inflightObj.version : "*");
     const spent = mutateVouchers(accountId, "vspend:" + txId, "spend", cost, { product_id: product.product_id });
-    if (!spent.ok) return { ok: false, error: spent.error, beta_vouchers: spent.balance };
+    if (!spent.ok) {
+      const afterFail = store.read(COMM, accountId, BV_INFLIGHT);
+      if (afterFail && afterFail.value.locks[product.product_id]) {
+        delete afterFail.value.locks[product.product_id];
+        store.write(COMM, accountId, BV_INFLIGHT, afterFail.value, afterFail.version);
+      }
+      return { ok: false, error: spent.error, beta_vouchers: spent.balance };
+    }
     const deliveryTxId = "dlv_" + txId;
     const delivered = deliver(accountId, product, deliveryTxId);
     if (!delivered.ok) return { ok: false, error: delivered.error || "Delivery failed" };
@@ -897,6 +931,17 @@ function createEngine(catalog, opts = {}) {
       delivery_transaction_id: deliveryTxId,
     };
     store.write(BV_LEDGER, accountId, txId, rec, existing ? existing.version : "*");
+    const lingerObj = store.read(COMM, accountId, BV_INFLIGHT);
+    const lingerRec = lingerObj ? lingerObj.value : { account_id: accountId, locks: {}, updated_at: nowUnix() };
+    lingerRec.locks = lingerRec.locks || {};
+    lingerRec.locks[product.product_id] = {
+      idempotency_key: key,
+      tx_id: txId,
+      started_at: nowUnix(),
+      expires_at: nowUnix() + INFLIGHT_LINGER,
+    };
+    lingerRec.updated_at = nowUnix();
+    store.write(COMM, accountId, BV_INFLIGHT, lingerRec, lingerObj ? lingerObj.version : "*");
     return {
       ok: true,
       already: spent.already,
@@ -934,15 +979,28 @@ function createEngine(catalog, opts = {}) {
       .map((o) => o.value);
     const wallet = readWallet(accountId).value;
     const authorized = isVoucherAuthorized(accountId);
-    const vouchers = authorized ? readVoucherWallet(accountId).value : { balance: 0 };
+    const vouchers = readVoucherWallet(accountId).value;
+    const offers = catalog
+      .filter((p) => p.beta_voucher_purchasable && p.production_deliverable !== false)
+      .filter((p) => p.delivery_type !== "VOUCHERS" && !(Math.max(0, Math.floor(Number(p.voucher_grant_amount || 0))) > 0))
+      .map((p) => ({
+        product_id: p.product_id,
+        iap_product_id: p.iap_product_id,
+        voucher_cost: p.beta_voucher_cost,
+        diamond_amount: p.diamond_amount,
+        qualifying_topup_diamonds: p.qualifying_topup_diamonds || 0,
+      }));
     return {
       diamonds: wallet.balance,
       diamond_debt: wallet.diamond_debt,
       entitlements: ents,
       eligible_beta_spend_cents: spend,
       future_voucher_usd: computeBetaVoucherUsd(spend),
-      beta_vouchers: authorized ? vouchers.balance : 0,
+      vouchers: vouchers.balance,
+      beta_vouchers: vouchers.balance,
       beta_voucher_available: authorized,
+      voucher_offers: offers,
+      beta_voucher_offers: offers,
       beta_topup: authorized
         ? { round_id: activeBetaRoundId, progress: readTopUp(accountId, activeBetaRoundId, BV_TOPUP).value.progress }
         : null,
@@ -1605,13 +1663,15 @@ assert(!isDevSettableEntitlement("alliance_auto_help"), "dev RPC cannot grant pr
   const live = createEngine(catalog, { productionSafe: true });
   const acct = uid + "unauth";
   const wallet = live.publicWallet(acct);
-  assert(wallet.beta_voucher_available === false, "A: unauthorized wallet hides voucher mode");
-  assert(wallet.beta_vouchers === 0, "A: unauthorized wallet does not expose voucher balance");
+  assert(wallet.beta_voucher_available === false, "A: unauthorized wallet keeps tester flag off");
+  assert(wallet.vouchers === 0 && wallet.beta_vouchers === 0, "A: empty account reports vouchers = 0 without creating a wallet");
+  assert(!live.store.read("crownspire_commerce", acct, "beta_voucher_wallet"), "A: voucher wallet row is not auto-created");
+  assert(Array.isArray(wallet.beta_voucher_offers) && wallet.beta_voucher_offers.some((o) => o.product_id === "com.crownspire.diamonds_500"), "A: unauthorized wallet still exposes voucher-eligible offers");
   assert(wallet.beta_topup === null, "A: unauthorized wallet has no Beta Top-Up");
   const redeem = live.redeemCode(acct, "CROWNSPIRE-TEST-VOUCHER-5");
   assert(!redeem.ok && redeem.error === "beta_voucher_unavailable", "B: unauthorized cannot redeem valid fixture code");
   const buy = live.purchaseWithVouchers(acct, "com.crownspire.diamonds_500", 5, "nope");
-  assert(!buy.ok && buy.error === "beta_voucher_unavailable", "C: unauthorized cannot voucher-buy diamonds_500");
+  assert(!buy.ok && buy.error === "Insufficient vouchers", "C: unauthorized spend RPC is allowed and fails on empty balance");
   const top = live.getBetaTopUp(acct);
   const claim = live.claimMilestone(acct, "beta_m_100");
   assert(!top.ok && top.error === "beta_voucher_unavailable", "D: unauthorized cannot fetch Beta Top-Up");
@@ -1657,9 +1717,12 @@ assert(!isDevSettableEntitlement("alliance_auto_help"), "dev RPC cannot grant pr
   eng.grantVoucherTesting(acct);
   assert(eng.publicWallet(acct).beta_voucher_available === true, "K: granted tester is authorized");
   eng.revokeVoucherTesting(acct);
-  assert(eng.publicWallet(acct).beta_voucher_available === false, "K: revoking entitlement removes voucher access");
+  assert(eng.publicWallet(acct).beta_voucher_available === false, "K: revoking entitlement removes tester/code access");
+  assert(eng.publicWallet(acct).vouchers === 0, "K: revoking entitlement does not hide voucher balance");
   const redeem = eng.redeemCode(acct, "CROWNSPIRE-TEST-VOUCHER-5");
   assert(!redeem.ok && redeem.error === "beta_voucher_unavailable", "K: revoked account cannot redeem");
+  const spend = eng.purchaseWithVouchers(acct, "com.crownspire.diamonds_500", 5, "revoke-spend");
+  assert(!spend.ok && spend.error === "Insufficient vouchers", "K: revoked account may still call voucher spend");
 }
 
 {
@@ -1678,6 +1741,159 @@ assert(helpSrc.includes("Only closed-beta test entitlements can be set via dev t
 const betaSrc1b = fs.readFileSync(path.join(ROOT, "server/src/phase57_beta_vouchers.ts"), "utf8");
 assert(betaSrc1b.includes("isSafeDevVoucherBypass"), "server constrains global voucher env flag");
 assert(betaSrc1b.includes("areFixtureTestCodesEnabled"), "server gates fixture codes");
+assert(betaSrc1b.includes('BETA_VOUCHER_WALLET_KEY = "beta_voucher_wallet"'), "G: existing wallet storage key preserved");
+assert(betaSrc1b.includes("deliverCatalogProduct(nk, accountId, product, deliveryTxId)"), "J: voucher spend uses shared deliverCatalogProduct");
+assert(betaSrc1b.includes("productGrantsVouchers"), "I: voucher-pack anti-loop helper exists");
+assert(betaSrc1b.includes("voucher_purchase_in_progress"), "E: in-flight double-tap error exists");
+const purchaseRpcSrc = betaSrc1b.split("function rpcCommercePurchaseWithVouchers")[1].split("function rpcCommerceGetBetaTopUp")[0];
+assert(!purchaseRpcSrc.includes("isBetaVoucherTestingEnabled"), "C: spend RPC is not entitlement-gated");
+const redeemRpcSrc = betaSrc1b.split("function rpcCommerceRedeemVoucherCode")[1].split("function rpcCommercePurchaseWithVouchers")[0];
+assert(redeemRpcSrc.includes("isBetaVoucherTestingEnabled"), "D: code redemption remains entitlement-gated");
+assert(betaSrc1b.includes("applyProductionQualifyingTopUp"), "L: production Top-Up helper remains voucher-source gated");
+assert(serverCatalogSrc.includes("PURCHASE_SOURCE_GOOGLE_PLAY"), "K: Google purchase source untouched");
+
+{
+  const live = createEngine(catalog, { productionSafe: true });
+  const acct = uid + "permCurrency";
+  const wallet = live.publicWallet(acct);
+  assert(wallet.vouchers === 0 && wallet.beta_vouchers === 0, "perm A: authenticated account without entitlement sees vouchers=0");
+  assert(wallet.beta_voucher_available === false, "perm A: tester flag stays false");
+  assert(wallet.beta_voucher_offers.some((o) => o.product_id === "com.crownspire.diamonds_500" && o.voucher_cost === 5), "perm A: voucher-eligible catalog info is visible");
+  const spend = live.purchaseWithVouchers(acct, "com.crownspire.diamonds_500", 1, "perm-spend-empty");
+  assert(!spend.ok && spend.error !== "beta_voucher_unavailable", "perm A: spend RPC allowed without entitlement");
+  assert(spend.error === "Insufficient vouchers", "perm A: empty wallet cannot spend");
+}
+
+{
+  const live = createEngine(catalog, { productionSafe: true });
+  const acct = uid + "permRedeemDeny";
+  const redeem = live.redeemCode(acct, "CROWNSPIRE-TEST-VOUCHER-5");
+  assert(!redeem.ok && redeem.error === "beta_voucher_unavailable", "perm B: code redemption denied without entitlement");
+}
+
+{
+  const eng = createEngine(catalog);
+  const acct = uid + "permRedeemAllow";
+  eng.grantVoucherTesting(acct);
+  const redeem = eng.redeemCode(acct, "CROWNSPIRE-TEST-VOUCHER-5");
+  assert(redeem.ok && redeem.granted_vouchers === 5, "perm C: entitled account can still redeem codes");
+}
+
+{
+  const eng = createEngine(catalog);
+  const acct = uid + "permSpendAuth";
+  eng.store.write(
+    "crownspire_commerce",
+    acct,
+    "beta_voucher_wallet",
+    { account_id: acct, balance: 5, processed_refs: { "vgrant:seed": { type: "grant", amount: 5, ts: 1 } }, updated_at: 1 },
+    "*"
+  );
+  const forged = eng.purchaseWithVouchers(acct, "com.crownspire.diamonds_500", 1, "perm-forged-cost", 9999);
+  assert(forged.ok, "perm D: spend succeeds without entitlement when balance exists");
+  assert(forged.purchase.voucher_cost === 5, "perm D: server cost wins over forged client cost 1");
+  assert(eng.readWallet(acct).value.balance === 500, "perm D: forged Diamond amount 9999 is ignored; catalog grants 500");
+  assert(eng.readVoucherWallet(acct).value.balance === 0, "perm D: 5 vouchers spent");
+  const blocked = eng.purchaseWithVouchers(acct, "entitlement_builder_queue_perm", 5, "perm-not-purchasable");
+  assert(!blocked.ok && blocked.error === "product_not_voucher_purchasable", "perm D: non-voucher-purchasable product denied");
+}
+
+{
+  const eng = createEngine(catalog);
+  const acct = uid + "permInsufficient";
+  const denied = eng.purchaseWithVouchers(acct, "com.crownspire.diamonds_500", 5, "perm-insuf");
+  assert(!denied.ok && denied.error === "Insufficient vouchers", "perm D: insufficient balance denied");
+  assert(eng.readVoucherWallet(acct).value.balance === 0, "perm D: insufficient does not create a negative wallet");
+}
+
+{
+  const packCatalog = catalog.concat([
+    {
+      product_id: "com.crownspire.test.voucher_pack_do_not_ship",
+      iap_product_id: "com.crownspire.test.voucher_pack_do_not_ship",
+      usd_cents: 499,
+      delivery_type: "VOUCHERS",
+      duration_seconds: 0,
+      entitlement_id: "",
+      diamond_amount: 0,
+      voucher_grant_amount: 10,
+      beta_spend_eligible: false,
+      production_deliverable: true,
+      product_type: "IAP",
+      live_store: false,
+      repeatability: "consumable",
+      qualifying_topup_diamonds: 0,
+      beta_voucher_cost: 5,
+      beta_voucher_purchasable: true,
+    },
+  ]);
+  const eng = createEngine(packCatalog);
+  const acct = uid + "permLoop";
+  eng.store.write(
+    "crownspire_commerce",
+    acct,
+    "beta_voucher_wallet",
+    { account_id: acct, balance: 5, processed_refs: {}, updated_at: 1 },
+    "*"
+  );
+  const loop = eng.purchaseWithVouchers(acct, "com.crownspire.test.voucher_pack_do_not_ship", 5, "perm-loop");
+  assert(!loop.ok && loop.error === "voucher_pack_not_voucher_purchasable", "perm D/I: voucher-granting product cannot be bought with vouchers");
+  assert(eng.readVoucherWallet(acct).value.balance === 5, "perm D/I: anti-loop does not spend");
+}
+
+{
+  const eng = createEngine(catalog);
+  const acct = uid + "permIdem";
+  eng.store.write(
+    "crownspire_commerce",
+    acct,
+    "beta_voucher_wallet",
+    { account_id: acct, balance: 10, processed_refs: {}, updated_at: 1 },
+    "*"
+  );
+  const first = eng.purchaseWithVouchers(acct, "com.crownspire.diamonds_500", 99, "uuid-same-purchase");
+  const replay = eng.purchaseWithVouchers(acct, "com.crownspire.diamonds_500", 99, "uuid-same-purchase");
+  assert(first.ok && replay.ok && replay.already, "perm E: same request key twice returns delivered result");
+  assert(eng.readVoucherWallet(acct).value.balance === 5, "perm E: one spend only");
+  assert(eng.readWallet(acct).value.balance === 500, "perm E: one Diamond grant only");
+  const rapid = eng.purchaseWithVouchers(acct, "com.crownspire.diamonds_500", 5, "uuid-double-tap");
+  assert(!rapid.ok && rapid.error === "voucher_purchase_in_progress", "perm E: rapid duplicate with a new key is blocked by in-flight linger");
+  assert(eng.readVoucherWallet(acct).value.balance === 5, "perm E: rapid duplicate does not spend again");
+  const inflight = eng.store.read("crownspire_commerce", acct, "beta_voucher_spend_inflight");
+  inflight.value.locks["com.crownspire.diamonds_500"].expires_at = 1;
+  eng.store.write("crownspire_commerce", acct, "beta_voucher_spend_inflight", inflight.value, inflight.version);
+  const later = eng.purchaseWithVouchers(acct, "com.crownspire.diamonds_500", 5, "uuid-later-purchase");
+  assert(later.ok && !later.already, "perm E: intentional new purchase with a new key is still possible later");
+  assert(eng.readVoucherWallet(acct).value.balance === 0, "perm E: second intentional purchase spends remaining 5");
+  assert(eng.readWallet(acct).value.balance === 1000, "perm E: second intentional purchase grants another 500");
+  assert(eng.listBetaLedger(acct).length === 2, "perm E: two distinct voucher ledger rows");
+  assert(eng.listLedger(acct).length === 0, "perm F: no Google purchase ledger");
+  assert(later.production_topup === 0 && first.production_topup === 0, "perm F/L: production Top-Up stays 0");
+  assert(later.purchase.platform === "BETA_VOUCHER" && later.purchase.purchase_source === "BETA_VOUCHER", "perm F: voucher source remains distinct");
+  assert(!String(later.purchase.platform_transaction_id || "").includes("GPA."), "perm F: no fake Google token");
+}
+
+{
+  const eng = createEngine(catalog);
+  const acct = uid + "permKeep5";
+  eng.store.write(
+    "crownspire_commerce",
+    acct,
+    "beta_voucher_wallet",
+    {
+      account_id: acct,
+      balance: 5,
+      processed_refs: { "vgrant:code_existing:acct": { type: "grant", amount: 5, ts: 1710000000 } },
+      updated_at: 1710000000,
+    },
+    "*"
+  );
+  const before = JSON.stringify(eng.store.read("crownspire_commerce", acct, "beta_voucher_wallet").value);
+  const snap = eng.publicWallet(acct);
+  const after = eng.store.read("crownspire_commerce", acct, "beta_voucher_wallet").value;
+  assert(snap.vouchers === 5 && snap.beta_vouchers === 5, "perm G: existing 5-voucher wallet is visible without migration");
+  assert(after.balance === 5 && JSON.stringify(after) === before, "perm G: existing 5-voucher wallet is not reset or rewritten");
+}
 
 if (fails.length) {
   console.error(`[commerce 4B] FAILED ${fails.length}`);

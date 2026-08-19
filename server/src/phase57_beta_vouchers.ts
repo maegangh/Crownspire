@@ -1,10 +1,30 @@
 /**
- * Crownspire Phase 1 — Beta Shop Vouchers + simulated Top-Up foundation.
+ * Crownspire Vouchers — authenticated-account currency (wallet + spend)
+ * plus entitlement-gated voucher CODE redemption / beta testing RPCs.
  *
  * DESIGN AUTHORITY: docs/CROWNSPIRE_SHOP_MONETIZATION_PRODUCTION_BIBLE.md
  * LIVE PRODUCT AUTHORITY: data/commerce_products.json + COMMERCE_PRODUCT_CATALOG
  *
- * This module is TEST/BETA infrastructure only.
+ * Wallet visibility and voucher spend are available to any authenticated account.
+ * `entitlement_beta_voucher_testing` gates ONLY:
+ *   - crownspire_commerce_redeem_voucher_code
+ *   - beta Top-Up RPCs
+ * It does NOT gate owning, seeing, or spending Vouchers.
+ *
+ * Storage names still use `beta_*` until a later migration.
+ * Wallet key remains `crownspire_commerce / beta_voucher_wallet`. Do not rename.
+ *
+ * Spend idempotency contract:
+ *   Client sends opaque `idempotency_key` (UUID v4 recommended).
+ *   Retries of the same logical purchase MUST reuse that key.
+ *   A new user-initiated purchase MUST use a new key.
+ *   Server identity is (account_id, product_id, idempotency_key) → one ledger tx.
+ *   Duplicate key returns the existing DELIVERED result (no second spend/grant).
+ *   Concurrent/rapid requests for the same product with a different key while a
+ *   spend is in-flight or inside the short linger window return
+ *   voucher_purchase_in_progress (no second charge).
+ *   Do not use wall-clock seconds as the sole identity.
+ *
  * - Zero cash value. Never revenue. Never GOOGLE_PLAY.
  * - BETA_VOUCHER rows live in a separate ledger, not crownspire_purchase_ledger.
  * - Production Top-Up is never advanced by voucher purchases.
@@ -14,12 +34,15 @@
 const BETA_VOUCHER_WALLET_KEY = "beta_voucher_wallet";
 const BETA_VOUCHER_LEDGER_COLLECTION = "crownspire_beta_voucher_ledger";
 const BETA_VOUCHER_LEDGER_INDEX_KEY = "beta_voucher_ledger_index";
+const BETA_VOUCHER_SPEND_INFLIGHT_KEY = "beta_voucher_spend_inflight";
 const BETA_VOUCHER_CODE_COLLECTION = "crownspire_beta_voucher_codes";
 const BETA_VOUCHER_REDEEM_COLLECTION = "crownspire_beta_voucher_redemptions";
 const BETA_TOPUP_COLLECTION = "crownspire_beta_topup";
 const PROD_TOPUP_COLLECTION = "crownspire_prod_topup";
 const COMMERCE_AUDIT_COLLECTION = "crownspire_commerce_audit";
 const ENTITLEMENT_BETA_VOUCHER_TESTING = "entitlement_beta_voucher_testing";
+const VOUCHER_SPEND_INFLIGHT_TTL_SEC = 30;
+const VOUCHER_SPEND_DOUBLE_TAP_LINGER_SEC = 5;
 
 const BETA_TOPUP_TEST_ROUND_ID = "topup_beta_round_test_001";
 const BETA_TOPUP_KIND = "BETA";
@@ -82,6 +105,19 @@ interface BetaVoucherLedgerRecord {
   delivery_transaction_id: string;
   rewards_granted: any[];
   created_at: number;
+  updated_at: number;
+}
+
+interface VoucherSpendInflightLock {
+  idempotency_key: string;
+  tx_id: string;
+  started_at: number;
+  expires_at: number;
+}
+
+interface VoucherSpendInflightRecord {
+  account_id: string;
+  locks: { [productId: string]: VoucherSpendInflightLock };
   updated_at: number;
 }
 
@@ -370,6 +406,165 @@ function mutateVoucherWallet(
   return { ok: false, already: false, balance: 0, before: 0, error: "Voucher wallet conflict" };
 }
 
+function normalizeVoucherSpendIdempotencyKey(raw: string): { ok: boolean; key?: string; error?: string } {
+  const key = String(raw || "").trim();
+  if (!key) {
+    return { ok: false, error: "idempotency_key_required" };
+  }
+  if (key.length > 128) {
+    return { ok: false, error: "idempotency_key_invalid" };
+  }
+  if (!/^[A-Za-z0-9._-]+$/.test(key)) {
+    return { ok: false, error: "idempotency_key_invalid" };
+  }
+  return { ok: true, key: key };
+}
+
+function voucherSpendTxId(accountId: string, productId: string, idempotencyKey: string): string {
+  return "bv_" + ledgerStorageKey("beta_voucher", accountId + "_" + productId + "_" + idempotencyKey);
+}
+
+function listVoucherPurchasableOffers(): any[] {
+  const offers: any[] = [];
+  for (let i = 0; i < COMMERCE_PRODUCT_CATALOG.length; i++) {
+    const p = COMMERCE_PRODUCT_CATALOG[i];
+    if (!p.beta_voucher_purchasable || !p.production_deliverable) {
+      continue;
+    }
+    if (productGrantsVouchers(p)) {
+      continue;
+    }
+    offers.push({
+      product_id: p.product_id,
+      iap_product_id: p.iap_product_id,
+      voucher_cost: Math.max(0, Math.floor(Number(p.beta_voucher_cost || 0))),
+      diamond_amount: p.diamond_amount,
+      qualifying_topup_diamonds: Math.max(0, Math.floor(Number(p.qualifying_topup_diamonds || 0))),
+    });
+  }
+  return offers;
+}
+
+function readVoucherSpendInflightObj(
+  nk: nkruntime.Nakama,
+  accountId: string
+): { value: VoucherSpendInflightRecord; version: string } {
+  const obj = storageReadOne(nk, COMMERCE_WALLET_COLLECTION, BETA_VOUCHER_SPEND_INFLIGHT_KEY, accountId);
+  if (obj && obj.value) {
+    const rec = obj.value as VoucherSpendInflightRecord;
+    if (!rec.locks) {
+      rec.locks = {};
+    }
+    rec.account_id = accountId;
+    return { value: rec, version: obj.version };
+  }
+  return {
+    value: { account_id: accountId, locks: {}, updated_at: nowUnix() },
+    version: "*",
+  };
+}
+
+function acquireVoucherSpendInflight(
+  nk: nkruntime.Nakama,
+  accountId: string,
+  productId: string,
+  idempotencyKey: string,
+  txId: string
+): { ok: boolean; error?: string } {
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const now = nowUnix();
+    const obj = readVoucherSpendInflightObj(nk, accountId);
+    const rec = obj.value;
+    const existing = rec.locks[productId];
+    if (existing && existing.expires_at > now && existing.idempotency_key !== idempotencyKey) {
+      return { ok: false, error: "voucher_purchase_in_progress" };
+    }
+    rec.locks[productId] = {
+      idempotency_key: idempotencyKey,
+      tx_id: txId,
+      started_at: existing && existing.idempotency_key === idempotencyKey ? existing.started_at : now,
+      expires_at: now + VOUCHER_SPEND_INFLIGHT_TTL_SEC,
+    };
+    rec.updated_at = now;
+    try {
+      storageWriteVersioned(
+        nk,
+        COMMERCE_WALLET_COLLECTION,
+        BETA_VOUCHER_SPEND_INFLIGHT_KEY,
+        accountId,
+        rec,
+        obj.version,
+        0
+      );
+      return { ok: true };
+    } catch (_e) {
+      continue;
+    }
+  }
+  return { ok: false, error: "voucher_purchase_in_progress" };
+}
+
+function lingerVoucherSpendInflight(
+  nk: nkruntime.Nakama,
+  accountId: string,
+  productId: string,
+  idempotencyKey: string,
+  txId: string
+): void {
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const now = nowUnix();
+    const obj = readVoucherSpendInflightObj(nk, accountId);
+    const rec = obj.value;
+    rec.locks[productId] = {
+      idempotency_key: idempotencyKey,
+      tx_id: txId,
+      started_at: now,
+      expires_at: now + VOUCHER_SPEND_DOUBLE_TAP_LINGER_SEC,
+    };
+    rec.updated_at = now;
+    try {
+      storageWriteVersioned(
+        nk,
+        COMMERCE_WALLET_COLLECTION,
+        BETA_VOUCHER_SPEND_INFLIGHT_KEY,
+        accountId,
+        rec,
+        obj.version,
+        0
+      );
+      return;
+    } catch (_e) {
+      continue;
+    }
+  }
+}
+
+function releaseVoucherSpendInflight(nk: nkruntime.Nakama, accountId: string, productId: string): void {
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const obj = readVoucherSpendInflightObj(nk, accountId);
+    const rec = obj.value;
+    if (!rec.locks[productId]) {
+      return;
+    }
+    delete rec.locks[productId];
+    rec.updated_at = nowUnix();
+    try {
+      storageWriteVersioned(
+        nk,
+        COMMERCE_WALLET_COLLECTION,
+        BETA_VOUCHER_SPEND_INFLIGHT_KEY,
+        accountId,
+        rec,
+        obj.version,
+        0
+      );
+      return;
+    } catch (_e) {
+      continue;
+    }
+  }
+}
+
 function writeCommerceAudit(nk: nkruntime.Nakama, accountId: string, audit: any): void {
   const id = String(audit.idempotency_key || audit.transaction_id || ("aud_" + nowUnix() + "_" + Math.floor(Math.random() * 10000)));
   let key = id.replace(/[^a-zA-Z0-9._-]+/g, "_");
@@ -543,29 +738,18 @@ function attachBetaCommercePublicFields(
   payload.beta_voucher_available = available;
   payload.beta_voucher_cash_value = 0;
   payload.production_topup = null;
-  if (!available) {
-    payload.beta_vouchers = 0;
-    payload.beta_voucher_offers = [];
-    payload.beta_topup = null;
-    return payload;
-  }
   const vouchers = readVoucherWalletObj(nk, accountId).value;
-  payload.beta_vouchers = vouchers.balance;
-  const offers: any[] = [];
-  for (let i = 0; i < COMMERCE_PRODUCT_CATALOG.length; i++) {
-    const p = COMMERCE_PRODUCT_CATALOG[i];
-    if (p.beta_voucher_purchasable && p.production_deliverable) {
-      offers.push({
-        product_id: p.product_id,
-        iap_product_id: p.iap_product_id,
-        voucher_cost: Math.max(0, Math.floor(Number(p.beta_voucher_cost || 0))),
-        diamond_amount: p.diamond_amount,
-        qualifying_topup_diamonds: Math.max(0, Math.floor(Number(p.qualifying_topup_diamonds || 0))),
-      });
-    }
-  }
+  const balance = vouchers.balance;
+  payload.vouchers = balance;
+  payload.beta_vouchers = balance;
+  const offers = listVoucherPurchasableOffers();
+  payload.voucher_offers = offers;
   payload.beta_voucher_offers = offers;
-  payload.beta_topup = publicTopUpState(nk, accountId, activeBetaTopUpRound(), BETA_TOPUP_COLLECTION);
+  if (available) {
+    payload.beta_topup = publicTopUpState(nk, accountId, activeBetaTopUpRound(), BETA_TOPUP_COLLECTION);
+  } else {
+    payload.beta_topup = null;
+  }
   return payload;
 }
 
@@ -730,15 +914,19 @@ function purchasePackageWithVouchers(
   if (!product || !product.production_deliverable || !product.beta_voucher_purchasable) {
     return { ok: false, error: "product_not_voucher_purchasable" };
   }
+  if (productGrantsVouchers(product)) {
+    return { ok: false, error: "voucher_pack_not_voucher_purchasable" };
+  }
   const cost = Math.max(0, Math.floor(Number(product.beta_voucher_cost || 0)));
   if (cost <= 0) {
     return { ok: false, error: "invalid_voucher_cost" };
   }
-  const keyRaw = String(idempotencyKey || "").trim();
-  if (!keyRaw) {
-    return { ok: false, error: "idempotency_key_required" };
+  const keyNorm = normalizeVoucherSpendIdempotencyKey(idempotencyKey);
+  if (!keyNorm.ok || !keyNorm.key) {
+    return { ok: false, error: keyNorm.error || "idempotency_key_required" };
   }
-  const txId = "bv_" + ledgerStorageKey("beta_voucher", accountId + "_" + product.product_id + "_" + keyRaw);
+  const keyRaw = keyNorm.key;
+  const txId = voucherSpendTxId(accountId, product.product_id, keyRaw);
   const existing = storageReadOne(nk, BETA_VOUCHER_LEDGER_COLLECTION, txId, accountId);
   if (existing && existing.value && (existing.value as BetaVoucherLedgerRecord).delivery_status === PURCHASE_DELIVERED) {
     return {
@@ -749,12 +937,17 @@ function purchasePackageWithVouchers(
       wallet: publicWallet(nk, accountId),
     };
   }
+  const locked = acquireVoucherSpendInflight(nk, accountId, product.product_id, keyRaw, txId);
+  if (!locked.ok) {
+    return { ok: false, error: locked.error || "voucher_purchase_in_progress" };
+  }
   const spendRef = "vspend:" + txId;
   const spent = mutateVoucherWallet(nk, accountId, spendRef, "spend", cost, {
     product_id: product.product_id,
     reason: "simulated_purchase",
   });
   if (!spent.ok) {
+    releaseVoucherSpendInflight(nk, accountId, product.product_id);
     return { ok: false, error: spent.error || "Insufficient vouchers", beta_vouchers: spent.balance };
   }
   const deliveryTxId = "dlv_" + txId;
@@ -764,6 +957,7 @@ function purchasePackageWithVouchers(
       product_id: product.product_id,
       reason: "delivery_failed_reversal",
     });
+    releaseVoucherSpendInflight(nk, accountId, product.product_id);
     return { ok: false, error: delivered.error || "Delivery failed" };
   }
   const qualifying = Math.max(0, Math.floor(Number(product.qualifying_topup_diamonds || 0)));
@@ -803,6 +997,7 @@ function purchasePackageWithVouchers(
   } catch (_e) {
     /* replay-safe */
   }
+  lingerVoucherSpendInflight(nk, accountId, product.product_id, keyRaw, txId);
   writeCommerceAudit(nk, accountId, {
     transaction_id: txId,
     purchase_source: PURCHASE_SOURCE_BETA_VOUCHER,
@@ -930,10 +1125,9 @@ function rpcCommercePurchaseWithVouchers(ctx: nkruntime.Context, _logger: nkrunt
   if (!ctx.userId) {
     throw Err("Unauthenticated");
   }
-  if (!isBetaVoucherTestingEnabled(nk, ctx.userId, ctx.env)) {
-    return JSON.stringify({ ok: false, error: "beta_voucher_unavailable" });
-  }
   const data = parsePayload(payload);
+  void data["diamond_amount"];
+  void data["amount"];
   return JSON.stringify(
     purchasePackageWithVouchers(
       nk,

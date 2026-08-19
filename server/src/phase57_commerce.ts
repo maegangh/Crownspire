@@ -47,6 +47,7 @@ const DELIVERY_TIMED_ENTITLEMENT = "TIMED_ENTITLEMENT";
 const DELIVERY_ACCOUNT_COLLECTION = "ACCOUNT_COLLECTION";
 const DELIVERY_CONSUMABLE_ITEM = "CONSUMABLE_ITEM";
 const DELIVERY_SUBSCRIPTION = "SUBSCRIPTION";
+const DELIVERY_VOUCHERS = "VOUCHERS";
 
 const PAID_QUEUE_ENTITLEMENT_IDS: string[] = [
   "entitlement_builder_queue_30d",
@@ -70,6 +71,8 @@ interface CommerceProductDef {
   beta_spend_eligible: boolean;
   production_deliverable: boolean;
   live_store: boolean;
+  /** Future voucher-pack grant size. Never allow voucher-spend of a product that sets this. */
+  voucher_grant_amount?: number;
 }
 
 const PURCHASE_SOURCE_GOOGLE_PLAY = "GOOGLE_PLAY";
@@ -237,6 +240,16 @@ const COMMERCE_PRODUCT_CATALOG: CommerceProductDef[] = [
     live_store: false,
   },
 ];
+
+function productGrantsVouchers(product: CommerceProductDef | null): boolean {
+  if (!product) {
+    return false;
+  }
+  if (product.delivery_type === DELIVERY_VOUCHERS) {
+    return true;
+  }
+  return Math.max(0, Math.floor(Number(product.voucher_grant_amount || 0))) > 0;
+}
 
 function lookupCommerceProduct(platformProductId: string): CommerceProductDef | null {
   const id = String(platformProductId || "").trim();
@@ -723,6 +736,9 @@ function deliverCatalogProduct(
       return { ok: false, error: g.error || "Diamond grant failed" };
     }
     return { ok: true };
+  }
+  if (product.delivery_type === DELIVERY_VOUCHERS || productGrantsVouchers(product)) {
+    return { ok: false, error: "Voucher pack delivery is not implemented" };
   }
   if (
     product.delivery_type === DELIVERY_ACCOUNT_COLLECTION ||
