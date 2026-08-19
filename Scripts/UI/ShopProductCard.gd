@@ -80,6 +80,27 @@ func set_buy_enabled(enabled: bool) -> void:
 	_buy_button.disabled = (not enabled) or (not purchasable) or card_state == STATE_UNAVAILABLE or card_state == STATE_LOADING or card_state == STATE_PURCHASING or card_state == STATE_PENDING
 
 
+func set_buy_text(text: String) -> void:
+	if _buy_button == null:
+		return
+	var shown: String = text.strip_edges()
+	_buy_button.text = shown if not shown.is_empty() else "Buy"
+
+
+func set_buy_visible(show: bool) -> void:
+	if _buy_button == null:
+		return
+	_buy_button.visible = show and purchasable
+
+
+func set_helper_text(text: String) -> void:
+	if _state_label == null:
+		return
+	var shown: String = text.strip_edges()
+	_state_label.text = shown
+	_state_label.visible = not shown.is_empty()
+
+
 func get_buy_button() -> Button:
 	return _buy_button
 

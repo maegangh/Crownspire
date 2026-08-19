@@ -209,12 +209,46 @@ func _run() -> void:
 		"entitlements": [],
 	})
 	_assert(int(Commerce.get_beta_voucher_balance()) == 5, "server snapshot voucher balance 5")
+	_assert(int(Commerce.get_voucher_balance()) == 5, "voucher alias reads the same snapshot")
 	var mutate: Dictionary = Commerce.try_set_beta_voucher_balance(999)
 	_assert(not bool(mutate.get("ok", true)), "V: client cannot set voucher balance")
 	_assert(int(Commerce.get_beta_voucher_balance()) == 5, "V: voucher balance unchanged after client write attempt")
 	var self_grant: Dictionary = Commerce.try_grant_beta_voucher_testing()
 	_assert(not bool(self_grant.get("ok", true)), "H: client cannot self-grant voucher entitlement")
 	_assert(str(self_grant.get("error", "")) == "client_cannot_grant_entitlement", "H: self-grant error")
+	Commerce.apply_commerce_wallet_payload({
+		"diamonds": 0,
+		"vouchers": 5,
+		"beta_voucher_available": false,
+		"voucher_offers": [{
+			"product_id": "com.crownspire.diamonds_500",
+			"voucher_cost": 5,
+			"voucher_purchasable": true,
+		}],
+		"entitlements": [],
+	})
+	_assert(int(Commerce.get_voucher_balance()) == 5, "canonical vouchers field is accepted")
+	_assert(int(Commerce.get_server_voucher_cost("com.crownspire.diamonds_500")) == 5, "server voucher cost from offers")
+	_assert(Commerce.is_product_voucher_purchasable("com.crownspire.diamonds_500"), "diamonds_500 is voucher-purchasable from snapshot")
+	_assert(not Commerce.is_product_voucher_purchasable("entitlement_builder_queue_perm"), "E: non-voucher product is not purchasable")
+	_assert(not Commerce.is_beta_voucher_available(), "entitlement remains false")
+	Commerce.set_test_process_purchase_override(_voucher_spend_stub)
+	var spent: Dictionary = await Commerce.purchase_with_vouchers("com.crownspire.diamonds_500")
+	_assert(bool(spent.get("ok", false)), "spend RPC allowed without tester entitlement")
+	_assert(str(spent.get("purchase_source", "")) == "BETA_VOUCHER", "spend source remains BETA_VOUCHER")
+	_assert(int(Commerce.get_authoritative_diamonds()) == 500, "J: diamonds from server wallet")
+	_assert(int(Commerce.get_voucher_balance()) == 0, "J: vouchers from server wallet")
+	_assert(not bool(Commerce.notify_platform_purchase_success({"ok": true}).get("granted", true)), "N: no local grant")
+	var nonce1: String = Commerce.generate_opaque_idempotency_key()
+	var nonce2: String = Commerce.generate_opaque_idempotency_key()
+	_assert(nonce1 != nonce2 and nonce1.length() >= 32 and nonce1.find("-") >= 0, "I: generated nonce is opaque UUID")
+	Commerce.clear_voucher_purchase_key("com.crownspire.diamonds_500")
+	var held: String = Commerce.peek_or_create_voucher_purchase_key("com.crownspire.diamonds_500")
+	_assert(held == Commerce.peek_or_create_voucher_purchase_key("com.crownspire.diamonds_500"), "I: in-flight retry reuses nonce")
+	Commerce.clear_voucher_purchase_key("com.crownspire.diamonds_500")
+	_assert(Commerce.peek_or_create_voucher_purchase_key("com.crownspire.diamonds_500") != held, "I: later purchase gets a new nonce")
+	Commerce.clear_voucher_purchase_key("com.crownspire.diamonds_500")
+	Commerce.set_test_process_purchase_override(Callable())
 	Commerce.apply_commerce_wallet_payload({"diamonds": 0, "beta_voucher_available": false, "entitlements": []})
 
 	# Bag diamond pack fail-closed
@@ -248,3 +282,22 @@ func _run() -> void:
 		for f: String in _fail:
 			push_error("[COMMERCE 4B] FAIL: %s" % f)
 		quit(1)
+
+
+func _voucher_spend_stub(kind: String, payload: String) -> Dictionary:
+	if kind != "BETA_VOUCHER_BUY":
+		return {"ok": false, "error": "unexpected %s %s" % [kind, payload], "granted": false}
+	return {
+		"ok": true,
+		"purchase_source": "BETA_VOUCHER",
+		"wallet": {
+			"diamonds": 500,
+			"vouchers": 0,
+			"beta_voucher_available": false,
+			"voucher_offers": [{
+				"product_id": "com.crownspire.diamonds_500",
+				"voucher_cost": 5,
+			}],
+			"entitlements": [],
+		},
+	}

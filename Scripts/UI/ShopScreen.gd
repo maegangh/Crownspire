@@ -14,6 +14,8 @@ const PRICE_LOADING := "Loading price…"
 const PRICE_UNAVAILABLE := "Price unavailable"
 const STATUS_IDLE := "Ready to buy."
 const STATUS_LOADING := "Loading store…"
+const PAY_MODE_MONEY := "money"
+const PAY_MODE_VOUCHERS := "vouchers"
 
 const COL_INK := Color(0.95, 0.90, 0.80, 1.0)
 const COL_MUTED := Color(0.74, 0.66, 0.58, 1.0)
@@ -52,9 +54,14 @@ var _beta_panel: Control = null
 var _beta_balance_label: Label = null
 var _beta_redeem_input: LineEdit = null
 var _beta_redeem_status: Label = null
-var _beta_voucher_buy: Button = null
-var _beta_cost_label: Label = null
 var _protect_overlay: Control = null
+var _wallet_signals_bound: bool = false
+var _shop_wallet_refresh_gen: int = 0
+var _pay_mode: String = PAY_MODE_MONEY
+var _pay_money_btn: Button = null
+var _pay_voucher_btn: Button = null
+var _voucher_balance_label: Label = null
+var _last_purchase_path: String = ""
 
 
 func _ready() -> void:
@@ -69,13 +76,18 @@ func on_open() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	_apply_safe_area()
 	_select_tab("diamonds")
+	_set_pay_mode(PAY_MODE_MONEY)
 	_bind_billing_signals()
-	_refresh_live_prices()
+	_bind_wallet_snapshot_signals()
+	_refresh_product_presentation()
 	_refresh_beta_voucher_ui()
 	_query_live_products()
+	_refresh_wallet_for_shop()
 
 
 func on_close() -> void:
+	_shop_wallet_refresh_gen += 1
+	_unbind_wallet_snapshot_signals()
 	_hide_protect_account_modal()
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -89,13 +101,28 @@ func get_active_tab() -> String:
 	return _active_tab
 
 
+func get_payment_mode() -> String:
+	return _pay_mode
+
+
+func set_payment_mode(mode: String) -> void:
+	_set_pay_mode(mode)
+
+
+func get_last_purchase_path_for_test() -> String:
+	return _last_purchase_path
+
+
 func select_tab(tab_id: String) -> void:
 	_select_tab(tab_id)
 
 
 func request_back() -> bool:
 	if _purchase_busy:
-		_set_status("Please wait until Google Play finishes this purchase.")
+		if _is_voucher_mode():
+			_set_status("Please wait until this voucher purchase finishes.")
+		else:
+			_set_status("Please wait until Google Play finishes this purchase.")
 		return true
 	return false
 
@@ -135,12 +162,12 @@ func set_purchase_in_flight_for_test(busy: bool) -> void:
 	if busy:
 		_set_card_states(ProductCardScript.STATE_PURCHASING)
 	else:
-		_refresh_live_prices()
+		_refresh_product_presentation()
 
 
 func apply_google_product_details(rows: Array) -> void:
 	_ingest_product_detail_rows(rows)
-	_refresh_live_prices()
+	_refresh_product_presentation()
 
 
 func _node_suffix(product_id: String) -> String:
@@ -155,6 +182,11 @@ func _build_ui() -> void:
 	_product_cards.clear()
 	_pages.clear()
 	_tab_buttons.clear()
+	_pay_money_btn = null
+	_pay_voucher_btn = null
+	_voucher_balance_label = null
+	_pay_mode = PAY_MODE_MONEY
+	_last_purchase_path = ""
 
 	_dim = ColorRect.new()
 	_dim.name = "DimBackground"
@@ -183,6 +215,7 @@ func _build_ui() -> void:
 
 	root.add_child(_build_header())
 	root.add_child(_build_tab_bar())
+	root.add_child(_build_payment_mode_bar())
 
 	_status = Label.new()
 	_status.name = "ShopStatus"
@@ -290,6 +323,75 @@ func _build_tab_bar() -> ScrollContainer:
 		tabs.add_child(btn)
 		_tab_buttons[tab_id] = btn
 	return tab_scroll
+
+
+func _build_payment_mode_bar() -> Control:
+	var wrap := VBoxContainer.new()
+	wrap.name = "ShopPaymentModeBar"
+	wrap.add_theme_constant_override("separation", 6)
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	wrap.add_child(row)
+
+	_pay_money_btn = Button.new()
+	_pay_money_btn.name = "ShopPayMode_money"
+	_pay_money_btn.text = "Money"
+	_pay_money_btn.custom_minimum_size = Vector2(0, 40)
+	_pay_money_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_pay_money_btn.add_theme_font_size_override("font_size", 14)
+	_pay_money_btn.pressed.connect(_set_pay_mode.bind(PAY_MODE_MONEY))
+	row.add_child(_pay_money_btn)
+
+	_pay_voucher_btn = Button.new()
+	_pay_voucher_btn.name = "ShopPayMode_vouchers"
+	_pay_voucher_btn.text = "Vouchers"
+	_pay_voucher_btn.custom_minimum_size = Vector2(0, 40)
+	_pay_voucher_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_pay_voucher_btn.add_theme_font_size_override("font_size", 14)
+	_pay_voucher_btn.pressed.connect(_set_pay_mode.bind(PAY_MODE_VOUCHERS))
+	row.add_child(_pay_voucher_btn)
+
+	_voucher_balance_label = Label.new()
+	_voucher_balance_label.name = "ShopVoucherBalance"
+	_voucher_balance_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_voucher_balance_label.add_theme_font_size_override("font_size", 14)
+	_voucher_balance_label.add_theme_color_override("font_color", COL_GOLD)
+	_voucher_balance_label.visible = false
+	wrap.add_child(_voucher_balance_label)
+	_refresh_pay_mode_buttons()
+	return wrap
+
+
+func _set_pay_mode(mode: String) -> void:
+	if _purchase_busy:
+		return
+	var next: String = mode.strip_edges().to_lower()
+	if next != PAY_MODE_VOUCHERS:
+		next = PAY_MODE_MONEY
+	_pay_mode = next
+	_refresh_pay_mode_buttons()
+	_refresh_product_presentation()
+	_refresh_beta_voucher_ui()
+
+
+func _is_voucher_mode() -> bool:
+	return _pay_mode == PAY_MODE_VOUCHERS
+
+
+func _refresh_pay_mode_buttons() -> void:
+	var voucher: bool = _is_voucher_mode()
+	if _pay_money_btn != null:
+		_pay_money_btn.disabled = _purchase_busy
+		_pay_money_btn.add_theme_stylebox_override("normal", _style(COL_GOLD if not voucher else COL_TAB, COL_GOLD if not voucher else COL_PURPLE, 10, 2 if not voucher else 1))
+		_pay_money_btn.add_theme_color_override("font_color", Color(0.12, 0.08, 0.04, 1.0) if not voucher else COL_INK)
+	if _pay_voucher_btn != null:
+		_pay_voucher_btn.disabled = _purchase_busy
+		_pay_voucher_btn.add_theme_stylebox_override("normal", _style(COL_GOLD if voucher else COL_TAB, COL_GOLD if voucher else COL_PURPLE, 10, 2 if voucher else 1))
+		_pay_voucher_btn.add_theme_color_override("font_color", Color(0.12, 0.08, 0.04, 1.0) if voucher else COL_INK)
+	if _voucher_balance_label != null:
+		_voucher_balance_label.visible = voucher
+		_voucher_balance_label.text = "Vouchers: %s" % str(Commerce.get_voucher_balance())
 
 
 func _build_diamonds_page() -> Control:
@@ -490,16 +592,23 @@ func _build_beta_voucher_panel(root: VBoxContainer) -> void:
 	margin.add_child(col)
 
 	var title := Label.new()
-	title.text = "Beta Shop Vouchers — testing credits only. Zero cash value."
+	title.text = "Redeem Voucher Code"
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	title.add_theme_font_size_override("font_size", 13)
+	title.add_theme_font_size_override("font_size", 14)
 	title.add_theme_color_override("font_color", COL_GEM)
 	col.add_child(title)
+
+	var note := Label.new()
+	note.text = "Tester codes only. Zero cash value."
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	note.add_theme_font_size_override("font_size", 12)
+	note.add_theme_color_override("font_color", COL_MUTED)
+	col.add_child(note)
 
 	_beta_balance_label = Label.new()
 	_beta_balance_label.name = "BetaVoucherBalance"
 	_beta_balance_label.text = "Vouchers: 0"
-	_beta_balance_label.add_theme_font_size_override("font_size", 16)
+	_beta_balance_label.add_theme_font_size_override("font_size", 15)
 	_beta_balance_label.add_theme_color_override("font_color", COL_GOLD)
 	col.add_child(_beta_balance_label)
 
@@ -527,20 +636,6 @@ func _build_beta_voucher_panel(root: VBoxContainer) -> void:
 	_beta_redeem_status.add_theme_font_size_override("font_size", 13)
 	_beta_redeem_status.add_theme_color_override("font_color", COL_MUTED)
 	col.add_child(_beta_redeem_status)
-
-	_beta_cost_label = Label.new()
-	_beta_cost_label.name = "BetaVoucherCostLabel"
-	_beta_cost_label.text = ""
-	_beta_cost_label.add_theme_font_size_override("font_size", 13)
-	_beta_cost_label.add_theme_color_override("font_color", COL_INK)
-	col.add_child(_beta_cost_label)
-
-	_beta_voucher_buy = Button.new()
-	_beta_voucher_buy.name = "VoucherBuyButton_com_crownspire_diamonds_500"
-	_beta_voucher_buy.text = "Buy 500 Diamonds with Vouchers"
-	_beta_voucher_buy.custom_minimum_size = Vector2(0, 48)
-	_beta_voucher_buy.pressed.connect(_on_buy_with_vouchers.bind("com.crownspire.diamonds_500"))
-	col.add_child(_beta_voucher_buy)
 	_refresh_beta_voucher_ui()
 
 
@@ -549,16 +644,12 @@ func _refresh_beta_voucher_ui() -> void:
 		return
 	var available: bool = Commerce.is_beta_voucher_available()
 	_beta_panel.visible = available
-	if not available:
-		return
 	if _beta_balance_label != null:
-		_beta_balance_label.text = "Vouchers: %s" % str(Commerce.get_beta_voucher_balance())
-	var cost: int = Commerce.get_server_voucher_cost("com.crownspire.diamonds_500")
-	if _beta_cost_label != null:
-		_beta_cost_label.text = "Server voucher cost: %s" % str(cost) if cost > 0 else "Voucher cost provided by server after refresh."
-	if _beta_voucher_buy != null:
-		_beta_voucher_buy.visible = cost > 0
-		_beta_voucher_buy.disabled = _purchase_busy or cost <= 0
+		_beta_balance_label.text = "Vouchers: %s" % str(Commerce.get_voucher_balance())
+	if _voucher_balance_label != null:
+		_voucher_balance_label.text = "Vouchers: %s" % str(Commerce.get_voucher_balance())
+		_voucher_balance_label.visible = _is_voucher_mode()
+	_refresh_pay_mode_buttons()
 
 
 func _on_redeem_voucher_pressed() -> void:
@@ -602,29 +693,44 @@ func _set_redeem_status(text: String) -> void:
 func _on_buy_with_vouchers(product_id: String) -> void:
 	if _purchase_busy:
 		return
-	if not Commerce.is_beta_voucher_available():
-		_set_status("Beta voucher testing is not available.")
+	var pid: String = product_id.strip_edges()
+	if not Commerce.is_product_voucher_purchasable(pid):
+		_set_status("Not available with Vouchers.")
 		return
+	var cost: int = Commerce.get_server_voucher_cost(pid)
+	if Commerce.get_voucher_balance() < cost:
+		_set_status("Not enough Vouchers.")
+		_refresh_product_presentation()
+		return
+	_last_purchase_path = "voucher"
 	_purchase_busy = true
 	_set_hud_blocking(true)
 	_set_buy_enabled(false)
+	_set_card_state_for(pid, ProductCardScript.STATE_PURCHASING)
 	_refresh_beta_voucher_ui()
 	_set_status("Submitting voucher purchase to the server…")
-	var result: Dictionary = await Commerce.purchase_with_vouchers(product_id)
+	var nonce: String = Commerce.peek_or_create_voucher_purchase_key(pid)
+	var result: Dictionary = await Commerce.purchase_with_vouchers(pid, nonce)
+	Commerce.clear_voucher_purchase_key(pid)
 	_purchase_busy = false
 	_set_hud_blocking(false)
 	_set_buy_enabled(true)
+	if bool(result.get("ok", false)) and Commerce.is_nakama_authenticated():
+		await Commerce.refresh_server_wallet()
 	_refresh_beta_voucher_ui()
+	_refresh_product_presentation()
 	if bool(result.get("ok", false)):
 		_set_status("Voucher purchase delivered. Diamonds updated from the server.")
-		_set_card_state_for(product_id, ProductCardScript.STATE_SUCCESS)
+		_set_card_state_for(pid, ProductCardScript.STATE_SUCCESS)
 	else:
 		var err: String = str(result.get("error", "failed"))
-		if err == "Insufficient vouchers":
-			_set_status("Not enough Beta Vouchers.")
+		if err == "Insufficient vouchers" or err == "voucher_purchase_in_progress":
+			_set_status("Not enough Vouchers." if err == "Insufficient vouchers" else "Voucher purchase already in progress.")
+		elif err == "product_not_voucher_purchasable" or err == "voucher_pack_not_voucher_purchasable":
+			_set_status("Not available with Vouchers.")
 		else:
 			_set_status("Voucher purchase failed.")
-		_refresh_live_prices()
+		_refresh_product_presentation()
 
 
 func _build_iap_test_harness(root: VBoxContainer) -> void:
@@ -694,7 +800,63 @@ func _bind_billing_signals() -> void:
 	_billing_bound = true
 
 
+func _bind_wallet_snapshot_signals() -> void:
+	if _wallet_signals_bound:
+		return
+	var bus: Object = Commerce.get_signal_bus()
+	if bus.has_signal("wallet_snapshot_changed") and not bus.is_connected("wallet_snapshot_changed", _on_wallet_snapshot_changed):
+		bus.connect("wallet_snapshot_changed", _on_wallet_snapshot_changed)
+	var identity: Node = get_node_or_null("/root/AccountIdentityState")
+	if identity != null and identity.has_signal("account_state_changed"):
+		if not identity.account_state_changed.is_connected(_on_account_state_changed_for_vouchers):
+			identity.account_state_changed.connect(_on_account_state_changed_for_vouchers)
+	_wallet_signals_bound = true
+
+
+func _unbind_wallet_snapshot_signals() -> void:
+	if not _wallet_signals_bound:
+		return
+	var bus: Object = Commerce.get_signal_bus()
+	if bus.has_signal("wallet_snapshot_changed") and bus.is_connected("wallet_snapshot_changed", _on_wallet_snapshot_changed):
+		bus.disconnect("wallet_snapshot_changed", _on_wallet_snapshot_changed)
+	var identity: Node = get_node_or_null("/root/AccountIdentityState")
+	if identity != null and identity.has_signal("account_state_changed"):
+		if identity.account_state_changed.is_connected(_on_account_state_changed_for_vouchers):
+			identity.account_state_changed.disconnect(_on_account_state_changed_for_vouchers)
+	_wallet_signals_bound = false
+
+
+func _on_wallet_snapshot_changed() -> void:
+	if not visible:
+		return
+	_refresh_beta_voucher_ui()
+	_refresh_product_presentation()
+
+
+func _on_account_state_changed_for_vouchers() -> void:
+	if not visible:
+		return
+	_refresh_beta_voucher_ui()
+	_refresh_product_presentation()
+
+
+func _refresh_wallet_for_shop() -> void:
+	_shop_wallet_refresh_gen += 1
+	var token: int = _shop_wallet_refresh_gen
+	if Commerce.is_nakama_authenticated():
+		await Commerce.refresh_server_wallet()
+	if token != _shop_wallet_refresh_gen or not visible:
+		return
+	_refresh_beta_voucher_ui()
+	_refresh_product_presentation()
+
+
 func _query_live_products() -> void:
+	if _is_voucher_mode():
+		_refresh_product_presentation()
+		if Commerce.is_nakama_authenticated():
+			Commerce.query_android_products()
+		return
 	if not Commerce.is_nakama_authenticated():
 		_set_status("Sign in to buy Diamonds.")
 		_set_unavailable_if_no_price()
@@ -718,12 +880,63 @@ func _query_live_products() -> void:
 			_set_status(STATUS_LOADING)
 
 
+func _refresh_product_presentation() -> void:
+	if _is_voucher_mode():
+		_refresh_voucher_product_cards()
+	else:
+		_refresh_live_prices()
+
+
+func _refresh_voucher_product_cards() -> void:
+	var balance: int = Commerce.get_voucher_balance()
+	for product_id: Variant in _product_cards.keys():
+		var pid: String = str(product_id)
+		var card: Control = _product_cards[pid]
+		var purchasable: bool = Commerce.is_product_voucher_purchasable(pid)
+		var cost: int = Commerce.get_server_voucher_cost(pid)
+		if card.has_method("set_buy_text"):
+			card.set_buy_text("Buy with Vouchers")
+		if not purchasable:
+			if card.has_method("set_price"):
+				card.set_price("Not available with Vouchers")
+			if _price_labels.has(pid):
+				(_price_labels[pid] as Label).text = "Not available with Vouchers"
+			if card.has_method("set_buy_visible"):
+				card.set_buy_visible(false)
+			if not _purchase_busy and card.has_method("set_card_state"):
+				card.set_card_state(ProductCardScript.STATE_UNAVAILABLE)
+			if card.has_method("set_helper_text"):
+				card.set_helper_text("Not available with Vouchers")
+			continue
+		var price_text: String = "%s Vouchers" % str(cost)
+		if card.has_method("set_price"):
+			card.set_price(price_text)
+		if _price_labels.has(pid):
+			(_price_labels[pid] as Label).text = price_text
+		if card.has_method("set_buy_visible"):
+			card.set_buy_visible(true)
+		var enough: bool = balance >= cost
+		if not _purchase_busy and card.has_method("set_card_state"):
+			card.set_card_state(ProductCardScript.STATE_READY if enough else ProductCardScript.STATE_UNAVAILABLE)
+		if card.has_method("set_helper_text"):
+			card.set_helper_text("" if enough else "Not enough Vouchers")
+		if card.has_method("set_buy_enabled"):
+			card.set_buy_enabled((not _purchase_busy) and enough)
+	if _voucher_balance_label != null:
+		_voucher_balance_label.text = "Vouchers: %s" % str(balance)
+		_voucher_balance_label.visible = true
+
+
 func _refresh_live_prices() -> void:
 	for product_id: Variant in _product_cards.keys():
 		var pid: String = str(product_id)
 		var details: Dictionary = _details_for_product(pid)
 		var formatted: String = Commerce.formatted_price_from_google_details(details)
 		var card: Control = _product_cards[pid]
+		if card.has_method("set_buy_text"):
+			card.set_buy_text("Buy")
+		if card.has_method("set_buy_visible"):
+			card.set_buy_visible(true)
 		if formatted.is_empty():
 			if card.has_method("set_price"):
 				card.set_price(PRICE_LOADING if _store_query_pending else PRICE_UNAVAILABLE)
@@ -738,6 +951,8 @@ func _refresh_live_prices() -> void:
 				(_price_labels[pid] as Label).text = formatted
 			if not _purchase_busy and card.has_method("set_card_state"):
 				card.set_card_state(ProductCardScript.STATE_READY)
+			if card.has_method("set_helper_text"):
+				card.set_helper_text("")
 	if _any_formatted_price_ready():
 		_store_query_pending = false
 		if not _purchase_busy:
@@ -794,12 +1009,16 @@ func _set_card_states(state: String) -> void:
 func _on_buy_live_product(product_id: String) -> void:
 	if _purchase_busy:
 		return
+	if _is_voucher_mode():
+		_on_buy_with_vouchers(product_id)
+		return
 	if not Commerce.is_live_store_google_product(product_id):
 		_set_status("That product is not in the live store.")
 		return
 	if not _can_start_real_money_purchase():
 		_show_protect_account_modal()
 		return
+	_last_purchase_path = "billing"
 	_purchase_busy = true
 	_set_hud_blocking(true)
 	_set_buy_enabled(false)
@@ -854,8 +1073,8 @@ func _on_billing_status(status: String, detail: Dictionary) -> void:
 			rows = detail.get("productDetails", [])
 		if typeof(rows) == TYPE_ARRAY:
 			_ingest_product_detail_rows(rows)
-		_refresh_live_prices()
-		if status == "CONNECTED" and not _any_formatted_price_ready():
+		_refresh_product_presentation()
+		if status == "CONNECTED" and not _any_formatted_price_ready() and not _is_voucher_mode():
 			_store_query_pending = true
 			_set_status(STATUS_LOADING)
 		return
@@ -889,7 +1108,7 @@ func _finish_busy(message: String, card_state: String = ProductCardScript.STATE_
 	_set_card_states(card_state)
 	_set_status(message)
 	if card_state == ProductCardScript.STATE_READY:
-		_refresh_live_prices()
+		_refresh_product_presentation()
 
 
 func _set_buy_enabled(enabled: bool) -> void:
@@ -900,6 +1119,7 @@ func _set_buy_enabled(enabled: bool) -> void:
 		var card: Control = _product_cards[product_id]
 		if card.has_method("set_buy_enabled"):
 			card.set_buy_enabled(enabled)
+	_refresh_pay_mode_buttons()
 
 
 func _set_status(text: String) -> void:
@@ -927,7 +1147,10 @@ func _on_iap_restore() -> void:
 
 func _close() -> void:
 	if _purchase_busy:
-		_set_status("Please wait until Google Play finishes this purchase.")
+		if _is_voucher_mode():
+			_set_status("Please wait until this voucher purchase finishes.")
+		else:
+			_set_status("Please wait until Google Play finishes this purchase.")
 		return
 	var manager: Node = get_node_or_null("../../UIManager")
 	if manager != null and manager.has_method("close_current_screen"):

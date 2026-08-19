@@ -75,6 +75,9 @@ func _run() -> void:
 
 	_assert(shop.visible, "shop opens in release storefront")
 	_assert(str(shop.call("get_active_tab")) == "diamonds", "Diamonds tab must be active on open")
+	_assert(str(shop.call("get_payment_mode")) == "money", "A: default payment mode is Money")
+	_assert(shop.find_child("ShopPayMode_money", true, false) != null, "Money mode control missing")
+	_assert(shop.find_child("ShopPayMode_vouchers", true, false) != null, "Voucher mode control missing")
 	_assert(shop.find_child("ShopTab_diamonds", true, false) != null, "Diamonds tab missing")
 	_assert(shop.find_child("ShopTab_deals", true, false) != null, "Deals tab missing")
 	_assert(shop.find_child("ShopTab_growth", true, false) != null, "Growth tab missing")
@@ -109,8 +112,9 @@ func _run() -> void:
 	_assert(int(shop.call("count_live_buy_buttons_in_active_page")) == 1, "Diamonds tab should have one live Buy")
 	var beta_panel: Control = shop.find_child("BetaVoucherPanel", true, false)
 	_assert(beta_panel != null, "beta voucher panel node exists")
-	_assert(beta_panel != null and not beta_panel.visible, "beta voucher panel hidden for production users")
-	_assert(shop.find_child("VoucherBuyButton_com_crownspire_diamonds_500", true, false) != null, "voucher buy control exists")
+	_assert(beta_panel != null and not beta_panel.visible, "G: code redemption hidden for production users")
+	_assert(shop.find_child("VoucherBuyButton_com_crownspire_diamonds_500", true, false) == null, "I: duplicate voucher buy button must not remain")
+	_assert(str(shop.call("get_last_purchase_path_for_test")) == "", "H: opening shop does not purchase")
 
 	print("[SHOP] beta voucher panel appears only when server enables it")
 	Commerce.apply_commerce_wallet_payload({
@@ -124,19 +128,19 @@ func _run() -> void:
 		}],
 		"entitlements": [],
 	})
-	shop.call("on_open")
 	await process_frame
 	var beta_shown: Control = shop.find_child("BetaVoucherPanel", true, false)
-	_assert(beta_shown != null and beta_shown.visible, "server-approved beta mode shows voucher panel")
+	_assert(beta_shown != null and beta_shown.visible, "F: late wallet snapshot shows code redemption without reopen")
 	var bal: Label = shop.find_child("BetaVoucherBalance", true, false)
 	_assert(bal != null and str(bal.text).find("5") >= 0, "voucher balance displayed from server")
 	_assert(shop.find_child("BetaVoucherRedeemInput", true, false) != null, "redeem field present")
 	_assert(shop.find_child("BetaVoucherRedeemButton", true, false) != null, "redeem button present")
+	_assert(shop.find_child("BetaVoucherCostLabel", true, false) == null, "I: server cost must not live in the tester panel")
+	_assert(shop.find_child("VoucherBuyButton_com_crownspire_diamonds_500", true, false) == null, "I: tester panel must not duplicate product buy")
 	Commerce.apply_commerce_wallet_payload({"diamonds": 0, "beta_voucher_available": false, "beta_vouchers": 0, "entitlements": []})
-	shop.call("on_open")
 	await process_frame
 	var beta_hidden: Control = shop.find_child("BetaVoucherPanel", true, false)
-	_assert(beta_hidden != null and not beta_hidden.visible, "L: authoritative unavailable hides voucher panel")
+	_assert(beta_hidden != null and not beta_hidden.visible, "C: authoritative unavailable hides voucher panel")
 	_assert(not Commerce.is_beta_voucher_available(), "L: client snapshot stays unauthorized")
 	_assert(not bool(Commerce.try_grant_beta_voucher_testing().get("ok", true)), "L: UI/client cannot self-enable")
 
@@ -172,6 +176,111 @@ func _run() -> void:
 	_assert(after_joined.find("Loading price") < 0, "Loading price remained after product details")
 	_assert(after_joined.find("Price shown at Google Play checkout") < 0, "checkout fallback remained after product details")
 	_assert(after_joined.find("$4.99") < 0, "must not display hardcoded USD after details")
+
+	print("[SHOP] Money/Voucher mode")
+	var diamonds_before_mode: int = int(Commerce.get_authoritative_diamonds())
+	var vouchers_before_mode: int = int(Commerce.get_voucher_balance())
+	var path_before_mode: String = str(shop.call("get_last_purchase_path_for_test"))
+	shop.call("set_payment_mode", "vouchers")
+	await process_frame
+	_assert(str(shop.call("get_payment_mode")) == "vouchers", "C: voucher mode selected")
+	_assert(str(shop.call("get_active_tab")) == "diamonds", "H: mode switch keeps Diamonds tab")
+	_assert(int(Commerce.get_authoritative_diamonds()) == diamonds_before_mode, "H: mode switch does not grant Diamonds")
+	_assert(int(Commerce.get_voucher_balance()) == vouchers_before_mode, "H: mode switch does not mint vouchers")
+	_assert(str(shop.call("get_last_purchase_path_for_test")) == path_before_mode, "H: mode switch does not purchase")
+	_assert(shop.find_child("ReleaseProduct_com_crownspire_diamonds_500", true, false) != null, "E: same product card remains")
+	var voucher_price: Label = shop.find_child("PriceLabel_com_crownspire_diamonds_500", true, false)
+	_assert(voucher_price != null and str(voucher_price.text).find("Not available with Vouchers") >= 0, "E: no server offer → not voucher-purchasable")
+	var hidden_buy: Button = shop.find_child("BuyButton_com_crownspire_diamonds_500", true, false)
+	_assert(hidden_buy != null and not hidden_buy.visible, "E: non-voucher-purchasable hides voucher CTA")
+
+	Commerce.apply_commerce_wallet_payload({
+		"diamonds": 0,
+		"vouchers": 0,
+		"beta_vouchers": 0,
+		"beta_voucher_available": false,
+		"voucher_offers": [{
+			"product_id": "com.crownspire.diamonds_500",
+			"iap_product_id": "com.crownspire.diamonds_500",
+			"voucher_cost": 5,
+		}],
+		"entitlements": [],
+	})
+	await process_frame
+	_assert(shop.find_child("BetaVoucherPanel", true, false) != null and not shop.find_child("BetaVoucherPanel", true, false).visible, "G: non-entitled player keeps code redemption hidden")
+	_assert(str(shop.call("get_payment_mode")) == "vouchers", "G: Voucher mode still exists without entitlement")
+	var mode_bal: Label = shop.find_child("ShopVoucherBalance", true, false)
+	_assert(mode_bal != null and mode_bal.visible and str(mode_bal.text).find("0") >= 0, "C/D: voucher balance shown from wallet")
+	_assert(voucher_price != null and str(voucher_price.text) == "5 Vouchers", "C: server voucher cost shown, not hardcoded UI 5")
+	var voucher_buy: Button = shop.find_child("BuyButton_com_crownspire_diamonds_500", true, false)
+	_assert(voucher_buy != null and voucher_buy.visible, "C: same Buy control is voucher CTA")
+	_assert(str(voucher_buy.text).find("Vouchers") >= 0, "C: Buy with Vouchers label")
+	_assert(voucher_buy.disabled, "D: insufficient vouchers disables purchase")
+
+	Commerce.apply_commerce_wallet_payload({
+		"diamonds": 0,
+		"vouchers": 5,
+		"beta_voucher_available": false,
+		"voucher_offers": [{
+			"product_id": "com.crownspire.diamonds_500",
+			"voucher_cost": 5,
+		}],
+		"entitlements": [],
+	})
+	await process_frame
+	_assert(not voucher_buy.disabled, "sufficient vouchers enable voucher Buy")
+	_assert(shop.find_child("BetaVoucherPanel", true, false) != null and not shop.find_child("BetaVoucherPanel", true, false).visible, "G: possessing vouchers does not show tester codes")
+
+	var billing_before: int = int(Commerce.get_authoritative_diamonds())
+	Commerce.set_test_process_purchase_override(_voucher_buy_stub)
+	voucher_buy.emit_signal("pressed")
+	await process_frame
+	await process_frame
+	_assert(str(shop.call("get_last_purchase_path_for_test")) == "voucher", "C: Buy uses voucher RPC")
+	_assert(int(Commerce.get_voucher_balance()) == 0, "J: voucher balance from server after spend")
+	_assert(int(Commerce.get_authoritative_diamonds()) == 500, "J: Diamond balance from server")
+	_assert(int(gs.get("diamonds")) == 500, "J: HUD diamonds from server wallet")
+	_assert(shop.find_child("ProtectAccountModal", true, false) == null or not shop.find_child("ProtectAccountModal", true, false).visible, "C: voucher buy does not launch Billing/protect modal")
+	_assert(int(Commerce.get_authoritative_diamonds()) != billing_before or billing_before == 500, "J: no local grant path")
+
+	print("[SHOP] nonce + double tap")
+	Commerce.apply_commerce_wallet_payload({
+		"diamonds": 500,
+		"vouchers": 10,
+		"voucher_offers": [{"product_id": "com.crownspire.diamonds_500", "voucher_cost": 5}],
+		"entitlements": [],
+	})
+	Commerce.clear_voucher_purchase_key("com.crownspire.diamonds_500")
+	var n1: String = Commerce.peek_or_create_voucher_purchase_key("com.crownspire.diamonds_500")
+	var n2: String = Commerce.peek_or_create_voucher_purchase_key("com.crownspire.diamonds_500")
+	_assert(n1 == n2 and n1.length() >= 32, "I: in-flight retry reuses opaque nonce")
+	_assert(n1.find("client_") < 0, "I: nonce is not unix-seconds client_ key")
+	_assert(n1.find("-") >= 0, "I: nonce is UUID-shaped")
+	shop.call("set_purchase_in_flight_for_test", true)
+	var buy_again: Button = shop.find_child("BuyButton_com_crownspire_diamonds_500", true, false)
+	if buy_again != null:
+		buy_again.emit_signal("pressed")
+		buy_again.emit_signal("pressed")
+		await process_frame
+	_assert(str(shop.call("get_last_purchase_path_for_test")) == "voucher", "I: double tap while busy does not start a second intent")
+	shop.call("set_purchase_in_flight_for_test", false)
+	Commerce.clear_voucher_purchase_key("com.crownspire.diamonds_500")
+	var n3: String = Commerce.peek_or_create_voucher_purchase_key("com.crownspire.diamonds_500")
+	_assert(n3 != n1, "I: later purchase uses a new nonce")
+	Commerce.clear_voucher_purchase_key("com.crownspire.diamonds_500")
+	Commerce.set_test_process_purchase_override(Callable())
+
+	shop.call("set_payment_mode", "money")
+	await process_frame
+	_assert(str(shop.call("get_payment_mode")) == "money", "B: return to Money")
+	_assert(str(shop.call("get_active_tab")) == "diamonds", "H: Money return keeps tab")
+	var money_price: Label = shop.find_child("PriceLabel_com_crownspire_diamonds_500", true, false)
+	_assert(money_price != null and str(money_price.text) == "CA$6.99", "B: Money mode still shows Play price")
+	var money_buy: Button = shop.find_child("BuyButton_com_crownspire_diamonds_500", true, false)
+	_assert(money_buy != null and money_buy.visible and str(money_buy.text) == "Buy", "B: Money Buy label restored")
+	Commerce.apply_commerce_wallet_payload({"diamonds": 0, "vouchers": 0, "beta_voucher_available": false, "entitlements": []})
+	gs.set("diamonds", 0)
+	gs.call("save_resources")
 
 	print("[SHOP] buy uses existing coordinator path")
 	var buy: Button = shop.find_child("BuyButton_com_crownspire_diamonds_500", true, false)
@@ -322,6 +431,26 @@ func _run() -> void:
 		for f: String in _fail:
 			push_error("[SHOP] FAIL: %s" % f)
 		quit(1)
+
+
+func _voucher_buy_stub(kind: String, payload: String) -> Dictionary:
+	if kind != "BETA_VOUCHER_BUY":
+		return {"ok": false, "error": "unexpected %s %s" % [kind, payload], "granted": false}
+	return {
+		"ok": true,
+		"purchase_source": "BETA_VOUCHER",
+		"wallet": {
+			"diamonds": 500,
+			"vouchers": 0,
+			"beta_vouchers": 0,
+			"beta_voucher_available": false,
+			"voucher_offers": [{
+				"product_id": "com.crownspire.diamonds_500",
+				"voucher_cost": 5,
+			}],
+			"entitlements": [],
+		},
+	}
 
 
 func _deliver_once(_platform: String, _receipt: String) -> Dictionary:
