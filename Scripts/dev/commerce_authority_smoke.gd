@@ -230,19 +230,20 @@ func _run() -> void:
 	var self_grant: Dictionary = Commerce.try_grant_beta_voucher_testing()
 	_assert(not bool(self_grant.get("ok", true)), "H: client cannot self-grant voucher entitlement")
 	_assert(str(self_grant.get("error", "")) == "client_cannot_grant_entitlement", "H: self-grant error")
+	_assert(int(Commerce.get_server_voucher_cost("com.crownspire.diamonds_500")) == 499, "catalog peg is 499 without wallet offers")
 	Commerce.apply_commerce_wallet_payload({
 		"diamonds": 0,
 		"vouchers": 5,
 		"beta_voucher_available": false,
 		"voucher_offers": [{
 			"product_id": "com.crownspire.diamonds_500",
-			"voucher_cost": 5,
+			"voucher_cost": 499,
 			"voucher_purchasable": true,
 		}],
 		"entitlements": [],
 	})
 	_assert(int(Commerce.get_voucher_balance()) == 5, "canonical vouchers field is accepted")
-	_assert(int(Commerce.get_server_voucher_cost("com.crownspire.diamonds_500")) == 5, "server voucher cost from offers")
+	_assert(int(Commerce.get_server_voucher_cost("com.crownspire.diamonds_500")) == 499, "server voucher cost from offers")
 	_assert(Commerce.is_product_voucher_purchasable("com.crownspire.diamonds_500"), "diamonds_500 is voucher-purchasable from snapshot")
 	_assert(not Commerce.is_product_voucher_purchasable("entitlement_builder_queue_perm"), "E: non-voucher product is not purchasable")
 	_assert(not Commerce.is_beta_voucher_available(), "entitlement remains false")
@@ -310,7 +311,7 @@ func _voucher_spend_stub(kind: String, payload: String) -> Dictionary:
 			"beta_voucher_available": false,
 			"voucher_offers": [{
 				"product_id": "com.crownspire.diamonds_500",
-				"voucher_cost": 5,
+				"voucher_cost": 499,
 			}],
 			"entitlements": [],
 		},

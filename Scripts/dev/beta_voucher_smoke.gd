@@ -80,13 +80,13 @@ func _run() -> void:
 		"beta_voucher_available": true,
 		"beta_voucher_offers": [{
 			"product_id": "com.crownspire.diamonds_500",
-			"voucher_cost": 5,
+			"voucher_cost": 499,
 		}],
 		"entitlements": [],
 	})
 	await process_frame
 	_assert(panel != null and panel.visible, "B/D: entitled snapshot shows panel while Shop is open")
-	_assert(int(Commerce.get_server_voucher_cost("com.crownspire.diamonds_500")) == 5, "client displays server cost")
+	_assert(int(Commerce.get_server_voucher_cost("com.crownspire.diamonds_500")) == 499, "client displays server cost 499")
 	var bal: Label = shop.find_child("BetaVoucherBalance", true, false)
 	_assert(bal != null and str(bal.text).find("0") >= 0, "B: balance 0 from server")
 	_assert(shop.find_child("VoucherBuyButton_com_crownspire_diamonds_500", true, false) == null, "I: no duplicate voucher product buy")
@@ -126,7 +126,7 @@ func _run() -> void:
 		"beta_voucher_available": true,
 		"beta_voucher_offers": [{
 			"product_id": "com.crownspire.diamonds_500",
-			"voucher_cost": 5,
+			"voucher_cost": 499,
 		}],
 		"entitlements": [],
 	})
@@ -163,7 +163,7 @@ func _run() -> void:
 		"beta_voucher_available": true,
 		"beta_voucher_offers": [{
 			"product_id": "com.crownspire.diamonds_500",
-			"voucher_cost": 5,
+			"voucher_cost": 499,
 		}],
 		"entitlements": [],
 	})
@@ -196,7 +196,7 @@ func _run() -> void:
 			"beta_voucher_available": true,
 			"beta_voucher_offers": [{
 				"product_id": "com.crownspire.diamonds_500",
-				"voucher_cost": 5,
+				"voucher_cost": 499,
 			}],
 			"entitlements": [],
 		}
@@ -236,7 +236,7 @@ func _voucher_stub(kind: String, payload: String) -> Dictionary:
 				"beta_voucher_available": true,
 				"beta_voucher_offers": [{
 					"product_id": "com.crownspire.diamonds_500",
-					"voucher_cost": 5,
+					"voucher_cost": 499,
 				}],
 				"entitlements": [],
 			},
@@ -252,7 +252,7 @@ func _voucher_stub(kind: String, payload: String) -> Dictionary:
 				"beta_voucher_available": true,
 				"beta_voucher_offers": [{
 					"product_id": "com.crownspire.diamonds_500",
-					"voucher_cost": 5,
+					"voucher_cost": 499,
 				}],
 				"entitlements": [],
 			},

@@ -135,8 +135,8 @@ static func apply_commerce_wallet_payload(wallet: Dictionary) -> bool:
 	_beta_voucher_available = bool(wallet.get("beta_voucher_available", false))
 	var offers: Variant = wallet.get("voucher_offers", null)
 	if typeof(offers) != TYPE_ARRAY:
-		offers = wallet.get("beta_voucher_offers", [])
-	_beta_voucher_offers = offers if typeof(offers) == TYPE_ARRAY else []
+		offers = wallet.get("beta_voucher_offers", null)
+	_beta_voucher_offers = _coerce_offer_rows(offers)
 	var topup: Variant = wallet.get("beta_topup", {})
 	_beta_topup = topup if typeof(topup) == TYPE_DICTIONARY else {}
 	var ents: Variant = wallet.get("entitlements", [])
@@ -194,16 +194,69 @@ static func get_server_voucher_cost(product_id: String) -> int:
 			continue
 		var row: Dictionary = item
 		if str(row.get("product_id", "")).strip_edges() == pid or str(row.get("iap_product_id", "")).strip_edges() == pid:
-			if row.has("voucher_purchasable") and not bool(row.get("voucher_purchasable", true)):
-				return 0
-			if row.has("beta_voucher_purchasable") and not bool(row.get("beta_voucher_purchasable", true)):
-				return 0
-			return maxi(0, int(row.get("voucher_cost", 0)))
-	return 0
+			return _row_voucher_cost(row)
+	return _catalog_voucher_cost(pid)
 
 
 static func is_product_voucher_purchasable(product_id: String) -> bool:
 	return get_server_voucher_cost(product_id) > 0
+
+
+static func format_voucher_price(cost: int) -> String:
+	return "🎟 %s Vouchers" % str(maxi(0, cost))
+
+
+static func _coerce_offer_rows(raw: Variant) -> Array:
+	if typeof(raw) == TYPE_STRING:
+		var parsed: Variant = JSON.parse_string(str(raw))
+		return _coerce_offer_rows(parsed)
+	if typeof(raw) != TYPE_ARRAY:
+		return []
+	var out: Array = []
+	for item: Variant in raw:
+		if typeof(item) == TYPE_DICTIONARY:
+			out.append(item)
+		elif typeof(item) == TYPE_STRING:
+			var parsed_item: Variant = JSON.parse_string(str(item))
+			if typeof(parsed_item) == TYPE_DICTIONARY:
+				out.append(parsed_item)
+	return out
+
+
+static func _row_voucher_cost(row: Dictionary) -> int:
+	if str(row.get("delivery_type", "")).strip_edges() == "VOUCHERS":
+		return 0
+	if int(row.get("voucher_grant_amount", 0)) > 0:
+		return 0
+	if row.has("voucher_purchasable") and not bool(row.get("voucher_purchasable", true)):
+		return 0
+	if row.has("beta_voucher_purchasable") and not bool(row.get("beta_voucher_purchasable", true)):
+		return 0
+	var cost: int = 0
+	if row.has("voucher_cost"):
+		cost = int(row.get("voucher_cost", 0))
+	elif row.has("beta_voucher_cost"):
+		cost = int(row.get("beta_voucher_cost", 0))
+	elif bool(row.get("voucher_purchasable", false)) or bool(row.get("beta_voucher_purchasable", false)):
+		cost = int(row.get("usd_cents", 0))
+	return maxi(0, cost)
+
+
+static func _catalog_voucher_cost(product_id: String) -> int:
+	var pid: String = product_id.strip_edges()
+	if pid.is_empty():
+		return 0
+	var cat: Dictionary = load_commerce_catalog()
+	var products: Variant = cat.get("products", [])
+	if typeof(products) != TYPE_ARRAY:
+		return 0
+	for item: Variant in products:
+		if typeof(item) != TYPE_DICTIONARY:
+			continue
+		var row: Dictionary = item
+		if str(row.get("product_id", "")).strip_edges() == pid or str(row.get("iap_product_id", "")).strip_edges() == pid:
+			return _row_voucher_cost(row)
+	return 0
 
 
 static func generate_opaque_idempotency_key() -> String:

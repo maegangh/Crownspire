@@ -908,7 +908,7 @@ func _refresh_voucher_product_cards() -> void:
 			if card.has_method("set_helper_text"):
 				card.set_helper_text("Not available with Vouchers")
 			continue
-		var price_text: String = "%s Vouchers" % str(cost)
+		var price_text: String = Commerce.format_voucher_price(cost)
 		if card.has_method("set_price"):
 			card.set_price(price_text)
 		if _price_labels.has(pid):
