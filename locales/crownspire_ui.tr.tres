@@ -2,6 +2,10 @@
 
 [resource]
 messages = {
+[&"", &"CHIEF_NAME"]: [&"Şef"],
+[&"", &"PLAYER_ID_COPIED"]: [&"Oyuncu Kimliği kopyalandı"],
+[&"", &"COPY"]: [&"Kopyala"],
+[&"", &"PLAYER_ID"]: [&"Oyuncu Kimliği"],
 [&"", &"ACCOUNT_SECURE_GOOGLE"]: [&"Google ile güvene al"],
 [&"", &"ACCOUNT_LINKING_GOOGLE"]: [&"Google bağlanıyor…"],
 [&"", &"ACCOUNT_CONTINUE_GOOGLE"]: [&"Google ile devam et"],
@@ -10,6 +14,8 @@ messages = {
 [&"", &"ACCOUNT_PURCHASE_SECURE_MCS"]: [&"Mythic Crown Studios Hesabı ile güvene al"],
 [&"", &"ACCOUNT_PROGRESS_PROTECTED"]: [&"Crownspire ilerlemeniz korunuyor."],
 [&"", &"ACCOUNT_SECURE_PROGRESS"]: [&"Crownspire ilerlemenizi korumak için hesabınızı güvene alın."],
+[&"", &"ACCOUNT_GOOGLE_UNAVAILABLE_G2"]: [&"Google ile giriş kullanılamıyor (G2)"],
+[&"", &"ACCOUNT_GOOGLE_UNAVAILABLE_G1"]: [&"Google ile giriş kullanılamıyor (G1)"],
 [&"", &"ACCOUNT_PROVIDER_COMING"]: [&"Google ve Apple ile giriş ek kurulumdan sonra kullanılabilir olacak."],
 [&"", &"ACCOUNT_APPLE_UNAVAILABLE"]: [&"Apple ile giriş bu sürümde kullanılamıyor."],
 [&"", &"ACCOUNT_GOOGLE_UNAVAILABLE"]: [&"Google ile giriş bu sürümde kullanılamıyor."],
@@ -134,3 +140,4 @@ messages = {
 [&"", &"LANGUAGE_ENGLISH"]: [&"İngilizce"],
 [&"", &"UI_LANGUAGE"]: [&"Dil"]
 }
+locale = "tr"

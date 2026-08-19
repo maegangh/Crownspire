@@ -55,6 +55,8 @@ var _beta_redeem_status: Label = null
 var _beta_voucher_buy: Button = null
 var _beta_cost_label: Label = null
 var _protect_overlay: Control = null
+var _wallet_signals_bound: bool = false
+var _shop_wallet_refresh_gen: int = 0
 
 
 func _ready() -> void:
@@ -70,12 +72,16 @@ func on_open() -> void:
 	_apply_safe_area()
 	_select_tab("diamonds")
 	_bind_billing_signals()
+	_bind_wallet_snapshot_signals()
 	_refresh_live_prices()
 	_refresh_beta_voucher_ui()
 	_query_live_products()
+	_refresh_wallet_for_shop()
 
 
 func on_close() -> void:
+	_shop_wallet_refresh_gen += 1
+	_unbind_wallet_snapshot_signals()
 	_hide_protect_account_modal()
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -692,6 +698,54 @@ func _bind_billing_signals() -> void:
 	if not node.billing_status.is_connected(_on_billing_status):
 		node.billing_status.connect(_on_billing_status)
 	_billing_bound = true
+
+
+func _bind_wallet_snapshot_signals() -> void:
+	if _wallet_signals_bound:
+		return
+	var bus: Object = Commerce.get_signal_bus()
+	if bus.has_signal("wallet_snapshot_changed") and not bus.is_connected("wallet_snapshot_changed", _on_wallet_snapshot_changed):
+		bus.connect("wallet_snapshot_changed", _on_wallet_snapshot_changed)
+	var identity: Node = get_node_or_null("/root/AccountIdentityState")
+	if identity != null and identity.has_signal("account_state_changed"):
+		if not identity.account_state_changed.is_connected(_on_account_state_changed_for_vouchers):
+			identity.account_state_changed.connect(_on_account_state_changed_for_vouchers)
+	_wallet_signals_bound = true
+
+
+func _unbind_wallet_snapshot_signals() -> void:
+	if not _wallet_signals_bound:
+		return
+	var bus: Object = Commerce.get_signal_bus()
+	if bus.has_signal("wallet_snapshot_changed") and bus.is_connected("wallet_snapshot_changed", _on_wallet_snapshot_changed):
+		bus.disconnect("wallet_snapshot_changed", _on_wallet_snapshot_changed)
+	var identity: Node = get_node_or_null("/root/AccountIdentityState")
+	if identity != null and identity.has_signal("account_state_changed"):
+		if identity.account_state_changed.is_connected(_on_account_state_changed_for_vouchers):
+			identity.account_state_changed.disconnect(_on_account_state_changed_for_vouchers)
+	_wallet_signals_bound = false
+
+
+func _on_wallet_snapshot_changed() -> void:
+	if not visible:
+		return
+	_refresh_beta_voucher_ui()
+
+
+func _on_account_state_changed_for_vouchers() -> void:
+	if not visible:
+		return
+	_refresh_beta_voucher_ui()
+
+
+func _refresh_wallet_for_shop() -> void:
+	_shop_wallet_refresh_gen += 1
+	var token: int = _shop_wallet_refresh_gen
+	if Commerce.is_nakama_authenticated():
+		await Commerce.refresh_server_wallet()
+	if token != _shop_wallet_refresh_gen or not visible:
+		return
+	_refresh_beta_voucher_ui()
 
 
 func _query_live_products() -> void:

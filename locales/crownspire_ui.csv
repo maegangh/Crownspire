@@ -122,6 +122,8 @@ ACCOUNT_SECURED_SUCCESS,Account secured successfully,Hesap başarıyla güvene a
 ACCOUNT_GOOGLE_UNAVAILABLE,Google sign-in is not available in this build.,Google ile giriş bu sürümde kullanılamıyor.
 ACCOUNT_APPLE_UNAVAILABLE,Sign in with Apple is not available in this build.,Apple ile giriş bu sürümde kullanılamıyor.
 ACCOUNT_PROVIDER_COMING,Google and Apple sign-in will be available after additional setup.,Google ve Apple ile giriş ek kurulumdan sonra kullanılabilir olacak.
+ACCOUNT_GOOGLE_UNAVAILABLE_G1,Google Sign-In unavailable (G1),Google ile giriş kullanılamıyor (G1)
+ACCOUNT_GOOGLE_UNAVAILABLE_G2,Google Sign-In unavailable (G2),Google ile giriş kullanılamıyor (G2)
 ACCOUNT_SECURE_PROGRESS,Secure your account to protect your Crownspire progress.,Crownspire ilerlemenizi korumak için hesabınızı güvene alın.
 ACCOUNT_PROGRESS_PROTECTED,Your Crownspire progress is protected.,Crownspire ilerlemeniz korunuyor.
 ACCOUNT_PURCHASE_SECURE_MCS,Secure with Mythic Crown Studios Account,Mythic Crown Studios Hesabı ile güvene al
@@ -130,3 +132,7 @@ ACCOUNT_SECURING,Securing account…,Hesap güvene alınıyor…
 ACCOUNT_CONTINUE_GOOGLE,Continue with Google,Google ile devam et
 ACCOUNT_LINKING_GOOGLE,Linking Google…,Google bağlanıyor…
 ACCOUNT_SECURE_GOOGLE,Secure with Google,Google ile güvene al
+PLAYER_ID,Player ID,Oyuncu Kimliği
+COPY,Copy,Kopyala
+PLAYER_ID_COPIED,Player ID copied,Oyuncu Kimliği kopyalandı
+CHIEF_NAME,Chief,Şef

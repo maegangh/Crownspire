@@ -114,6 +114,10 @@ func _ready() -> void:
 	resized.connect(_on_resized)
 	if has_node("/root/LocaleSettings") and not LocaleSettings.locale_changed.is_connected(_on_locale_changed):
 		LocaleSettings.locale_changed.connect(_on_locale_changed)
+	var identity: Node = get_node_or_null("/root/AccountIdentityState")
+	if identity != null and identity.has_signal("account_state_changed"):
+		if not identity.account_state_changed.is_connected(_on_account_identity_changed):
+			identity.account_state_changed.connect(_on_account_identity_changed)
 
 
 func open_self() -> void:
@@ -130,6 +134,19 @@ func open_user(user_id: String, world_seed: Dictionary = {}) -> void:
 	var local_id: String = nc.get_user_id() if nc != null else ""
 	_is_self = _target_user_id == "" or _target_user_id == local_id
 	await _open_async()
+
+
+## Smoke/display helper: apply a self profile without a live profile RPC.
+func apply_self_profile_for_display(profile: Dictionary) -> void:
+	_target_user_id = ""
+	_is_self = true
+	_world_seed = {}
+	_profile = profile.duplicate(true)
+	_apply_live_self_identity()
+	_build()
+	visible = true
+	mouse_filter = Control.MOUSE_FILTER_STOP
+	_rebuild_content()
 
 
 func on_close() -> void:
@@ -480,11 +497,12 @@ func _load_profile() -> void:
 			_profile = _local_fallback_profile()
 		_profile["citadel_level"] = _local_canonical_castle_level()
 		_status.text = ""
+		_apply_live_self_identity()
 		print("[PlayerProfile] loaded user=%s power=%s (self)" % [
-			str(_profile.get("user_id", "")), str(_profile.get("power", 0)),
+			_short_id_for_log(str(_profile.get("user_id", ""))), str(_profile.get("power", 0)),
 		])
 	else:
-		print("[PlayerProfile] requesting public profile user=%s" % _target_user_id)
+		print("[PlayerProfile] requesting public profile user=%s" % _short_id_for_log(_target_user_id))
 		var res: Dictionary = await ab.get_public_profile(_target_user_id)
 		var castle: Dictionary = _remote_world_castle_record(_target_user_id)
 		if bool(res.get("ok", false)) and typeof(res.get("profile")) == TYPE_DICTIONARY:
@@ -498,7 +516,7 @@ func _load_profile() -> void:
 		# Never GameState.power for another player.
 		_profile["power"] = resolve_remote_display_power(_profile, castle)
 		print("[PlayerProfile] loaded user=%s power=%s" % [
-			str(_profile.get("user_id", "")), str(_profile.get("power", 0)),
+			_short_id_for_log(str(_profile.get("user_id", ""))), str(_profile.get("power", 0)),
 		])
 
 
@@ -605,6 +623,109 @@ func _local_fallback_profile() -> Dictionary:
 	}
 
 
+func _resolved_self_player_id() -> String:
+	var identity: Node = get_node_or_null("/root/AccountIdentityState")
+	if identity != null and identity.has_method("get_current_player_id"):
+		var live: String = str(identity.call("get_current_player_id")).strip_edges()
+		if live != "":
+			return live
+	var nc: Node = _nakama_connection()
+	if nc != null and nc.has_method("get_user_id"):
+		var uid: String = str(nc.call("get_user_id")).strip_edges()
+		if uid != "":
+			return uid
+	return str(_profile.get("user_id", "")).strip_edges()
+
+
+func _short_id_for_log(user_id: String) -> String:
+	var identity: Node = get_node_or_null("/root/AccountIdentityState")
+	if identity != null and identity.has_method("format_player_id_short"):
+		return str(identity.call("format_player_id_short", user_id))
+	var uid: String = user_id.strip_edges()
+	if uid.length() <= 8:
+		return uid
+	return uid.substr(0, 8)
+
+
+func _apply_live_self_identity() -> void:
+	if not _is_self:
+		return
+	var uid: String = _resolved_self_player_id()
+	if uid != "":
+		_profile["user_id"] = uid
+	var identity: Node = get_node_or_null("/root/AccountIdentityState")
+	if identity != null and identity.has_method("get_chief_display_name"):
+		var chief: String = str(identity.call("get_chief_display_name")).strip_edges()
+		if chief != "":
+			_profile["display_name"] = chief
+
+
+func _on_account_identity_changed() -> void:
+	if not visible or not _is_self:
+		return
+	_apply_live_self_identity()
+	_rebuild_content()
+
+
+func _add_player_id_row(parent: Control) -> void:
+	var identity: Node = get_node_or_null("/root/AccountIdentityState")
+	var full_id: String = _resolved_self_player_id()
+	var short_id: String = ""
+	if identity != null and identity.has_method("format_player_id_short"):
+		short_id = str(identity.call("format_player_id_short", full_id))
+	else:
+		short_id = _short_id_for_log(full_id)
+	var row := HBoxContainer.new()
+	row.name = "PlayerIdRow"
+	row.add_theme_constant_override("separation", 8)
+	parent.add_child(row)
+	var id_lbl := Label.new()
+	id_lbl.name = "PlayerIdLabel"
+	id_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	if short_id == "":
+		id_lbl.text = "%s: —" % tr("PLAYER_ID")
+	else:
+		id_lbl.text = "%s: %s" % [tr("PLAYER_ID"), short_id]
+	_style_label(id_lbl, FONT_SECONDARY, COL_MUTED)
+	row.add_child(id_lbl)
+	var copy_btn := Button.new()
+	copy_btn.name = "PlayerIdCopyButton"
+	copy_btn.text = tr("COPY")
+	copy_btn.custom_minimum_size = Vector2(96, TOUCH_H_SM)
+	copy_btn.disabled = full_id.is_empty()
+	_style_button(copy_btn, FONT_BUTTON, TOUCH_H_SM)
+	copy_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
+	copy_btn.pressed.connect(_on_copy_player_id_pressed)
+	row.add_child(copy_btn)
+	var copied := Label.new()
+	copied.name = "PlayerIdCopiedLabel"
+	copied.visible = false
+	copied.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_style_label(copied, FONT_SECONDARY, COL_OK)
+	parent.add_child(copied)
+
+
+func _on_copy_player_id_pressed() -> void:
+	var identity: Node = get_node_or_null("/root/AccountIdentityState")
+	var copied_ok: bool = false
+	if identity != null and identity.has_method("copy_current_player_id_to_clipboard"):
+		var result: Dictionary = identity.call("copy_current_player_id_to_clipboard")
+		copied_ok = bool(result.get("copied", false))
+	elif DisplayServer.has_feature(DisplayServer.FEATURE_CLIPBOARD):
+		var full: String = _resolved_self_player_id()
+		if full != "":
+			DisplayServer.clipboard_set(full)
+			copied_ok = true
+	var copied_lbl: Label = find_child("PlayerIdCopiedLabel", true, false)
+	if copied_lbl == null:
+		return
+	if copied_ok:
+		copied_lbl.text = tr("PLAYER_ID_COPIED")
+		copied_lbl.visible = true
+	else:
+		copied_lbl.visible = false
+
+
 func _rebuild_content() -> void:
 	_clear_container(_identity_box)
 	_clear_container(_profile_actions)
@@ -652,6 +773,7 @@ func _rebuild_profile_tab(avatar_id: String) -> void:
 	var tag: String = str(_profile.get("alliance_tag", "")).strip_edges()
 	var name_text: String = str(_profile.get("display_name", "Player"))
 	var name_lbl := Label.new()
+	name_lbl.name = "ChiefNameLabel"
 	name_lbl.text = "[%s] %s" % [tag, name_text] if tag != "" else name_text
 	_style_label(name_lbl, FONT_NAME, COL_INK)
 	id_col.add_child(name_lbl)
@@ -664,6 +786,9 @@ func _rebuild_profile_tab(avatar_id: String) -> void:
 	]
 	_style_label(summary, FONT_SECONDARY, COL_MUTED)
 	id_col.add_child(summary)
+
+	if _is_self:
+		_add_player_id_row(id_col)
 
 	if _is_self:
 		var rename_btn := Button.new()
@@ -1077,7 +1202,7 @@ func _on_share_location() -> void:
 		"owner_user_id": uid,
 		"display_name": name_text,
 	}
-	print("[CastlePopup] share requested user=%s kingdom=%s x=%s y=%s" % [uid, kid, str(x), str(y)])
+	print("[CastlePopup] share requested user=%s kingdom=%s x=%s y=%s" % [_short_id_for_log(uid), kid, str(x), str(y)])
 	_status.text = tr("PROFILE_SHARING_LOCATION")
 	var result: Dictionary = await cm.send_map_location(payload, "kingdom")
 	if bool(result.get("ok", false)):

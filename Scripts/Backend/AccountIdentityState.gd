@@ -109,6 +109,58 @@ func get_local_owner_user_id() -> String:
 	return _local_owner_user_id
 
 
+## Live Nakama user_id for the account currently on this device. Never a token.
+func get_current_player_id() -> String:
+	var nc: Node = get_node_or_null("/root/NakamaConnection")
+	if nc != null and nc.has_method("get_user_id"):
+		var uid: String = str(nc.call("get_user_id")).strip_edges()
+		if uid != "":
+			return uid
+	return _auth_user_id.strip_edges()
+
+
+## First 8 characters for on-screen Player ID. Empty if unsigned.
+func get_current_player_id_short() -> String:
+	return format_player_id_short(get_current_player_id())
+
+
+## Full user_id for the Copy action. Callers must not log this value.
+func get_player_id_copy_payload() -> String:
+	return get_current_player_id()
+
+
+func format_player_id_short(user_id: String) -> String:
+	return _short_id(user_id)
+
+
+## Player-facing Chief Name. Never email. Empty if no authoritative name is known.
+func get_chief_display_name() -> String:
+	var ab: Node = get_node_or_null("/root/AllianceBackend")
+	if ab != null and ab.has_method("get_display_name"):
+		var server_name: String = str(ab.call("get_display_name")).strip_edges()
+		if server_name != "":
+			if ab.has_method("get_profile"):
+				var prof: Variant = ab.call("get_profile")
+				if typeof(prof) == TYPE_DICTIONARY:
+					var prof_uid: String = str((prof as Dictionary).get("user_id", "")).strip_edges()
+					var live: String = get_current_player_id()
+					if prof_uid != "" and live != "" and prof_uid != live:
+						return ""
+			return server_name
+	return ""
+
+
+## Copies the full current user_id. Does not log it. Fails closed if clipboard is missing.
+func copy_current_player_id_to_clipboard() -> Dictionary:
+	var full: String = get_player_id_copy_payload()
+	if full.is_empty():
+		return {"ok": false, "copied": false, "clipboard_available": false}
+	if not DisplayServer.has_feature(DisplayServer.FEATURE_CLIPBOARD):
+		return {"ok": false, "copied": false, "clipboard_available": false}
+	DisplayServer.clipboard_set(full)
+	return {"ok": true, "copied": true, "clipboard_available": true}
+
+
 func get_account_kind() -> String:
 	return "SECURED" if _account_kind == AccountKind.SECURED else "GUEST"
 
@@ -198,6 +250,11 @@ func get_google_sign_in_status() -> Dictionary:
 		"linked": bool(_linked_providers.get("GOOGLE", false)),
 		"native_plugin": bool(status.get("native_plugin", false)),
 		"oauth_configured": bool(status.get("oauth_configured", false)),
+		"code": str(status.get("code", "")),
+		"android_runtime": bool(status.get("android_runtime", false)),
+		"singleton_present": bool(status.get("singleton_present", false)),
+		"oauth_config_present": bool(status.get("oauth_config_present", false)),
+		"player_diagnostic": str(status.get("player_diagnostic", "")),
 		"error": "" if available else AccountEmailAuthScript.ERR_PROVIDER_UNAVAILABLE,
 		"message": (
 			"" if available

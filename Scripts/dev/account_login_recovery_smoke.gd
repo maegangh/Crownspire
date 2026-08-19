@@ -59,6 +59,7 @@ func _run() -> void:
 	var secure: Dictionary = await identity.call("secure_guest_with_email", SMOKE_EMAIL_A, SMOKE_PASSWORD, SMOKE_PASSWORD)
 	_assert(bool(secure.get("ok", false)), "A: secure failed: %s" % str(secure))
 	_assert(str(secure.get("user_id", "")) == before_uid, "A: user_id changed on secure")
+	_assert(str(identity.call("get_current_player_id")) == before_uid, "A: Player ID changed after secure")
 	_assert(str(identity.call("get_account_kind")) == "SECURED", "A: not secured")
 	_assert(bool(identity.call("has_recoverable_identity")), "A: recoverable identity")
 	_assert(bool(secure.get("wallet_refreshed", false)), "A: wallet refresh missing")
@@ -175,6 +176,7 @@ func _run() -> void:
 	var login_a: Dictionary = await identity.call("login_with_email", SMOKE_EMAIL_A, SMOKE_PASSWORD)
 	_assert(bool(login_a.get("ok", false)), "E: login failed: %s" % str(login_a))
 	_assert(str(login_a.get("user_id", "")) == "user_a", "E: wrong user")
+	_assert(str(identity.call("get_current_player_id")) == "user_a", "E: Player ID did not follow returning login")
 	_assert(str(asp.call("get_active_user_id")) == "user_a", "E: partition not rebound")
 	_assert(bool(login_a.get("wallet_refreshed", false)), "E: wallet refresh missing")
 
@@ -195,6 +197,7 @@ func _run() -> void:
 	var google_same: Dictionary = identity.call("smoke_link_provider_same_user", "GOOGLE", "user_b", "user_b")
 	_assert(bool(google_same.get("ok", false)), "G: same-user Google smoke failed")
 	_assert(str(google_same.get("user_id", "")) == "user_b", "G: Google user changed")
+	_assert(str(identity.call("get_current_player_id")) == "user_b", "G: Player ID changed after same-user Google link")
 	var google_changed: Dictionary = identity.call("smoke_link_provider_same_user", "GOOGLE", "user_b", "user_other")
 	_assert(not bool(google_changed.get("ok", true)), "G: changed user_id must stop")
 	_assert(str(google_changed.get("error", "")) == AccountEmailAuthScript.ERR_USER_CHANGED, "G: USER_ID_CHANGED")

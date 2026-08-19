@@ -68,6 +68,7 @@ func _run() -> void:
 	var secure: Dictionary = await identity.call("secure_guest_with_email", SMOKE_EMAIL_A, SMOKE_PASSWORD, SMOKE_PASSWORD)
 	_assert(bool(secure.get("ok", false)), "B: secure failed: %s" % str(secure))
 	_assert(str(secure.get("user_id", "")) == before_uid, "B: user_id changed on link")
+	_assert(str(identity.call("get_current_player_id")) == before_uid, "B: Player ID changed on secure")
 	_assert(str(nc.call("get_user_id")) == before_uid, "B: session user changed")
 	_assert(str(identity.call("get_account_kind")) == "SECURED", "B: not SECURED after link")
 	_assert(bool(identity.call("get_linked_providers").get("EMAIL", false)), "B: EMAIL provider missing")

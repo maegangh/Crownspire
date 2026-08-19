@@ -104,6 +104,7 @@ func _build_summary() -> void:
 	title.text = tr("ACCOUNT_SECURED_TITLE") if secured else tr("ACCOUNT_GUEST_TITLE")
 	_style_label(title, FONT_SECTION, COL_GOLD)
 	add_child(title)
+	_add_support_identity_rows(identity)
 
 	var body := Label.new()
 	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -158,6 +159,68 @@ func _build_summary() -> void:
 	add_child(login_btn)
 
 
+func _add_support_identity_rows(identity: Node) -> void:
+	if identity != null and identity.has_method("get_chief_display_name"):
+		var chief: String = str(identity.call("get_chief_display_name")).strip_edges()
+		if chief != "":
+			var chief_lbl := Label.new()
+			chief_lbl.name = "ChiefNameLabel"
+			chief_lbl.text = "%s: %s" % [tr("CHIEF_NAME"), chief]
+			_style_label(chief_lbl, FONT_BODY, COL_INK)
+			add_child(chief_lbl)
+	var full_id: String = ""
+	var short_id: String = ""
+	if identity != null:
+		if identity.has_method("get_current_player_id"):
+			full_id = str(identity.call("get_current_player_id")).strip_edges()
+		if identity.has_method("get_current_player_id_short"):
+			short_id = str(identity.call("get_current_player_id_short")).strip_edges()
+	var row := HBoxContainer.new()
+	row.name = "PlayerIdRow"
+	row.add_theme_constant_override("separation", 8)
+	add_child(row)
+	var id_lbl := Label.new()
+	id_lbl.name = "PlayerIdLabel"
+	id_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	if short_id == "":
+		id_lbl.text = "%s: —" % tr("PLAYER_ID")
+	else:
+		id_lbl.text = "%s: %s" % [tr("PLAYER_ID"), short_id]
+	_style_label(id_lbl, FONT_BODY, COL_MUTED)
+	row.add_child(id_lbl)
+	var copy_btn := Button.new()
+	copy_btn.name = "PlayerIdCopyButton"
+	copy_btn.text = tr("COPY")
+	copy_btn.custom_minimum_size = Vector2(96, TOUCH_H)
+	copy_btn.disabled = full_id.is_empty()
+	_style_button(copy_btn)
+	copy_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
+	copy_btn.pressed.connect(_on_copy_player_id_pressed)
+	row.add_child(copy_btn)
+	var copied := Label.new()
+	copied.name = "PlayerIdCopiedLabel"
+	copied.visible = false
+	copied.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_style_label(copied, FONT_BODY, COL_OK)
+	add_child(copied)
+
+
+func _on_copy_player_id_pressed() -> void:
+	var identity: Node = get_node_or_null("/root/AccountIdentityState")
+	var copied_ok: bool = false
+	if identity != null and identity.has_method("copy_current_player_id_to_clipboard"):
+		var result: Dictionary = identity.call("copy_current_player_id_to_clipboard")
+		copied_ok = bool(result.get("copied", false))
+	var copied_lbl: Label = find_child("PlayerIdCopiedLabel", true, false)
+	if copied_lbl == null:
+		return
+	if copied_ok:
+		copied_lbl.text = tr("PLAYER_ID_COPIED")
+		copied_lbl.visible = true
+	else:
+		copied_lbl.visible = false
+
+
 func _add_provider_availability_note(identity: Node) -> void:
 	var google_ok: bool = identity.has_method("is_google_sign_in_available") and bool(identity.call("is_google_sign_in_available"))
 	var apple_ok: bool = identity.has_method("is_apple_sign_in_available") and bool(identity.call("is_apple_sign_in_available"))
@@ -177,6 +240,22 @@ func _add_provider_availability_note(identity: Node) -> void:
 	note.text = tr("ACCOUNT_PROVIDER_COMING")
 	_style_label(note, FONT_BODY, COL_MUTED)
 	add_child(note)
+	if not google_ok:
+		var diag := Label.new()
+		diag.name = "GoogleDiagnosticNote"
+		diag.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		var player_code: String = "G1"
+		if identity.has_method("get_google_sign_in_status"):
+			var st: Dictionary = identity.call("get_google_sign_in_status")
+			player_code = str(st.get("player_diagnostic", "G1"))
+			if player_code == "":
+				player_code = "G1"
+		diag.text = tr("ACCOUNT_GOOGLE_UNAVAILABLE_G2") if player_code == "G2" else tr("ACCOUNT_GOOGLE_UNAVAILABLE_G1")
+		_style_label(diag, FONT_BODY, COL_MUTED)
+		add_child(diag)
+		var google: Node = get_node_or_null("/root/GoogleIdentityClient")
+		if google != null and google.has_method("log_availability_once"):
+			google.call("log_availability_once")
 
 
 func _add_google_identity_actions(identity: Node, login_form: bool, switch_blocked: bool = false) -> void:

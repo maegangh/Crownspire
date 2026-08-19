@@ -2,6 +2,10 @@
 
 [resource]
 messages = {
+[&"", &"CHIEF_NAME"]: [&"Chief"],
+[&"", &"PLAYER_ID_COPIED"]: [&"Player ID copied"],
+[&"", &"COPY"]: [&"Copy"],
+[&"", &"PLAYER_ID"]: [&"Player ID"],
 [&"", &"ACCOUNT_SECURE_GOOGLE"]: [&"Secure with Google"],
 [&"", &"ACCOUNT_LINKING_GOOGLE"]: [&"Linking Google…"],
 [&"", &"ACCOUNT_CONTINUE_GOOGLE"]: [&"Continue with Google"],
@@ -10,6 +14,8 @@ messages = {
 [&"", &"ACCOUNT_PURCHASE_SECURE_MCS"]: [&"Secure with Mythic Crown Studios Account"],
 [&"", &"ACCOUNT_PROGRESS_PROTECTED"]: [&"Your Crownspire progress is protected."],
 [&"", &"ACCOUNT_SECURE_PROGRESS"]: [&"Secure your account to protect your Crownspire progress."],
+[&"", &"ACCOUNT_GOOGLE_UNAVAILABLE_G2"]: [&"Google Sign-In unavailable (G2)"],
+[&"", &"ACCOUNT_GOOGLE_UNAVAILABLE_G1"]: [&"Google Sign-In unavailable (G1)"],
 [&"", &"ACCOUNT_PROVIDER_COMING"]: [&"Google and Apple sign-in will be available after additional setup."],
 [&"", &"ACCOUNT_APPLE_UNAVAILABLE"]: [&"Sign in with Apple is not available in this build."],
 [&"", &"ACCOUNT_GOOGLE_UNAVAILABLE"]: [&"Google sign-in is not available in this build."],
@@ -106,7 +112,7 @@ messages = {
 [&"", &"PROFILE_ONLINE"]: [&"Online"],
 [&"", &"PROFILE_STATUS"]: [&"Status"],
 [&"", &"PROFILE_VIP"]: [&"VIP"],
-[&"", &"PROFILE_CASTLE"]: [&"Citadel"],
+[&"", &"PROFILE_CITADEL"]: [&"Citadel"],
 [&"", &"PROFILE_ALLIANCE"]: [&"Alliance"],
 [&"", &"PROFILE_KINGDOM"]: [&"Kingdom"],
 [&"", &"PROFILE_KILLS"]: [&"Kills"],

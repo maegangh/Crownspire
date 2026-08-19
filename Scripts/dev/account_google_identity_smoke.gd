@@ -79,6 +79,11 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	_assert(panel.find_child("ProviderUnavailableNote", true, false) != null, "A: unavailable note missing")
+	var gdiag: Label = panel.find_child("GoogleDiagnosticNote", true, false)
+	_assert(gdiag != null, "A: Google diagnostic missing")
+	_assert(gdiag != null and str(gdiag.text).find("G1") >= 0, "A: expected G1 diagnostic")
+	_assert(gdiag == null or str(gdiag.text).find("apps.googleusercontent") < 0, "A: diagnostic leaked client id")
+	_assert(panel.find_child("PlayerIdLabel", true, false) != null, "A: Player ID must remain")
 	_assert(panel.find_child("LinkGoogleButton", true, false) == null, "A: link button shown")
 	_assert(panel.find_child("SignInGoogleButton", true, false) == null, "A: sign-in button shown")
 	if panel.has_method("show_login_view"):
@@ -87,6 +92,48 @@ func _run() -> void:
 	await process_frame
 	_assert(panel.find_child("ContinueGoogleButton", true, false) == null, "A: continue button shown")
 	panel.queue_free()
+
+	print("[GOOGLE IDENTITY] availability codes + safe diagnostics")
+	_assert(str(google.call("get_availability_code")) == "NOT_ANDROID", "diag: default NOT_ANDROID")
+	google.call("smoke_reset_availability_log")
+	google.call("log_availability_once")
+	var avail_log: String = str(google.call("get_last_availability_log"))
+	_assert(avail_log.find("[CrownspireGoogle] availability=NOT_ANDROID") >= 0, "diag: log format NOT_ANDROID")
+	_assert(avail_log.find("android_runtime=false") >= 0, "diag: android_runtime boolean")
+	_assert(avail_log.find("apps.googleusercontent") < 0, "diag: log leaked web client id")
+	_assert(avail_log.to_lower().find("gocspx") < 0, "diag: log leaked secret")
+	_assert(avail_log.find("eyJ") < 0, "diag: log leaked token")
+	google.call("smoke_set_availability_flags", true, false, true)
+	_assert(str(google.call("get_availability_code")) == "SINGLETON_MISSING", "diag: SINGLETON_MISSING")
+	_assert(str(google.call("get_player_diagnostic_code")) == "G1", "diag: singleton maps to G1")
+	google.call("smoke_set_availability_flags", true, true, false)
+	_assert(str(google.call("get_availability_code")) == "OAUTH_CONFIG_MISSING", "diag: OAUTH_CONFIG_MISSING")
+	_assert(str(google.call("get_player_diagnostic_code")) == "G2", "diag: oauth maps to G2")
+	var g2_panel: Control = PanelScript.new()
+	g2_panel.name = "GoogleDiagG2"
+	root.add_child(g2_panel)
+	await process_frame
+	await process_frame
+	var g2_note: Label = g2_panel.find_child("GoogleDiagnosticNote", true, false)
+	_assert(g2_note != null and str(g2_note.text).find("G2") >= 0, "diag: Account Settings G2")
+	_assert(g2_panel.find_child("LinkGoogleButton", true, false) == null, "diag: G2 must not show Google link")
+	g2_panel.queue_free()
+	google.call("smoke_set_availability_flags", true, true, true)
+	_assert(str(google.call("get_availability_code")) == "READY", "diag: READY")
+	_assert(str(google.call("get_player_diagnostic_code")) == "", "diag: READY has no player code")
+	var ready_panel: Control = PanelScript.new()
+	ready_panel.name = "GoogleDiagReady"
+	root.add_child(ready_panel)
+	await process_frame
+	await process_frame
+	_assert(ready_panel.find_child("GoogleDiagnosticNote", true, false) == null, "diag: READY must not show G1/G2")
+	_assert(ready_panel.find_child("AppleUnavailableNote", true, false) != null, "diag: Apple remains unavailable")
+	_assert(ready_panel.find_child("SignInGoogleButton", true, false) != null, "diag: READY guest can Secure with Google")
+	_assert(ready_panel.find_child("PlayerIdLabel", true, false) != null, "diag: Player ID remains when Google ready")
+	ready_panel.queue_free()
+	google.call("smoke_clear_availability_flags")
+	_assert(str(google.call("get_availability_code")) == "NOT_ANDROID", "diag: flags cleared")
+	_assert(not bool(identity.call("is_google_sign_in_available")), "diag: identity unavailable after clear")
 
 	print("[GOOGLE IDENTITY] B guest Google link preserves user_id")
 	identity.call("claim_local_saves_for_user", "user_a")
@@ -105,6 +152,7 @@ func _run() -> void:
 	_assert(bool(linked.get("ok", false)), "B: link failed: %s" % str(linked))
 	_assert(str(linked.get("user_id", "")) == before, "B: user_id changed")
 	_assert(str(nc.call("get_user_id")) == "user_a", "B: session changed")
+	_assert(str(identity.call("get_current_player_id")) == before, "B: Player ID changed after Google link")
 	_assert(str(identity.call("get_account_kind")) == "SECURED", "B: not secured")
 	_assert(bool(identity.call("get_linked_providers").get("GOOGLE", false)), "B: GOOGLE not linked")
 	_assert(bool(identity.call("has_recoverable_identity")), "B: not recoverable")

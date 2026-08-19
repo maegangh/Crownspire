@@ -32,6 +32,21 @@ static var _has_test_session_payloads: bool = false
 static var _test_session_restore_wallet: Dictionary = {}
 static var _test_session_refresh_wallet: Dictionary = {}
 static var _wallet_owner_user_id: String = ""
+static var _signal_bus: Object = null
+
+signal wallet_snapshot_changed
+
+
+static func get_signal_bus() -> Object:
+	if _signal_bus == null:
+		_signal_bus = new()
+	return _signal_bus
+
+
+static func _emit_wallet_snapshot_changed() -> void:
+	var bus: Object = get_signal_bus()
+	if bus.has_signal("wallet_snapshot_changed"):
+		bus.emit_signal("wallet_snapshot_changed")
 
 
 static func begin_smoke_isolation() -> void:
@@ -117,6 +132,7 @@ static func apply_commerce_wallet_payload(wallet: Dictionary) -> bool:
 	if typeof(ents) == TYPE_ARRAY:
 		apply_entitlement_snapshot(ents)
 	_wallet_owner_user_id = expected
+	_emit_wallet_snapshot_changed()
 	return true
 
 
@@ -131,7 +147,19 @@ static func get_authoritative_diamonds() -> int:
 
 
 static func is_beta_voucher_available() -> bool:
-	return _has_snapshot and _beta_voucher_available
+	if not _has_snapshot or not _beta_voucher_available:
+		return false
+	return _wallet_belongs_to_current_user()
+
+
+static func _wallet_belongs_to_current_user() -> bool:
+	var owner: String = _wallet_owner_user_id.strip_edges()
+	var current: String = _current_auth_user_id()
+	if owner == "" and current == "":
+		return true
+	if owner == "" or current == "":
+		return false
+	return owner == current
 
 
 static func get_beta_voucher_balance() -> int:

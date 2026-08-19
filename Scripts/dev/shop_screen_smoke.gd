@@ -137,16 +137,14 @@ func _run() -> void:
 		}],
 		"entitlements": [],
 	})
-	shop.call("on_open")
 	await process_frame
 	var beta_shown: Control = shop.find_child("BetaVoucherPanel", true, false)
-	_assert(beta_shown != null and beta_shown.visible, "server-approved beta mode shows voucher panel")
+	_assert(beta_shown != null and beta_shown.visible, "D: late wallet snapshot shows voucher panel without reopen")
 	var bal: Label = shop.find_child("BetaVoucherBalance", true, false)
 	_assert(bal != null and str(bal.text).find("5") >= 0, "voucher balance displayed from server")
 	_assert(shop.find_child("BetaVoucherRedeemInput", true, false) != null, "redeem field present")
 	_assert(shop.find_child("BetaVoucherRedeemButton", true, false) != null, "redeem button present")
 	Commerce.apply_commerce_wallet_payload({"diamonds": 0, "beta_voucher_available": false, "beta_vouchers": 0, "entitlements": []})
-	shop.call("on_open")
 	await process_frame
 	var beta_hidden: Control = shop.find_child("BetaVoucherPanel", true, false)
 	_assert(beta_hidden != null and not beta_hidden.visible, "L: authoritative unavailable hides voucher panel")
