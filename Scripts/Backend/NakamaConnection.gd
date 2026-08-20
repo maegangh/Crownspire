@@ -47,7 +47,8 @@ var _scheme: String = DEV_SCHEME
 var _server_key: String = DEV_SERVER_KEY
 var _last_fail_reason: String = ""
 var _session_store: AccountSessionStore = AccountSessionStore.new()
-var _last_auth_source: String = "" ## restore | refresh | device | email | link_email | google | link_google | gate_required
+var _last_auth_source: String = "" ## restore | refresh | device_restore | device | retry | email | link_email | google | link_google | gate_required
+var _last_restore_failure_transient: bool = false
 ## Phase 4 email/google auth smoke — never calls production link/login APIs.
 var _email_smoke: bool = false
 var _smoke_email_by_user: Dictionary = {} ## user_id -> email
@@ -55,6 +56,10 @@ var _smoke_user_by_email: Dictionary = {} ## email -> {user_id, password}
 var _smoke_user_by_google: Dictionary = {} ## google_sub -> {user_id}
 var _smoke_google_by_user: Dictionary = {} ## user_id -> google_sub
 var _smoke_session_user: String = ""
+var _restore_smoke: bool = false
+var _smoke_force_unauthenticated: bool = false
+var _smoke_refresh_handler: Callable = Callable()
+var _smoke_device_auth_handler: Callable = Callable()
 
 
 func _ready() -> void:
@@ -70,8 +75,10 @@ func _notification(what: int) -> void:
 
 
 func is_authenticated() -> bool:
-	if _email_smoke and _smoke_session_user.strip_edges() != "":
-		return true
+	if _restore_smoke and _smoke_force_unauthenticated:
+		return false
+	if _email_smoke:
+		return _smoke_session_user.strip_edges() != ""
 	return _session != null and not _session.is_exception() and _session.is_valid()
 
 
@@ -123,7 +130,7 @@ func get_session() -> NakamaSession:
 
 
 func get_user_id() -> String:
-	if _email_smoke and _smoke_session_user.strip_edges() != "":
+	if _email_smoke:
 		return _smoke_session_user.strip_edges()
 	if not (_session != null and not _session.is_exception() and _session.is_valid()):
 		return ""
@@ -152,6 +159,41 @@ func begin_session_store_smoke_isolation() -> void:
 
 func end_session_store_smoke_isolation() -> void:
 	_session_store.end_smoke_isolation()
+
+
+func begin_restore_smoke_isolation() -> void:
+	_restore_smoke = true
+	_smoke_force_unauthenticated = false
+	_smoke_refresh_handler = Callable()
+	_smoke_device_auth_handler = Callable()
+	_last_restore_failure_transient = false
+	_last_auth_source = ""
+	begin_session_store_smoke_isolation()
+
+
+func end_restore_smoke_isolation() -> void:
+	_restore_smoke = false
+	_smoke_force_unauthenticated = false
+	_smoke_refresh_handler = Callable()
+	_smoke_device_auth_handler = Callable()
+	_last_restore_failure_transient = false
+	end_session_store_smoke_isolation()
+
+
+func smoke_set_refresh_handler(handler: Callable) -> void:
+	_smoke_refresh_handler = handler
+
+
+func smoke_set_device_auth_handler(handler: Callable) -> void:
+	_smoke_device_auth_handler = handler
+
+
+func smoke_set_unauthenticated(force: bool) -> void:
+	_smoke_force_unauthenticated = force
+
+
+func restore_stored_session_for_test(device_id: String = "crownspire-restore-smoke-device") -> NakamaSession:
+	return await _authenticate_session_priority(device_id)
 
 
 func begin_email_auth_smoke_isolation() -> void:
@@ -704,7 +746,11 @@ func _connect_async() -> void:
 	var session: NakamaSession = await _authenticate_session_priority(device_id)
 	if session == null and _last_auth_source == "gate_required":
 		_fail("login_required")
-		# Do not schedule device-auth reconnect over a known secured account.
+		# Do not mint a guest over a known secured account. Keep stored session for a later login.
+		return
+	if session == null and _last_auth_source == "retry":
+		_fail("session_restore_retry")
+		_schedule_reconnect()
 		return
 	if session == null or session.is_exception():
 		var reason: String = "authentication failed"
@@ -751,42 +797,168 @@ func _connect_async() -> void:
 	socket_connected.emit()
 
 
-## Session restore → refresh → (gate or device). Never replaces a known secured account with a silent guest.
+## Session restore → refresh → same-user device restore (create=false) → gate.
+## Never replaces a known secured account with a silent guest. Never uses create=true on restore.
 func _authenticate_session_priority(device_id: String) -> NakamaSession:
+	_last_restore_failure_transient = false
 	var restored: NakamaSession = _session_store.restore_session_object()
-	if restored != null:
-		if not restored.is_expired():
-			_last_auth_source = "restore"
-			print("[Nakama] Restored stored session user=%s" % str(restored.user_id))
-			return restored
-		if (
-			not restored.is_refresh_expired()
-			and str(restored.refresh_token).strip_edges() != ""
-		):
-			print("[Nakama] Stored session expired — refreshing user=%s" % str(restored.user_id))
-			var refreshed: NakamaSession = await _client.session_refresh_async(restored)
-			if refreshed != null and not refreshed.is_exception() and refreshed.is_valid():
-				_last_auth_source = "refresh"
-				print("[Nakama] Session refresh successful user=%s" % str(refreshed.user_id))
-				return refreshed
-			print("[Nakama] Session refresh failed — checking login gate")
-		else:
-			print("[Nakama] Stored session unusable — checking login gate")
+	var expected_uid: String = _expected_restore_user_id(restored)
+	if restored != null and restored.is_valid() and not restored.is_expired():
+		_last_auth_source = "restore"
+		print("[Nakama] Restored stored session user=%s" % str(restored.user_id))
+		return restored
+	if restored != null and _can_refresh_stored_session(restored):
+		print("[Nakama] Stored session expired — refreshing user=%s" % str(restored.user_id))
+		var refreshed: NakamaSession = await _refresh_stored_session(restored)
+		if refreshed != null:
+			_last_auth_source = "refresh"
+			print("[Nakama] Session refresh successful user=%s" % str(refreshed.user_id))
+			return refreshed
+		if _last_restore_failure_transient:
+			_last_auth_source = "retry"
+			print("[Nakama] Session refresh failed transiently — keeping stored session and retrying")
+			return null
+		print("[Nakama] Session refresh rejected — trying same-user device restore")
+	elif restored != null:
+		print("[Nakama] Stored session expired without a usable refresh token — trying same-user device restore")
 
-	var identity: Node = get_node_or_null("/root/AccountIdentityState")
-	if identity != null and bool(identity.call("should_block_guest_device_fallback")):
+	if expected_uid != "" and device_id.strip_edges() != "":
+		var device_session: NakamaSession = await _restore_existing_device_session(device_id, expected_uid)
+		if device_session != null:
+			_last_auth_source = "device_restore"
+			print("[Nakama] Device restore successful user=%s" % str(device_session.user_id))
+			return device_session
+		if _last_restore_failure_transient:
+			_last_auth_source = "retry"
+			print("[Nakama] Device restore failed transiently — keeping stored session and retrying")
+			return null
+
+	if _should_block_guest_restore() or expected_uid != "":
 		_last_auth_source = "gate_required"
-		print("[Nakama] Known secured account — requesting login gate instead of new guest")
+		print("[Nakama] Session unrecoverable — requesting login gate instead of new guest")
 		login_gate_needed.emit("session_unrecoverable")
 		return null
 
 	_last_auth_source = "device"
 	print("[Nakama] Authenticating via device ID")
+	if _restore_smoke and _smoke_device_auth_handler.is_valid():
+		return await _invoke_smoke_device_auth(device_id, "")
 	return await _client.authenticate_device_async(device_id)
 
 
+func _expected_restore_user_id(restored: NakamaSession) -> String:
+	if restored != null:
+		var from_session: String = str(restored.user_id).strip_edges()
+		if from_session != "":
+			return from_session
+	var data: Dictionary = _session_store.load_session_data()
+	var stored: String = str(data.get("user_id", "")).strip_edges()
+	if stored != "":
+		return stored
+	var identity: Node = get_node_or_null("/root/AccountIdentityState")
+	if identity != null and identity.has_method("get_local_owner_user_id"):
+		return str(identity.call("get_local_owner_user_id")).strip_edges()
+	return ""
+
+
+func _should_block_guest_restore() -> bool:
+	var identity: Node = get_node_or_null("/root/AccountIdentityState")
+	return identity != null and bool(identity.call("should_block_guest_device_fallback"))
+
+
+func _can_refresh_stored_session(restored: NakamaSession) -> bool:
+	if restored == null:
+		return false
+	if str(restored.refresh_token).strip_edges() == "":
+		return false
+	return not restored.is_refresh_expired()
+
+
+func _refresh_stored_session(restored: NakamaSession) -> NakamaSession:
+	var refreshed: NakamaSession = null
+	if _restore_smoke and _smoke_refresh_handler.is_valid():
+		var raw: Variant = await _smoke_refresh_handler.call(restored)
+		if raw is NakamaSession:
+			refreshed = raw
+		elif typeof(raw) == TYPE_DICTIONARY:
+			var row: Dictionary = raw
+			_last_restore_failure_transient = bool(row.get("transient", false))
+			return null
+	elif _client != null:
+		refreshed = await _client.session_refresh_async(restored)
+	if refreshed != null and not refreshed.is_exception() and refreshed.is_valid():
+		var expected: String = str(restored.user_id).strip_edges()
+		if expected != "" and str(refreshed.user_id).strip_edges() != expected:
+			print("[Nakama] Session refresh user mismatch — refusing")
+			_last_restore_failure_transient = false
+			return null
+		_last_restore_failure_transient = false
+		return refreshed
+	var reason: String = "refresh_failed"
+	if refreshed != null and refreshed.get_exception() != null:
+		reason = str(refreshed.get_exception().message)
+	_last_restore_failure_transient = _is_transient_auth_failure(reason)
+	return null
+
+
+func _restore_existing_device_session(device_id: String, expected_user_id: String) -> NakamaSession:
+	var session: NakamaSession = null
+	if _restore_smoke and _smoke_device_auth_handler.is_valid():
+		session = await _invoke_smoke_device_auth(device_id, expected_user_id)
+	elif _client != null:
+		# create=false — never invent a new account during restore.
+		session = await _client.authenticate_device_async(device_id, null, false)
+	if session != null and not session.is_exception() and session.is_valid():
+		if str(session.user_id).strip_edges() != expected_user_id.strip_edges():
+			print("[Nakama] Device restore user mismatch — refusing")
+			_last_restore_failure_transient = false
+			return null
+		_last_restore_failure_transient = false
+		return session
+	var reason: String = "device_restore_failed"
+	if session != null and session.get_exception() != null:
+		reason = str(session.get_exception().message)
+	_last_restore_failure_transient = _is_transient_auth_failure(reason)
+	return null
+
+
+func _invoke_smoke_device_auth(device_id: String, expected_user_id: String) -> NakamaSession:
+	var raw: Variant = await _smoke_device_auth_handler.call(device_id, expected_user_id)
+	if raw is NakamaSession:
+		return raw
+	if typeof(raw) == TYPE_DICTIONARY:
+		var row: Dictionary = raw
+		_last_restore_failure_transient = bool(row.get("transient", false))
+	return null
+
+
+func _is_transient_auth_failure(reason: String) -> bool:
+	var text: String = reason.strip_edges().to_lower()
+	if text.is_empty():
+		return true
+	if text.find("invalid") >= 0 or text.find("unauthenticated") >= 0:
+		return false
+	if text.find("expired") >= 0 or text.find("not found") >= 0:
+		return false
+	if text.find("unknown") >= 0 or text.find("rejected") >= 0:
+		return false
+	return (
+		text.find("network") >= 0
+		or text.find("timeout") >= 0
+		or text.find("timed out") >= 0
+		or text.find("unavailable") >= 0
+		or text.find("connect") >= 0
+		or text.find("offline") >= 0
+		or text.find("temporarily") >= 0
+		or text.find("retry") >= 0
+		or text.find("reset") >= 0
+		or text.find("503") >= 0
+		or text.find("502") >= 0
+	)
+
+
 func _persist_session_safely(session: NakamaSession) -> void:
-	if session == null or session.is_exception() or not session.is_valid():
+	if session == null or not session.is_valid():
 		return
 	if not _session_store.save_session(session):
 		push_warning("[Nakama] Failed to persist session locally (non-fatal)")

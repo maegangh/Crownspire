@@ -98,17 +98,29 @@ func rebuild() -> void:
 
 func _build_summary() -> void:
 	var identity: Node = get_node_or_null("/root/AccountIdentityState")
-	var secured: bool = _is_secured_account(identity)
+	var restore_needed: bool = _needs_live_session_restore(identity)
+	var secured: bool = _is_secured_account(identity) and not restore_needed
 	var title := Label.new()
 	title.name = "AccountStatusTitle"
-	title.text = tr("ACCOUNT_SECURED_TITLE") if secured else tr("ACCOUNT_GUEST_TITLE")
+	if restore_needed:
+		title.text = "Sign in required"
+	elif secured:
+		title.text = tr("ACCOUNT_SECURED_TITLE")
+	else:
+		title.text = tr("ACCOUNT_GUEST_TITLE")
 	_style_label(title, FONT_SECTION, COL_GOLD)
 	add_child(title)
 	_add_support_identity_rows(identity)
 
 	var body := Label.new()
+	body.name = "AccountStatusBody"
 	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	if secured:
+	if restore_needed:
+		body.text = "This device remembers your secured account, but you are not signed in to the server. Sign in to restore the same account. A new guest will not be created."
+		var masked_restore: String = str(identity.call("get_masked_email")) if identity != null else ""
+		if masked_restore != "":
+			body.text += "\n%s: %s" % [tr("ACCOUNT_EMAIL"), masked_restore]
+	elif secured:
 		body.text = tr("ACCOUNT_PROGRESS_PROTECTED")
 		var masked: String = str(identity.call("get_masked_email")) if identity != null else ""
 		if masked != "":
@@ -133,7 +145,7 @@ func _build_summary() -> void:
 	_style_label(_status, FONT_BODY, COL_MUTED)
 	add_child(_status)
 
-	if not secured and not _login_gate_mode:
+	if not secured and not restore_needed and not _login_gate_mode:
 		var mcs := Label.new()
 		mcs.text = tr("ACCOUNT_MCS")
 		_style_label(mcs, FONT_BODY, COL_INK)
@@ -628,12 +640,21 @@ func _show_summary() -> void:
 func _is_secured_account(identity: Node) -> bool:
 	if identity == null:
 		return false
+	if identity.has_method("is_live_authenticated") and not bool(identity.call("is_live_authenticated")):
+		return false
 	if bool(identity.call("is_secured")):
 		return true
+	return false
+
+
+func _needs_live_session_restore(identity: Node) -> bool:
+	if identity == null:
+		return false
+	if identity.has_method("needs_live_session_restore"):
+		return bool(identity.call("needs_live_session_restore"))
 	if identity.has_method("is_known_secured") and bool(identity.call("is_known_secured")):
-		return true
-	if identity.has_method("should_block_guest_device_fallback") and bool(identity.call("should_block_guest_device_fallback")):
-		return true
+		if identity.has_method("is_live_authenticated"):
+			return not bool(identity.call("is_live_authenticated"))
 	return false
 
 

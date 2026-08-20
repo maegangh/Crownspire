@@ -61,7 +61,6 @@ const PUBLIC_PLAYER_ID_ALPHABET := "23456789ABCDEFGHJKMNPQRSTUVWXYZ"
 const RPC_GET_PUBLIC_PLAYER_ID := "crownspire_account_get_public_player_id"
 
 
-
 func _ready() -> void:
 	_load_ownership_record()
 	call_deferred("_bind_nakama")
@@ -231,6 +230,14 @@ func get_account_status() -> String:
 	var cloud: Node = get_node_or_null("/root/AccountCloudSave")
 	if cloud != null and cloud.has_method("has_blocked_conflict") and bool(cloud.call("has_blocked_conflict")):
 		return "SAVE_CONFLICT"
+	if needs_live_session_restore():
+		if _boot_gate_mode == BootGateMode.SHOW_GATE:
+			return "LOGIN_REQUIRED"
+		var nc: Node = get_node_or_null("/root/NakamaConnection")
+		var conn: String = str(nc.call("get_connection_state")) if nc != null and nc.has_method("get_connection_state") else ""
+		if conn == "connecting" or conn == "reconnecting":
+			return "RECONNECTING"
+		return "LOGIN_REQUIRED"
 	if _account_kind == AccountKind.SECURED:
 		return "SECURED"
 	return "GUEST"
@@ -246,6 +253,17 @@ func is_secured() -> bool:
 
 func is_known_secured() -> bool:
 	return _known_secured
+
+
+func is_live_authenticated() -> bool:
+	var nc: Node = get_node_or_null("/root/NakamaConnection")
+	return nc != null and nc.has_method("is_authenticated") and bool(nc.call("is_authenticated"))
+
+
+func needs_live_session_restore() -> bool:
+	if not _known_secured:
+		return false
+	return not is_live_authenticated()
 
 
 func is_authenticating() -> bool:

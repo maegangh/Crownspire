@@ -48,14 +48,14 @@ func load_session_data() -> Dictionary:
 
 
 func save_session(session: NakamaSession) -> bool:
-	if session == null or session.is_exception() or not session.is_valid():
+	if session == null or not session.is_valid():
 		return false
 	var token: String = str(session.token).strip_edges()
 	if token.is_empty():
 		return false
 	var cfg := ConfigFile.new()
 	var path: String = get_store_path()
-	# Preserve unrelated keys if any.
+	# Preserve unrelated keys if any. Never keyed to app version / Play update — this file must survive updates.
 	cfg.load(path)
 	cfg.set_value(SECTION, "auth_token", token)
 	cfg.set_value(SECTION, "refresh_token", str(session.refresh_token).strip_edges())
@@ -73,15 +73,32 @@ func clear() -> void:
 
 
 ## Build a NakamaSession from stored tokens without network I/O.
+## Expired access tokens are still returned when the JWT parses so callers can refresh.
 func restore_session_object() -> NakamaSession:
 	var data: Dictionary = load_session_data()
 	var token: String = str(data.get("auth_token", "")).strip_edges()
 	if token.is_empty():
 		return null
 	var refresh: String = str(data.get("refresh_token", "")).strip_edges()
-	var session: NakamaSession = NakamaSession.new(token, false, refresh if refresh != "" else null)
-	if session == null or session.is_exception() or not session.is_valid():
+	var session: NakamaSession = _make_session(token, refresh)
+	if session == null or not session.is_valid():
 		return null
+	return session
+
+
+func _make_session(token: String, refresh: String) -> NakamaSession:
+	var session: NakamaSession = NakamaSession.new(token, false, refresh if refresh != "" else null)
+	if session == null or not session.is_valid():
+		return null
+	# Refresh-token unpack can mark NakamaSession as an exception without invalidating
+	# the access JWT. Do not discard a usable access token because of that.
+	if session.is_exception() and refresh != "":
+		var token_only: NakamaSession = NakamaSession.new(token, false, null)
+		if token_only != null and token_only.is_valid() and not token_only.is_exception():
+			var with_refresh: NakamaSession = NakamaSession.new(token, false, refresh)
+			if with_refresh != null and with_refresh.is_valid() and not with_refresh.is_exception():
+				return with_refresh
+			return token_only
 	return session
 
 
