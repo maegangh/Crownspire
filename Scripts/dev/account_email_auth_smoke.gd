@@ -205,6 +205,7 @@ func _run() -> void:
 		nc.call("smoke_set_session_user", "user_a")
 		await identity.call("secure_guest_with_email", "p4.gate2@crownspire.smoke.test", SMOKE_PASSWORD, SMOKE_PASSWORD)
 	_assert(bool(identity.call("should_block_guest_device_fallback")), "I: secured ownership should block silent guest")
+	_assert(not bool(identity.call("should_force_login_gate")), "I: known secured must not force login overlay")
 
 	# Cleanup smoke isolation.
 	cloud.call("end_smoke_isolation")

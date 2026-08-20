@@ -221,7 +221,7 @@ func get_account_kind() -> String:
 	return "SECURED" if _account_kind == AccountKind.SECURED else "GUEST"
 
 
-## Combined UI/status string: AUTHENTICATING | ACCOUNT_MISMATCH | SAVE_CONFLICT | SECURED | GUEST
+## Combined UI/status string: AUTHENTICATING | ACCOUNT_MISMATCH | SAVE_CONFLICT | SECURED | GUEST | RECONNECTING | LOGIN_REQUIRED
 func get_account_status() -> String:
 	if _auth_phase == AuthPhase.AUTHENTICATING:
 		return "AUTHENTICATING"
@@ -230,14 +230,13 @@ func get_account_status() -> String:
 	var cloud: Node = get_node_or_null("/root/AccountCloudSave")
 	if cloud != null and cloud.has_method("has_blocked_conflict") and bool(cloud.call("has_blocked_conflict")):
 		return "SAVE_CONFLICT"
-	if needs_live_session_restore():
-		if _boot_gate_mode == BootGateMode.SHOW_GATE:
-			return "LOGIN_REQUIRED"
-		var nc: Node = get_node_or_null("/root/NakamaConnection")
-		var conn: String = str(nc.call("get_connection_state")) if nc != null and nc.has_method("get_connection_state") else ""
-		if conn == "connecting" or conn == "reconnecting":
-			return "RECONNECTING"
+	if is_live_authenticated() and _account_kind == AccountKind.SECURED:
+		return "SECURED"
+	# Terminal restore failure only. Known secured ownership is not live auth.
+	if should_force_login_gate():
 		return "LOGIN_REQUIRED"
+	if needs_live_session_restore():
+		return "RECONNECTING"
 	if _account_kind == AccountKind.SECURED:
 		return "SECURED"
 	return "GUEST"
@@ -658,11 +657,11 @@ func set_boot_gate_mode_for_future(mode: String) -> void:
 
 
 func should_force_login_gate() -> bool:
-	## Valid restored/refresh sessions never force the gate (handled before this is consulted).
-	## Known secured account whose session cannot be restored → prefer login over new guest.
-	if _boot_gate_mode == BootGateMode.SHOW_GATE:
-		return true
-	return should_block_guest_device_fallback()
+	## Overlay authority: terminal restore failure AND no usable live Nakama session.
+	## Known secured ownership alone must never force the login gate.
+	if is_live_authenticated():
+		return false
+	return _boot_gate_mode == BootGateMode.SHOW_GATE
 
 
 func should_block_guest_device_fallback() -> bool:
@@ -674,8 +673,12 @@ func should_block_guest_device_fallback() -> bool:
 
 
 func request_login_gate(reason: String = "session_unrecoverable") -> void:
+	if is_live_authenticated():
+		print("[CrownspireSession] gate_suppressed_live_session")
+		return
 	_boot_gate_mode = BootGateMode.SHOW_GATE
 	_session_auth_source = "gate_required"
+	print("[CrownspireSession] gate_requested reason=%s" % reason.strip_edges())
 	account_state_changed.emit()
 	login_gate_requested.emit(reason)
 
@@ -704,7 +707,8 @@ func on_authenticated(user_id: String, auth_source: String = "device") -> Dictio
 	_auth_user_id = uid
 	if previous_uid != "" and previous_uid != uid:
 		_clear_public_player_id_state()
-	if _boot_gate_mode == BootGateMode.SHOW_GATE and auth_source != "gate_required":
+	# Live auth wins any previously queued terminal gate.
+	if auth_source != "gate_required":
 		_boot_gate_mode = BootGateMode.AUTO_CONTINUE
 	_refresh_account_kind_from_nakama()
 	var ownership: Dictionary = _apply_local_ownership_rules(uid)
@@ -947,6 +951,9 @@ func _bind_nakama() -> void:
 
 
 func _on_login_gate_needed(reason: String) -> void:
+	if is_live_authenticated():
+		print("[CrownspireSession] gate_suppressed_live_session")
+		return
 	request_login_gate(reason)
 
 

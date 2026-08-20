@@ -77,8 +77,9 @@ func _ready() -> void:
 		identity.email_auth_completed.connect(_on_email_auth_completed)
 	if identity != null and identity.has_signal("account_state_changed"):
 		identity.account_state_changed.connect(_on_account_changed)
-	if has_node("/root/UiLayerStack"):
-		UiLayerStack.push_layer("blocking:AccountLoginGate", func() -> bool: return true, UiLayerStack.KIND_MODAL, true)
+	var stack: Node = get_node_or_null("/root/UiLayerStack")
+	if stack != null:
+		stack.call("push_layer", "blocking:AccountLoginGate", func() -> bool: return true, "modal", true)
 
 	var cloud: Node = get_node_or_null("/root/AccountCloudSave")
 	if cloud != null and cloud.has_method("has_blocked_conflict") and bool(cloud.call("has_blocked_conflict")):
@@ -132,8 +133,18 @@ func _on_conflict_resolved(_result: Dictionary) -> void:
 
 
 func _exit_tree() -> void:
-	if has_node("/root/UiLayerStack"):
-		UiLayerStack.remove_layer("blocking:AccountLoginGate")
+	var stack: Node = get_node_or_null("/root/UiLayerStack")
+	if stack != null:
+		stack.call("remove_layer", "blocking:AccountLoginGate")
+
+
+## HUD/tests: present overlay only for terminal restore failure without a live session.
+static func should_present_overlay(identity: Node) -> bool:
+	if identity == null:
+		return false
+	if identity.has_method("should_force_login_gate"):
+		return bool(identity.call("should_force_login_gate"))
+	return false
 
 
 static func ensure_on_tree(tree: SceneTree) -> void:
@@ -141,9 +152,14 @@ static func ensure_on_tree(tree: SceneTree) -> void:
 		return
 	if tree.root.get_node_or_null("AccountLoginGate") != null:
 		return
+	var identity: Node = tree.root.get_node_or_null("/root/AccountIdentityState")
+	if not should_present_overlay(identity):
+		print("[CrownspireSession] gate_suppressed_live_session")
+		return
 	var gate := load("res://Scripts/UI/AccountLoginGate.gd")
 	if gate == null:
 		return
+	print("[CrownspireSession] gate_shown reason=ensure_on_tree")
 	var node: CanvasLayer = gate.new()
 	node.name = "AccountLoginGate"
 	tree.root.add_child(node)

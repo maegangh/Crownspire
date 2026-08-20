@@ -1526,16 +1526,23 @@ func _bind_account_login_gate() -> void:
 		return
 	if identity.has_signal("login_gate_requested") and not identity.login_gate_requested.is_connected(_on_login_gate_requested):
 		identity.login_gate_requested.connect(_on_login_gate_requested)
+	# Boot must not treat known-secured ownership as a login overlay.
+	# Show only if restore already reached a terminal gate-required state with no live session.
 	if identity.has_method("should_force_login_gate") and bool(identity.call("should_force_login_gate")):
 		_on_login_gate_requested("boot")
 
 
-func _on_login_gate_requested(_reason: String) -> void:
+func _on_login_gate_requested(reason: String) -> void:
+	var identity: Node = get_node_or_null("/root/AccountIdentityState")
+	if identity != null and identity.has_method("should_force_login_gate") and not bool(identity.call("should_force_login_gate")):
+		print("[CrownspireSession] gate_suppressed_live_session")
+		return
 	var gate_script: GDScript = load("res://Scripts/UI/AccountLoginGate.gd") as GDScript
 	if gate_script == null or get_tree() == null or get_tree().root == null:
 		return
 	if get_tree().root.get_node_or_null("AccountLoginGate") != null:
 		return
+	print("[CrownspireSession] gate_shown reason=%s" % str(reason).strip_edges())
 	var gate: CanvasLayer = gate_script.new() as CanvasLayer
 	gate.name = "AccountLoginGate"
 	get_tree().root.add_child(gate)
